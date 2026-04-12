@@ -1,6 +1,6 @@
 ---
 id: https://w3id.org/LightconeResearch/ASTRA/insight
-name: astra-insight
+name: insight
 description: |-
   Insight and evidence models with W3C Web Annotation-compliant selectors
   for referencing content in scientific papers and analysis artifacts.
