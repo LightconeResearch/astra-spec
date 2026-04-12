@@ -1,0 +1,127 @@
+---
+id: https://w3id.org/LightconeResearch/ASTRA/insight
+name: astra-insight
+description: |-
+  Insight and evidence models with W3C Web Annotation-compliant selectors
+  for referencing content in scientific papers and analysis artifacts.
+
+prefixes:
+  astra: https://w3id.org/LightconeResearch/ASTRA/
+  linkml: https://w3id.org/linkml/
+  oa: http://www.w3.org/ns/oa#
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+
+# ==========================================================================
+# W3C Web Annotation Selectors
+# ==========================================================================
+
+classes:
+
+  TextQuoteSelector:
+    description: >-
+      W3C TextQuoteSelector for locating text in a document.
+      The authoritative anchor for verification.
+    class_uri: oa:TextQuoteSelector
+    attributes:
+      exact:
+        required: true
+        description: Exact quoted text (1-3 sentences)
+      prefix:
+        description: ~20-100 chars before for disambiguation
+      suffix:
+        description: ~20-100 chars after for disambiguation
+
+  FragmentSelector:
+    description: >-
+      W3C FragmentSelector for PDF locations.
+      Conforms to RFC 3778/8118 for PDF fragments.
+    class_uri: oa:FragmentSelector
+    attributes:
+      value:
+        description: Fragment value (e.g., 'page=6')
+      page:
+        range: integer
+        minimum_value: 1
+        description: 1-indexed page number
+
+  # ==========================================================================
+  # Evidence and Insights
+  # ==========================================================================
+
+  Evidence:
+    description: >-
+      Evidence from a source with W3C-compliant selectors.
+      Can reference literature (by DOI) or analysis artifacts (by output ID).
+      Exactly one of doi or artifact must be set.
+    attributes:
+      id:
+        identifier: true
+        description: Evidence identifier
+      doi:
+        description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
+        pattern: "^10\\.\\d{4,}/.*$"
+      artifact:
+        description: Output ID referencing a declared output in this analysis
+      version:
+        range: integer
+        minimum_value: 1
+        description: Paper version for arXiv papers (version matters for reproducibility)
+      snapshot:
+        description: Path to immutable copy of the artifact
+      source_commit:
+        description: Git commit that produced the original artifact
+      quote:
+        range: TextQuoteSelector
+        inlined: true
+        description: Text quote anchor
+      location:
+        range: FragmentSelector
+        inlined: true
+        description: Location hint (page number for PDFs/reports)
+
+  Insight:
+    description: >-
+      A unit of scientific knowledge backed by evidence.
+      Used for both prior_insights (informing decisions) and
+      findings (conclusions from the analysis).
+    attributes:
+      id:
+        identifier: true
+        description: Unique identifier
+      claim:
+        required: true
+        description: What we learned (1-2 sentences)
+      created_at:
+        range: datetime
+        required: true
+        description: Creation timestamp (ISO 8601)
+      evidence:
+        range: Evidence
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: Supporting evidence (papers or analysis artifacts)
+      derived:
+        range: boolean
+        description: True if synthesized/inferred from multiple sources
+      scope:
+        description: Applicability conditions
+      tags:
+        multivalued: true
+        description: Categorization tags
+      notes:
+        description: Reasoning notes
+
+  InsightCollection:
+    description: Collection of insights, usable standalone or embedded in an analysis
+    attributes:
+      insights:
+        range: Insight
+        multivalued: true
+        inlined: true
+        description: Map of insight IDs to insights

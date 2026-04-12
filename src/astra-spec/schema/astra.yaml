@@ -1,0 +1,26 @@
+---
+id: https://w3id.org/LightconeResearch/ASTRA
+name: ASTRA
+title: ASTRA
+description: |-
+  Agentic Schema for Transparent Research Analysis.
+  A framework for defining hierarchical scientific analyses with
+  decision points, evidence-backed insights, and universe specifications.
+license: Apache-2.0
+see_also:
+  - https://LightconeResearch.github.io/ASTRA
+  - https://astra-spec.org
+
+prefixes:
+  astra: https://w3id.org/LightconeResearch/ASTRA/
+  linkml: https://w3id.org/linkml/
+  oa: http://www.w3.org/ns/oa#
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+  - insight
+  - analysis
+  - universe

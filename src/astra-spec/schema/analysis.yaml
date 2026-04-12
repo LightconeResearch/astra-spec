@@ -1,0 +1,329 @@
+---
+id: https://w3id.org/LightconeResearch/ASTRA/analysis
+name: astra-analysis
+description: |-
+  Analysis specification models. Defines the self-similar analysis
+  structure with inputs, outputs, decisions, and nested sub-analyses.
+
+prefixes:
+  astra: https://w3id.org/LightconeResearch/ASTRA/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+  - insight
+
+# ==========================================================================
+# Slots shared across analysis classes
+# ==========================================================================
+
+slots:
+
+  from_ref:
+    description: >-
+      Reference to a parent or sibling element.
+      Corresponds to 'from' in ASTRA YAML format.
+    aliases:
+      - from
+
+  when:
+    multivalued: true
+    description: >-
+      Conditions for when this element is active.
+      Format: 'decision_id.option_id' or '~decision_id.option_id'.
+      Multiple conditions are AND'd together.
+
+# ==========================================================================
+# Enumerations
+# ==========================================================================
+
+enums:
+
+  InputType:
+    description: Type of analysis input
+    permissible_values:
+      data:
+        description: A dataset, file, or external resource
+      analysis:
+        description: Outputs from another ASTRA analysis
+
+  OutputType:
+    description: Type of analysis output
+    permissible_values:
+      metric:
+        description: A metric or measurement
+      figure:
+        description: A figure or visualization
+      table:
+        description: A table of data
+      data:
+        description: A data file or dataset
+      report:
+        description: A report or document
+
+# ==========================================================================
+# Classes
+# ==========================================================================
+
+classes:
+
+  # --- Utility ---
+
+  KeyValuePair:
+    description: A key-value string pair
+    attributes:
+      key:
+        identifier: true
+        description: The key
+      value:
+        required: true
+        description: The value
+
+  # --- Execution ---
+
+  Resources:
+    description: Compute resource requirements for a recipe
+    attributes:
+      cpus:
+        range: integer
+        minimum_value: 1
+        description: Number of CPUs
+      memory:
+        description: Memory requirement (e.g., '8GB', '512MB')
+      gpus:
+        range: integer
+        minimum_value: 1
+        description: Number of GPUs
+      time_limit:
+        description: Maximum wall time (e.g., '2h', '30m')
+
+  ContainerBuildSpec:
+    description: Specification for building a container image from a Containerfile
+    attributes:
+      build:
+        required: true
+        description: Path to Containerfile relative to project root
+      context:
+        description: Build context directory
+      args:
+        range: KeyValuePair
+        multivalued: true
+        inlined_as_list: true
+        description: Docker build arguments as key-value pairs
+
+  Recipe:
+    description: >-
+      A build rule that produces an output. Recipes are the execution
+      contract: run this command to produce the parent output.
+    attributes:
+      command:
+        required: true
+        description: Command to execute (e.g., 'python src/train.py')
+      inputs:
+        multivalued: true
+        description: Output IDs that must be materialized before this recipe runs
+      container:
+        description: Container image name (pre-built image string)
+      container_build:
+        range: ContainerBuildSpec
+        inlined: true
+        description: Container image build specification (alternative to container string)
+      resources:
+        range: Resources
+        inlined: true
+        description: Compute resource requirements
+
+  # --- Inputs and Outputs ---
+
+  Input:
+    description: >-
+      An input to the analysis. Two kinds: data (dataset/file/resource)
+      or analysis (outputs from another ASTRA analysis).
+      Sub-analysis inputs can use from_ref to reference a parent input
+      or a sibling's output (e.g., 'sibling_id.output_id').
+    slots:
+      - from_ref
+    slot_usage:
+      from_ref:
+        description: >-
+          Reference to parent input or sibling output
+          (e.g., 'input_id' or 'sibling.output_id').
+    attributes:
+      id:
+        identifier: true
+        pattern: "^[a-z][a-z0-9_]*$"
+        description: Unique identifier for the input
+      type:
+        range: InputType
+        required: true
+        description: Type of input
+      description:
+        description: Description of the input
+      source:
+        description: URI or path to the data source
+      ref:
+        description: Reference to another ASTRA analysis
+      ref_version:
+        description: Version of the referenced analysis
+      use_outputs:
+        multivalued: true
+        description: Specific outputs to use from referenced analysis
+
+  Output:
+    description: >-
+      An expected output from the analysis. Outputs can declare
+      their provenance via from_ref to trace which sub-analysis produces them.
+    slots:
+      - from_ref
+      - when
+    slot_usage:
+      from_ref:
+        description: >-
+          Sub-analysis output that produces this
+          (e.g., 'sub_analysis.output_id').
+    attributes:
+      id:
+        identifier: true
+        pattern: "^[a-z][a-z0-9_]*$"
+        description: Unique identifier for the output
+      type:
+        range: OutputType
+        required: true
+        description: Type of output
+      description:
+        description: Description of the output
+      recipe:
+        range: Recipe
+        inlined: true
+        description: How to produce this output
+
+  # --- Decisions ---
+
+  Option:
+    description: An option for a decision point
+    attributes:
+      id:
+        identifier: true
+        description: Option identifier (the key in the options map)
+      label:
+        required: true
+        description: Human-readable name for the option
+      description:
+        description: Detailed description of the option
+      insights:
+        multivalued: true
+        description: Insight IDs supporting this option
+      incompatible_with:
+        multivalued: true
+        description: Decision.option pairs that cannot be selected together
+      requires:
+        multivalued: true
+        description: Decision.option pairs that must also be selected
+      excluded:
+        range: boolean
+        description: Whether this option was considered and rejected
+      excluded_reason:
+        description: Why this option was excluded
+
+  Decision:
+    description: >-
+      A decision point in the analysis. Can be locally defined
+      (with label, options) or a reference to a parent decision via from_ref.
+    slots:
+      - from_ref
+      - when
+    slot_usage:
+      from_ref:
+        description: >-
+          Reference to a parent decision using '../' prefix
+          (e.g., '../z_min'). When set, this is a pure reference
+          and must not have label, options, or default.
+    attributes:
+      id:
+        identifier: true
+        description: Decision identifier (the key in the decisions map)
+      label:
+        description: Human-readable name for the decision
+      rationale:
+        description: Why this decision exists
+      tags:
+        multivalued: true
+        description: Tags for grouping and categorizing
+      default:
+        description: Default option ID for baseline universes
+      options:
+        range: Option
+        multivalued: true
+        inlined: true
+        description: Map of option IDs to option specifications
+
+  # --- Analysis (self-similar, recursive) ---
+
+  Analysis:
+    tree_root: true
+    description: >-
+      A self-similar analysis specification. Every level has the same
+      structure: metadata, inputs, outputs, decisions, insights, and
+      optional sub-analyses. A sub-analysis extracted to its own file
+      is a valid Analysis on its own.
+    attributes:
+      id:
+        identifier: true
+        description: Analysis identifier (used as key when nested as a sub-analysis)
+      version:
+        pattern: "^\\d+\\.\\d+(\\.\\d+)?$"
+        description: ASTRA specification version
+      name:
+        description: Human-readable name for the analysis
+      description:
+        description: Detailed description of this analysis
+      authors:
+        multivalued: true
+        description: List of authors
+      tags:
+        multivalued: true
+        description: Tags for categorization
+      inputs:
+        range: Input
+        multivalued: true
+        inlined_as_list: true
+        description: Inputs for this analysis
+      outputs:
+        range: Output
+        multivalued: true
+        inlined_as_list: true
+        description: Expected outputs from this analysis
+      decisions:
+        range: Decision
+        multivalued: true
+        inlined: true
+        description: Decision points in this analysis (keyed by decision ID)
+      prior_insights:
+        range: Insight
+        multivalued: true
+        inlined: true
+        description: Prior insights that inform decisions (keyed by insight ID)
+      findings:
+        range: Insight
+        multivalued: true
+        inlined: true
+        description: Findings and conclusions from outputs (keyed by insight ID)
+      container:
+        description: Default container image name for recipes in this node
+      container_build:
+        range: ContainerBuildSpec
+        inlined: true
+        description: Default container build specification for recipes in this node
+      path:
+        description: >-
+          Path to a directory containing its own astra.yaml.
+          Mutually exclusive with inline content fields
+          (inputs, outputs, decisions, etc.).
+      analyses:
+        range: Analysis
+        multivalued: true
+        inlined: true
+        description: Nested sub-analyses (keyed by analysis ID)

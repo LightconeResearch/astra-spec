@@ -1,0 +1,77 @@
+---
+id: https://w3id.org/LightconeResearch/ASTRA/universe
+name: astra-universe
+description: |-
+  Universe specification models. A universe is a complete set of
+  decisions across the entire analysis tree.
+
+prefixes:
+  astra: https://w3id.org/LightconeResearch/ASTRA/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+
+# ==========================================================================
+# Classes
+# ==========================================================================
+
+classes:
+
+  DecisionSelection:
+    description: A mapping from a decision ID to the selected option ID
+    attributes:
+      decision_id:
+        identifier: true
+        description: ID of the decision
+      option_id:
+        required: true
+        description: ID of the selected option
+
+  UniverseNode:
+    description: >-
+      A universe node mirroring the analysis tree structure.
+      Represents decision selections at a specific sub-analysis node.
+    attributes:
+      id:
+        identifier: true
+        description: Node identifier (the sub-analysis key)
+      universe:
+        description: >-
+          Name of a universe in the sub-analysis's universes/ directory.
+          Alternative to inline decisions.
+      decisions:
+        range: DecisionSelection
+        multivalued: true
+        inlined_as_list: true
+        description: Decision selections (decision_id to option_id)
+      analyses:
+        range: UniverseNode
+        multivalued: true
+        inlined: true
+        description: Sub-analysis universe selections
+
+  Universe:
+    description: >-
+      A universe specification - a complete set of decisions
+      across the entire analysis tree.
+    attributes:
+      id:
+        identifier: true
+        pattern: "^[a-z][a-z0-9_-]*$"
+        description: Unique identifier for the universe
+      description:
+        description: What this universe represents
+      decisions:
+        range: DecisionSelection
+        multivalued: true
+        inlined_as_list: true
+        description: Root-level decision selections
+      analyses:
+        range: UniverseNode
+        multivalued: true
+        inlined: true
+        description: Sub-analysis universe selections

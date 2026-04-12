@@ -1,0 +1,68 @@
+---
+site_name: "ASTRA"
+theme:
+  # https://www.mkdocs.org/user-guide/configuration/#theme
+  name: material
+  icon:
+    logo: material/book-open-page-variant
+  # palette:
+  #  scheme: slate
+  #  primary: cyan
+  features:
+    - content.tabs.link
+    - header.autohide      # maximum screen space during scrolling
+    - navigation.expand    # optimize user experience
+    - navigation.instant   # optimize user experience
+    - navigation.instant.progress
+    - navigation.tracking  # update address bar
+    - search.suggest       # suggest good completions
+    - content.code.copy    # enable copy to clipboard
+
+# extra css/js see https://www.mkdocs.org/user-guide/customizing-your-theme/
+extra_css: []
+extra_javascript: []
+
+plugins:
+  - search
+  - mknotebooks:
+      execute: false
+  - mermaid2:
+      version: 11.4.1
+  - mkdocs_pymdownx_material_extras:
+    # https://pypi.org/project/mkdocs-pymdownx-material-extras
+
+markdown_extensions:
+  - pymdownx.superfences:
+      # https://mkdocs-mermaid2.readthedocs.io/en/latest/superfences
+      # custom code highlighting rules
+      custom_fences:
+        - name: mermaid
+          # disable code highlighting to display diagrams
+          format: !!python/name:pymdownx.superfences.fence_code_format
+          class: mermaid
+
+  # TODO rebuild docs on schema change (https://github.com/dalito/linkml-project-copier/issues/39)
+  # - gen-files:
+  #     scripts:
+  #       - gen_pages.py  # or any other name or path
+
+watch:
+  - src/astra-spec/schema
+
+nav:
+  - Home: index.md
+  - Schema: elements/index.md
+  - About: about.md
+
+exclude_docs: |
+  /templates-linkml/
+
+site_url: https://LightconeResearch.github.io/ASTRA
+repo_url: https://github.com/LightconeResearch/ASTRA
+
+# Uncomment this block to enable use of Google Analytics.
+# Replace the property value with your own ID.
+# extra:
+#   analytics:
+#     provider: google
+#     property: G-XXXXXXXXXX
