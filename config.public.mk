@@ -7,6 +7,7 @@
 # Note:
 # - just works fine with quoted variables of dot-env files like this one
 LINKML_SCHEMA_NAME="astra"
+LINKML_SCHEMA_SOURCE_FILE="analysis"
 LINKML_SCHEMA_AUTHOR="Francois Lanusse <francois.lanusse@cnrs.fr>"
 LINKML_SCHEMA_DESCRIPTION="Agentic Schema for Transparent Research Analysis."
 LINKML_SCHEMA_SOURCE_DIR="src/astra/schema"

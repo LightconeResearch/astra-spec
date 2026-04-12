@@ -1,9 +1,16 @@
 ---
 id: https://w3id.org/ASTRA/analysis
 name: analysis
+title: ASTRA
 description: |-
-  Analysis specification models. Defines the self-similar analysis
-  structure with inputs, outputs, decisions, and nested sub-analyses.
+  Agentic Schema for Transparent Research Analysis.
+  A framework for defining hierarchical scientific analyses with
+  decision points, evidence-backed insights, and universe specifications.
+license: https://creativecommons.org/licenses/by/4.0/
+version: 0.0.1
+see_also:
+  - https://LightconeResearch.github.io/ASTRA
+  - https://astra-spec.org
 
 prefixes:
   astra: https://w3id.org/ASTRA/
@@ -15,6 +22,7 @@ default_range: string
 imports:
   - linkml:types
   - insight
+  - universe
 
 # ==========================================================================
 # Slots shared across analysis classes

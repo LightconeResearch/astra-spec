@@ -1,0 +1,165 @@
+id: iris_pipeline
+version: "0.1.0"
+name: Iris Two-Stage Classification
+description: |
+  A two-stage pipeline for Iris classification that demonstrates
+  sub-analyses. A feature-extraction stage learns a compact
+  representation of the raw features (PCA or MLP encoder), whose
+  output feeds into a separate classification stage.
+authors:
+  - ASTRA Examples
+tags:
+  - classification
+  - sub-analyses
+  - sklearn
+  - example
+
+inputs:
+  - id: iris_data
+    type: data
+    source: "sklearn.datasets.load_iris"
+    description: "Fisher's classic 150-sample, 4-feature, 3-class dataset"
+
+outputs:
+  - id: accuracy
+    type: metric
+    description: Classification accuracy on held-out test set
+    from_ref: classification.accuracy
+
+  - id: feature_plot
+    type: figure
+    description: Scatter plot of extracted features colored by class
+    from_ref: feature_extraction.feature_plot
+
+  - id: pipeline_summary
+    type: report
+    description: End-to-end comparison of feature extraction methods
+    recipe:
+      command: python src/summarize.py
+
+decisions:
+  test_split:
+    label: Test Set Proportion
+    rationale: Trade-off between training data and evaluation reliability
+    default: twenty_pct
+    options:
+      twenty_pct:
+        label: "20%"
+        description: 80/20 train-test split
+      thirty_pct:
+        label: "30%"
+        description: 70/30 train-test split
+
+  random_seed:
+    label: Random Seed
+    rationale: Controls reproducibility of splits and model initialization
+    default: seed_42
+    options:
+      seed_42:
+        label: "42"
+      seed_7:
+        label: "7"
+
+analyses:
+  feature_extraction:
+    id: feature_extraction
+    description: |
+      Learn a low-dimensional representation of the 4 Iris features.
+      PCA provides a linear, deterministic baseline; the MLP encoder
+      trains a small autoencoder (4-8-k-8-4) and keeps the bottleneck
+      layer as the representation.
+
+    inputs:
+      - id: raw_features
+        type: data
+        from_ref: iris_data
+        description: Raw 4-dimensional Iris features from parent
+
+    outputs:
+      - id: features
+        type: data
+        description: Transformed feature matrix (n_samples x n_components)
+        recipe:
+          command: python src/extract_features.py
+
+      - id: feature_plot
+        type: figure
+        description: Scatter plot of extracted features
+        recipe:
+          command: python src/plot_features.py
+          inputs: [features]
+
+    decisions:
+      seed:
+        from_ref: ../random_seed
+
+      method:
+        label: Extraction Method
+        rationale: PCA is interpretable and deterministic; MLP encoder may capture nonlinear structure
+        default: pca
+        options:
+          pca:
+            label: PCA
+            description: Principal Component Analysis
+          mlp_encoder:
+            label: MLP Encoder
+            description: Bottleneck layer of a small autoencoder (4-8-k-8-4)
+            incompatible_with:
+              - n_components.three
+
+      n_components:
+        label: Number of Components
+        rationale: Dimensionality of the learned representation
+        default: two
+        options:
+          two:
+            label: 2 components
+            description: Aggressive reduction, easy to visualize
+          three:
+            label: 3 components
+            description: Retains more variance but bottleneck is nearly input-sized for the encoder
+
+  classification:
+    id: classification
+    description: |
+      Train a classifier on the extracted features and evaluate
+      accuracy on the held-out test set.
+
+    inputs:
+      - id: features
+        type: data
+        from_ref: feature_extraction.features
+        description: Transformed features from the extraction stage
+
+    outputs:
+      - id: predictions
+        type: data
+        description: Predicted class labels for the test set
+        recipe:
+          command: python src/classify.py
+
+      - id: accuracy
+        type: metric
+        description: Classification accuracy on held-out test set
+        recipe:
+          command: python src/evaluate.py
+          inputs: [predictions]
+
+    decisions:
+      split:
+        from_ref: ../test_split
+
+      classifier:
+        label: Classifier
+        rationale: Logistic regression is a strong linear baseline; SVM adds a nonlinear kernel
+        default: logistic
+        options:
+          logistic:
+            label: Logistic Regression
+            description: Multinomial logistic regression with L2 penalty
+          svm:
+            label: SVM (RBF)
+            description: Support vector machine with radial basis function kernel
+          knn:
+            label: k-Nearest Neighbors
+            description: k=5 nearest neighbors in the extracted feature space

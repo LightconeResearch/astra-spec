@@ -1,0 +1,22 @@
+id: mlp_svm
+description: MLP encoder features with SVM classifier — tests whether learned features help
+
+decisions:
+  - decision_id: test_split
+    option_id: twenty_pct
+  - decision_id: random_seed
+    option_id: seed_42
+
+analyses:
+  feature_extraction:
+    id: feature_extraction
+    decisions:
+      - decision_id: method
+        option_id: mlp_encoder
+      - decision_id: n_components
+        option_id: two
+  classification:
+    id: classification
+    decisions:
+      - decision_id: classifier
+        option_id: svm

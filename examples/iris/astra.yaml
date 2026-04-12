@@ -1,0 +1,120 @@
+id: iris_classification
+version: "0.1.0"
+name: Iris Classification Study
+description: |
+  A demonstration analysis that builds a classifier for the classic
+  Iris dataset, exploring different preprocessing and model choices.
+authors:
+  - ASTRA Examples
+tags:
+  - classification
+  - sklearn
+  - example
+
+inputs:
+  - id: iris_data
+    type: data
+    source: "sklearn.datasets.load_iris"
+    description: "Fisher's classic 150-sample, 3-class dataset"
+
+  - id: preprocessing_study
+    type: analysis
+    ref: "analyses/scaling_comparison_2024"
+    description: Our previous study on scaling methods
+
+outputs:
+  - id: trained_output
+    type: data
+    description: Best performing classifier
+    recipe:
+      command: python src/train.py
+
+  - id: accuracy
+    type: metric
+    description: Classification accuracy on held-out test set
+    recipe:
+      command: python src/evaluate.py
+      inputs: [trained_output]
+
+  - id: f1_score
+    type: metric
+    description: Macro-averaged F1 score
+    recipe:
+      command: python src/evaluate.py
+      inputs: [trained_output]
+
+  - id: confusion_matrix
+    type: figure
+    description: Confusion matrix heatmap
+    recipe:
+      command: python src/evaluate.py
+      inputs: [trained_output]
+
+  - id: model_comparison
+    type: table
+    description: Accuracy by model and preprocessing combination
+    recipe:
+      command: python src/evaluate.py
+      inputs: [trained_output]
+
+  - id: conclusion
+    type: report
+    description: Summary of classifier performance and suitability for the application
+    recipe:
+      command: python src/evaluate.py
+      inputs: [trained_output]
+
+decisions:
+  scaling:
+    label: Feature Scaling
+    rationale: Scaling affects distance-based algorithms like SVM
+    default: standard
+    options:
+      none:
+        label: No Scaling
+        description: Use raw feature values
+      standard:
+        label: StandardScaler
+        description: Z-score normalization (mean=0, std=1)
+      minmax:
+        label: MinMaxScaler
+        description: Scale to [0, 1] range
+        incompatible_with:
+          - model.svm
+
+  model:
+    label: Classification Model
+    rationale: Core algorithmic choice affecting accuracy and interpretability
+    default: random_forest
+    options:
+      svm:
+        label: Support Vector Machine
+        description: Maximum margin classifier
+        requires:
+          - scaling.standard
+      random_forest:
+        label: Random Forest
+        description: Ensemble of decision trees
+      logistic:
+        label: Logistic Regression
+        description: Linear classifier with probabilistic output
+
+  test_size:
+    label: Test Set Proportion
+    rationale: Trade-off between training data and evaluation reliability
+    default: small
+    options:
+      small:
+        label: "20%"
+      medium:
+        label: "30%"
+
+  random_seed:
+    label: Random Seed
+    rationale: For reproducibility and stability testing
+    default: seed_42
+    options:
+      seed_42:
+        label: "42"
+      seed_123:
+        label: "123"

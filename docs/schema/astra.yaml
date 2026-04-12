@@ -1,4 +1,4 @@
-name: ASTRA
+name: analysis
 description: 'Agentic Schema for Transparent Research Analysis.
 
   A framework for defining hierarchical scientific analyses with
@@ -8,12 +8,11 @@ title: ASTRA
 see_also:
 - https://LightconeResearch.github.io/ASTRA
 - https://astra-spec.org
-id: https://w3id.org/ASTRA
-version: 0.0.0
+id: https://w3id.org/ASTRA/analysis
+version: 0.0.1
 imports:
 - linkml:types
 - insight
-- analysis
 - universe
 license: https://creativecommons.org/licenses/by/4.0/
 prefixes:
@@ -23,9 +22,6 @@ prefixes:
   linkml:
     prefix_prefix: linkml
     prefix_reference: https://w3id.org/linkml/
-  oa:
-    prefix_prefix: oa
-    prefix_reference: http://www.w3.org/ns/oa#
 default_prefix: astra
 default_range: string
 types:
@@ -360,248 +356,6 @@ slots:
     - Decision
     range: string
     multivalued: true
-  textQuoteSelector__exact:
-    name: textQuoteSelector__exact
-    description: Exact quoted text (1-3 sentences)
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:exact
-    alias: exact
-    owner: TextQuoteSelector
-    domain_of:
-    - TextQuoteSelector
-    range: string
-    required: true
-  textQuoteSelector__prefix:
-    name: textQuoteSelector__prefix
-    description: ~20-100 chars before for disambiguation
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:prefix
-    alias: prefix
-    owner: TextQuoteSelector
-    domain_of:
-    - TextQuoteSelector
-    range: string
-  textQuoteSelector__suffix:
-    name: textQuoteSelector__suffix
-    description: ~20-100 chars after for disambiguation
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:suffix
-    alias: suffix
-    owner: TextQuoteSelector
-    domain_of:
-    - TextQuoteSelector
-    range: string
-  fragmentSelector__value:
-    name: fragmentSelector__value
-    description: Fragment value (e.g., 'page=6')
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:value
-    alias: value
-    owner: FragmentSelector
-    domain_of:
-    - FragmentSelector
-    range: string
-  fragmentSelector__page:
-    name: fragmentSelector__page
-    description: 1-indexed page number
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:page
-    alias: page
-    owner: FragmentSelector
-    domain_of:
-    - FragmentSelector
-    range: integer
-    minimum_value: 1
-  evidence__id:
-    name: evidence__id
-    description: Evidence identifier
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:id
-    identifier: true
-    alias: id
-    owner: Evidence
-    domain_of:
-    - Evidence
-    range: string
-    required: true
-  evidence__doi:
-    name: evidence__doi
-    description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:doi
-    alias: doi
-    owner: Evidence
-    domain_of:
-    - Evidence
-    range: string
-    pattern: ^10\.\d{4,}/.*$
-  evidence__artifact:
-    name: evidence__artifact
-    description: Output ID referencing a declared output in this analysis
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:artifact
-    alias: artifact
-    owner: Evidence
-    domain_of:
-    - Evidence
-    range: string
-  evidence__version:
-    name: evidence__version
-    description: Paper version for arXiv papers (version matters for reproducibility)
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:version
-    alias: version
-    owner: Evidence
-    domain_of:
-    - Evidence
-    range: integer
-    minimum_value: 1
-  evidence__snapshot:
-    name: evidence__snapshot
-    description: Path to immutable copy of the artifact
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:snapshot
-    alias: snapshot
-    owner: Evidence
-    domain_of:
-    - Evidence
-    range: string
-  evidence__source_commit:
-    name: evidence__source_commit
-    description: Git commit that produced the original artifact
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:source_commit
-    alias: source_commit
-    owner: Evidence
-    domain_of:
-    - Evidence
-    range: string
-  evidence__quote:
-    name: evidence__quote
-    description: Text quote anchor
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:quote
-    alias: quote
-    owner: Evidence
-    domain_of:
-    - Evidence
-    range: TextQuoteSelector
-    inlined: true
-    inlined_as_list: true
-  evidence__location:
-    name: evidence__location
-    description: Location hint (page number for PDFs/reports)
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:location
-    alias: location
-    owner: Evidence
-    domain_of:
-    - Evidence
-    range: FragmentSelector
-    inlined: true
-    inlined_as_list: true
-  insight__id:
-    name: insight__id
-    description: Unique identifier
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:id
-    identifier: true
-    alias: id
-    owner: Insight
-    domain_of:
-    - Insight
-    range: string
-    required: true
-  insight__claim:
-    name: insight__claim
-    description: What we learned (1-2 sentences)
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:claim
-    alias: claim
-    owner: Insight
-    domain_of:
-    - Insight
-    range: string
-    required: true
-  insight__created_at:
-    name: insight__created_at
-    description: Creation timestamp (ISO 8601)
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:created_at
-    alias: created_at
-    owner: Insight
-    domain_of:
-    - Insight
-    range: datetime
-    required: true
-  insight__evidence:
-    name: insight__evidence
-    description: Supporting evidence (papers or analysis artifacts)
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:evidence
-    alias: evidence
-    owner: Insight
-    domain_of:
-    - Insight
-    range: Evidence
-    required: true
-    multivalued: true
-    inlined: true
-    inlined_as_list: true
-  insight__derived:
-    name: insight__derived
-    description: True if synthesized/inferred from multiple sources
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:derived
-    alias: derived
-    owner: Insight
-    domain_of:
-    - Insight
-    range: boolean
-  insight__scope:
-    name: insight__scope
-    description: Applicability conditions
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:scope
-    alias: scope
-    owner: Insight
-    domain_of:
-    - Insight
-    range: string
-  insight__tags:
-    name: insight__tags
-    description: Categorization tags
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:tags
-    alias: tags
-    owner: Insight
-    domain_of:
-    - Insight
-    range: string
-    multivalued: true
-  insight__notes:
-    name: insight__notes
-    description: Reasoning notes
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:notes
-    alias: notes
-    owner: Insight
-    domain_of:
-    - Insight
-    range: string
-  insightCollection__insights:
-    name: insightCollection__insights
-    description: Map of insight IDs to insights
-    from_schema: https://w3id.org/ASTRA/insight
-    slot_uri: astra:insights
-    alias: insights
-    owner: InsightCollection
-    domain_of:
-    - InsightCollection
-    range: Insight
-    multivalued: true
-    inlined: true
-    inlined_as_list: false
   keyValuePair__key:
     name: keyValuePair__key
     description: The key
@@ -1206,6 +960,248 @@ slots:
     multivalued: true
     inlined: true
     inlined_as_list: false
+  textQuoteSelector__exact:
+    name: textQuoteSelector__exact
+    description: Exact quoted text (1-3 sentences)
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:exact
+    alias: exact
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+    required: true
+  textQuoteSelector__prefix:
+    name: textQuoteSelector__prefix
+    description: ~20-100 chars before for disambiguation
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:prefix
+    alias: prefix
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+  textQuoteSelector__suffix:
+    name: textQuoteSelector__suffix
+    description: ~20-100 chars after for disambiguation
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:suffix
+    alias: suffix
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+  fragmentSelector__value:
+    name: fragmentSelector__value
+    description: Fragment value (e.g., 'page=6')
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:value
+    alias: value
+    owner: FragmentSelector
+    domain_of:
+    - FragmentSelector
+    range: string
+  fragmentSelector__page:
+    name: fragmentSelector__page
+    description: 1-indexed page number
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:page
+    alias: page
+    owner: FragmentSelector
+    domain_of:
+    - FragmentSelector
+    range: integer
+    minimum_value: 1
+  evidence__id:
+    name: evidence__id
+    description: Evidence identifier
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+    required: true
+  evidence__doi:
+    name: evidence__doi
+    description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:doi
+    alias: doi
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+    pattern: ^10\.\d{4,}/.*$
+  evidence__artifact:
+    name: evidence__artifact
+    description: Output ID referencing a declared output in this analysis
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:artifact
+    alias: artifact
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+  evidence__version:
+    name: evidence__version
+    description: Paper version for arXiv papers (version matters for reproducibility)
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:version
+    alias: version
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: integer
+    minimum_value: 1
+  evidence__snapshot:
+    name: evidence__snapshot
+    description: Path to immutable copy of the artifact
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:snapshot
+    alias: snapshot
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+  evidence__source_commit:
+    name: evidence__source_commit
+    description: Git commit that produced the original artifact
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:source_commit
+    alias: source_commit
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+  evidence__quote:
+    name: evidence__quote
+    description: Text quote anchor
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:quote
+    alias: quote
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: TextQuoteSelector
+    inlined: true
+    inlined_as_list: true
+  evidence__location:
+    name: evidence__location
+    description: Location hint (page number for PDFs/reports)
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:location
+    alias: location
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: FragmentSelector
+    inlined: true
+    inlined_as_list: true
+  insight__id:
+    name: insight__id
+    description: Unique identifier
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+    required: true
+  insight__claim:
+    name: insight__claim
+    description: What we learned (1-2 sentences)
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:claim
+    alias: claim
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+    required: true
+  insight__created_at:
+    name: insight__created_at
+    description: Creation timestamp (ISO 8601)
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:created_at
+    alias: created_at
+    owner: Insight
+    domain_of:
+    - Insight
+    range: datetime
+    required: true
+  insight__evidence:
+    name: insight__evidence
+    description: Supporting evidence (papers or analysis artifacts)
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:evidence
+    alias: evidence
+    owner: Insight
+    domain_of:
+    - Insight
+    range: Evidence
+    required: true
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  insight__derived:
+    name: insight__derived
+    description: True if synthesized/inferred from multiple sources
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:derived
+    alias: derived
+    owner: Insight
+    domain_of:
+    - Insight
+    range: boolean
+  insight__scope:
+    name: insight__scope
+    description: Applicability conditions
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:scope
+    alias: scope
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+  insight__tags:
+    name: insight__tags
+    description: Categorization tags
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:tags
+    alias: tags
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+    multivalued: true
+  insight__notes:
+    name: insight__notes
+    description: Reasoning notes
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:notes
+    alias: notes
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+  insightCollection__insights:
+    name: insightCollection__insights
+    description: Map of insight IDs to insights
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:insights
+    alias: insights
+    owner: InsightCollection
+    domain_of:
+    - InsightCollection
+    range: Insight
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
   decisionSelection__decision_id:
     name: decisionSelection__decision_id
     description: ID of the decision
@@ -1381,167 +1377,6 @@ slots:
     usage_slot_name: from_ref
     range: string
 classes:
-  TextQuoteSelector:
-    name: TextQuoteSelector
-    definition_uri: https://w3id.org/ASTRA/TextQuoteSelector
-    description: W3C TextQuoteSelector for locating text in a document. The authoritative
-      anchor for verification.
-    from_schema: https://w3id.org/ASTRA/insight
-    mappings:
-    - oa:TextQuoteSelector
-    slots:
-    - textQuoteSelector__exact
-    - textQuoteSelector__prefix
-    - textQuoteSelector__suffix
-    attributes:
-      exact:
-        name: exact
-        description: Exact quoted text (1-3 sentences)
-        required: true
-      prefix:
-        name: prefix
-        description: ~20-100 chars before for disambiguation
-      suffix:
-        name: suffix
-        description: ~20-100 chars after for disambiguation
-    class_uri: oa:TextQuoteSelector
-  FragmentSelector:
-    name: FragmentSelector
-    definition_uri: https://w3id.org/ASTRA/FragmentSelector
-    description: W3C FragmentSelector for PDF locations. Conforms to RFC 3778/8118
-      for PDF fragments.
-    from_schema: https://w3id.org/ASTRA/insight
-    mappings:
-    - oa:FragmentSelector
-    slots:
-    - fragmentSelector__value
-    - fragmentSelector__page
-    attributes:
-      value:
-        name: value
-        description: Fragment value (e.g., 'page=6')
-      page:
-        name: page
-        description: 1-indexed page number
-        range: integer
-        minimum_value: 1
-    class_uri: oa:FragmentSelector
-  Evidence:
-    name: Evidence
-    definition_uri: https://w3id.org/ASTRA/Evidence
-    description: Evidence from a source with W3C-compliant selectors. Can reference
-      literature (by DOI) or analysis artifacts (by output ID). Exactly one of doi
-      or artifact must be set.
-    from_schema: https://w3id.org/ASTRA/insight
-    slots:
-    - evidence__id
-    - evidence__doi
-    - evidence__artifact
-    - evidence__version
-    - evidence__snapshot
-    - evidence__source_commit
-    - evidence__quote
-    - evidence__location
-    attributes:
-      id:
-        name: id
-        description: Evidence identifier
-        identifier: true
-      doi:
-        name: doi
-        description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
-        pattern: ^10\.\d{4,}/.*$
-      artifact:
-        name: artifact
-        description: Output ID referencing a declared output in this analysis
-      version:
-        name: version
-        description: Paper version for arXiv papers (version matters for reproducibility)
-        range: integer
-        minimum_value: 1
-      snapshot:
-        name: snapshot
-        description: Path to immutable copy of the artifact
-      source_commit:
-        name: source_commit
-        description: Git commit that produced the original artifact
-      quote:
-        name: quote
-        description: Text quote anchor
-        range: TextQuoteSelector
-        inlined: true
-      location:
-        name: location
-        description: Location hint (page number for PDFs/reports)
-        range: FragmentSelector
-        inlined: true
-    class_uri: astra:Evidence
-  Insight:
-    name: Insight
-    definition_uri: https://w3id.org/ASTRA/Insight
-    description: A unit of scientific knowledge backed by evidence. Used for both
-      prior_insights (informing decisions) and findings (conclusions from the analysis).
-    from_schema: https://w3id.org/ASTRA/insight
-    slots:
-    - insight__id
-    - insight__claim
-    - insight__created_at
-    - insight__evidence
-    - insight__derived
-    - insight__scope
-    - insight__tags
-    - insight__notes
-    attributes:
-      id:
-        name: id
-        description: Unique identifier
-        identifier: true
-      claim:
-        name: claim
-        description: What we learned (1-2 sentences)
-        required: true
-      created_at:
-        name: created_at
-        description: Creation timestamp (ISO 8601)
-        range: datetime
-        required: true
-      evidence:
-        name: evidence
-        description: Supporting evidence (papers or analysis artifacts)
-        range: Evidence
-        required: true
-        multivalued: true
-        inlined_as_list: true
-      derived:
-        name: derived
-        description: True if synthesized/inferred from multiple sources
-        range: boolean
-      scope:
-        name: scope
-        description: Applicability conditions
-      tags:
-        name: tags
-        description: Categorization tags
-        multivalued: true
-      notes:
-        name: notes
-        description: Reasoning notes
-    class_uri: astra:Insight
-  InsightCollection:
-    name: InsightCollection
-    definition_uri: https://w3id.org/ASTRA/InsightCollection
-    description: Collection of insights, usable standalone or embedded in an analysis
-    from_schema: https://w3id.org/ASTRA/insight
-    slots:
-    - insightCollection__insights
-    attributes:
-      insights:
-        name: insights
-        description: Map of insight IDs to insights
-        range: Insight
-        multivalued: true
-        inlined: true
-    class_uri: astra:InsightCollection
   KeyValuePair:
     name: KeyValuePair
     definition_uri: https://w3id.org/ASTRA/KeyValuePair
@@ -1922,6 +1757,167 @@ classes:
         inlined: true
     class_uri: astra:Analysis
     tree_root: true
+  TextQuoteSelector:
+    name: TextQuoteSelector
+    definition_uri: https://w3id.org/ASTRA/TextQuoteSelector
+    description: W3C TextQuoteSelector for locating text in a document. The authoritative
+      anchor for verification.
+    from_schema: https://w3id.org/ASTRA/insight
+    mappings:
+    - oa:TextQuoteSelector
+    slots:
+    - textQuoteSelector__exact
+    - textQuoteSelector__prefix
+    - textQuoteSelector__suffix
+    attributes:
+      exact:
+        name: exact
+        description: Exact quoted text (1-3 sentences)
+        required: true
+      prefix:
+        name: prefix
+        description: ~20-100 chars before for disambiguation
+      suffix:
+        name: suffix
+        description: ~20-100 chars after for disambiguation
+    class_uri: oa:TextQuoteSelector
+  FragmentSelector:
+    name: FragmentSelector
+    definition_uri: https://w3id.org/ASTRA/FragmentSelector
+    description: W3C FragmentSelector for PDF locations. Conforms to RFC 3778/8118
+      for PDF fragments.
+    from_schema: https://w3id.org/ASTRA/insight
+    mappings:
+    - oa:FragmentSelector
+    slots:
+    - fragmentSelector__value
+    - fragmentSelector__page
+    attributes:
+      value:
+        name: value
+        description: Fragment value (e.g., 'page=6')
+      page:
+        name: page
+        description: 1-indexed page number
+        range: integer
+        minimum_value: 1
+    class_uri: oa:FragmentSelector
+  Evidence:
+    name: Evidence
+    definition_uri: https://w3id.org/ASTRA/Evidence
+    description: Evidence from a source with W3C-compliant selectors. Can reference
+      literature (by DOI) or analysis artifacts (by output ID). Exactly one of doi
+      or artifact must be set.
+    from_schema: https://w3id.org/ASTRA/insight
+    slots:
+    - evidence__id
+    - evidence__doi
+    - evidence__artifact
+    - evidence__version
+    - evidence__snapshot
+    - evidence__source_commit
+    - evidence__quote
+    - evidence__location
+    attributes:
+      id:
+        name: id
+        description: Evidence identifier
+        identifier: true
+      doi:
+        name: doi
+        description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
+        pattern: ^10\.\d{4,}/.*$
+      artifact:
+        name: artifact
+        description: Output ID referencing a declared output in this analysis
+      version:
+        name: version
+        description: Paper version for arXiv papers (version matters for reproducibility)
+        range: integer
+        minimum_value: 1
+      snapshot:
+        name: snapshot
+        description: Path to immutable copy of the artifact
+      source_commit:
+        name: source_commit
+        description: Git commit that produced the original artifact
+      quote:
+        name: quote
+        description: Text quote anchor
+        range: TextQuoteSelector
+        inlined: true
+      location:
+        name: location
+        description: Location hint (page number for PDFs/reports)
+        range: FragmentSelector
+        inlined: true
+    class_uri: astra:Evidence
+  Insight:
+    name: Insight
+    definition_uri: https://w3id.org/ASTRA/Insight
+    description: A unit of scientific knowledge backed by evidence. Used for both
+      prior_insights (informing decisions) and findings (conclusions from the analysis).
+    from_schema: https://w3id.org/ASTRA/insight
+    slots:
+    - insight__id
+    - insight__claim
+    - insight__created_at
+    - insight__evidence
+    - insight__derived
+    - insight__scope
+    - insight__tags
+    - insight__notes
+    attributes:
+      id:
+        name: id
+        description: Unique identifier
+        identifier: true
+      claim:
+        name: claim
+        description: What we learned (1-2 sentences)
+        required: true
+      created_at:
+        name: created_at
+        description: Creation timestamp (ISO 8601)
+        range: datetime
+        required: true
+      evidence:
+        name: evidence
+        description: Supporting evidence (papers or analysis artifacts)
+        range: Evidence
+        required: true
+        multivalued: true
+        inlined_as_list: true
+      derived:
+        name: derived
+        description: True if synthesized/inferred from multiple sources
+        range: boolean
+      scope:
+        name: scope
+        description: Applicability conditions
+      tags:
+        name: tags
+        description: Categorization tags
+        multivalued: true
+      notes:
+        name: notes
+        description: Reasoning notes
+    class_uri: astra:Insight
+  InsightCollection:
+    name: InsightCollection
+    definition_uri: https://w3id.org/ASTRA/InsightCollection
+    description: Collection of insights, usable standalone or embedded in an analysis
+    from_schema: https://w3id.org/ASTRA/insight
+    slots:
+    - insightCollection__insights
+    attributes:
+      insights:
+        name: insights
+        description: Map of insight IDs to insights
+        range: Insight
+        multivalued: true
+        inlined: true
+    class_uri: astra:InsightCollection
   DecisionSelection:
     name: DecisionSelection
     definition_uri: https://w3id.org/ASTRA/DecisionSelection
@@ -2007,8 +2003,8 @@ classes:
         inlined: true
     class_uri: astra:Universe
 metamodel_version: 1.7.0
-source_file: astra.yaml
-source_file_date: '2026-04-12T17:24:37'
-source_file_size: 635
-generation_date: '2026-04-12T17:24:38'
+source_file: analysis.yaml
+source_file_date: '2026-04-12T20:27:02'
+source_file_size: 10151
+generation_date: '2026-04-12T20:27:04'
 

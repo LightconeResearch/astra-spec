@@ -1,9 +1,16 @@
-# Examples of using ASTRA
+# Examples
 
-This folder contains examples using the datamodel.
+Example ASTRA projects demonstrating the specification format.
 
-The source of the data used in the example is [tests/data](../tests/data/).
+## iris/
 
-The command `just test` creates different representations of the data in [tests/data](../tests/data/) and writes them to the subfolder `output`.
-It also generates a markdown documentation of the examples which is not very useful in its current form.
-Hence, the `output` sub-folder is git-ignored.
+A flat, single-level analysis: Iris classification with decisions for feature scaling,
+model selection, test split, and random seed. Includes decision constraints
+(`incompatible_with`, `requires`).
+
+## iris_pipeline/
+
+A nested, two-stage pipeline demonstrating sub-analyses. A feature extraction stage
+(PCA or MLP encoder) feeds into a classification stage. Shows input wiring between
+parent and sibling analyses via `from_ref`, and decision inheritance from parent
+via `from_ref: ../parent_decision`.

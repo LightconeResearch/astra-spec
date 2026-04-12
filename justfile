@@ -36,7 +36,8 @@ gen_ts_args := env_var_or_default("LINKML_GENERATORS_TYPESCRIPT_ARGS", "")
 src := "src"
 dest := "project"
 pymodel := src / schema_name / "datamodel"
-source_schema_path := source_schema_dir / schema_name + ".yaml"
+schema_source_file := env_var_or_default("LINKML_SCHEMA_SOURCE_FILE", schema_name)
+source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 docdir := "docs/elements"  # Directory for generated documentation
 distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
 
@@ -206,12 +207,14 @@ _test-examples: _ensure_examples_output
     --output-directory examples/output \
     --schema {{source_schema_path}} > examples/output/README.md
 
-# Inject version from latest git tag into schema YAML
+# Inject version from latest git tag into all schema YAML files
 _set-version:
   #!/usr/bin/env bash
   TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
   VERSION=${TAG#v}
-  sed -i "s/^version: .*/version: ${VERSION}/" {{source_schema_path}}
+  for f in {{source_schema_dir}}/*.yaml; do
+    grep -q '^version:' "$f" && sed -i "s/^version: .*/version: ${VERSION}/" "$f"
+  done
 
 # Add the merged model to docs/schema.
 _gen-yaml:

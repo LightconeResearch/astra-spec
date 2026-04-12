@@ -30,7 +30,7 @@ from pydantic import (
 
 
 metamodel_version = "1.7.0"
-version = "0.0.0"
+version = "0.0.1"
 
 
 class ConfiguredBaseModel(BaseModel):
@@ -73,19 +73,17 @@ linkml_meta = LinkMLMeta({'default_prefix': 'astra',
                     'with\n'
                     'decision points, evidence-backed insights, and universe '
                     'specifications.',
-     'id': 'https://w3id.org/ASTRA',
-     'imports': ['linkml:types', 'insight', 'analysis', 'universe'],
+     'id': 'https://w3id.org/ASTRA/analysis',
+     'imports': ['linkml:types', 'insight', 'universe'],
      'license': 'https://creativecommons.org/licenses/by/4.0/',
-     'name': 'ASTRA',
+     'name': 'analysis',
      'prefixes': {'astra': {'prefix_prefix': 'astra',
                             'prefix_reference': 'https://w3id.org/ASTRA/'},
                   'linkml': {'prefix_prefix': 'linkml',
-                             'prefix_reference': 'https://w3id.org/linkml/'},
-                  'oa': {'prefix_prefix': 'oa',
-                         'prefix_reference': 'http://www.w3.org/ns/oa#'}},
+                             'prefix_reference': 'https://w3id.org/linkml/'}},
      'see_also': ['https://LightconeResearch.github.io/ASTRA',
                   'https://astra-spec.org'],
-     'source_file': 'src/astra/schema/astra.yaml',
+     'source_file': 'src/astra/schema/analysis.yaml',
      'title': 'ASTRA'} )
 
 class InputType(str, Enum):
@@ -160,13 +158,13 @@ class Evidence(ConfiguredBaseModel):
 
     id: str = Field(default=..., description="""Evidence identifier""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
+                       'UniverseNode',
+                       'Universe',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
+                       'Analysis']} })
     doi: Optional[str] = Field(default=None, description="""DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
     artifact: Optional[str] = Field(default=None, description="""Output ID referencing a declared output in this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
     version: Optional[int] = Field(default=None, description="""Paper version for arXiv papers (version matters for reproducibility)""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence', 'Analysis']} })
@@ -197,13 +195,13 @@ class Insight(ConfiguredBaseModel):
 
     id: str = Field(default=..., description="""Unique identifier""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
+                       'UniverseNode',
+                       'Universe',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
+                       'Analysis']} })
     claim: str = Field(default=..., description="""What we learned (1-2 sentences)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
     created_at: datetime  = Field(default=..., description="""Creation timestamp (ISO 8601)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
     evidence: list[Evidence] = Field(default=..., description="""Supporting evidence (papers or analysis artifacts)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
@@ -220,6 +218,69 @@ class InsightCollection(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/insight'})
 
     insights: Optional[dict[str, Insight]] = Field(default=None, description="""Map of insight IDs to insights""", json_schema_extra = { "linkml_meta": {'domain_of': ['InsightCollection', 'Option']} })
+
+
+class DecisionSelection(ConfiguredBaseModel):
+    """
+    A mapping from a decision ID to the selected option ID
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
+
+    decision_id: str = Field(default=..., description="""ID of the decision""", json_schema_extra = { "linkml_meta": {'domain_of': ['DecisionSelection']} })
+    option_id: str = Field(default=..., description="""ID of the selected option""", json_schema_extra = { "linkml_meta": {'domain_of': ['DecisionSelection']} })
+
+
+class UniverseNode(ConfiguredBaseModel):
+    """
+    A universe node mirroring the analysis tree structure. Represents decision selections at a specific sub-analysis node.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
+
+    id: str = Field(default=..., description="""Node identifier (the sub-analysis key)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
+                       'Insight',
+                       'UniverseNode',
+                       'Universe',
+                       'Input',
+                       'Output',
+                       'Option',
+                       'Decision',
+                       'Analysis']} })
+    universe: Optional[str] = Field(default=None, description="""Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode']} })
+    decisions: Optional[list[DecisionSelection]] = Field(default=None, description="""Decision selections (decision_id to option_id)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+    analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+
+
+class Universe(ConfiguredBaseModel):
+    """
+    A universe specification - a complete set of decisions across the entire analysis tree.
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
+
+    id: str = Field(default=..., description="""Unique identifier for the universe""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
+                       'Insight',
+                       'UniverseNode',
+                       'Universe',
+                       'Input',
+                       'Output',
+                       'Option',
+                       'Decision',
+                       'Analysis']} })
+    description: Optional[str] = Field(default=None, description="""What this universe represents""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
+    decisions: Optional[list[DecisionSelection]] = Field(default=None, description="""Root-level decision selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+    analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+
+    @field_validator('id')
+    def pattern_id(cls, v):
+        pattern=re.compile(r"^[a-z][a-z0-9_-]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class KeyValuePair(ConfiguredBaseModel):
@@ -281,15 +342,15 @@ class Input(ConfiguredBaseModel):
     from_ref: Optional[str] = Field(default=None, description="""Reference to parent input or sibling output (e.g., 'input_id' or 'sibling.output_id').""", json_schema_extra = { "linkml_meta": {'aliases': ['from'], 'domain_of': ['Input', 'Output', 'Decision']} })
     id: str = Field(default=..., description="""Unique identifier for the input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
+                       'UniverseNode',
+                       'Universe',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
+                       'Analysis']} })
     type: InputType = Field(default=..., description="""Type of input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
-    description: Optional[str] = Field(default=None, description="""Description of the input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Option', 'Analysis', 'Universe']} })
+    description: Optional[str] = Field(default=None, description="""Description of the input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     source: Optional[str] = Field(default=None, description="""URI or path to the data source""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
     ref: Optional[str] = Field(default=None, description="""Reference to another ASTRA analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
     ref_version: Optional[str] = Field(default=None, description="""Version of the referenced analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
@@ -323,15 +384,15 @@ class Output(ConfiguredBaseModel):
     when: Optional[list[str]] = Field(default=None, description="""Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Decision']} })
     id: str = Field(default=..., description="""Unique identifier for the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
+                       'UniverseNode',
+                       'Universe',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
+                       'Analysis']} })
     type: OutputType = Field(default=..., description="""Type of output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
-    description: Optional[str] = Field(default=None, description="""Description of the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Option', 'Analysis', 'Universe']} })
+    description: Optional[str] = Field(default=None, description="""Description of the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     recipe: Optional[Recipe] = Field(default=None, description="""How to produce this output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output']} })
 
     @field_validator('id')
@@ -356,15 +417,15 @@ class Option(ConfiguredBaseModel):
 
     id: str = Field(default=..., description="""Option identifier (the key in the options map)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
+                       'UniverseNode',
+                       'Universe',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
+                       'Analysis']} })
     label: str = Field(default=..., description="""Human-readable name for the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option', 'Decision']} })
-    description: Optional[str] = Field(default=None, description="""Detailed description of the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Option', 'Analysis', 'Universe']} })
+    description: Optional[str] = Field(default=None, description="""Detailed description of the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     insights: Optional[list[str]] = Field(default=None, description="""Insight IDs supporting this option""", json_schema_extra = { "linkml_meta": {'domain_of': ['InsightCollection', 'Option']} })
     incompatible_with: Optional[list[str]] = Field(default=None, description="""Decision.option pairs that cannot be selected together""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })
     requires: Optional[list[str]] = Field(default=None, description="""Decision.option pairs that must also be selected""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })
@@ -388,13 +449,13 @@ class Decision(ConfiguredBaseModel):
     when: Optional[list[str]] = Field(default=None, description="""Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Decision']} })
     id: str = Field(default=..., description="""Decision identifier (the key in the decisions map)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
+                       'UniverseNode',
+                       'Universe',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
+                       'Analysis']} })
     label: Optional[str] = Field(default=None, description="""Human-readable name for the decision""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option', 'Decision']} })
     rationale: Optional[str] = Field(default=None, description="""Why this decision exists""", json_schema_extra = { "linkml_meta": {'domain_of': ['Decision']} })
     tags: Optional[list[str]] = Field(default=None, description="""Tags for grouping and categorizing""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
@@ -410,27 +471,27 @@ class Analysis(ConfiguredBaseModel):
 
     id: str = Field(default=..., description="""Analysis identifier (used as key when nested as a sub-analysis)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
+                       'UniverseNode',
+                       'Universe',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
+                       'Analysis']} })
     version: Optional[str] = Field(default=None, description="""ASTRA specification version""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence', 'Analysis']} })
     name: Optional[str] = Field(default=None, description="""Human-readable name for the analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    description: Optional[str] = Field(default=None, description="""Detailed description of this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Option', 'Analysis', 'Universe']} })
+    description: Optional[str] = Field(default=None, description="""Detailed description of this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     authors: Optional[list[str]] = Field(default=None, description="""List of authors""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     tags: Optional[list[str]] = Field(default=None, description="""Tags for categorization""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
     inputs: Optional[list[Input]] = Field(default=None, description="""Inputs for this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     outputs: Optional[list[Output]] = Field(default=None, description="""Expected outputs from this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    decisions: Optional[dict[str, Decision]] = Field(default=None, description="""Decision points in this analysis (keyed by decision ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis', 'UniverseNode', 'Universe']} })
+    decisions: Optional[dict[str, Decision]] = Field(default=None, description="""Decision points in this analysis (keyed by decision ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
     prior_insights: Optional[dict[str, Insight]] = Field(default=None, description="""Prior insights that inform decisions (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     findings: Optional[dict[str, Insight]] = Field(default=None, description="""Findings and conclusions from outputs (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     container: Optional[str] = Field(default=None, description="""Default container image name for recipes in this node""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     container_build: Optional[ContainerBuildSpec] = Field(default=None, description="""Default container build specification for recipes in this node""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     path: Optional[str] = Field(default=None, description="""Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    analyses: Optional[dict[str, Analysis]] = Field(default=None, description="""Nested sub-analyses (keyed by analysis ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis', 'UniverseNode', 'Universe']} })
+    analyses: Optional[dict[str, Analysis]] = Field(default=None, description="""Nested sub-analyses (keyed by analysis ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
     @field_validator('version')
     def pattern_version(cls, v):
@@ -446,69 +507,6 @@ class Analysis(ConfiguredBaseModel):
         return v
 
 
-class DecisionSelection(ConfiguredBaseModel):
-    """
-    A mapping from a decision ID to the selected option ID
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
-
-    decision_id: str = Field(default=..., description="""ID of the decision""", json_schema_extra = { "linkml_meta": {'domain_of': ['DecisionSelection']} })
-    option_id: str = Field(default=..., description="""ID of the selected option""", json_schema_extra = { "linkml_meta": {'domain_of': ['DecisionSelection']} })
-
-
-class UniverseNode(ConfiguredBaseModel):
-    """
-    A universe node mirroring the analysis tree structure. Represents decision selections at a specific sub-analysis node.
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
-
-    id: str = Field(default=..., description="""Node identifier (the sub-analysis key)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
-                       'Insight',
-                       'Input',
-                       'Output',
-                       'Option',
-                       'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
-    universe: Optional[str] = Field(default=None, description="""Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode']} })
-    decisions: Optional[list[DecisionSelection]] = Field(default=None, description="""Decision selections (decision_id to option_id)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis', 'UniverseNode', 'Universe']} })
-    analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis', 'UniverseNode', 'Universe']} })
-
-
-class Universe(ConfiguredBaseModel):
-    """
-    A universe specification - a complete set of decisions across the entire analysis tree.
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
-
-    id: str = Field(default=..., description="""Unique identifier for the universe""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
-                       'Insight',
-                       'Input',
-                       'Output',
-                       'Option',
-                       'Decision',
-                       'Analysis',
-                       'UniverseNode',
-                       'Universe']} })
-    description: Optional[str] = Field(default=None, description="""What this universe represents""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Option', 'Analysis', 'Universe']} })
-    decisions: Optional[list[DecisionSelection]] = Field(default=None, description="""Root-level decision selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis', 'UniverseNode', 'Universe']} })
-    analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis', 'UniverseNode', 'Universe']} })
-
-    @field_validator('id')
-    def pattern_id(cls, v):
-        pattern=re.compile(r"^[a-z][a-z0-9_-]*$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid id format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid id format: {v}"
-            raise ValueError(err_msg)
-        return v
-
-
 # Model rebuild
 # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
 TextQuoteSelector.model_rebuild()
@@ -516,6 +514,9 @@ FragmentSelector.model_rebuild()
 Evidence.model_rebuild()
 Insight.model_rebuild()
 InsightCollection.model_rebuild()
+DecisionSelection.model_rebuild()
+UniverseNode.model_rebuild()
+Universe.model_rebuild()
 KeyValuePair.model_rebuild()
 Resources.model_rebuild()
 ContainerBuildSpec.model_rebuild()
@@ -525,6 +526,3 @@ Output.model_rebuild()
 Option.model_rebuild()
 Decision.model_rebuild()
 Analysis.model_rebuild()
-DecisionSelection.model_rebuild()
-UniverseNode.model_rebuild()
-Universe.model_rebuild()
