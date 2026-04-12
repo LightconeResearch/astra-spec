@@ -14,7 +14,7 @@ imports:
 - insight
 - analysis
 - universe
-license: Apache-2.0
+license: https://creativecommons.org/licenses/by/4.0/
 prefixes:
   astra:
     prefix_prefix: astra
@@ -2007,7 +2007,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: astra.yaml
-source_file_date: '2026-04-12T15:52:30'
-source_file_size: 622
-generation_date: '2026-04-12T15:55:34'
+source_file_date: '2026-04-12T16:37:30'
+source_file_size: 656
+generation_date: '2026-04-12T16:41:17'
 
