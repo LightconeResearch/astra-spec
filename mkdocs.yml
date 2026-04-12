@@ -22,6 +22,12 @@ theme:
 extra_css: []
 extra_javascript: []
 
+extra:
+  # Block search engine indexing until public launch
+  meta:
+    - name: robots
+      content: noindex, nofollow
+
 plugins:
   - search
   - mknotebooks:
@@ -57,8 +63,8 @@ nav:
 exclude_docs: |
   /templates-linkml/
 
-site_url: https://LightconeReserach.github.io/ASTRA
-repo_url: https://github.com/LightconeReserach/ASTRA
+site_url: https://astra-spec.org
+repo_url: https://github.com/LightconeResearch/astra-spec
 
 # Uncomment this block to enable use of Google Analytics.
 # Replace the property value with your own ID.

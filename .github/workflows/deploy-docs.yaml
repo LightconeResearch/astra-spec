@@ -1,9 +1,11 @@
 ---
 name: Deploy docs
-on:  # yamllint disable-line rule:truthy
-  push:
-    branches: [main]
-  workflow_dispatch:
+# Disabled: docs are now deployed via Cloudflare Pages
+# on:  # yamllint disable-line rule:truthy
+#   push:
+#     branches: [main]
+#   workflow_dispatch:
+on: workflow_dispatch  # yamllint disable-line rule:truthy
 
 permissions: {}
 
