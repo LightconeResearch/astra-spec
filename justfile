@@ -218,10 +218,10 @@ _gen-yaml:
   -mkdir -p {{distrib_schema_path}}
   uv run gen-yaml {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
 
-# Copy JSON Schema and JSON-LD context to the distribution schema path
+# Generate JSON Schema and JSON-LD context into the distribution schema path
 _add-artifacts:
-  cp project/jsonschema/{{schema_name}}.schema.json {{distrib_schema_path}}/
-  cp project/jsonld/{{schema_name}}.context.jsonld {{distrib_schema_path}}/
+  uv run gen-json-schema {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.schema.json
+  uv run gen-jsonld-context {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.context.jsonld
 
 # Run documentation server
 _serve:

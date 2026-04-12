@@ -9,6 +9,7 @@ see_also:
 - https://LightconeResearch.github.io/ASTRA
 - https://astra-spec.org
 id: https://w3id.org/ASTRA
+version: 0.0.0
 imports:
 - linkml:types
 - insight
@@ -2007,7 +2008,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: astra.yaml
-source_file_date: '2026-04-12T16:45:50'
-source_file_size: 620
-generation_date: '2026-04-12T17:08:40'
+source_file_date: '2026-04-12T17:24:37'
+source_file_size: 635
+generation_date: '2026-04-12T17:24:38'
 

@@ -1546,5 +1546,6 @@
     ],
     "title": "ASTRA",
     "type": "object",
-    "version": null
+    "version": "0.0.0"
 }
+
