@@ -6,7 +6,7 @@ description: |-
   Agentic Schema for Transparent Research Analysis.
   A framework for defining hierarchical scientific analyses with
   decision points, evidence-backed insights, and universe specifications.
-license: Apache-2.0
+license: https://creativecommons.org/licenses/by/4.0/
 see_also:
   - https://LightconeResearch.github.io/ASTRA
   - https://astra-spec.org
