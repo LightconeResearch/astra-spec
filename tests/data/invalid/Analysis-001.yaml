@@ -1,0 +1,9 @@
+# Invalid: missing required 'type' on input, invalid id pattern
+id: bad_analysis
+inputs:
+  - id: INVALID_CAPS
+    description: This input has no type and an invalid id pattern
+outputs:
+  - id: some_output
+    type: metric
+decisions: {}

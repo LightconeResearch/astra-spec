@@ -1,0 +1,2013 @@
+name: ASTRA
+description: 'Agentic Schema for Transparent Research Analysis.
+
+  A framework for defining hierarchical scientific analyses with
+
+  decision points, evidence-backed insights, and universe specifications.'
+title: ASTRA
+see_also:
+- https://LightconeResearch.github.io/ASTRA
+- https://astra-spec.org
+id: https://w3id.org/LightconeResearch/ASTRA
+imports:
+- linkml:types
+- insight
+- analysis
+- universe
+license: Apache-2.0
+prefixes:
+  astra:
+    prefix_prefix: astra
+    prefix_reference: https://w3id.org/LightconeResearch/ASTRA/
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  oa:
+    prefix_prefix: oa
+    prefix_reference: http://www.w3.org/ns/oa#
+default_prefix: astra
+default_range: string
+types:
+  string:
+    name: string
+    definition_uri: https://w3id.org/linkml/String
+    description: A character string
+    notes:
+    - In RDF serializations, a slot with range of string is treated as a literal or
+      type xsd:string.   If you are authoring schemas in LinkML YAML, the type is
+      referenced with the lower case "string".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Text
+    base: str
+    uri: xsd:string
+  integer:
+    name: integer
+    definition_uri: https://w3id.org/linkml/Integer
+    description: An integer
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "integer".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Integer
+    base: int
+    uri: xsd:integer
+  boolean:
+    name: boolean
+    definition_uri: https://w3id.org/linkml/Boolean
+    description: A binary (true or false) value
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "boolean".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Boolean
+    base: Bool
+    uri: xsd:boolean
+    repr: bool
+  float:
+    name: float
+    definition_uri: https://w3id.org/linkml/Float
+    description: A real number that conforms to the xsd:float specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "float".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Float
+    base: float
+    uri: xsd:float
+  double:
+    name: double
+    definition_uri: https://w3id.org/linkml/Double
+    description: A real number that conforms to the xsd:double specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "double".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    close_mappings:
+    - schema:Float
+    base: float
+    uri: xsd:double
+  decimal:
+    name: decimal
+    definition_uri: https://w3id.org/linkml/Decimal
+    description: A real number with arbitrary precision that conforms to the xsd:decimal
+      specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "decimal".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    broad_mappings:
+    - schema:Number
+    base: Decimal
+    uri: xsd:decimal
+  time:
+    name: time
+    definition_uri: https://w3id.org/linkml/Time
+    description: A time object represents a (local) time of day, independent of any
+      particular day
+    notes:
+    - URI is dateTime because OWL reasoners do not work with straight date or time
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "time".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Time
+    base: XSDTime
+    uri: xsd:time
+    repr: str
+  date:
+    name: date
+    definition_uri: https://w3id.org/linkml/Date
+    description: a date (year, month and day) in an idealized calendar
+    notes:
+    - URI is dateTime because OWL reasoners don't work with straight date or time
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "date".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Date
+    base: XSDDate
+    uri: xsd:date
+    repr: str
+  datetime:
+    name: datetime
+    definition_uri: https://w3id.org/linkml/Datetime
+    description: The combination of a date and time
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "datetime".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:DateTime
+    base: XSDDateTime
+    uri: xsd:dateTime
+    repr: str
+  date_or_datetime:
+    name: date_or_datetime
+    definition_uri: https://w3id.org/linkml/DateOrDatetime
+    description: Either a date or a datetime
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "date_or_datetime".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: linkml:DateOrDatetime
+    repr: str
+  uriorcurie:
+    name: uriorcurie
+    definition_uri: https://w3id.org/linkml/Uriorcurie
+    description: a URI or a CURIE
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "uriorcurie".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: URIorCURIE
+    uri: xsd:anyURI
+    repr: str
+  curie:
+    name: curie
+    definition_uri: https://w3id.org/linkml/Curie
+    conforms_to: https://www.w3.org/TR/curie/
+    description: a compact URI
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "curie".
+    comments:
+    - in RDF serializations this MUST be expanded to a URI
+    - in non-RDF serializations MAY be serialized as the compact representation
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: Curie
+    uri: xsd:string
+    repr: str
+  uri:
+    name: uri
+    definition_uri: https://w3id.org/linkml/Uri
+    conforms_to: https://www.ietf.org/rfc/rfc3987.txt
+    description: a complete URI
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "uri".
+    comments:
+    - in RDF serializations a slot with range of uri is treated as a literal or type
+      xsd:anyURI unless it is an identifier or a reference to an identifier, in which
+      case it is translated directly to a node
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    close_mappings:
+    - schema:URL
+    base: URI
+    uri: xsd:anyURI
+    repr: str
+  ncname:
+    name: ncname
+    definition_uri: https://w3id.org/linkml/Ncname
+    description: Prefix part of CURIE
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "ncname".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: NCName
+    uri: xsd:string
+    repr: str
+  objectidentifier:
+    name: objectidentifier
+    definition_uri: https://w3id.org/linkml/Objectidentifier
+    description: A URI or CURIE that represents an object in the model.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "objectidentifier".
+    comments:
+    - Used for inheritance and type checking
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: ElementIdentifier
+    uri: shex:iri
+    repr: str
+  nodeidentifier:
+    name: nodeidentifier
+    definition_uri: https://w3id.org/linkml/Nodeidentifier
+    description: A URI, CURIE or BNODE that represents a node in a model.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "nodeidentifier".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: NodeIdentifier
+    uri: shex:nonLiteral
+    repr: str
+  jsonpointer:
+    name: jsonpointer
+    definition_uri: https://w3id.org/linkml/Jsonpointer
+    conforms_to: https://datatracker.ietf.org/doc/html/rfc6901
+    description: A string encoding a JSON Pointer. The value of the string MUST conform
+      to JSON Point syntax and SHOULD dereference to a valid object within the current
+      instance document when encoded in tree form.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "jsonpointer".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+  jsonpath:
+    name: jsonpath
+    definition_uri: https://w3id.org/linkml/Jsonpath
+    conforms_to: https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html
+    description: A string encoding a JSON Path. The value of the string MUST conform
+      to JSON Point syntax and SHOULD dereference to zero or more valid objects within
+      the current instance document when encoded in tree form.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "jsonpath".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+  sparqlpath:
+    name: sparqlpath
+    definition_uri: https://w3id.org/linkml/Sparqlpath
+    conforms_to: https://www.w3.org/TR/sparql11-query/#propertypaths
+    description: A string encoding a SPARQL Property Path. The value of the string
+      MUST conform to SPARQL syntax and SHOULD dereference to zero or more valid objects
+      within the current instance document when encoded as RDF.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "sparqlpath".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+enums:
+  InputType:
+    name: InputType
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/InputType
+    description: Type of analysis input
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    permissible_values:
+      data:
+        text: data
+        description: A dataset, file, or external resource
+      analysis:
+        text: analysis
+        description: Outputs from another ASTRA analysis
+  OutputType:
+    name: OutputType
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/OutputType
+    description: Type of analysis output
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    permissible_values:
+      metric:
+        text: metric
+        description: A metric or measurement
+      figure:
+        text: figure
+        description: A figure or visualization
+      table:
+        text: table
+        description: A table of data
+      data:
+        text: data
+        description: A data file or dataset
+      report:
+        text: report
+        description: A report or document
+slots:
+  from_ref:
+    name: from_ref
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/from_ref
+    description: Reference to a parent or sibling element. Corresponds to 'from' in
+      ASTRA YAML format.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    aliases:
+    - from
+    slot_uri: astra:from_ref
+    owner: Decision
+    domain_of:
+    - Input
+    - Output
+    - Decision
+    range: string
+  when:
+    name: when
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/when
+    description: 'Conditions for when this element is active. Format: ''decision_id.option_id''
+      or ''~decision_id.option_id''. Multiple conditions are AND''d together.'
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:when
+    owner: Decision
+    domain_of:
+    - Output
+    - Decision
+    range: string
+    multivalued: true
+  textQuoteSelector__exact:
+    name: textQuoteSelector__exact
+    description: Exact quoted text (1-3 sentences)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:exact
+    alias: exact
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+    required: true
+  textQuoteSelector__prefix:
+    name: textQuoteSelector__prefix
+    description: ~20-100 chars before for disambiguation
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:prefix
+    alias: prefix
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+  textQuoteSelector__suffix:
+    name: textQuoteSelector__suffix
+    description: ~20-100 chars after for disambiguation
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:suffix
+    alias: suffix
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+  fragmentSelector__value:
+    name: fragmentSelector__value
+    description: Fragment value (e.g., 'page=6')
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:value
+    alias: value
+    owner: FragmentSelector
+    domain_of:
+    - FragmentSelector
+    range: string
+  fragmentSelector__page:
+    name: fragmentSelector__page
+    description: 1-indexed page number
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:page
+    alias: page
+    owner: FragmentSelector
+    domain_of:
+    - FragmentSelector
+    range: integer
+    minimum_value: 1
+  evidence__id:
+    name: evidence__id
+    description: Evidence identifier
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+    required: true
+  evidence__doi:
+    name: evidence__doi
+    description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:doi
+    alias: doi
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+    pattern: ^10\.\d{4,}/.*$
+  evidence__artifact:
+    name: evidence__artifact
+    description: Output ID referencing a declared output in this analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:artifact
+    alias: artifact
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+  evidence__version:
+    name: evidence__version
+    description: Paper version for arXiv papers (version matters for reproducibility)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:version
+    alias: version
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: integer
+    minimum_value: 1
+  evidence__snapshot:
+    name: evidence__snapshot
+    description: Path to immutable copy of the artifact
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:snapshot
+    alias: snapshot
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+  evidence__source_commit:
+    name: evidence__source_commit
+    description: Git commit that produced the original artifact
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:source_commit
+    alias: source_commit
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+  evidence__quote:
+    name: evidence__quote
+    description: Text quote anchor
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:quote
+    alias: quote
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: TextQuoteSelector
+    inlined: true
+    inlined_as_list: true
+  evidence__location:
+    name: evidence__location
+    description: Location hint (page number for PDFs/reports)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:location
+    alias: location
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: FragmentSelector
+    inlined: true
+    inlined_as_list: true
+  insight__id:
+    name: insight__id
+    description: Unique identifier
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+    required: true
+  insight__claim:
+    name: insight__claim
+    description: What we learned (1-2 sentences)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:claim
+    alias: claim
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+    required: true
+  insight__created_at:
+    name: insight__created_at
+    description: Creation timestamp (ISO 8601)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:created_at
+    alias: created_at
+    owner: Insight
+    domain_of:
+    - Insight
+    range: datetime
+    required: true
+  insight__evidence:
+    name: insight__evidence
+    description: Supporting evidence (papers or analysis artifacts)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:evidence
+    alias: evidence
+    owner: Insight
+    domain_of:
+    - Insight
+    range: Evidence
+    required: true
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  insight__derived:
+    name: insight__derived
+    description: True if synthesized/inferred from multiple sources
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:derived
+    alias: derived
+    owner: Insight
+    domain_of:
+    - Insight
+    range: boolean
+  insight__scope:
+    name: insight__scope
+    description: Applicability conditions
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:scope
+    alias: scope
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+  insight__tags:
+    name: insight__tags
+    description: Categorization tags
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:tags
+    alias: tags
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+    multivalued: true
+  insight__notes:
+    name: insight__notes
+    description: Reasoning notes
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:notes
+    alias: notes
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+  insightCollection__insights:
+    name: insightCollection__insights
+    description: Map of insight IDs to insights
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slot_uri: astra:insights
+    alias: insights
+    owner: InsightCollection
+    domain_of:
+    - InsightCollection
+    range: Insight
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  keyValuePair__key:
+    name: keyValuePair__key
+    description: The key
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:key
+    identifier: true
+    alias: key
+    owner: KeyValuePair
+    domain_of:
+    - KeyValuePair
+    range: string
+    required: true
+  keyValuePair__value:
+    name: keyValuePair__value
+    description: The value
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:value
+    alias: value
+    owner: KeyValuePair
+    domain_of:
+    - KeyValuePair
+    range: string
+    required: true
+  resources__cpus:
+    name: resources__cpus
+    description: Number of CPUs
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:cpus
+    alias: cpus
+    owner: Resources
+    domain_of:
+    - Resources
+    range: integer
+    minimum_value: 1
+  resources__memory:
+    name: resources__memory
+    description: Memory requirement (e.g., '8GB', '512MB')
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:memory
+    alias: memory
+    owner: Resources
+    domain_of:
+    - Resources
+    range: string
+  resources__gpus:
+    name: resources__gpus
+    description: Number of GPUs
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:gpus
+    alias: gpus
+    owner: Resources
+    domain_of:
+    - Resources
+    range: integer
+    minimum_value: 1
+  resources__time_limit:
+    name: resources__time_limit
+    description: Maximum wall time (e.g., '2h', '30m')
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:time_limit
+    alias: time_limit
+    owner: Resources
+    domain_of:
+    - Resources
+    range: string
+  containerBuildSpec__build:
+    name: containerBuildSpec__build
+    description: Path to Containerfile relative to project root
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:build
+    alias: build
+    owner: ContainerBuildSpec
+    domain_of:
+    - ContainerBuildSpec
+    range: string
+    required: true
+  containerBuildSpec__context:
+    name: containerBuildSpec__context
+    description: Build context directory
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:context
+    alias: context
+    owner: ContainerBuildSpec
+    domain_of:
+    - ContainerBuildSpec
+    range: string
+  containerBuildSpec__args:
+    name: containerBuildSpec__args
+    description: Docker build arguments as key-value pairs
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:args
+    alias: args
+    owner: ContainerBuildSpec
+    domain_of:
+    - ContainerBuildSpec
+    range: KeyValuePair
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  recipe__command:
+    name: recipe__command
+    description: Command to execute (e.g., 'python src/train.py')
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:command
+    alias: command
+    owner: Recipe
+    domain_of:
+    - Recipe
+    range: string
+    required: true
+  recipe__inputs:
+    name: recipe__inputs
+    description: Output IDs that must be materialized before this recipe runs
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:inputs
+    alias: inputs
+    owner: Recipe
+    domain_of:
+    - Recipe
+    range: string
+    multivalued: true
+  recipe__container:
+    name: recipe__container
+    description: Container image name (pre-built image string)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:container
+    alias: container
+    owner: Recipe
+    domain_of:
+    - Recipe
+    range: string
+  recipe__container_build:
+    name: recipe__container_build
+    description: Container image build specification (alternative to container string)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:container_build
+    alias: container_build
+    owner: Recipe
+    domain_of:
+    - Recipe
+    range: ContainerBuildSpec
+    inlined: true
+    inlined_as_list: true
+  recipe__resources:
+    name: recipe__resources
+    description: Compute resource requirements
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:resources
+    alias: resources
+    owner: Recipe
+    domain_of:
+    - Recipe
+    range: Resources
+    inlined: true
+    inlined_as_list: true
+  input__id:
+    name: input__id
+    description: Unique identifier for the input
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+    required: true
+    pattern: ^[a-z][a-z0-9_]*$
+  input__type:
+    name: input__type
+    description: Type of input
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:type
+    alias: type
+    owner: Input
+    domain_of:
+    - Input
+    range: InputType
+    required: true
+  input__description:
+    name: input__description
+    description: Description of the input
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+  input__source:
+    name: input__source
+    description: URI or path to the data source
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:source
+    alias: source
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+  input__ref:
+    name: input__ref
+    description: Reference to another ASTRA analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:ref
+    alias: ref
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+  input__ref_version:
+    name: input__ref_version
+    description: Version of the referenced analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:ref_version
+    alias: ref_version
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+  input__use_outputs:
+    name: input__use_outputs
+    description: Specific outputs to use from referenced analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:use_outputs
+    alias: use_outputs
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+    multivalued: true
+  output__id:
+    name: output__id
+    description: Unique identifier for the output
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Output
+    domain_of:
+    - Output
+    range: string
+    required: true
+    pattern: ^[a-z][a-z0-9_]*$
+  output__type:
+    name: output__type
+    description: Type of output
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:type
+    alias: type
+    owner: Output
+    domain_of:
+    - Output
+    range: OutputType
+    required: true
+  output__description:
+    name: output__description
+    description: Description of the output
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Output
+    domain_of:
+    - Output
+    range: string
+  output__recipe:
+    name: output__recipe
+    description: How to produce this output
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:recipe
+    alias: recipe
+    owner: Output
+    domain_of:
+    - Output
+    range: Recipe
+    inlined: true
+    inlined_as_list: true
+  option__id:
+    name: option__id
+    description: Option identifier (the key in the options map)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+    required: true
+  option__label:
+    name: option__label
+    description: Human-readable name for the option
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+    required: true
+  option__description:
+    name: option__description
+    description: Detailed description of the option
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+  option__insights:
+    name: option__insights
+    description: Insight IDs supporting this option
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:insights
+    alias: insights
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+    multivalued: true
+  option__incompatible_with:
+    name: option__incompatible_with
+    description: Decision.option pairs that cannot be selected together
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:incompatible_with
+    alias: incompatible_with
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+    multivalued: true
+  option__requires:
+    name: option__requires
+    description: Decision.option pairs that must also be selected
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:requires
+    alias: requires
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+    multivalued: true
+  option__excluded:
+    name: option__excluded
+    description: Whether this option was considered and rejected
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:excluded
+    alias: excluded
+    owner: Option
+    domain_of:
+    - Option
+    range: boolean
+  option__excluded_reason:
+    name: option__excluded_reason
+    description: Why this option was excluded
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:excluded_reason
+    alias: excluded_reason
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+  decision__id:
+    name: decision__id
+    description: Decision identifier (the key in the decisions map)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+    required: true
+  decision__label:
+    name: decision__label
+    description: Human-readable name for the decision
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+  decision__rationale:
+    name: decision__rationale
+    description: Why this decision exists
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:rationale
+    alias: rationale
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+  decision__tags:
+    name: decision__tags
+    description: Tags for grouping and categorizing
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+    multivalued: true
+  decision__default:
+    name: decision__default
+    description: Default option ID for baseline universes
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:default
+    alias: default
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+  decision__options:
+    name: decision__options
+    description: Map of option IDs to option specifications
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:options
+    alias: options
+    owner: Decision
+    domain_of:
+    - Decision
+    range: Option
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__id:
+    name: analysis__id
+    description: Analysis identifier (used as key when nested as a sub-analysis)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+    required: true
+  analysis__version:
+    name: analysis__version
+    description: ASTRA specification version
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:version
+    alias: version
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+    pattern: ^\d+\.\d+(\.\d+)?$
+  analysis__name:
+    name: analysis__name
+    description: Human-readable name for the analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:name
+    alias: name
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+  analysis__description:
+    name: analysis__description
+    description: Detailed description of this analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+  analysis__authors:
+    name: analysis__authors
+    description: List of authors
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:authors
+    alias: authors
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+    multivalued: true
+  analysis__tags:
+    name: analysis__tags
+    description: Tags for categorization
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+    multivalued: true
+  analysis__inputs:
+    name: analysis__inputs
+    description: Inputs for this analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:inputs
+    alias: inputs
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Input
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  analysis__outputs:
+    name: analysis__outputs
+    description: Expected outputs from this analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:outputs
+    alias: outputs
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Output
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  analysis__decisions:
+    name: analysis__decisions
+    description: Decision points in this analysis (keyed by decision ID)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:decisions
+    alias: decisions
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Decision
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__prior_insights:
+    name: analysis__prior_insights
+    description: Prior insights that inform decisions (keyed by insight ID)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:prior_insights
+    alias: prior_insights
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Insight
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__findings:
+    name: analysis__findings
+    description: Findings and conclusions from outputs (keyed by insight ID)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:findings
+    alias: findings
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Insight
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__container:
+    name: analysis__container
+    description: Default container image name for recipes in this node
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:container
+    alias: container
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+  analysis__container_build:
+    name: analysis__container_build
+    description: Default container build specification for recipes in this node
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:container_build
+    alias: container_build
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: ContainerBuildSpec
+    inlined: true
+    inlined_as_list: true
+  analysis__path:
+    name: analysis__path
+    description: Path to a directory containing its own astra.yaml. Mutually exclusive
+      with inline content fields (inputs, outputs, decisions, etc.).
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:path
+    alias: path
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+  analysis__analyses:
+    name: analysis__analyses
+    description: Nested sub-analyses (keyed by analysis ID)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slot_uri: astra:analyses
+    alias: analyses
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Analysis
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  decisionSelection__decision_id:
+    name: decisionSelection__decision_id
+    description: ID of the decision
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:decision_id
+    identifier: true
+    alias: decision_id
+    owner: DecisionSelection
+    domain_of:
+    - DecisionSelection
+    range: string
+    required: true
+  decisionSelection__option_id:
+    name: decisionSelection__option_id
+    description: ID of the selected option
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:option_id
+    alias: option_id
+    owner: DecisionSelection
+    domain_of:
+    - DecisionSelection
+    range: string
+    required: true
+  universeNode__id:
+    name: universeNode__id
+    description: Node identifier (the sub-analysis key)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: UniverseNode
+    domain_of:
+    - UniverseNode
+    range: string
+    required: true
+  universeNode__universe:
+    name: universeNode__universe
+    description: Name of a universe in the sub-analysis's universes/ directory. Alternative
+      to inline decisions.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:universe
+    alias: universe
+    owner: UniverseNode
+    domain_of:
+    - UniverseNode
+    range: string
+  universeNode__decisions:
+    name: universeNode__decisions
+    description: Decision selections (decision_id to option_id)
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:decisions
+    alias: decisions
+    owner: UniverseNode
+    domain_of:
+    - UniverseNode
+    range: DecisionSelection
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  universeNode__analyses:
+    name: universeNode__analyses
+    description: Sub-analysis universe selections
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:analyses
+    alias: analyses
+    owner: UniverseNode
+    domain_of:
+    - UniverseNode
+    range: UniverseNode
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  universe__id:
+    name: universe__id
+    description: Unique identifier for the universe
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: Universe
+    domain_of:
+    - Universe
+    range: string
+    required: true
+    pattern: ^[a-z][a-z0-9_-]*$
+  universe__description:
+    name: universe__description
+    description: What this universe represents
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:description
+    alias: description
+    owner: Universe
+    domain_of:
+    - Universe
+    range: string
+  universe__decisions:
+    name: universe__decisions
+    description: Root-level decision selections
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:decisions
+    alias: decisions
+    owner: Universe
+    domain_of:
+    - Universe
+    range: DecisionSelection
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  universe__analyses:
+    name: universe__analyses
+    description: Sub-analysis universe selections
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slot_uri: astra:analyses
+    alias: analyses
+    owner: Universe
+    domain_of:
+    - Universe
+    range: UniverseNode
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  Input_from_ref:
+    name: Input_from_ref
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/from_ref
+    description: Reference to parent input or sibling output (e.g., 'input_id' or
+      'sibling.output_id').
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    aliases:
+    - from
+    is_a: from_ref
+    domain: Input
+    slot_uri: astra:from_ref
+    alias: from_ref
+    owner: Input
+    domain_of:
+    - Input
+    is_usage_slot: true
+    usage_slot_name: from_ref
+    range: string
+  Output_from_ref:
+    name: Output_from_ref
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/from_ref
+    description: Sub-analysis output that produces this (e.g., 'sub_analysis.output_id').
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    aliases:
+    - from
+    is_a: from_ref
+    domain: Output
+    slot_uri: astra:from_ref
+    alias: from_ref
+    owner: Output
+    domain_of:
+    - Output
+    is_usage_slot: true
+    usage_slot_name: from_ref
+    range: string
+  Decision_from_ref:
+    name: Decision_from_ref
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/from_ref
+    description: Reference to a parent decision using '../' prefix (e.g., '../z_min').
+      When set, this is a pure reference and must not have label, options, or default.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    aliases:
+    - from
+    is_a: from_ref
+    domain: Decision
+    slot_uri: astra:from_ref
+    alias: from_ref
+    owner: Decision
+    domain_of:
+    - Decision
+    is_usage_slot: true
+    usage_slot_name: from_ref
+    range: string
+classes:
+  TextQuoteSelector:
+    name: TextQuoteSelector
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/TextQuoteSelector
+    description: W3C TextQuoteSelector for locating text in a document. The authoritative
+      anchor for verification.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    mappings:
+    - oa:TextQuoteSelector
+    slots:
+    - textQuoteSelector__exact
+    - textQuoteSelector__prefix
+    - textQuoteSelector__suffix
+    attributes:
+      exact:
+        name: exact
+        description: Exact quoted text (1-3 sentences)
+        required: true
+      prefix:
+        name: prefix
+        description: ~20-100 chars before for disambiguation
+      suffix:
+        name: suffix
+        description: ~20-100 chars after for disambiguation
+    class_uri: oa:TextQuoteSelector
+  FragmentSelector:
+    name: FragmentSelector
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/FragmentSelector
+    description: W3C FragmentSelector for PDF locations. Conforms to RFC 3778/8118
+      for PDF fragments.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    mappings:
+    - oa:FragmentSelector
+    slots:
+    - fragmentSelector__value
+    - fragmentSelector__page
+    attributes:
+      value:
+        name: value
+        description: Fragment value (e.g., 'page=6')
+      page:
+        name: page
+        description: 1-indexed page number
+        range: integer
+        minimum_value: 1
+    class_uri: oa:FragmentSelector
+  Evidence:
+    name: Evidence
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Evidence
+    description: Evidence from a source with W3C-compliant selectors. Can reference
+      literature (by DOI) or analysis artifacts (by output ID). Exactly one of doi
+      or artifact must be set.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slots:
+    - evidence__id
+    - evidence__doi
+    - evidence__artifact
+    - evidence__version
+    - evidence__snapshot
+    - evidence__source_commit
+    - evidence__quote
+    - evidence__location
+    attributes:
+      id:
+        name: id
+        description: Evidence identifier
+        identifier: true
+      doi:
+        name: doi
+        description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
+        pattern: ^10\.\d{4,}/.*$
+      artifact:
+        name: artifact
+        description: Output ID referencing a declared output in this analysis
+      version:
+        name: version
+        description: Paper version for arXiv papers (version matters for reproducibility)
+        range: integer
+        minimum_value: 1
+      snapshot:
+        name: snapshot
+        description: Path to immutable copy of the artifact
+      source_commit:
+        name: source_commit
+        description: Git commit that produced the original artifact
+      quote:
+        name: quote
+        description: Text quote anchor
+        range: TextQuoteSelector
+        inlined: true
+      location:
+        name: location
+        description: Location hint (page number for PDFs/reports)
+        range: FragmentSelector
+        inlined: true
+    class_uri: astra:Evidence
+  Insight:
+    name: Insight
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Insight
+    description: A unit of scientific knowledge backed by evidence. Used for both
+      prior_insights (informing decisions) and findings (conclusions from the analysis).
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slots:
+    - insight__id
+    - insight__claim
+    - insight__created_at
+    - insight__evidence
+    - insight__derived
+    - insight__scope
+    - insight__tags
+    - insight__notes
+    attributes:
+      id:
+        name: id
+        description: Unique identifier
+        identifier: true
+      claim:
+        name: claim
+        description: What we learned (1-2 sentences)
+        required: true
+      created_at:
+        name: created_at
+        description: Creation timestamp (ISO 8601)
+        range: datetime
+        required: true
+      evidence:
+        name: evidence
+        description: Supporting evidence (papers or analysis artifacts)
+        range: Evidence
+        required: true
+        multivalued: true
+        inlined_as_list: true
+      derived:
+        name: derived
+        description: True if synthesized/inferred from multiple sources
+        range: boolean
+      scope:
+        name: scope
+        description: Applicability conditions
+      tags:
+        name: tags
+        description: Categorization tags
+        multivalued: true
+      notes:
+        name: notes
+        description: Reasoning notes
+    class_uri: astra:Insight
+  InsightCollection:
+    name: InsightCollection
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/InsightCollection
+    description: Collection of insights, usable standalone or embedded in an analysis
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/insight
+    slots:
+    - insightCollection__insights
+    attributes:
+      insights:
+        name: insights
+        description: Map of insight IDs to insights
+        range: Insight
+        multivalued: true
+        inlined: true
+    class_uri: astra:InsightCollection
+  KeyValuePair:
+    name: KeyValuePair
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/KeyValuePair
+    description: A key-value string pair
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - keyValuePair__key
+    - keyValuePair__value
+    attributes:
+      key:
+        name: key
+        description: The key
+        identifier: true
+      value:
+        name: value
+        description: The value
+        required: true
+    class_uri: astra:KeyValuePair
+  Resources:
+    name: Resources
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Resources
+    description: Compute resource requirements for a recipe
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - resources__cpus
+    - resources__memory
+    - resources__gpus
+    - resources__time_limit
+    attributes:
+      cpus:
+        name: cpus
+        description: Number of CPUs
+        range: integer
+        minimum_value: 1
+      memory:
+        name: memory
+        description: Memory requirement (e.g., '8GB', '512MB')
+      gpus:
+        name: gpus
+        description: Number of GPUs
+        range: integer
+        minimum_value: 1
+      time_limit:
+        name: time_limit
+        description: Maximum wall time (e.g., '2h', '30m')
+    class_uri: astra:Resources
+  ContainerBuildSpec:
+    name: ContainerBuildSpec
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/ContainerBuildSpec
+    description: Specification for building a container image from a Containerfile
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - containerBuildSpec__build
+    - containerBuildSpec__context
+    - containerBuildSpec__args
+    attributes:
+      build:
+        name: build
+        description: Path to Containerfile relative to project root
+        required: true
+      context:
+        name: context
+        description: Build context directory
+      args:
+        name: args
+        description: Docker build arguments as key-value pairs
+        range: KeyValuePair
+        multivalued: true
+        inlined_as_list: true
+    class_uri: astra:ContainerBuildSpec
+  Recipe:
+    name: Recipe
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Recipe
+    description: 'A build rule that produces an output. Recipes are the execution
+      contract: run this command to produce the parent output.'
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - recipe__command
+    - recipe__inputs
+    - recipe__container
+    - recipe__container_build
+    - recipe__resources
+    attributes:
+      command:
+        name: command
+        description: Command to execute (e.g., 'python src/train.py')
+        required: true
+      inputs:
+        name: inputs
+        description: Output IDs that must be materialized before this recipe runs
+        multivalued: true
+      container:
+        name: container
+        description: Container image name (pre-built image string)
+      container_build:
+        name: container_build
+        description: Container image build specification (alternative to container
+          string)
+        range: ContainerBuildSpec
+        inlined: true
+      resources:
+        name: resources
+        description: Compute resource requirements
+        range: Resources
+        inlined: true
+    class_uri: astra:Recipe
+  Input:
+    name: Input
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Input
+    description: 'An input to the analysis. Two kinds: data (dataset/file/resource)
+      or analysis (outputs from another ASTRA analysis). Sub-analysis inputs can use
+      from_ref to reference a parent input or a sibling''s output (e.g., ''sibling_id.output_id'').'
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - Input_from_ref
+    - input__id
+    - input__type
+    - input__description
+    - input__source
+    - input__ref
+    - input__ref_version
+    - input__use_outputs
+    slot_usage:
+      from_ref:
+        name: from_ref
+        description: Reference to parent input or sibling output (e.g., 'input_id'
+          or 'sibling.output_id').
+    attributes:
+      id:
+        name: id
+        description: Unique identifier for the input
+        identifier: true
+        pattern: ^[a-z][a-z0-9_]*$
+      type:
+        name: type
+        description: Type of input
+        range: InputType
+        required: true
+      description:
+        name: description
+        description: Description of the input
+      source:
+        name: source
+        description: URI or path to the data source
+      ref:
+        name: ref
+        description: Reference to another ASTRA analysis
+      ref_version:
+        name: ref_version
+        description: Version of the referenced analysis
+      use_outputs:
+        name: use_outputs
+        description: Specific outputs to use from referenced analysis
+        multivalued: true
+    class_uri: astra:Input
+  Output:
+    name: Output
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Output
+    description: An expected output from the analysis. Outputs can declare their provenance
+      via from_ref to trace which sub-analysis produces them.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - Output_from_ref
+    - when
+    - output__id
+    - output__type
+    - output__description
+    - output__recipe
+    slot_usage:
+      from_ref:
+        name: from_ref
+        description: Sub-analysis output that produces this (e.g., 'sub_analysis.output_id').
+    attributes:
+      id:
+        name: id
+        description: Unique identifier for the output
+        identifier: true
+        pattern: ^[a-z][a-z0-9_]*$
+      type:
+        name: type
+        description: Type of output
+        range: OutputType
+        required: true
+      description:
+        name: description
+        description: Description of the output
+      recipe:
+        name: recipe
+        description: How to produce this output
+        range: Recipe
+        inlined: true
+    class_uri: astra:Output
+  Option:
+    name: Option
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Option
+    description: An option for a decision point
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - option__id
+    - option__label
+    - option__description
+    - option__insights
+    - option__incompatible_with
+    - option__requires
+    - option__excluded
+    - option__excluded_reason
+    attributes:
+      id:
+        name: id
+        description: Option identifier (the key in the options map)
+        identifier: true
+      label:
+        name: label
+        description: Human-readable name for the option
+        required: true
+      description:
+        name: description
+        description: Detailed description of the option
+      insights:
+        name: insights
+        description: Insight IDs supporting this option
+        multivalued: true
+      incompatible_with:
+        name: incompatible_with
+        description: Decision.option pairs that cannot be selected together
+        multivalued: true
+      requires:
+        name: requires
+        description: Decision.option pairs that must also be selected
+        multivalued: true
+      excluded:
+        name: excluded
+        description: Whether this option was considered and rejected
+        range: boolean
+      excluded_reason:
+        name: excluded_reason
+        description: Why this option was excluded
+    class_uri: astra:Option
+  Decision:
+    name: Decision
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Decision
+    description: A decision point in the analysis. Can be locally defined (with label,
+      options) or a reference to a parent decision via from_ref.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - Decision_from_ref
+    - when
+    - decision__id
+    - decision__label
+    - decision__rationale
+    - decision__tags
+    - decision__default
+    - decision__options
+    slot_usage:
+      from_ref:
+        name: from_ref
+        description: Reference to a parent decision using '../' prefix (e.g., '../z_min').
+          When set, this is a pure reference and must not have label, options, or
+          default.
+    attributes:
+      id:
+        name: id
+        description: Decision identifier (the key in the decisions map)
+        identifier: true
+      label:
+        name: label
+        description: Human-readable name for the decision
+      rationale:
+        name: rationale
+        description: Why this decision exists
+      tags:
+        name: tags
+        description: Tags for grouping and categorizing
+        multivalued: true
+      default:
+        name: default
+        description: Default option ID for baseline universes
+      options:
+        name: options
+        description: Map of option IDs to option specifications
+        range: Option
+        multivalued: true
+        inlined: true
+    class_uri: astra:Decision
+  Analysis:
+    name: Analysis
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Analysis
+    description: 'A self-similar analysis specification. Every level has the same
+      structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses.
+      A sub-analysis extracted to its own file is a valid Analysis on its own.'
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/analysis
+    slots:
+    - analysis__id
+    - analysis__version
+    - analysis__name
+    - analysis__description
+    - analysis__authors
+    - analysis__tags
+    - analysis__inputs
+    - analysis__outputs
+    - analysis__decisions
+    - analysis__prior_insights
+    - analysis__findings
+    - analysis__container
+    - analysis__container_build
+    - analysis__path
+    - analysis__analyses
+    attributes:
+      id:
+        name: id
+        description: Analysis identifier (used as key when nested as a sub-analysis)
+        identifier: true
+      version:
+        name: version
+        description: ASTRA specification version
+        pattern: ^\d+\.\d+(\.\d+)?$
+      name:
+        name: name
+        description: Human-readable name for the analysis
+      description:
+        name: description
+        description: Detailed description of this analysis
+      authors:
+        name: authors
+        description: List of authors
+        multivalued: true
+      tags:
+        name: tags
+        description: Tags for categorization
+        multivalued: true
+      inputs:
+        name: inputs
+        description: Inputs for this analysis
+        range: Input
+        multivalued: true
+        inlined_as_list: true
+      outputs:
+        name: outputs
+        description: Expected outputs from this analysis
+        range: Output
+        multivalued: true
+        inlined_as_list: true
+      decisions:
+        name: decisions
+        description: Decision points in this analysis (keyed by decision ID)
+        range: Decision
+        multivalued: true
+        inlined: true
+      prior_insights:
+        name: prior_insights
+        description: Prior insights that inform decisions (keyed by insight ID)
+        range: Insight
+        multivalued: true
+        inlined: true
+      findings:
+        name: findings
+        description: Findings and conclusions from outputs (keyed by insight ID)
+        range: Insight
+        multivalued: true
+        inlined: true
+      container:
+        name: container
+        description: Default container image name for recipes in this node
+      container_build:
+        name: container_build
+        description: Default container build specification for recipes in this node
+        range: ContainerBuildSpec
+        inlined: true
+      path:
+        name: path
+        description: Path to a directory containing its own astra.yaml. Mutually exclusive
+          with inline content fields (inputs, outputs, decisions, etc.).
+      analyses:
+        name: analyses
+        description: Nested sub-analyses (keyed by analysis ID)
+        range: Analysis
+        multivalued: true
+        inlined: true
+    class_uri: astra:Analysis
+    tree_root: true
+  DecisionSelection:
+    name: DecisionSelection
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/DecisionSelection
+    description: A mapping from a decision ID to the selected option ID
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slots:
+    - decisionSelection__decision_id
+    - decisionSelection__option_id
+    attributes:
+      decision_id:
+        name: decision_id
+        description: ID of the decision
+        identifier: true
+      option_id:
+        name: option_id
+        description: ID of the selected option
+        required: true
+    class_uri: astra:DecisionSelection
+  UniverseNode:
+    name: UniverseNode
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/UniverseNode
+    description: A universe node mirroring the analysis tree structure. Represents
+      decision selections at a specific sub-analysis node.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slots:
+    - universeNode__id
+    - universeNode__universe
+    - universeNode__decisions
+    - universeNode__analyses
+    attributes:
+      id:
+        name: id
+        description: Node identifier (the sub-analysis key)
+        identifier: true
+      universe:
+        name: universe
+        description: Name of a universe in the sub-analysis's universes/ directory.
+          Alternative to inline decisions.
+      decisions:
+        name: decisions
+        description: Decision selections (decision_id to option_id)
+        range: DecisionSelection
+        multivalued: true
+        inlined_as_list: true
+      analyses:
+        name: analyses
+        description: Sub-analysis universe selections
+        range: UniverseNode
+        multivalued: true
+        inlined: true
+    class_uri: astra:UniverseNode
+  Universe:
+    name: Universe
+    definition_uri: https://w3id.org/LightconeResearch/ASTRA/Universe
+    description: A universe specification - a complete set of decisions across the
+      entire analysis tree.
+    from_schema: https://w3id.org/LightconeResearch/ASTRA/universe
+    slots:
+    - universe__id
+    - universe__description
+    - universe__decisions
+    - universe__analyses
+    attributes:
+      id:
+        name: id
+        description: Unique identifier for the universe
+        identifier: true
+        pattern: ^[a-z][a-z0-9_-]*$
+      description:
+        name: description
+        description: What this universe represents
+      decisions:
+        name: decisions
+        description: Root-level decision selections
+        range: DecisionSelection
+        multivalued: true
+        inlined_as_list: true
+      analyses:
+        name: analyses
+        description: Sub-analysis universe selections
+        range: UniverseNode
+        multivalued: true
+        inlined: true
+    class_uri: astra:Universe
+metamodel_version: 1.7.0
+source_file: astra.yaml
+source_file_date: '2026-04-12T15:52:30'
+source_file_size: 622
+generation_date: '2026-04-12T15:55:34'
+

@@ -1,0 +1,153 @@
+id: photoz_pipeline
+version: "0.1.0"
+name: Photometric Redshift Pipeline
+authors:
+  - Alice Astronomer
+  - Bob Cosmologist
+tags:
+  - photometric-redshifts
+  - cosmology
+description: >-
+  End-to-end photometric redshift estimation pipeline
+  for the LSST DESC survey.
+inputs:
+  - id: photometry_catalog
+    type: data
+    description: LSST photometry catalog
+    source: s3://desc-data/photometry/v2.1.csv
+  - id: spectroscopic_sample
+    type: data
+    description: Spectroscopic training sample
+    source: s3://desc-data/specz/training_v3.fits
+outputs:
+  - id: bias_metric
+    type: metric
+    description: Photo-z bias measurement
+    recipe:
+      command: python src/evaluate.py --metric bias
+      inputs:
+        - redshift_estimates
+  - id: redshift_estimates
+    type: data
+    description: Redshift point estimates and PDFs
+    recipe:
+      command: python src/predict.py
+      container: ghcr.io/desc/photoz:latest
+      resources:
+        gpus: 1
+        memory: 16GB
+        time_limit: 2h
+  - id: scatter_plot
+    type: figure
+    description: Photo-z scatter plot (z_phot vs z_spec)
+    when:
+      - method.neural_net
+    recipe:
+      command: python src/plot_scatter.py
+decisions:
+  method:
+    label: Redshift estimation method
+    rationale: Choice of ML method affects accuracy and calibration
+    tags:
+      - methodology
+    default: neural_net
+    options:
+      neural_net:
+        label: Neural network
+        description: Deep learning approach using FlexZBoost
+        insights:
+          - nn_performance
+      template_fitting:
+        label: Template fitting
+        description: Classical SED template fitting with BPZ
+        insights:
+          - template_reliability
+      excluded_option:
+        label: Random forest
+        description: Random forest regression
+        excluded: true
+        excluded_reason: Poor performance on faint galaxies
+  training_split:
+    label: Training data split ratio
+    default: split_80_20
+    options:
+      split_80_20:
+        label: 80/20 split
+        description: Standard 80% train / 20% validation
+      split_90_10:
+        label: 90/10 split
+        description: More training data, less validation
+        incompatible_with:
+          - method.template_fitting
+prior_insights:
+  nn_performance:
+    id: nn_performance
+    claim: >-
+      Neural networks achieve state-of-the-art photo-z performance
+      on LSST-like photometry.
+    created_at: "2025-06-15T10:30:00Z"
+    evidence:
+      - id: ev_nn_paper
+        doi: "10.48550/arXiv.2301.12345"
+        version: 2
+        quote:
+          exact: >-
+            FlexZBoost achieves a normalized median absolute deviation
+            of 0.018 on the test set.
+          prefix: "Results section."
+        location:
+          value: page=8
+          page: 8
+    tags:
+      - machine-learning
+  template_reliability:
+    id: template_reliability
+    claim: >-
+      Template fitting methods provide more interpretable redshift
+      estimates with well-understood failure modes.
+    created_at: "2025-05-01T14:00:00Z"
+    evidence:
+      - id: ev_template_paper
+        doi: "10.1093/mnras/stz3100"
+        quote:
+          exact: >-
+            BPZ provides reliable photometric redshifts with
+            well-characterized posterior distributions.
+        location:
+          page: 12
+findings:
+  pipeline_result:
+    id: pipeline_result
+    claim: The pipeline achieves target bias with the neural network method.
+    created_at: "2025-08-20T16:45:00Z"
+    evidence:
+      - id: ev_bias_artifact
+        artifact: bias_metric
+        quote:
+          exact: "bias = 0.0021 +/- 0.0003"
+    derived: true
+container: ghcr.io/desc/photoz-base:v1.0
+analyses:
+  calibration:
+    id: calibration
+    name: Calibration sub-analysis
+    description: Calibrate the photo-z estimates using spectroscopic data
+    inputs:
+      - id: specz_data
+        type: data
+        from_ref: spectroscopic_sample
+    outputs:
+      - id: calibrated_pdfs
+        type: data
+        description: Calibrated redshift PDFs
+        recipe:
+          command: python src/calibrate.py
+    decisions:
+      cal_method:
+        label: Calibration method
+        default: pitpz
+        options:
+          pitpz:
+            label: PIT-based calibration
+          isotonic:
+            label: Isotonic regression

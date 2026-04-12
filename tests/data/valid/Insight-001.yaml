@@ -1,0 +1,26 @@
+id: dark_energy_eos
+claim: >-
+  Current observations are consistent with a cosmological
+  constant (w = -1) for dark energy.
+created_at: "2025-03-10T09:15:00Z"
+evidence:
+  - id: ev_planck
+    doi: "10.1051/0004-6361/201833910"
+    version: 1
+    quote:
+      exact: >-
+        We find w = -1.03 +/- 0.03, consistent with
+        a cosmological constant.
+      prefix: "In the extended parameter space,"
+      suffix: "This result is robust"
+    location:
+      value: page=41
+      page: 41
+derived: false
+scope: Flat LCDM and wCDM models with CMB+BAO+SNe data
+tags:
+  - dark-energy
+  - cosmological-constant
+notes: >-
+  Combined constraint from Planck 2018 + BAO + Pantheon SNe.
+  Tension with some lensing measurements not considered here.
