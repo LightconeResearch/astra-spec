@@ -1,5 +1,5 @@
 # Auto generated from astra.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-12T17:08:36
+# Generation date: 2026-04-12T17:19:22
 # Schema: ASTRA
 #
 # id: https://w3id.org/ASTRA
@@ -62,7 +62,7 @@ from linkml_runtime.linkml_model.types import Boolean, Datetime, Integer, String
 from linkml_runtime.utils.metamodelcore import Bool, XSDDateTime
 
 metamodel_version = "1.7.0"
-version = None
+version = "0.0.0"
 
 # Namespaces
 ASTRA = CurieNamespace('astra', 'https://w3id.org/ASTRA/')

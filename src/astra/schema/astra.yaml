@@ -2,6 +2,7 @@
 id: https://w3id.org/ASTRA
 name: ASTRA
 title: ASTRA
+version: 0.0.0
 description: |-
   Agentic Schema for Transparent Research Analysis.
   A framework for defining hierarchical scientific analyses with

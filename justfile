@@ -94,7 +94,7 @@ lint:
 
 # Generate md documentation for the schema and add artifacts
 [group('model development')]
-gen-doc: _gen-yaml && _add-artifacts
+gen-doc: _set-version _gen-yaml && _add-artifacts
   uv run gen-doc {{gen_doc_args}} -d {{docdir}} {{source_schema_path}}
 
 # Build docs and run test server
@@ -102,13 +102,13 @@ gen-doc: _gen-yaml && _add-artifacts
 testdoc: gen-doc _serve
 
 # Generate the Python data models (dataclasses & pydantic)
-gen-python:
+gen-python: _set-version
   uv run gen-project -d  {{pymodel}} -I python {{source_schema_path}}
   uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
 
 # Generate project files including Python data model
 [group('model development')]
-gen-project:
+gen-project: _set-version
   uv run gen-project {{config_yaml}} -d {{dest}} {{source_schema_path}}
   mv {{dest}}/*.py {{pymodel}}
   uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
@@ -205,6 +205,13 @@ _test-examples: _ensure_examples_output
     --input-directory tests/data/valid \
     --output-directory examples/output \
     --schema {{source_schema_path}} > examples/output/README.md
+
+# Inject version from latest git tag into schema YAML
+_set-version:
+  #!/usr/bin/env bash
+  TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+  VERSION=${TAG#v}
+  sed -i "s/^version: .*/version: ${VERSION}/" {{source_schema_path}}
 
 # Add the merged model to docs/schema.
 _gen-yaml:
