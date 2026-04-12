@@ -24,6 +24,8 @@ jobs:
   build:
     name: Build Python 🐍 distributions 📦 for publishing
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     strategy:
       matrix:

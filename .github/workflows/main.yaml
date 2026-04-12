@@ -11,7 +11,8 @@ on:  # yamllint disable-line rule:truthy
 env:
   FORCE_COLOR: "1" # Make tools pretty.
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   test:
