@@ -1,12 +1,12 @@
 ---
-id: https://w3id.org/LightconeResearch/ASTRA/insight
+id: https://w3id.org/ASTRA/insight
 name: insight
 description: |-
   Insight and evidence models with W3C Web Annotation-compliant selectors
   for referencing content in scientific papers and analysis artifacts.
 
 prefixes:
-  astra: https://w3id.org/LightconeResearch/ASTRA/
+  astra: https://w3id.org/ASTRA/
   linkml: https://w3id.org/linkml/
   oa: http://www.w3.org/ns/oa#
 

@@ -1,12 +1,12 @@
 ---
-id: https://w3id.org/LightconeResearch/ASTRA/universe
+id: https://w3id.org/ASTRA/universe
 name: universe
 description: |-
   Universe specification models. A universe is a complete set of
   decisions across the entire analysis tree.
 
 prefixes:
-  astra: https://w3id.org/LightconeResearch/ASTRA/
+  astra: https://w3id.org/ASTRA/
   linkml: https://w3id.org/linkml/
 
 default_prefix: astra

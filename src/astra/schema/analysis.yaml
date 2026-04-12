@@ -1,12 +1,12 @@
 ---
-id: https://w3id.org/LightconeResearch/ASTRA/analysis
+id: https://w3id.org/ASTRA/analysis
 name: analysis
 description: |-
   Analysis specification models. Defines the self-similar analysis
   structure with inputs, outputs, decisions, and nested sub-analyses.
 
 prefixes:
-  astra: https://w3id.org/LightconeResearch/ASTRA/
+  astra: https://w3id.org/ASTRA/
   linkml: https://w3id.org/linkml/
 
 default_prefix: astra

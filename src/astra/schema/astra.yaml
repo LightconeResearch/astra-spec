@@ -1,5 +1,5 @@
 ---
-id: https://w3id.org/LightconeResearch/ASTRA
+id: https://w3id.org/ASTRA
 name: ASTRA
 title: ASTRA
 description: |-
@@ -12,7 +12,7 @@ see_also:
   - https://astra-spec.org
 
 prefixes:
-  astra: https://w3id.org/LightconeResearch/ASTRA/
+  astra: https://w3id.org/ASTRA/
   linkml: https://w3id.org/linkml/
   oa: http://www.w3.org/ns/oa#
 

@@ -1,12 +1,12 @@
 # Auto generated from astra.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-12T16:25:00
+# Generation date: 2026-04-12T16:46:05
 # Schema: ASTRA
 #
-# id: https://w3id.org/LightconeResearch/ASTRA
+# id: https://w3id.org/ASTRA
 # description: Agentic Schema for Transparent Research Analysis.
 #   A framework for defining hierarchical scientific analyses with
 #   decision points, evidence-backed insights, and universe specifications.
-# license: Apache-2.0
+# license: https://creativecommons.org/licenses/by/4.0/
 
 import dataclasses
 import re
@@ -65,7 +65,7 @@ metamodel_version = "1.7.0"
 version = None
 
 # Namespaces
-ASTRA = CurieNamespace('astra', 'https://w3id.org/LightconeResearch/ASTRA/')
+ASTRA = CurieNamespace('astra', 'https://w3id.org/ASTRA/')
 LINKML = CurieNamespace('linkml', 'https://w3id.org/linkml/')
 OA = CurieNamespace('oa', 'http://www.w3.org/ns/oa#')
 DEFAULT_ = ASTRA
