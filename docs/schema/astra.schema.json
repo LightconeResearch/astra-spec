@@ -1,0 +1,1550 @@
+{
+    "$defs": {
+        "Analysis": {
+            "additionalProperties": false,
+            "description": "A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Analysis__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Nested sub-analyses (keyed by analysis ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "authors": {
+                    "description": "List of authors",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "container": {
+                    "description": "Default container image name for recipes in this node",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "container_build": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ContainerBuildSpec"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Default container build specification for recipes in this node"
+                },
+                "decisions": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Decision__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Decision points in this analysis (keyed by decision ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "Detailed description of this analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "findings": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Findings and conclusions from outputs (keyed by insight ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "inputs": {
+                    "description": "Inputs for this analysis",
+                    "items": {
+                        "$ref": "#/$defs/Input"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "description": "Human-readable name for the analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "outputs": {
+                    "description": "Expected outputs from this analysis",
+                    "items": {
+                        "$ref": "#/$defs/Output"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "path": {
+                    "description": "Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "prior_insights": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Prior insights that inform decisions (keyed by insight ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags for categorization",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "version": {
+                    "description": "ASTRA specification version",
+                    "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Analysis",
+            "type": "object"
+        },
+        "Analysis__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Analysis__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Nested sub-analyses (keyed by analysis ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "authors": {
+                    "description": "List of authors",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "container": {
+                    "description": "Default container image name for recipes in this node",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "container_build": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ContainerBuildSpec"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Default container build specification for recipes in this node"
+                },
+                "decisions": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Decision__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Decision points in this analysis (keyed by decision ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "Detailed description of this analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "findings": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Findings and conclusions from outputs (keyed by insight ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "inputs": {
+                    "description": "Inputs for this analysis",
+                    "items": {
+                        "$ref": "#/$defs/Input"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "description": "Human-readable name for the analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "outputs": {
+                    "description": "Expected outputs from this analysis",
+                    "items": {
+                        "$ref": "#/$defs/Output"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "path": {
+                    "description": "Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "prior_insights": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Prior insights that inform decisions (keyed by insight ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags for categorization",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "version": {
+                    "description": "ASTRA specification version",
+                    "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [],
+            "title": "Analysis",
+            "type": "object"
+        },
+        "ContainerBuildSpec": {
+            "additionalProperties": false,
+            "description": "Specification for building a container image from a Containerfile",
+            "properties": {
+                "args": {
+                    "description": "Docker build arguments as key-value pairs",
+                    "items": {
+                        "$ref": "#/$defs/KeyValuePair"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "build": {
+                    "description": "Path to Containerfile relative to project root",
+                    "type": "string"
+                },
+                "context": {
+                    "description": "Build context directory",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "build"
+            ],
+            "title": "ContainerBuildSpec",
+            "type": "object"
+        },
+        "Decision": {
+            "additionalProperties": false,
+            "description": "A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision via from_ref.",
+            "properties": {
+                "default": {
+                    "description": "Default option ID for baseline universes",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from_ref": {
+                    "description": "Reference to a parent decision using '../' prefix (e.g., '../z_min'). When set, this is a pure reference and must not have label, options, or default.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Decision identifier (the key in the decisions map)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Human-readable name for the decision",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "options": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Option__identifier_optional"
+                            },
+                            {
+                                "description": "Human-readable name for the option",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "description": "Map of option IDs to option specifications",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "rationale": {
+                    "description": "Why this decision exists",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags for grouping and categorizing",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "when": {
+                    "description": "Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Decision",
+            "type": "object"
+        },
+        "DecisionSelection": {
+            "additionalProperties": false,
+            "description": "A mapping from a decision ID to the selected option ID",
+            "properties": {
+                "decision_id": {
+                    "description": "ID of the decision",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "option_id": {
+                    "description": "ID of the selected option",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "decision_id",
+                "option_id"
+            ],
+            "title": "DecisionSelection",
+            "type": "object"
+        },
+        "Decision__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision via from_ref.",
+            "properties": {
+                "default": {
+                    "description": "Default option ID for baseline universes",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from_ref": {
+                    "description": "Reference to a parent decision using '../' prefix (e.g., '../z_min'). When set, this is a pure reference and must not have label, options, or default.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Decision identifier (the key in the decisions map)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Human-readable name for the decision",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "options": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Option__identifier_optional"
+                            },
+                            {
+                                "description": "Human-readable name for the option",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "description": "Map of option IDs to option specifications",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "rationale": {
+                    "description": "Why this decision exists",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags for grouping and categorizing",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "when": {
+                    "description": "Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [],
+            "title": "Decision",
+            "type": "object"
+        },
+        "Evidence": {
+            "additionalProperties": false,
+            "description": "Evidence from a source with W3C-compliant selectors. Can reference literature (by DOI) or analysis artifacts (by output ID). Exactly one of doi or artifact must be set.",
+            "properties": {
+                "artifact": {
+                    "description": "Output ID referencing a declared output in this analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "doi": {
+                    "description": "DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')",
+                    "pattern": "^10\\.\\d{4,}/.*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Evidence identifier",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "location": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/FragmentSelector"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Location hint (page number for PDFs/reports)"
+                },
+                "quote": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TextQuoteSelector"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Text quote anchor"
+                },
+                "snapshot": {
+                    "description": "Path to immutable copy of the artifact",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "source_commit": {
+                    "description": "Git commit that produced the original artifact",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "version": {
+                    "description": "Paper version for arXiv papers (version matters for reproducibility)",
+                    "minimum": 1,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Evidence",
+            "type": "object"
+        },
+        "FragmentSelector": {
+            "additionalProperties": false,
+            "description": "W3C FragmentSelector for PDF locations. Conforms to RFC 3778/8118 for PDF fragments.",
+            "properties": {
+                "page": {
+                    "description": "1-indexed page number",
+                    "minimum": 1,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "value": {
+                    "description": "Fragment value (e.g., 'page=6')",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "FragmentSelector",
+            "type": "object"
+        },
+        "Input": {
+            "additionalProperties": false,
+            "description": "An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA analysis). Sub-analysis inputs can use from_ref to reference a parent input or a sibling's output (e.g., 'sibling_id.output_id').",
+            "properties": {
+                "description": {
+                    "description": "Description of the input",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from_ref": {
+                    "description": "Reference to parent input or sibling output (e.g., 'input_id' or 'sibling.output_id').",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Unique identifier for the input",
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "ref": {
+                    "description": "Reference to another ASTRA analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "ref_version": {
+                    "description": "Version of the referenced analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "URI or path to the data source",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "$ref": "#/$defs/InputType",
+                    "description": "Type of input"
+                },
+                "use_outputs": {
+                    "description": "Specific outputs to use from referenced analysis",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Input",
+            "type": "object"
+        },
+        "InputType": {
+            "description": "Type of analysis input",
+            "enum": [
+                "data",
+                "analysis"
+            ],
+            "title": "InputType",
+            "type": "string"
+        },
+        "Insight": {
+            "additionalProperties": false,
+            "description": "A unit of scientific knowledge backed by evidence. Used for both prior_insights (informing decisions) and findings (conclusions from the analysis).",
+            "properties": {
+                "claim": {
+                    "description": "What we learned (1-2 sentences)",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "Creation timestamp (ISO 8601)",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "derived": {
+                    "description": "True if synthesized/inferred from multiple sources",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "evidence": {
+                    "description": "Supporting evidence (papers or analysis artifacts)",
+                    "items": {
+                        "$ref": "#/$defs/Evidence"
+                    },
+                    "type": "array"
+                },
+                "id": {
+                    "description": "Unique identifier",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "notes": {
+                    "description": "Reasoning notes",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "scope": {
+                    "description": "Applicability conditions",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Categorization tags",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "claim",
+                "created_at",
+                "evidence"
+            ],
+            "title": "Insight",
+            "type": "object"
+        },
+        "InsightCollection": {
+            "additionalProperties": false,
+            "description": "Collection of insights, usable standalone or embedded in an analysis",
+            "properties": {
+                "insights": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Map of insight IDs to insights",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                }
+            },
+            "title": "InsightCollection",
+            "type": "object"
+        },
+        "Insight__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A unit of scientific knowledge backed by evidence. Used for both prior_insights (informing decisions) and findings (conclusions from the analysis).",
+            "properties": {
+                "claim": {
+                    "description": "What we learned (1-2 sentences)",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "Creation timestamp (ISO 8601)",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "derived": {
+                    "description": "True if synthesized/inferred from multiple sources",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "evidence": {
+                    "description": "Supporting evidence (papers or analysis artifacts)",
+                    "items": {
+                        "$ref": "#/$defs/Evidence"
+                    },
+                    "type": "array"
+                },
+                "id": {
+                    "description": "Unique identifier",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "notes": {
+                    "description": "Reasoning notes",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "scope": {
+                    "description": "Applicability conditions",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Categorization tags",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "claim",
+                "created_at",
+                "evidence"
+            ],
+            "title": "Insight",
+            "type": "object"
+        },
+        "KeyValuePair": {
+            "additionalProperties": false,
+            "description": "A key-value string pair",
+            "properties": {
+                "key": {
+                    "description": "The key",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "value": {
+                    "description": "The value",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "key",
+                "value"
+            ],
+            "title": "KeyValuePair",
+            "type": "object"
+        },
+        "Option": {
+            "additionalProperties": false,
+            "description": "An option for a decision point",
+            "properties": {
+                "description": {
+                    "description": "Detailed description of the option",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "excluded": {
+                    "description": "Whether this option was considered and rejected",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "excluded_reason": {
+                    "description": "Why this option was excluded",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Option identifier (the key in the options map)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "incompatible_with": {
+                    "description": "Decision.option pairs that cannot be selected together",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "insights": {
+                    "description": "Insight IDs supporting this option",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Human-readable name for the option",
+                    "type": "string"
+                },
+                "requires": {
+                    "description": "Decision.option pairs that must also be selected",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "label"
+            ],
+            "title": "Option",
+            "type": "object"
+        },
+        "Option__identifier_optional": {
+            "additionalProperties": false,
+            "description": "An option for a decision point",
+            "properties": {
+                "description": {
+                    "description": "Detailed description of the option",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "excluded": {
+                    "description": "Whether this option was considered and rejected",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "excluded_reason": {
+                    "description": "Why this option was excluded",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Option identifier (the key in the options map)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "incompatible_with": {
+                    "description": "Decision.option pairs that cannot be selected together",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "insights": {
+                    "description": "Insight IDs supporting this option",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Human-readable name for the option",
+                    "type": "string"
+                },
+                "requires": {
+                    "description": "Decision.option pairs that must also be selected",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "label"
+            ],
+            "title": "Option",
+            "type": "object"
+        },
+        "Output": {
+            "additionalProperties": false,
+            "description": "An expected output from the analysis. Outputs can declare their provenance via from_ref to trace which sub-analysis produces them.",
+            "properties": {
+                "description": {
+                    "description": "Description of the output",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from_ref": {
+                    "description": "Sub-analysis output that produces this (e.g., 'sub_analysis.output_id').",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Unique identifier for the output",
+                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "recipe": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Recipe"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How to produce this output"
+                },
+                "type": {
+                    "$ref": "#/$defs/OutputType",
+                    "description": "Type of output"
+                },
+                "when": {
+                    "description": "Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "title": "Output",
+            "type": "object"
+        },
+        "OutputType": {
+            "description": "Type of analysis output",
+            "enum": [
+                "metric",
+                "figure",
+                "table",
+                "data",
+                "report"
+            ],
+            "title": "OutputType",
+            "type": "string"
+        },
+        "Recipe": {
+            "additionalProperties": false,
+            "description": "A build rule that produces an output. Recipes are the execution contract: run this command to produce the parent output.",
+            "properties": {
+                "command": {
+                    "description": "Command to execute (e.g., 'python src/train.py')",
+                    "type": "string"
+                },
+                "container": {
+                    "description": "Container image name (pre-built image string)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "container_build": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/ContainerBuildSpec"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Container image build specification (alternative to container string)"
+                },
+                "inputs": {
+                    "description": "Output IDs that must be materialized before this recipe runs",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "resources": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Resources"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Compute resource requirements"
+                }
+            },
+            "required": [
+                "command"
+            ],
+            "title": "Recipe",
+            "type": "object"
+        },
+        "Resources": {
+            "additionalProperties": false,
+            "description": "Compute resource requirements for a recipe",
+            "properties": {
+                "cpus": {
+                    "description": "Number of CPUs",
+                    "minimum": 1,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "gpus": {
+                    "description": "Number of GPUs",
+                    "minimum": 1,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "memory": {
+                    "description": "Memory requirement (e.g., '8GB', '512MB')",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "time_limit": {
+                    "description": "Maximum wall time (e.g., '2h', '30m')",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Resources",
+            "type": "object"
+        },
+        "TextQuoteSelector": {
+            "additionalProperties": false,
+            "description": "W3C TextQuoteSelector for locating text in a document. The authoritative anchor for verification.",
+            "properties": {
+                "exact": {
+                    "description": "Exact quoted text (1-3 sentences)",
+                    "type": "string"
+                },
+                "prefix": {
+                    "description": "~20-100 chars before for disambiguation",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "suffix": {
+                    "description": "~20-100 chars after for disambiguation",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "exact"
+            ],
+            "title": "TextQuoteSelector",
+            "type": "object"
+        },
+        "Universe": {
+            "additionalProperties": false,
+            "description": "A universe specification - a complete set of decisions across the entire analysis tree.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/UniverseNode__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Sub-analysis universe selections",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "decisions": {
+                    "description": "Root-level decision selections",
+                    "items": {
+                        "$ref": "#/$defs/DecisionSelection"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "What this universe represents",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Unique identifier for the universe",
+                    "pattern": "^[a-z][a-z0-9_-]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Universe",
+            "type": "object"
+        },
+        "UniverseNode": {
+            "additionalProperties": false,
+            "description": "A universe node mirroring the analysis tree structure. Represents decision selections at a specific sub-analysis node.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/UniverseNode__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Sub-analysis universe selections",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "decisions": {
+                    "description": "Decision selections (decision_id to option_id)",
+                    "items": {
+                        "$ref": "#/$defs/DecisionSelection"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Node identifier (the sub-analysis key)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "universe": {
+                    "description": "Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "UniverseNode",
+            "type": "object"
+        },
+        "UniverseNode__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A universe node mirroring the analysis tree structure. Represents decision selections at a specific sub-analysis node.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/UniverseNode__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Sub-analysis universe selections",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "decisions": {
+                    "description": "Decision selections (decision_id to option_id)",
+                    "items": {
+                        "$ref": "#/$defs/DecisionSelection"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Node identifier (the sub-analysis key)",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "universe": {
+                    "description": "Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [],
+            "title": "UniverseNode",
+            "type": "object"
+        }
+    },
+    "$id": "https://w3id.org/ASTRA",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "additionalProperties": true,
+    "description": "A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.",
+    "metamodel_version": "1.7.0",
+    "properties": {
+        "analyses": {
+            "additionalProperties": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/Analysis__identifier_optional"
+                    },
+                    {
+                        "type": "null"
+                    }
+                ]
+            },
+            "description": "Nested sub-analyses (keyed by analysis ID)",
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "authors": {
+            "description": "List of authors",
+            "items": {
+                "type": "string"
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "container": {
+            "description": "Default container image name for recipes in this node",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "container_build": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/ContainerBuildSpec"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "description": "Default container build specification for recipes in this node"
+        },
+        "decisions": {
+            "additionalProperties": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/Decision__identifier_optional"
+                    },
+                    {
+                        "type": "null"
+                    }
+                ]
+            },
+            "description": "Decision points in this analysis (keyed by decision ID)",
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "description": {
+            "description": "Detailed description of this analysis",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "findings": {
+            "additionalProperties": {
+                "$ref": "#/$defs/Insight__identifier_optional"
+            },
+            "description": "Findings and conclusions from outputs (keyed by insight ID)",
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "id": {
+            "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "inputs": {
+            "description": "Inputs for this analysis",
+            "items": {
+                "$ref": "#/$defs/Input"
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "name": {
+            "description": "Human-readable name for the analysis",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "outputs": {
+            "description": "Expected outputs from this analysis",
+            "items": {
+                "$ref": "#/$defs/Output"
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "path": {
+            "description": "Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "prior_insights": {
+            "additionalProperties": {
+                "$ref": "#/$defs/Insight__identifier_optional"
+            },
+            "description": "Prior insights that inform decisions (keyed by insight ID)",
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "tags": {
+            "description": "Tags for categorization",
+            "items": {
+                "type": "string"
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "version": {
+            "description": "ASTRA specification version",
+            "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    },
+    "required": [
+        "id"
+    ],
+    "title": "ASTRA",
+    "type": "object",
+    "version": null
+}
