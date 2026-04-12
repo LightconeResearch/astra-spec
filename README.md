@@ -6,7 +6,7 @@ Agentic Schema for Transparent Research Analysis.
 
 ## Documentation Website
 
-[https://LightconeResearch.github.io/ASTRA](https://LightconeResearch.github.io/ASTRA)
+[https://LightconeReserach.github.io/ASTRA](https://LightconeReserach.github.io/ASTRA)
 
 ## Repository Structure
 
@@ -15,10 +15,10 @@ Agentic Schema for Transparent Research Analysis.
 * [examples/](examples/) - Examples of using the schema
 * [project/](project/) - project files (these files are auto-generated, do not edit)
 * [src/](src/) - source files (edit these)
-  * [astra-spec](src/astra-spec)
-    * [schema/](src/astra-spec/schema) -- LinkML schema
+  * [astra](src/astra)
+    * [schema/](src/astra/schema) -- LinkML schema
       (edit this)
-    * [datamodel/](src/astra-spec/datamodel) -- generated
+    * [datamodel/](src/astra/datamodel) -- generated
       Python datamodel
 * [tests/](tests/) - Python tests
   * [data/](tests/data) - Example data

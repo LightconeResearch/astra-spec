@@ -115,7 +115,7 @@ Core developers should read the material on the [LinkML site](https://linkml.io/
 [about-branches]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-branches
 [about-issues]: https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues
 [about-pulls]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
-[issues]: https://github.com/LightconeResearch/ASTRA/issues/
-[pulls]: https://github.com/LightconeResearch/ASTRA/pulls/
+[issues]: https://github.com/LightconeReserach/ASTRA/issues/
+[pulls]: https://github.com/LightconeReserach/ASTRA/pulls/
 
 We recommend also reading [GitHub Pull Requests: 10 Tips to Know](https://blog.mergify.com/github-pull-requests-10-tips-to-know/)

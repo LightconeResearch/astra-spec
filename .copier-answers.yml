@@ -7,9 +7,9 @@ email: francois.lanusse@cnrs.fr
 full_name: Francois Lanusse
 gh_action_docs_preview: true
 gh_action_pypi: true
-github_org: LightconeResearch
+github_org: LightconeReserach
 license: Apache-2.0
 project_description: Agentic Schema for Transparent Research Analysis.
 project_name: ASTRA
-project_slug: astra-spec
+project_slug: astra
 

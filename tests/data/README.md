@@ -1,4 +1,4 @@
-# Example data for astra-spec
+# Example data for astra
 
 This folder contains example data for testing and demonstrating the datamodel`
 sorted in subfolders:

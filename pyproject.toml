@@ -3,7 +3,7 @@ requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"
 
 [project]
-name = "astra-spec"
+name = "astra"
 description = "Agentic Schema for Transparent Research Analysis."
 authors = [
   {name = "Francois Lanusse", email = "francois.lanusse@cnrs.fr"},
@@ -31,9 +31,6 @@ dev = [
 # See https://hatch.pypa.io/latest/config/build/#file-selection for how to
 # explicitly include files other than default into the build distributions.
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/astra-spec"]
-
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
 
@@ -54,8 +51,8 @@ skip = [
   "pyproject.toml",
   "uv.lock",
   "project/*",
-  "src/astra-spec/datamodel/astra-spec_pydantic.py",
-  "src/astra-spec/datamodel/astra-spec.py",
+  "src/astra/datamodel/astra_pydantic.py",
+  "src/astra/datamodel/astra.py",
 ]
 
 # Reminder: words have to be lowercased for the ignore-words-list
@@ -71,6 +68,6 @@ extend-exclude = [
   "uv.lock",
   "pyproject.toml",
   "project/*",
-  "src/astra-spec/datamodel/astra-spec_pydantic.py",
-  "src/astra-spec/datamodel/astra-spec.py",
+  "src/astra/datamodel/astra_pydantic.py",
+  "src/astra/datamodel/astra.py",
 ]

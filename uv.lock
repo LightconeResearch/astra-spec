@@ -159,7 +159,7 @@ wheels = [
 ]
 
 [[package]]
-name = "astra-spec"
+name = "astra"
 source = { editable = "." }
 dependencies = [
     { name = "linkml-runtime", version = "1.9.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },

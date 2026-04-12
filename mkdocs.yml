@@ -47,7 +47,7 @@ markdown_extensions:
   #       - gen_pages.py  # or any other name or path
 
 watch:
-  - src/astra-spec/schema
+  - src/astra/schema
 
 nav:
   - Home: index.md
@@ -57,8 +57,8 @@ nav:
 exclude_docs: |
   /templates-linkml/
 
-site_url: https://LightconeResearch.github.io/ASTRA
-repo_url: https://github.com/LightconeResearch/ASTRA
+site_url: https://LightconeReserach.github.io/ASTRA
+repo_url: https://github.com/LightconeReserach/ASTRA
 
 # Uncomment this block to enable use of Google Analytics.
 # Replace the property value with your own ID.
