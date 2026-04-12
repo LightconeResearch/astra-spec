@@ -39,12 +39,6 @@ Please use our [Issue Tracker][issues] for any of the following:
 - Reporting problems
 - Requesting new schema elements
 
-<a id="questions-and-discussions"></a>
-
-### Questions and Discussions
-
-Please use our [Discussions forum][discussions] to ask general questions or contribute to discussions.
-
 <a id="adding-elements"></a>
 
 ### Adding new elements yourself

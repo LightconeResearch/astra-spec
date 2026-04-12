@@ -7,6 +7,7 @@ name = "astra-spec"
 description = "Agentic Schema for Transparent Research Analysis."
 authors = [
   {name = "Francois Lanusse", email = "francois.lanusse@cnrs.fr"},
+  {name = "Liam Parker", email = "lhparker@berkeley.edu"},
 ]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
