@@ -29,8 +29,8 @@ dev = [
     "mknotebooks>= 0.8.0",
 ]
 
-# See https://hatch.pypa.io/latest/config/build/#file-selection for how to
-# explicitly include files other than default into the build distributions.
+[tool.hatch.build.targets.wheel]
+packages = ["src/astra"]
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"

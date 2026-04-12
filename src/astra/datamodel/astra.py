@@ -1,5 +1,5 @@
 # Auto generated from astra.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-12T17:19:22
+# Generation date: 2026-04-12T18:05:57
 # Schema: ASTRA
 #
 # id: https://w3id.org/ASTRA
