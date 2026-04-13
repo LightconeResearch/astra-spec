@@ -4,7 +4,7 @@
 
 [![Build and test](https://github.com/LightconeResearch/astra-spec/actions/workflows/main.yaml/badge.svg)](https://github.com/LightconeResearch/astra-spec/actions/workflows/main.yaml)
 [![License: CC BY 4.0](https://img.shields.io/badge/Schema_License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![License: Apache 2.0](https://img.shields.io/badge/Code_License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![License: BSD 3-Clause](https://img.shields.io/badge/Code_License-BSD_3--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause)
 
 ASTRA is a declarative specification format for scientific analyses. It separates **what** you want to learn from **how** to compute it: you declare inputs, outputs, and decisions; an agent or workflow engine handles execution.
 
@@ -157,7 +157,7 @@ project/        # Generated multi-language artifacts
 ## License
 
 - **Schema**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- **Code**: [Apache 2.0](LICENSE)
+- **Code**: [BSD 3-Clause](LICENSE)
 
 ## Credits
 
