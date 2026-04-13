@@ -1,0 +1,181 @@
+name: DCO
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+  pull_request_review:
+    types: [submitted]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  dco:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request &&
+       (contains(github.event.comment.body, 'I have read the Developer Certificate of Origin') ||
+        github.event.comment.body == 'recheck'))
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const SIGN_OFF_TEXT = 'I have read the Developer Certificate of Origin and I hereby sign the DCO for this PR';
+            const ALLOWLIST = new Set(['dependabot[bot]', 'github-actions[bot]', 'claude-code[bot]']);
+            const DCO_URL = 'https://developercertificate.org/';
+            const MARKER = '<!-- dco-sign-off-request -->';
+
+            // --- Determine PR number ---
+            const prNumber = context.payload.pull_request?.number || context.payload.issue?.number;
+            if (!prNumber) {
+              console.log('No PR context found');
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // --- Get PR details ---
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const headSha = pr.head.sha;
+
+            async function setStatus(state, description) {
+              await github.rest.repos.createCommitStatus({
+                owner, repo, sha: headSha, state,
+                context: 'DCO',
+                description: description.slice(0, 140),
+                target_url: DCO_URL,
+              });
+            }
+
+            // --- Get latest approval ---
+            const { data: reviews } = await github.rest.pulls.listReviews({ owner, repo, pull_number: prNumber });
+            const approvals = reviews
+              .filter(r => r.state === 'APPROVED')
+              .sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at));
+            const latestApproval = approvals.at(-1);
+
+            if (!latestApproval) {
+              await setStatus('pending', 'Awaiting PR approval before DCO sign-off');
+              return;
+            }
+
+            // --- Check for new commits since approval ---
+            if (headSha !== latestApproval.commit_id) {
+              await setStatus('pending', 'New commits since approval — awaiting re-approval');
+              return;
+            }
+
+            const approvalTime = new Date(latestApproval.submitted_at);
+
+            // --- Get all commit authors ---
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner, repo, pull_number: prNumber,
+            });
+
+            const authors = [...new Set(
+              commits.map(c => c.author?.login).filter(Boolean)
+            )].filter(a => !ALLOWLIST.has(a));
+
+            if (authors.length === 0) {
+              await setStatus('success', 'All contributors are in the allowlist');
+              return;
+            }
+
+            // --- Check sign-off comments posted after approval ---
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: prNumber,
+            });
+
+            const signedAuthors = new Set(
+              comments
+                .filter(c => new Date(c.created_at) > approvalTime)
+                .filter(c => c.body.includes(SIGN_OFF_TEXT))
+                .map(c => c.user.login)
+            );
+
+            const signed = authors.filter(a => signedAuthors.has(a));
+            const unsigned = authors.filter(a => !signedAuthors.has(a));
+
+            // --- Build the DCO status comment body ---
+            const allSigned = unsigned.length === 0;
+            const signedList = signed.map(a => `- :white_check_mark: @${a}`).join('\n') || '_none yet_';
+            const unsignedList = unsigned.map(a => `- :x: @${a}`).join('\n');
+
+            const commentBody = [
+              MARKER,
+              '## Developer Certificate of Origin',
+              '',
+              allSigned
+                ? ':white_check_mark: **All contributors have signed the DCO. This PR is ready to merge.**'
+                : 'This PR has been approved. Before it can be merged, all contributors must sign the [Developer Certificate of Origin](https://developercertificate.org/).',
+              '',
+              '### Status',
+              signedList,
+              ...(unsignedList ? [unsignedList] : []),
+              '',
+              ...(!allSigned ? [
+                '### How to sign',
+                'Post the following comment **exactly as written**:',
+                '',
+                `> ${SIGN_OFF_TEXT}`,
+              ] : []),
+            ].join('\n');
+
+            // --- Find existing bot comment or create new one ---
+            const existingComment = comments.find(c =>
+              c.body.includes(MARKER) && new Date(c.created_at) > approvalTime
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existingComment.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: prNumber,
+                body: commentBody,
+              });
+            }
+
+            // --- All signed: append Signed-off-by trailers to PR body ---
+            if (allSigned) {
+              const TRAILER_MARKER = '<!-- dco-signed-off-by -->';
+
+              const trailerLines = [];
+              for (const author of signed) {
+                const commit = commits.find(c => c.author?.login === author);
+                const name = commit?.commit?.author?.name || author;
+                const email = commit?.commit?.author?.email || `${author}@users.noreply.github.com`;
+                trailerLines.push(`Signed-off-by: ${name} <${email}>`);
+              }
+              const trailerBlock = `${TRAILER_MARKER}\n${trailerLines.join('\n')}`;
+
+              const currentBody = pr.body || '';
+              let newBody;
+              if (currentBody.includes(TRAILER_MARKER)) {
+                newBody = currentBody.replace(
+                  new RegExp(`${TRAILER_MARKER}[\\s\\S]*$`),
+                  trailerBlock,
+                );
+              } else {
+                newBody = `${currentBody}\n\n${trailerBlock}`;
+              }
+
+              await github.rest.pulls.update({
+                owner, repo, pull_number: prNumber,
+                body: newBody,
+              });
+
+              await setStatus('success', 'All contributors have signed the DCO');
+              return;
+            }
+
+            await setStatus('pending', `Awaiting DCO sign-off from: ${unsigned.join(', ')}`);
