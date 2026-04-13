@@ -1,0 +1,2805 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://astra-spec.org/">
+      
+      
+      
+        <link rel="next" href="elements/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>ASTRA</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+
+      
+    
+<script src="assets/pymdownx-extras/material-extra-theme-2ek1P7jT.js" type="text/javascript"></script>
+<script src="assets/pymdownx-extras/material-extra-3rdparty-BUCF4rjN.js" type="text/javascript"></script>
+
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="css/ansi-colours.css">
+    
+      <link rel="stylesheet" href="css/jupyter-cells.css">
+    
+      <link rel="stylesheet" href="css/pandas-dataframe.css">
+    
+      <link rel="stylesheet" href="assets/pymdownx-extras/extra-c6ab11540a.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#astra-format-specification" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+
+<header class="md-header" data-md-component="header">
+  <nav
+    class="md-header__inner md-grid"
+    aria-label="header.title"
+  >
+    <a
+      href="https://astra-spec.org/"
+      title="ASTRA"
+      class="md-header__button md-logo"
+      aria-label="ASTRA"
+    >
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m19 2-5 4.5v11l5-4.5zM6.5 5C4.55 5 2.45 5.4 1 6.5v14.66c0 .25.25.5.5.5.1 0 .15-.07.25-.07 1.35-.65 3.3-1.09 4.75-1.09 1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.31 4.75 1.06.1.05.15.03.25.03.25 0 .5-.25.5-.5V6.5c-.6-.45-1.25-.75-2-1V19c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V6.5C10.55 5.4 8.45 5 6.5 5"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ASTRA
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Specification
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="md-header__options">
+      <div class="md-header-nav__scheme md-header-nav__button md-source__icon md-icon">
+          <a
+            href="javascript:toggleScheme();"
+            title="Light mode"
+            class="light-mode"
+          >
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+          </a>
+          <a
+            href="javascript:toggleScheme();"
+            title="Dark mode"
+            class="dark-mode"
+          >
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+          </a>
+          <a
+            href="javascript:toggleScheme();"
+            title="System preference"
+            class="system-mode"
+          >
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.5 2c-1.79 1.15-3 3.18-3 5.5s1.21 4.35 3.03 5.5C4.46 13 2 10.54 2 7.5A5.5 5.5 0 0 1 7.5 2m11.57 1.5 1.43 1.43L4.93 20.5 3.5 19.07zm-6.18 2.43L11.41 5 9.97 6l.42-1.7L9 3.24l1.75-.12.58-1.65L12 3.1l1.73.03-1.35 1.13zm-3.3 3.61-1.16-.73-1.12.78.34-1.32-1.09-.83 1.36-.09.45-1.29.51 1.27 1.36.03-1.05.87zM19 13.5a5.5 5.5 0 0 1-5.5 5.5c-1.22 0-2.35-.4-3.26-1.07l7.69-7.69c.67.91 1.07 2.04 1.07 3.26m-4.4 6.58 2.77-1.15-.24 3.35zm4.33-2.7 1.15-2.77 2.2 2.54zm1.15-4.96-1.14-2.78 3.34.24zM9.63 18.93l2.77 1.15-2.53 2.19z"/></svg>
+          </a>
+           <a
+            href="javascript:toggleScheme();"
+            title="Unknown scheme"
+            class="unknown-mode"
+          >
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m15.07 11.25-.9.92C13.45 12.89 13 13.5 13 15h-2v-.5c0-1.11.45-2.11 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41a2 2 0 0 0-2-2 2 2 0 0 0-2 2H8a4 4 0 0 1 4-4 4 4 0 0 1 4 4 3.2 3.2 0 0 1-.93 2.25M13 19h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10c0-5.53-4.5-10-10-10"/></svg>
+          </a>
+      </div>
+    </div>
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/LightconeResearch/astra-spec" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="ASTRA" class="md-nav__button md-logo" aria-label="ASTRA" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m19 2-5 4.5v11l5-4.5zM6.5 5C4.55 5 2.45 5.4 1 6.5v14.66c0 .25.25.5.5.5.1 0 .15-.07.25-.07 1.35-.65 3.3-1.09 4.75-1.09 1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.31 4.75 1.06.1.05.15.03.25.03.25 0 .5-.25.5-.5V6.5c-.6-.45-1.25-.75-2-1V19c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V6.5C10.55 5.4 8.45 5 6.5 5"/></svg>
+
+    </a>
+    ASTRA
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/LightconeResearch/astra-spec" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#abstract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Abstract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terminology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terminology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Specification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core Specification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#minimal-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Schema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Analysis Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#document-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recipes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sub-analyses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sub-Analyses
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#universe-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Universe Schema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Universe Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flat-universe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flat Universe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nested-universe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested Universe
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prior-insights-and-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prior Insights and Findings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prior Insights and Findings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#insight-shared-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Insight (shared model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#w3c-selectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        W3C Selectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#incompatible_with" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        incompatible_with
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#requires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        requires
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#composability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Composability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conditional-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional Elements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conditional Elements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conditional-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional Decisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conditional-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#negation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Negation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision References
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#external-sub-analyses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Sub-Analyses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#excluded-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Excluded Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-schema-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1: Schema Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-2-semantic-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2: Semantic Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evidence-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#id-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ID Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Artifacts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Artifacts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#source-schema-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source Schema Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#abstract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Abstract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#terminology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Terminology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-specification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Specification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core Specification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#file-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#minimal-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Minimal Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analysis-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Analysis Schema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Analysis Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#document-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recipes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sub-analyses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sub-Analyses
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#universe-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Universe Schema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Universe Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flat-universe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flat Universe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nested-universe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nested Universe
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prior-insights-and-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prior Insights and Findings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prior Insights and Findings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#insight-shared-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Insight (shared model)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#w3c-selectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        W3C Selectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#incompatible_with" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        incompatible_with
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#requires" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        requires
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#composability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Composability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conditional-elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional Elements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conditional Elements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conditional-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional Decisions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conditional-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#negation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Negation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision References
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#external-sub-analyses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Sub-Analyses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#excluded-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Excluded Options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-schema-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1: Schema Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-2-semantic-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2: Semantic Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evidence-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#id-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ID Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Artifacts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Artifacts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#source-schema-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source Schema Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+  
+                  
+
+
+  
+  
+
+
+<h1 id="astra-format-specification">ASTRA Format Specification</h1>
+<blockquote>
+<p><strong>Version</strong>: draft \
+<strong>Status</strong>: Active Development</p>
+</blockquote>
+<h2 id="abstract">Abstract</h2>
+<p><strong>ASTRA</strong> (Agentic Schema for Transparent Research Analysis) is a declarative YAML format for specifying scientific analyses. An ASTRA file describes <em>what</em> an analysis needs (inputs), <em>what</em> it should produce (outputs), and <em>what</em> choices are involved (decisions) — without prescribing <em>how</em> to execute the computation.</p>
+<p>AI agents read the specification and generate implementations. The format captures the full decision space (the <strong>multiverse</strong>) so that every analytical choice is transparent, traceable, and reproducible.</p>
+<div class="highlight"><pre><span></span><code>Analysis (YAML)  ─────▶  Agent  ─────▶  Implementation  ─────▶  Results
+  inputs                                   scripts/               metrics
+  outputs                                  pipelines/             figures
+  decisions                                                       tables
+      ▲                                                              │
+      └──────────────── previous analyses (as inputs) ───────────────┘
+
+Universe (decision selections)  ─────▶  Execution Parameters
+</code></pre></div>
+<h2 id="goals">Goals</h2>
+<ol>
+<li><strong>Declarative</strong> — Specify what, not how. Execution is the agent's job.</li>
+<li><strong>Self-similar</strong> — Every node in the analysis tree has the same structure: inputs, outputs, decisions, insights, and optional sub-analyses.</li>
+<li><strong>Transparent</strong> — All analytical choices are documented, including alternatives not taken.</li>
+<li><strong>Evidence-linked</strong> — Decisions can reference literature-backed insights with verifiable quotes.</li>
+<li><strong>Composable</strong> — Analyses can use other analyses as inputs, enabling formal research chains.</li>
+</ol>
+<h2 id="non-goals">Non-Goals</h2>
+<ul>
+<li><strong>Workflow execution</strong> — ASTRA does not define execution order, scheduling, or runtime behavior. That is the domain of agents.</li>
+<li><strong>Code generation</strong> — The specification does not contain or generate implementation code.</li>
+<li><strong>Data storage</strong> — ASTRA references data sources but does not store data.</li>
+<li><strong>Visualization</strong> — Rendering and display are handled by separate tools.</li>
+</ul>
+<h2 id="terminology">Terminology</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Analysis</strong></td>
+<td>A self-similar node with inputs, outputs, decisions, prior insights, findings, and optional sub-analyses</td>
+</tr>
+<tr>
+<td><strong>Decision</strong></td>
+<td>A choice point with multiple options (e.g., "which scaling method?")</td>
+</tr>
+<tr>
+<td><strong>Option</strong></td>
+<td>One possible choice for a decision</td>
+</tr>
+<tr>
+<td><strong>Universe</strong></td>
+<td>One complete set of decisions — one option selected per decision point</td>
+</tr>
+<tr>
+<td><strong>Multiverse</strong></td>
+<td>The space of all valid decision combinations</td>
+</tr>
+<tr>
+<td><strong>Prior Insight</strong></td>
+<td>A scientific claim backed by verifiable evidence from literature that informs decisions</td>
+</tr>
+<tr>
+<td><strong>Finding</strong></td>
+<td>A conclusion derived from the analysis outputs, framed in terms of the analysis aims</td>
+</tr>
+<tr>
+<td><strong>Evidence</strong></td>
+<td>A reference to a specific quote or location in a paper or analysis artifact</td>
+</tr>
+<tr>
+<td><strong>Recipe</strong></td>
+<td>An inline build rule on an output declaring how to produce it</td>
+</tr>
+<tr>
+<td><strong>Constraint</strong></td>
+<td>A rule between options: <code>incompatible_with</code> or <code>requires</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="core-specification">Core Specification</h2>
+<h3 id="file-format">File Format</h3>
+<p>ASTRA analyses are written in YAML. The top-level file is typically named <code>astra.yaml</code>.</p>
+<p>The schema is defined in <a href="https://linkml.io">LinkML</a> and generates bindings for Python, TypeScript, JSON Schema, JSON-LD, and more. See <a href="#schema-artifacts">Schema Artifacts</a> for available formats.</p>
+<h3 id="minimal-example">Minimal Example</h3>
+<div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Iris Classification</span>
+
+<span class="nt">inputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iris_data</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sklearn.datasets.load_iris</span>
+
+<span class="nt">outputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accuracy</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metric</span>
+
+<span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">scaling</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Feature Scaling</span>
+<span class="w">    </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">standard</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">none</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">No Scaling</span>
+<span class="w">      </span><span class="nt">standard</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">StandardScaler</span>
+</code></pre></div>
+<h3 id="full-example">Full Example</h3>
+<div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Iris Classification Study</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">A demonstration analysis that builds a classifier for the classic</span>
+<span class="w">  </span><span class="no">Iris dataset, exploring different preprocessing and model choices.</span>
+<span class="nt">authors</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ASTRA Examples</span>
+<span class="nt">tags</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">classification</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sklearn</span>
+
+<span class="nt">inputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iris_data</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sklearn.datasets.load_iris</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Fisher&#39;s</span><span class="nv"> </span><span class="s">classic</span><span class="nv"> </span><span class="s">150-sample,</span><span class="nv"> </span><span class="s">3-class</span><span class="nv"> </span><span class="s">dataset&quot;</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">preprocessing_study</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analysis</span>
+<span class="w">    </span><span class="nt">ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analyses/scaling_comparison_2024</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Our previous study on scaling methods</span>
+
+<span class="nt">outputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">trained_output</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Best performing classifier</span>
+<span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/train.py</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accuracy</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metric</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Classification accuracy on held-out test set</span>
+<span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/evaluate.py</span>
+<span class="w">      </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">trained_output</span><span class="p p-Indicator">]</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">confusion_matrix</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">figure</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Confusion matrix heatmap</span>
+<span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/evaluate.py</span>
+<span class="w">      </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">trained_output</span><span class="p p-Indicator">]</span>
+
+<span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">scaling</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Feature Scaling</span>
+<span class="w">    </span><span class="nt">rationale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Scaling affects distance-based algorithms like SVM</span>
+<span class="w">    </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">standard</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">none</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">No Scaling</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Use raw feature values</span>
+<span class="w">      </span><span class="nt">standard</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">StandardScaler</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Z-score normalization (mean=0, std=1)</span>
+<span class="w">      </span><span class="nt">minmax</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MinMaxScaler</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Scale to [0, 1] range</span>
+<span class="w">        </span><span class="nt">incompatible_with</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">model.svm</span>
+
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Classification Model</span>
+<span class="w">    </span><span class="nt">rationale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Core algorithmic choice affecting accuracy and interpretability</span>
+<span class="w">    </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">random_forest</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">svm</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Support Vector Machine</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Maximum margin classifier</span>
+<span class="w">        </span><span class="nt">requires</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scaling.standard</span>
+<span class="w">      </span><span class="nt">random_forest</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Random Forest</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Ensemble of decision trees</span>
+<span class="w">      </span><span class="nt">logistic</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Logistic Regression</span>
+<span class="w">        </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Linear classifier with probabilistic output</span>
+</code></pre></div>
+<hr />
+<h2 id="analysis-schema">Analysis Schema</h2>
+<p>The <code>Analysis</code> is the root type. Every field marked <em>optional</em> can be omitted.</p>
+<h3 id="document-metadata">Document Metadata</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Analysis identifier (used as key when nested as sub-analysis)</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>ASTRA spec version (semver: <code>"1.0"</code>, <code>"1.0.0"</code>)</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Human-readable name</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Detailed description</td>
+</tr>
+<tr>
+<td><code>authors</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>List of authors</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Tags for categorization</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Version format</strong>: <code>^\d+\.\d+(\.\d+)?$</code></p>
+<h3 id="inputs">Inputs</h3>
+<p>Each input declares a data source or a reference to another analysis.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Unique identifier</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>"data"</code> | <code>"analysis"</code></td>
+<td><strong>Yes</strong></td>
+<td>Kind of input</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>What this input is</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>URI or path (for <code>type: data</code>)</td>
+</tr>
+<tr>
+<td><code>ref</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Reference to another ASTRA analysis (for <code>type: analysis</code>)</td>
+</tr>
+<tr>
+<td><code>ref_version</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Version of referenced analysis</td>
+</tr>
+<tr>
+<td><code>use_outputs</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Specific outputs to use from referenced analysis</td>
+</tr>
+<tr>
+<td><code>from_ref</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Parent input or sibling output reference (for sub-analyses)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ID pattern</strong>: <code>^[a-z][a-z0-9_]*$</code> (lowercase, underscores, starts with letter)</p>
+<p><strong>Input wiring in sub-analyses</strong>: The <code>from_ref</code> field references either a parent input by ID (<code>from_ref: parent_input_id</code>) or a sibling's output (<code>from_ref: sibling_id.output_id</code>).</p>
+<h3 id="outputs">Outputs</h3>
+<p>Each output declares an expected result from the analysis.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Unique identifier</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>"metric"</code> | <code>"figure"</code> | <code>"table"</code> | <code>"data"</code> | <code>"report"</code></td>
+<td><strong>Yes</strong></td>
+<td>Kind of output</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>What this output is</td>
+</tr>
+<tr>
+<td><code>from_ref</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Sub-analysis output that produces this (e.g., <code>"sub.output_id"</code>)</td>
+</tr>
+<tr>
+<td><code>when</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Conditions for when this output is active (see <a href="#conditional-elements">Conditional Elements</a>)</td>
+</tr>
+<tr>
+<td><code>recipe</code></td>
+<td><code>Recipe</code></td>
+<td>No</td>
+<td>Inline build rule</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output types</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metric</code></td>
+<td>Numeric or categorical value</td>
+<td>Accuracy, p-value, AUC</td>
+</tr>
+<tr>
+<td><code>figure</code></td>
+<td>Visualization</td>
+<td>Confusion matrix, ROC curve</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>Structured tabular data</td>
+<td>Feature importances</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>Processed data files</td>
+<td>Predictions, models</td>
+</tr>
+<tr>
+<td><code>report</code></td>
+<td>Text/document output</td>
+<td>Summary, conclusion</td>
+</tr>
+</tbody>
+</table>
+<h3 id="recipes">Recipes</h3>
+<p>A <code>Recipe</code> is an inline build rule on an output. Outputs with recipes form a DAG via their <code>inputs</code> field.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>command</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Command to execute</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Output IDs that must be produced first</td>
+</tr>
+<tr>
+<td><code>container</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Pre-built container image name</td>
+</tr>
+<tr>
+<td><code>container_build</code></td>
+<td><code>ContainerBuildSpec</code></td>
+<td>No</td>
+<td>Container image build specification (alternative to <code>container</code>)</td>
+</tr>
+<tr>
+<td><code>resources</code></td>
+<td><code>Resources</code></td>
+<td>No</td>
+<td>Compute requirements</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Resources</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cpus</code></td>
+<td><code>integer</code></td>
+<td>Number of CPUs (min: 1)</td>
+</tr>
+<tr>
+<td><code>memory</code></td>
+<td><code>string</code></td>
+<td>Memory requirement (e.g., <code>"8GB"</code>)</td>
+</tr>
+<tr>
+<td><code>gpus</code></td>
+<td><code>integer</code></td>
+<td>Number of GPUs (min: 1)</td>
+</tr>
+<tr>
+<td><code>time_limit</code></td>
+<td><code>string</code></td>
+<td>Wall time limit (e.g., <code>"2h"</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Container build spec</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Path to Containerfile</td>
+</tr>
+<tr>
+<td><code>context</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Build context directory</td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td><code>KeyValuePair[]</code></td>
+<td>No</td>
+<td>Build arguments</td>
+</tr>
+</tbody>
+</table>
+<p>A node-level <code>container</code> (or <code>container_build</code>) field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it.</p>
+<h3 id="decisions">Decisions</h3>
+<p>Decisions are the core of the multiverse. Each decision is a named choice point with multiple options.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>label</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Human-readable name</td>
+</tr>
+<tr>
+<td><code>rationale</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Why this decision exists</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Grouping/categorization tags</td>
+</tr>
+<tr>
+<td><code>when</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Conditions for when this decision is active (see <a href="#conditional-elements">Conditional Elements</a>)</td>
+</tr>
+<tr>
+<td><code>default</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Default option ID for baseline universes</td>
+</tr>
+<tr>
+<td><code>options</code></td>
+<td><code>map[string, Option]</code></td>
+<td><strong>Yes</strong></td>
+<td>Available choices</td>
+</tr>
+<tr>
+<td><code>from_ref</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Reference to a parent decision (see <a href="#decision-references">Decision References</a>)</td>
+</tr>
+</tbody>
+</table>
+<p>A decision with <code>from_ref</code> set is a pure reference — it must not have <code>label</code>, <code>options</code>, or <code>default</code>.</p>
+<h3 id="options">Options</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>label</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Human-readable name</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Detailed description</td>
+</tr>
+<tr>
+<td><code>insights</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Insight IDs supporting this choice</td>
+</tr>
+<tr>
+<td><code>incompatible_with</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Options that conflict (format: <code>"decision.option"</code>)</td>
+</tr>
+<tr>
+<td><code>requires</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Options that must coexist (format: <code>"decision.option"</code>)</td>
+</tr>
+<tr>
+<td><code>excluded</code></td>
+<td><code>boolean</code></td>
+<td>No</td>
+<td>Whether this option was considered and rejected (default: <code>false</code>)</td>
+</tr>
+<tr>
+<td><code>excluded_reason</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Why this option was excluded</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Constraint reference format</strong>: <code>"decision_id.option_id"</code> — constraints are scoped within the same analysis node.</p>
+<h3 id="sub-analyses">Sub-Analyses</h3>
+<p>The <code>analyses</code> field contains a map of sub-analysis IDs to nested <code>Analysis</code> objects. Each sub-analysis has the exact same structure as the root — the format is fully self-similar.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">analyses</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">feature_extraction</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Learn a compact representation of the raw features</span>
+<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw_features</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">        </span><span class="nt">from_ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iris_data</span><span class="w">               </span><span class="c1"># Parent input</span>
+<span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">features</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">        </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/extract_features.py</span>
+<span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">seed</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">from_ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../random_seed</span><span class="w">           </span><span class="c1"># Parent decision reference</span>
+
+<span class="w">      </span><span class="nt">method</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Extraction Method</span>
+<span class="w">        </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pca</span>
+<span class="w">        </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">pca</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PCA</span>
+<span class="w">          </span><span class="nt">mlp_encoder</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MLP Encoder</span>
+
+<span class="w">  </span><span class="nt">classification</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Train a classifier on extracted features</span>
+<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">features</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">        </span><span class="nt">from_ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">feature_extraction.features</span><span class="w">  </span><span class="c1"># Sibling output</span>
+<span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accuracy</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metric</span>
+<span class="w">        </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/evaluate.py</span>
+<span class="w">          </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">gpus</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">            </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;32GB&quot;</span>
+<span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">classifier</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Classifier</span>
+<span class="w">        </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logistic</span>
+<span class="w">        </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">logistic</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Logistic Regression</span>
+<span class="w">          </span><span class="nt">svm</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SVM (RBF)</span>
+</code></pre></div>
+<hr />
+<h2 id="universe-schema">Universe Schema</h2>
+<p>A <strong>universe</strong> is one complete set of decisions — one option selected per decision point. It mirrors the analysis tree structure, using a compact dict format where each key is a decision ID and each value is the selected option ID.</p>
+<h3 id="fields">Fields</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Unique identifier</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>What this universe represents</td>
+</tr>
+<tr>
+<td><code>decisions</code></td>
+<td><code>map[string, string]</code></td>
+<td>No</td>
+<td>Decision ID → selected option ID (root level)</td>
+</tr>
+<tr>
+<td><code>analyses</code></td>
+<td><code>map[string, UniverseNode]</code></td>
+<td>No</td>
+<td>Sub-analysis selections</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Universe ID pattern</strong>: <code>^[a-z][a-z0-9_-]*$</code> (also allows hyphens)</p>
+<p>A <code>UniverseNode</code> has the same shape: <code>decisions</code> and <code>analyses</code>, recursively mirroring the analysis tree.</p>
+<h3 id="flat-universe">Flat Universe</h3>
+<div class="highlight"><pre><span></span><code><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">baseline</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Default configuration using standard practices</span>
+
+<span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">scaling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">standard</span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">random_forest</span>
+<span class="w">  </span><span class="nt">test_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">small</span>
+<span class="w">  </span><span class="nt">random_seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">seed_42</span>
+</code></pre></div>
+<h3 id="nested-universe">Nested Universe</h3>
+<div class="highlight"><pre><span></span><code><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">baseline</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PCA with logistic regression — the simplest sensible pipeline</span>
+
+<span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">test_split</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">twenty_pct</span>
+<span class="w">  </span><span class="nt">random_seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">seed_42</span>
+
+<span class="nt">analyses</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">feature_extraction</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pca</span>
+<span class="w">      </span><span class="nt">n_components</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">two</span>
+<span class="w">  </span><span class="nt">classification</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">classifier</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logistic</span>
+</code></pre></div>
+<hr />
+<h2 id="prior-insights-and-findings">Prior Insights and Findings</h2>
+<p>ASTRA distinguishes two kinds of knowledge, both using the same <code>Insight</code> model:</p>
+<ul>
+<li><strong>Prior insights</strong> (<code>prior_insights:</code>) — knowledge from literature or prior artifacts that informs decisions.</li>
+<li><strong>Findings</strong> (<code>findings:</code>) — conclusions derived from running the analysis, backed by output artifacts.</li>
+</ul>
+<p>Both use <code>evidence</code> to ground the claim. The placement determines direction; the model is the same.</p>
+<h3 id="insight-shared-model">Insight (shared model)</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Unique identifier</td>
+</tr>
+<tr>
+<td><code>claim</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>What we learned (1-2 sentences)</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td><code>datetime</code></td>
+<td><strong>Yes</strong></td>
+<td>ISO 8601 timestamp</td>
+</tr>
+<tr>
+<td><code>evidence</code></td>
+<td><code>Evidence[]</code></td>
+<td><strong>Yes</strong></td>
+<td>Supporting evidence (at least one)</td>
+</tr>
+<tr>
+<td><code>derived</code></td>
+<td><code>boolean</code></td>
+<td>No</td>
+<td>Whether synthesized/inferred (default: <code>false</code>)</td>
+</tr>
+<tr>
+<td><code>scope</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Applicability conditions</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Categorization tags</td>
+</tr>
+<tr>
+<td><code>notes</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Reasoning notes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="evidence">Evidence</h3>
+<p>Each evidence item references either a paper (by DOI) or an analysis output artifact (by output ID). Exactly one source type must be set. Literature evidence requires a text quote for verifiability.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Evidence ID</td>
+</tr>
+<tr>
+<td><code>doi</code></td>
+<td><code>string</code></td>
+<td><strong>Exactly one of <code>doi</code> or <code>artifact</code></strong></td>
+<td>DOI of source paper</td>
+</tr>
+<tr>
+<td><code>artifact</code></td>
+<td><code>string</code></td>
+<td><strong>Exactly one of <code>doi</code> or <code>artifact</code></strong></td>
+<td>Output ID of a declared analysis output</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code>integer</code></td>
+<td>No</td>
+<td>Paper version (arXiv; literature only)</td>
+</tr>
+<tr>
+<td><code>snapshot</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Path to immutable artifact copy (artifact only)</td>
+</tr>
+<tr>
+<td><code>source_commit</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Git commit that produced artifact (artifact only)</td>
+</tr>
+<tr>
+<td><code>quote</code></td>
+<td><code>TextQuoteSelector</code></td>
+<td>No</td>
+<td>Text quote anchor</td>
+</tr>
+<tr>
+<td><code>location</code></td>
+<td><code>FragmentSelector</code></td>
+<td>No</td>
+<td>Location hint (page number)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DOI pattern</strong>: <code>^10\.\d{4,}/.*$</code></p>
+<h3 id="w3c-selectors">W3C Selectors</h3>
+<p>Evidence uses <a href="https://www.w3.org/TR/annotation-model/">W3C Web Annotation</a> compliant selectors for precise references.</p>
+<p><strong>TextQuoteSelector</strong> — Locates a text passage in a document:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>exact</code></td>
+<td><code>string</code></td>
+<td><strong>Yes</strong></td>
+<td>Exact quoted text (1-3 sentences)</td>
+</tr>
+<tr>
+<td><code>prefix</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>~20-100 chars before the quote</td>
+</tr>
+<tr>
+<td><code>suffix</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>~20-100 chars after the quote</td>
+</tr>
+</tbody>
+</table>
+<p><strong>FragmentSelector</strong> — PDF location hint:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>value</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Fragment (e.g., <code>"page=6"</code>)</td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td><code>integer</code></td>
+<td>No</td>
+<td>1-indexed page number</td>
+</tr>
+</tbody>
+</table>
+<h3 id="example">Example</h3>
+<div class="highlight"><pre><span></span><code><span class="nt">prior_insights</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">compute_scaling</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_scaling</span>
+<span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+<span class="w">      </span><span class="no">Neural networks achieve state-of-the-art photo-z performance</span>
+<span class="w">      </span><span class="no">on LSST-like photometry.</span>
+<span class="w">    </span><span class="nt">created_at</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2025-06-15T10:30:00Z&quot;</span>
+<span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ev_nn_paper</span>
+<span class="w">        </span><span class="nt">doi</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10.48550/arXiv.2301.12345&quot;</span>
+<span class="w">        </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">        </span><span class="nt">quote</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">exact</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+<span class="w">            </span><span class="no">FlexZBoost achieves a normalized median absolute deviation</span>
+<span class="w">            </span><span class="no">of 0.018 on the test set.</span>
+<span class="w">          </span><span class="nt">prefix</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Results</span><span class="nv"> </span><span class="s">section.&quot;</span>
+<span class="w">        </span><span class="nt">location</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">page=8</span>
+<span class="w">          </span><span class="nt">page</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="w">    </span><span class="nt">scope</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;LSST-like</span><span class="nv"> </span><span class="s">photometry</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">neural</span><span class="nv"> </span><span class="s">networks&quot;</span>
+<span class="w">    </span><span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">machine-learning</span><span class="p p-Indicator">]</span>
+
+<span class="nt">findings</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">pipeline_result</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pipeline_result</span>
+<span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The pipeline achieves target bias with the neural network method.</span>
+<span class="w">    </span><span class="nt">created_at</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2025-08-20T16:45:00Z&quot;</span>
+<span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ev_bias_artifact</span>
+<span class="w">        </span><span class="nt">artifact</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bias_metric</span>
+<span class="w">        </span><span class="nt">quote</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">exact</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;bias</span><span class="nv"> </span><span class="s">=</span><span class="nv"> </span><span class="s">0.0021</span><span class="nv"> </span><span class="s">+/-</span><span class="nv"> </span><span class="s">0.0003&quot;</span>
+<span class="w">    </span><span class="nt">derived</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">method</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Redshift estimation method</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">neural_net</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Neural network</span>
+<span class="w">        </span><span class="nt">insights</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">compute_scaling</span><span class="w">        </span><span class="c1"># Links decision to prior insight</span>
+</code></pre></div>
+<p>The chain <strong>decision option</strong> → <strong>prior insight</strong> → <strong>evidence</strong> → <strong>paper (DOI)</strong> provides end-to-end traceability from analytical choice to published literature. The chain <strong>finding</strong> → <strong>evidence</strong> → <strong>output artifact</strong> captures what was learned from running the analysis.</p>
+<hr />
+<h2 id="constraints">Constraints</h2>
+<p>Options can declare two kinds of constraints, scoped within the same analysis node:</p>
+<h3 id="incompatible_with"><code>incompatible_with</code></h3>
+<p>Options that cannot coexist in the same universe:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">scaling</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">minmax</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MinMaxScaler</span>
+<span class="w">        </span><span class="nt">incompatible_with</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">model.svm</span><span class="w">          </span><span class="c1"># MinMax and SVM cannot be selected together</span>
+</code></pre></div>
+<h3 id="requires"><code>requires</code></h3>
+<p>Options that must coexist in the same universe:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">svm</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SVM</span>
+<span class="w">        </span><span class="nt">requires</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scaling.standard</span><span class="w">   </span><span class="c1"># SVM requires standard scaling</span>
+</code></pre></div>
+<p>Constraint references use the format <code>decision_id.option_id</code>. Universe validation rejects any selection that violates these constraints.</p>
+<hr />
+<h2 id="composability">Composability</h2>
+<p>Analyses can reference other analyses as inputs, enabling formal research chains:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">inputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prior_study</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analysis</span>
+<span class="w">    </span><span class="nt">ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analyses/preprocessing_comparison</span>
+<span class="w">    </span><span class="nt">ref_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;v1.2&quot;</span>
+<span class="w">    </span><span class="nt">use_outputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">best_method</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">performance_table</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<p>Within a nested analysis, sub-analyses wire inputs from the parent or from siblings using <code>from_ref</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">analyses</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">stage_a</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">        </span><span class="nt">from_ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">survey_catalog</span><span class="w">          </span><span class="c1"># Parent input</span>
+<span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processed</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+
+<span class="w">  </span><span class="nt">stage_b</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">        </span><span class="nt">from_ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage_a.processed</span><span class="w">       </span><span class="c1"># Sibling output</span>
+</code></pre></div>
+<hr />
+<h2 id="conditional-elements">Conditional Elements</h2>
+<p>The <code>when</code> field makes decisions or outputs conditional. It accepts a list of conditions in the format <code>decision_id.option_id</code> or <code>~decision_id.option_id</code> (negated). Multiple conditions are AND'd together.</p>
+<h3 id="conditional-decisions">Conditional Decisions</h3>
+<p>A decision that only exists when a specific option is selected elsewhere:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">model</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Model</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">neural_net</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Neural Network</span>
+<span class="w">      </span><span class="nt">svm</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SVM</span>
+
+<span class="w">  </span><span class="nt">optimizer</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Optimizer</span>
+<span class="w">    </span><span class="nt">when</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">model.neural_net</span><span class="w">      </span><span class="c1"># Only exists when neural_net is selected</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">adam</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Adam</span>
+<span class="w">      </span><span class="nt">sgd</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SGD</span>
+</code></pre></div>
+<h3 id="conditional-outputs">Conditional Outputs</h3>
+<p>An output that is only produced under certain decision selections:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">outputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scatter_plot</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">figure</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Photo-z scatter plot</span>
+<span class="w">    </span><span class="nt">when</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">method.neural_net</span><span class="w">     </span><span class="c1"># Only produced for neural net runs</span>
+<span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/plot_scatter.py</span>
+</code></pre></div>
+<h3 id="negation">Negation</h3>
+<p>Prefix a condition with <code>~</code> to negate it:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">fallback_method</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Fallback Method</span>
+<span class="w">    </span><span class="nt">when</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~model.neural_net</span><span class="w">     </span><span class="c1"># Only active when neural_net is NOT selected</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">interpolation</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Linear Interpolation</span>
+</code></pre></div>
+<hr />
+<h2 id="decision-references">Decision References</h2>
+<p>Sub-analyses can reference a parent decision using the <code>from_ref</code> field with a <code>../</code> prefix. This avoids duplicating the decision definition and ensures the sub-analysis uses the same selection as the parent:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">random_seed</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Random Seed</span>
+<span class="w">    </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">seed_42</span>
+<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">seed_42</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;42&quot;</span>
+<span class="w">      </span><span class="nt">seed_7</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;7&quot;</span>
+
+<span class="nt">analyses</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">feature_extraction</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">seed</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">from_ref</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../random_seed</span><span class="w">    </span><span class="c1"># Uses parent&#39;s random_seed decision</span>
+<span class="w">      </span><span class="nt">method</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Extraction Method</span>
+<span class="w">        </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pca</span>
+<span class="w">        </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">pca</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PCA</span>
+</code></pre></div>
+<p>A decision with <code>from_ref</code> set is a pure reference — it must not define <code>label</code>, <code>options</code>, or <code>default</code>.</p>
+<hr />
+<h2 id="external-sub-analyses">External Sub-Analyses</h2>
+<p>A sub-analysis can be defined externally by specifying a <code>path</code> to a directory containing its own <code>astra.yaml</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">analyses</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">preprocessing</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stages/preprocessing</span><span class="w">    </span><span class="c1"># Directory with its own astra.yaml</span>
+</code></pre></div>
+<p>The <code>path</code> field is mutually exclusive with inline content fields (<code>inputs</code>, <code>outputs</code>, <code>decisions</code>, etc.). This allows large analyses to be split across multiple files while remaining composable.</p>
+<hr />
+<h2 id="excluded-options">Excluded Options</h2>
+<p>Options can be marked as considered-and-rejected, preserving the decision history:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">options</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">knn</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">K-nearest Neighbors</span>
+<span class="w">    </span><span class="nt">excluded</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">excluded_reason</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Poor performance on high-dimensional data</span>
+</code></pre></div>
+<p>Excluded options are kept in the specification for transparency but are not valid selections in any universe.</p>
+<hr />
+<h2 id="validation">Validation</h2>
+<p>ASTRA provides two-stage validation:</p>
+<h3 id="stage-1-schema-validation">Stage 1: Schema Validation</h3>
+<p>Checks that the YAML file conforms to the JSON schema — correct structure, types, required fields, and format patterns.</p>
+<h3 id="stage-2-semantic-validation">Stage 2: Semantic Validation</h3>
+<p>Checks logical correctness:</p>
+<ul>
+<li>No duplicate IDs within a node</li>
+<li>Default options exist in their decision's option map</li>
+<li>Constraint references (<code>incompatible_with</code>, <code>requires</code>) resolve to valid <code>decision.option</code> pairs</li>
+<li>Input <code>from_ref</code> references resolve to parent inputs or sibling outputs</li>
+<li>Output <code>from_ref</code> references resolve to sub-analysis outputs</li>
+<li>Recipe input dependencies reference valid output IDs</li>
+<li>Universe selections match analysis decisions</li>
+<li>Universe selections respect all constraints</li>
+</ul>
+<h3 id="evidence-verification">Evidence Verification</h3>
+<p>Optionally, evidence quotes can be verified against source PDFs:</p>
+<div class="highlight"><pre><span></span><code>astra<span class="w"> </span>validate<span class="w"> </span>astra.yaml<span class="w"> </span>--verify-evidence
+</code></pre></div>
+<p>This downloads papers by DOI, extracts text from PDFs, and uses fuzzy matching to locate quoted text. Fabricated quotes fail verification.</p>
+<hr />
+<h2 id="id-conventions">ID Conventions</h2>
+<table>
+<thead>
+<tr>
+<th>Context</th>
+<th>Pattern</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input, output, decision, sub-analysis IDs</td>
+<td><code>^[a-z][a-z0-9_]*$</code></td>
+<td><code>iris_data</code>, <code>scaling</code></td>
+</tr>
+<tr>
+<td>Universe IDs</td>
+<td><code>^[a-z][a-z0-9_-]*$</code></td>
+<td><code>baseline</code>, <code>svm-focused</code></td>
+</tr>
+<tr>
+<td>Constraint references</td>
+<td><code>decision_id.option_id</code></td>
+<td><code>scaling.standard</code></td>
+</tr>
+<tr>
+<td>Decision references</td>
+<td><code>../decision_id</code></td>
+<td><code>../random_seed</code></td>
+</tr>
+<tr>
+<td>Version</td>
+<td><code>^\d+\.\d+(\.\d+)?$</code></td>
+<td><code>"1.0"</code>, <code>"1.0.0"</code></td>
+</tr>
+<tr>
+<td>DOI</td>
+<td><code>^10\.\d{4,}/.*$</code></td>
+<td><code>"10.48550/arXiv.1706.03762"</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="schema-artifacts">Schema Artifacts</h2>
+<p>ASTRA is defined in <a href="https://linkml.io">LinkML</a>. The source schema files live in <code>src/astra/schema/</code> and generate bindings for multiple formats:</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="schema/astra.yaml">LinkML YAML</a></td>
+<td>Source schema definition</td>
+</tr>
+<tr>
+<td><a href="schema/astra.schema.json">JSON Schema</a></td>
+<td>For YAML validation</td>
+</tr>
+<tr>
+<td><a href="schema/astra.context.jsonld">JSON-LD Context</a></td>
+<td>For linked data interoperability</td>
+</tr>
+</tbody>
+</table>
+<p>Python datamodels are generated from the LinkML schema and are available via <code>pip install astra-spec</code>. See the <a href="elements/">auto-generated schema reference</a> for detailed class and field documentation.</p>
+<h3 id="source-schema-files">Source Schema Files</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Exports</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>analysis.yaml</code></td>
+<td><code>Analysis</code>, <code>Input</code>, <code>Output</code>, <code>Decision</code>, <code>Option</code>, <code>Recipe</code>, <code>Resources</code>, <code>ContainerBuildSpec</code></td>
+<td>Core analysis specification</td>
+</tr>
+<tr>
+<td><code>universe.yaml</code></td>
+<td><code>Universe</code>, <code>UniverseNode</code>, <code>DecisionSelection</code></td>
+<td>Universe (decision selections)</td>
+</tr>
+<tr>
+<td><code>insight.yaml</code></td>
+<td><code>Insight</code>, <code>Evidence</code>, <code>InsightCollection</code>, <code>TextQuoteSelector</code>, <code>FragmentSelector</code></td>
+<td>Insights, evidence, and W3C selectors</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+  
+
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        
+
+<footer class="md-footer">
+  
+    <nav
+      class="md-footer__inner md-grid"
+      aria-label="footer.title"
+    >
+      
+      
+        <a
+          href="elements/"
+          class="md-footer__link md-footer__link--next"
+          rel="next"
+        >
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Schema Reference
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        with emoji by
+        <a href="https://github.com/twitter/twemoji" target="_blank" rel="noopener">
+          Twemoji
+        </a>
+      </div>
+      
+<div class="md-social">
+  
+</div>
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["content.tabs.link", "header.autohide", "navigation.expand", "navigation.instant", "navigation.instant.progress", "navigation.tracking", "search.suggest", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="assets/pymdownx-extras/extra-loader-B5CKpNQx.js"></script>
+      
+    
+  </body>
+</html>
