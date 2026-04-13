@@ -48,7 +48,7 @@ classes:
       decisions:
         range: DecisionSelection
         multivalued: true
-        inlined_as_list: true
+        inlined: true
         description: Decision selections (decision_id to option_id)
       analyses:
         range: UniverseNode
@@ -70,7 +70,7 @@ classes:
       decisions:
         range: DecisionSelection
         multivalued: true
-        inlined_as_list: true
+        inlined: true
         description: Root-level decision selections
       analyses:
         range: UniverseNode
