@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-12T20:27:07
+# Generation date: 2026-04-13T15:31:39
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
@@ -781,7 +781,7 @@ class UniverseNode(YAMLRoot):
         if self.universe is not None and not isinstance(self.universe, str):
             self.universe = str(self.universe)
 
-        self._normalize_inlined_as_list(slot_name="decisions", slot_type=DecisionSelection, key_name="decision_id", keyed=True)
+        self._normalize_inlined_as_dict(slot_name="decisions", slot_type=DecisionSelection, key_name="decision_id", keyed=True)
 
         self._normalize_inlined_as_dict(slot_name="analyses", slot_type=UniverseNode, key_name="id", keyed=True)
 
@@ -814,7 +814,7 @@ class Universe(YAMLRoot):
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
 
-        self._normalize_inlined_as_list(slot_name="decisions", slot_type=DecisionSelection, key_name="decision_id", keyed=True)
+        self._normalize_inlined_as_dict(slot_name="decisions", slot_type=DecisionSelection, key_name="decision_id", keyed=True)
 
         self._normalize_inlined_as_dict(slot_name="analyses", slot_type=UniverseNode, key_name="id", keyed=True)
 

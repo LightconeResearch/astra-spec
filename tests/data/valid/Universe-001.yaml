@@ -1,13 +1,10 @@
 id: baseline
 description: Default configuration using standard practices
 decisions:
-  - decision_id: method
-    option_id: neural_net
-  - decision_id: training_split
-    option_id: split_80_20
+  method: neural_net
+  training_split: split_80_20
 analyses:
   calibration:
     id: calibration
     decisions:
-      - decision_id: cal_method
-        option_id: pitpz
+      cal_method: pitpz

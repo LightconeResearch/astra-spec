@@ -139,16 +139,13 @@ A well-specified analysis should produce its outputs with a **single universe** 
 id: baseline
 description: Default configuration using standard practices
 decisions:
-  - decision_id: scaling
-    option_id: standard
-  - decision_id: model
-    option_id: random_forest
+  scaling: standard
+  model: random_forest
 analyses:
   calibration:
     id: calibration
     decisions:
-      - decision_id: cal_method
-        option_id: pitpz
+      cal_method: pitpz
 ```
 
 ### Composability
