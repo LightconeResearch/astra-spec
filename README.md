@@ -37,135 +37,46 @@ ASTRA provides a structured format where every analytical choice is explicit, ev
 5. **Composable** -- analyses build on each other; outputs become inputs
 6. **Reproducible** -- precise provenance with W3C-compliant source references
 
-## Core Concepts
-
-### Analysis (self-similar tree)
-
-An ASTRA document describes a tree of analyses. Every node has the same recursive structure:
-
-```
-Analysis
- ├── inputs            Data or upstream analyses feeding into this node
- ├── outputs           Expected results (metrics, figures, data, reports)
- │    └── recipe       How to produce each output (command, container, resources)
- ├── decisions         Methodological choice points
- │    └── options      Available alternatives, with evidence and constraints
- ├── prior_insights    Evidence-backed knowledge informing decisions
- ├── findings          Conclusions drawn from outputs
- └── analyses          Nested sub-analyses (same structure, recursively)
-```
-
-Simple analyses are flat -- just inputs, outputs, and decisions at the top level. Complex multi-stage analyses decompose into sub-analyses, each with their own scoped decisions.
-
-### Decisions and constraints
-
-Each decision point declares its options explicitly. Options can reference supporting insights, and declare relationships with other options:
+## Quick Example
 
 ```yaml
+# astra.yaml
+version: "1.0"
+name: Iris Classification
+
+inputs:
+  - id: iris_data
+    type: data
+    source: sklearn.datasets.load_iris
+
+outputs:
+  - id: accuracy
+    type: metric
+    recipe:
+      command: python src/evaluate.py
+
 decisions:
   scaling:
-    label: Feature scaling method
+    label: Feature Scaling
     default: standard
     options:
       none:
-        label: No scaling
+        label: No Scaling
       standard:
         label: StandardScaler
-
   model:
-    label: Classification model
+    label: Classification Model
+    default: random_forest
     options:
       random_forest:
-        label: Random forest
+        label: Random Forest
       svm:
         label: SVM
-        incompatible_with:
-          - scaling.none           # SVM requires scaled features
         requires:
           - scaling.standard
-      knn:
-        label: K-nearest neighbors
-        excluded: true
-        excluded_reason: Poor performance on high-dimensional data
 ```
 
-Options that were considered and rejected are kept with `excluded: true` and a reason -- preserving the decision history.
-
-### Evidence-backed insights
-
-Insights are units of scientific knowledge that justify decisions. Each insight makes a claim and backs it with evidence traceable to specific locations in source documents, using W3C Web Annotation-compliant selectors:
-
-```yaml
-prior_insights:
-  nn_performance:
-    id: nn_performance
-    claim: >-
-      Neural networks achieve state-of-the-art photo-z performance
-      on LSST-like photometry.
-    created_at: "2025-06-15T10:30:00Z"
-    evidence:
-      - id: ev_nn_paper
-        doi: "10.48550/arXiv.2301.12345"
-        version: 2
-        quote:
-          exact: "FlexZBoost achieves a NMAD of 0.018 on the test set."
-          prefix: "Results section."
-        location:
-          page: 8
-```
-
-This creates a traceable chain: **decision option** --> **insight** --> **evidence** --> **paper (DOI)**.
-
-Insights appear in two roles:
-- **Prior insights** -- existing knowledge that *informs* decisions
-- **Findings** -- conclusions *produced* by the analysis, backed by its own output artifacts
-
-### Universe and multiverse
-
-A **universe** is a complete set of decisions -- one option selected for every decision point across the tree. It fully specifies a single concrete configuration of the analysis.
-
-The **multiverse** is the space of all valid decision combinations. Its purpose is **transparency and traceability**, not exhaustive search:
-
-| Approach | Purpose | Runs |
-|----------|---------|------|
-| **Single universe** | Produce declared outputs | 1 (the typical case) |
-| **Multiverse documentation** | Show all possible paths | 0 (just documentation) |
-| **Robustness check** | Verify conclusions are stable | Selected alternatives |
-
-A well-specified analysis should produce its outputs with a **single universe** (the baseline). The multiverse exists to make the researcher's choices transparent and explorable.
-
-```yaml
-# universes/baseline.yaml
-id: baseline
-description: Default configuration using standard practices
-decisions:
-  scaling: standard
-  model: random_forest
-analyses:
-  calibration:
-    id: calibration
-    decisions:
-      cal_method: pitpz
-```
-
-### Composability
-
-Analyses can reference other analyses as inputs. Sub-analyses wire their inputs from parents or siblings using `from`:
-
-```yaml
-analyses:
-  feature_extraction:
-    inputs:
-      - id: raw_data
-        type: data
-        from: iris_data                    # from parent input
-
-  classification:
-    inputs:
-      - id: features
-        type: analysis
-        from: feature_extraction.features  # from sibling output
-```
+See the [full specification](https://astra-spec.org) for details on sub-analyses, evidence-backed insights, universes, constraints, and more.
 
 ## Getting Started
 

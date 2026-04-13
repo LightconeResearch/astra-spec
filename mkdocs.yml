@@ -56,8 +56,8 @@ watch:
   - src/astra/schema
 
 nav:
-  - Home: index.md
-  - Schema: elements/index.md
+  - Specification: index.md
+  - Schema Reference: elements/index.md
   - About: about.md
 
 exclude_docs: |
