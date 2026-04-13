@@ -9,7 +9,7 @@ authors = [
   {name = "Francois Lanusse", email = "francois.lanusse@cnrs.fr"},
   {name = "Liam Parker", email = "lhparker@berkeley.edu"},
 ]
-license = "Apache-2.0"
+license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.9,<4.0"
