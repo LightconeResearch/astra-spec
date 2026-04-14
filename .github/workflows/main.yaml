@@ -54,3 +54,50 @@ jobs:
 
       - name: Run test suite
         run: just test
+
+  check-generated:
+    name: Check generated files are up to date
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install just
+        run: uv tool install rust-just
+
+      - name: Install project
+        run: uv sync --dev
+
+      - name: Regenerate datamodels and docs
+        run: |
+          just gen-python
+          just gen-doc
+
+      - name: Check for uncommitted changes
+        run: |
+          # Ignore lines that change on every regeneration (timestamps, version from git tags)
+          if ! git diff --exit-code \
+            -I 'Generation date:' \
+            -I 'generation_date' \
+            -I 'source_file_date' \
+            -I '^version' \
+            -I '"version"' \
+            -- src/astra/datamodel/ docs/schema/; then
+            echo "::error::Generated files are out of date. Run 'just gen-python' and 'just gen-doc' and commit the results."
+            exit 1
+          fi

@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-14T01:58:11
+# Generation date: 2026-04-14T18:40:48
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
@@ -181,36 +181,6 @@ class Resources(YAMLRoot):
 
 
 @dataclass(repr=False)
-class ContainerBuildSpec(YAMLRoot):
-    """
-    Specification for building a container image from a Containerfile
-    """
-    _inherited_slots: ClassVar[list[str]] = []
-
-    class_class_uri: ClassVar[URIRef] = ASTRA["ContainerBuildSpec"]
-    class_class_curie: ClassVar[str] = "astra:ContainerBuildSpec"
-    class_name: ClassVar[str] = "ContainerBuildSpec"
-    class_model_uri: ClassVar[URIRef] = ASTRA.ContainerBuildSpec
-
-    build: str = None
-    context: Optional[str] = None
-    args: Optional[Union[dict[Union[str, KeyValuePairKey], Union[dict, KeyValuePair]], list[Union[dict, KeyValuePair]]]] = empty_dict()
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.build):
-            self.MissingRequiredField("build")
-        if not isinstance(self.build, str):
-            self.build = str(self.build)
-
-        if self.context is not None and not isinstance(self.context, str):
-            self.context = str(self.context)
-
-        self._normalize_inlined_as_list(slot_name="args", slot_type=KeyValuePair, key_name="key", keyed=True)
-
-        super().__post_init__(**kwargs)
-
-
-@dataclass(repr=False)
 class Recipe(YAMLRoot):
     """
     A build rule that produces an output. Recipes are the execution contract: run this command to produce the parent
@@ -226,7 +196,6 @@ class Recipe(YAMLRoot):
     command: str = None
     inputs: Optional[Union[str, list[str]]] = empty_list()
     container: Optional[str] = None
-    container_build: Optional[Union[dict, ContainerBuildSpec]] = None
     resources: Optional[Union[dict, Resources]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
@@ -241,9 +210,6 @@ class Recipe(YAMLRoot):
 
         if self.container is not None and not isinstance(self.container, str):
             self.container = str(self.container)
-
-        if self.container_build is not None and not isinstance(self.container_build, ContainerBuildSpec):
-            self.container_build = ContainerBuildSpec(**as_dict(self.container_build))
 
         if self.resources is not None and not isinstance(self.resources, Resources):
             self.resources = Resources(**as_dict(self.resources))
@@ -488,7 +454,6 @@ class Analysis(YAMLRoot):
     prior_insights: Optional[Union[dict[Union[str, InsightId], Union[dict, "Insight"]], list[Union[dict, "Insight"]]]] = empty_dict()
     findings: Optional[Union[dict[Union[str, InsightId], Union[dict, "Insight"]], list[Union[dict, "Insight"]]]] = empty_dict()
     container: Optional[str] = None
-    container_build: Optional[Union[dict, ContainerBuildSpec]] = None
     path: Optional[str] = None
     analyses: Optional[Union[dict[Union[str, AnalysisId], Union[dict, "Analysis"]], list[Union[dict, "Analysis"]]]] = empty_dict()
 
@@ -527,9 +492,6 @@ class Analysis(YAMLRoot):
 
         if self.container is not None and not isinstance(self.container, str):
             self.container = str(self.container)
-
-        if self.container_build is not None and not isinstance(self.container_build, ContainerBuildSpec):
-            self.container_build = ContainerBuildSpec(**as_dict(self.container_build))
 
         if self.path is not None and not isinstance(self.path, str):
             self.path = str(self.path)
@@ -891,15 +853,6 @@ slots.resources__gpus = Slot(uri=ASTRA.gpus, name="resources__gpus", curie=ASTRA
 slots.resources__time_limit = Slot(uri=ASTRA.time_limit, name="resources__time_limit", curie=ASTRA.curie('time_limit'),
                    model_uri=ASTRA.resources__time_limit, domain=None, range=Optional[str])
 
-slots.containerBuildSpec__build = Slot(uri=ASTRA.build, name="containerBuildSpec__build", curie=ASTRA.curie('build'),
-                   model_uri=ASTRA.containerBuildSpec__build, domain=None, range=str)
-
-slots.containerBuildSpec__context = Slot(uri=ASTRA.context, name="containerBuildSpec__context", curie=ASTRA.curie('context'),
-                   model_uri=ASTRA.containerBuildSpec__context, domain=None, range=Optional[str])
-
-slots.containerBuildSpec__args = Slot(uri=ASTRA.args, name="containerBuildSpec__args", curie=ASTRA.curie('args'),
-                   model_uri=ASTRA.containerBuildSpec__args, domain=None, range=Optional[Union[dict[Union[str, KeyValuePairKey], Union[dict, KeyValuePair]], list[Union[dict, KeyValuePair]]]])
-
 slots.recipe__command = Slot(uri=ASTRA.command, name="recipe__command", curie=ASTRA.curie('command'),
                    model_uri=ASTRA.recipe__command, domain=None, range=str)
 
@@ -908,9 +861,6 @@ slots.recipe__inputs = Slot(uri=ASTRA.inputs, name="recipe__inputs", curie=ASTRA
 
 slots.recipe__container = Slot(uri=ASTRA.container, name="recipe__container", curie=ASTRA.curie('container'),
                    model_uri=ASTRA.recipe__container, domain=None, range=Optional[str])
-
-slots.recipe__container_build = Slot(uri=ASTRA.container_build, name="recipe__container_build", curie=ASTRA.curie('container_build'),
-                   model_uri=ASTRA.recipe__container_build, domain=None, range=Optional[Union[dict, ContainerBuildSpec]])
 
 slots.recipe__resources = Slot(uri=ASTRA.resources, name="recipe__resources", curie=ASTRA.curie('resources'),
                    model_uri=ASTRA.recipe__resources, domain=None, range=Optional[Union[dict, Resources]])
@@ -1028,9 +978,6 @@ slots.analysis__findings = Slot(uri=ASTRA.findings, name="analysis__findings", c
 
 slots.analysis__container = Slot(uri=ASTRA.container, name="analysis__container", curie=ASTRA.curie('container'),
                    model_uri=ASTRA.analysis__container, domain=None, range=Optional[str])
-
-slots.analysis__container_build = Slot(uri=ASTRA.container_build, name="analysis__container_build", curie=ASTRA.curie('container_build'),
-                   model_uri=ASTRA.analysis__container_build, domain=None, range=Optional[Union[dict, ContainerBuildSpec]])
 
 slots.analysis__path = Slot(uri=ASTRA.path, name="analysis__path", curie=ASTRA.curie('path'),
                    model_uri=ASTRA.analysis__path, domain=None, range=Optional[str])

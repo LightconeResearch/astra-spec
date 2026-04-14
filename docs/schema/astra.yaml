@@ -5,9 +5,6 @@ description: 'Agentic Schema for Transparent Research Analysis.
 
   decision points, evidence-backed insights, and universe specifications.'
 title: ASTRA
-see_also:
-- https://LightconeResearch.github.io/ASTRA
-- https://astra-spec.org
 id: https://w3id.org/ASTRA/analysis
 version: 0.0.1
 imports:
@@ -421,40 +418,6 @@ slots:
     domain_of:
     - Resources
     range: string
-  containerBuildSpec__build:
-    name: containerBuildSpec__build
-    description: Path to Containerfile relative to project root
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:build
-    alias: build
-    owner: ContainerBuildSpec
-    domain_of:
-    - ContainerBuildSpec
-    range: string
-    required: true
-  containerBuildSpec__context:
-    name: containerBuildSpec__context
-    description: Build context directory
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:context
-    alias: context
-    owner: ContainerBuildSpec
-    domain_of:
-    - ContainerBuildSpec
-    range: string
-  containerBuildSpec__args:
-    name: containerBuildSpec__args
-    description: Docker build arguments as key-value pairs
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:args
-    alias: args
-    owner: ContainerBuildSpec
-    domain_of:
-    - ContainerBuildSpec
-    range: KeyValuePair
-    multivalued: true
-    inlined: true
-    inlined_as_list: true
   recipe__command:
     name: recipe__command
     description: Command to execute (e.g., 'python src/train.py')
@@ -479,7 +442,9 @@ slots:
     multivalued: true
   recipe__container:
     name: recipe__container
-    description: Container image name (pre-built image string)
+    description: Container image name or path to a Containerfile. Image names (e.g.,
+      'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file
+      paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:container
     alias: container
@@ -487,18 +452,6 @@ slots:
     domain_of:
     - Recipe
     range: string
-  recipe__container_build:
-    name: recipe__container_build
-    description: Container image build specification (alternative to container string)
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:container_build
-    alias: container_build
-    owner: Recipe
-    domain_of:
-    - Recipe
-    range: ContainerBuildSpec
-    inlined: true
-    inlined_as_list: true
   recipe__resources:
     name: recipe__resources
     description: Compute resource requirements
@@ -916,7 +869,8 @@ slots:
     inlined_as_list: false
   analysis__container:
     name: analysis__container
-    description: Default container image name for recipes in this node
+    description: Default container for recipes in this node. Image names are pulled;
+      file paths are built from source.
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:container
     alias: container
@@ -924,18 +878,6 @@ slots:
     domain_of:
     - Analysis
     range: string
-  analysis__container_build:
-    name: analysis__container_build
-    description: Default container build specification for recipes in this node
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:container_build
-    alias: container_build
-    owner: Analysis
-    domain_of:
-    - Analysis
-    range: ContainerBuildSpec
-    inlined: true
-    inlined_as_list: true
   analysis__path:
     name: analysis__path
     description: Path to a directory containing its own astra.yaml. Mutually exclusive
@@ -1260,7 +1202,7 @@ slots:
     range: DecisionSelection
     multivalued: true
     inlined: true
-    inlined_as_list: true
+    inlined_as_list: false
   universeNode__analyses:
     name: universeNode__analyses
     description: Sub-analysis universe selections
@@ -1309,7 +1251,7 @@ slots:
     range: DecisionSelection
     multivalued: true
     inlined: true
-    inlined_as_list: true
+    inlined_as_list: false
   universe__analyses:
     name: universe__analyses
     description: Sub-analysis universe selections
@@ -1423,30 +1365,6 @@ classes:
         name: time_limit
         description: Maximum wall time (e.g., '2h', '30m')
     class_uri: astra:Resources
-  ContainerBuildSpec:
-    name: ContainerBuildSpec
-    definition_uri: https://w3id.org/ASTRA/ContainerBuildSpec
-    description: Specification for building a container image from a Containerfile
-    from_schema: https://w3id.org/ASTRA/analysis
-    slots:
-    - containerBuildSpec__build
-    - containerBuildSpec__context
-    - containerBuildSpec__args
-    attributes:
-      build:
-        name: build
-        description: Path to Containerfile relative to project root
-        required: true
-      context:
-        name: context
-        description: Build context directory
-      args:
-        name: args
-        description: Docker build arguments as key-value pairs
-        range: KeyValuePair
-        multivalued: true
-        inlined_as_list: true
-    class_uri: astra:ContainerBuildSpec
   Recipe:
     name: Recipe
     definition_uri: https://w3id.org/ASTRA/Recipe
@@ -1457,7 +1375,6 @@ classes:
     - recipe__command
     - recipe__inputs
     - recipe__container
-    - recipe__container_build
     - recipe__resources
     attributes:
       command:
@@ -1470,13 +1387,10 @@ classes:
         multivalued: true
       container:
         name: container
-        description: Container image name (pre-built image string)
-      container_build:
-        name: container_build
-        description: Container image build specification (alternative to container
-          string)
-        range: ContainerBuildSpec
-        inlined: true
+        description: Container image name or path to a Containerfile. Image names
+          (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images;
+          file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from
+          source.
       resources:
         name: resources
         description: Compute resource requirements
@@ -1681,7 +1595,6 @@ classes:
     - analysis__prior_insights
     - analysis__findings
     - analysis__container
-    - analysis__container_build
     - analysis__path
     - analysis__analyses
     attributes:
@@ -1739,12 +1652,8 @@ classes:
         inlined: true
       container:
         name: container
-        description: Default container image name for recipes in this node
-      container_build:
-        name: container_build
-        description: Default container build specification for recipes in this node
-        range: ContainerBuildSpec
-        inlined: true
+        description: Default container for recipes in this node. Image names are pulled;
+          file paths are built from source.
       path:
         name: path
         description: Path to a directory containing its own astra.yaml. Mutually exclusive
@@ -1961,7 +1870,7 @@ classes:
         description: Decision selections (decision_id to option_id)
         range: DecisionSelection
         multivalued: true
-        inlined_as_list: true
+        inlined: true
       analyses:
         name: analyses
         description: Sub-analysis universe selections
@@ -1994,7 +1903,7 @@ classes:
         description: Root-level decision selections
         range: DecisionSelection
         multivalued: true
-        inlined_as_list: true
+        inlined: true
       analyses:
         name: analyses
         description: Sub-analysis universe selections
@@ -2004,7 +1913,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-12T20:27:02'
-source_file_size: 10151
-generation_date: '2026-04-12T20:27:04'
+source_file_date: '2026-04-14T18:19:31'
+source_file_size: 9581
+generation_date: '2026-04-14T18:19:32'
 
