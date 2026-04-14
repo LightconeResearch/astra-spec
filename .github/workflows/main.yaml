@@ -96,7 +96,7 @@ jobs:
             -I 'generation_date' \
             -I 'source_file_date' \
             -I '^version' \
-            -I '^  "version"' \
+            -I '"version"' \
             -- src/astra/datamodel/ docs/schema/; then
             echo "::error::Generated files are out of date. Run 'just gen-python' and 'just gen-doc' and commit the results."
             exit 1
