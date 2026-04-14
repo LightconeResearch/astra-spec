@@ -1,20 +1,12 @@
 ---
 name: Publish Python Package
 
-# Publishes with trusted publishing to
-# - PyPI on releases created in GitHub UI if status is published.
-#   For draft status, nothing happens.
-# - TestPyPI on new tags "v1.2.3" or "v1.2.3.something" on main branch
+# Publishes with trusted publishing to PyPI on releases created in GitHub UI
+# if status is published. For draft status, nothing happens.
 #
 # More on trusted publishing: https://docs.pypi.org/trusted-publishers/
 
 on:  # yamllint disable-line rule:truthy
-  push:
-    tags:
-      # GitHub glob matching is limited [1]. So we can't define a pattern matching
-      # pep 440 version definition [N!]N(.N)*[{a|b|rc}N][.postN][.devN]
-      - 'v[0-9]+.[0-9]+.[0-9]+.?*'
-      - 'v[0-9]+.[0-9]+.[0-9]+rc[0-9]'
   release:
     types: [published]
 
@@ -70,7 +62,7 @@ jobs:
           path: dist/
 
   pypi-publish:
-    name: Build and publish Python 🐍 package 📦 to PyPI and TestPyPI
+    name: Build and publish Python 🐍 package 📦 to PyPI
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -87,17 +79,7 @@ jobs:
           path: dist
 
       # https://github.com/pypa/gh-action-pypi-publish
-      - name: Publish package 📦 to Test PyPI
-        if: github.event_name == 'push'
-        uses: pypa/gh-action-pypi-publish@v1.14.0
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          verbose: true
-
       - name: Publish package 📦 to PyPI
-        if: github.event_name == 'release'
         uses: pypa/gh-action-pypi-publish@v1.14.0
         with:
           verbose: true
-
-# [1] https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
