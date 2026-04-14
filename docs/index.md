@@ -755,6 +755,6 @@ Python datamodels are generated from the LinkML schema and are available via `pi
 
 | File | Exports | Description |
 |------|---------|-------------|
-| `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `Recipe`, `Resources`, `ContainerBuildSpec` | Core analysis specification |
+| `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `Recipe`, `Resources` | Core analysis specification |
 | `universe.yaml` | `Universe`, `UniverseNode`, `DecisionSelection` | Universe (decision selections) |
 | `insight.yaml` | `Insight`, `Evidence`, `InsightCollection`, `TextQuoteSelector`, `FragmentSelector` | Insights, evidence, and W3C selectors |

@@ -1,5 +1,5 @@
 from pathlib import Path
-from .astra import *
+from .analysis import *
 
 THIS_PATH = Path(__file__).parent
 
