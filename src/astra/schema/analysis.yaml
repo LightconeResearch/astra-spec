@@ -105,20 +105,6 @@ classes:
       time_limit:
         description: Maximum wall time (e.g., '2h', '30m')
 
-  ContainerBuildSpec:
-    description: Specification for building a container image from a Containerfile
-    attributes:
-      build:
-        required: true
-        description: Path to Containerfile relative to project root
-      context:
-        description: Build context directory
-      args:
-        range: KeyValuePair
-        multivalued: true
-        inlined_as_list: true
-        description: Docker build arguments as key-value pairs
-
   Recipe:
     description: >-
       A build rule that produces an output. Recipes are the execution
@@ -131,11 +117,11 @@ classes:
         multivalued: true
         description: Output IDs that must be materialized before this recipe runs
       container:
-        description: Container image name (pre-built image string)
-      container_build:
-        range: ContainerBuildSpec
-        inlined: true
-        description: Container image build specification (alternative to container string)
+        description: >-
+          Container image name or path to a Containerfile.
+          Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are
+          pulled as pre-built images; file paths (e.g., 'Containerfile',
+          'containers/Dockerfile') are built from source.
       resources:
         range: Resources
         inlined: true
@@ -317,11 +303,9 @@ classes:
         inlined: true
         description: Findings and conclusions from outputs (keyed by insight ID)
       container:
-        description: Default container image name for recipes in this node
-      container_build:
-        range: ContainerBuildSpec
-        inlined: true
-        description: Default container build specification for recipes in this node
+        description: >-
+          Default container for recipes in this node.
+          Image names are pulled; file paths are built from source.
       path:
         description: >-
           Path to a directory containing its own astra.yaml.

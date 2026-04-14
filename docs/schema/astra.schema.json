@@ -32,22 +32,11 @@
                     ]
                 },
                 "container": {
-                    "description": "Default container image name for recipes in this node",
+                    "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
                     "type": [
                         "string",
                         "null"
                     ]
-                },
-                "container_build": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/ContainerBuildSpec"
-                        },
-                        {
-                            "type": "null"
-                        }
-                    ],
-                    "description": "Default container build specification for recipes in this node"
                 },
                 "decisions": {
                     "additionalProperties": {
@@ -191,22 +180,11 @@
                     ]
                 },
                 "container": {
-                    "description": "Default container image name for recipes in this node",
+                    "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
                     "type": [
                         "string",
                         "null"
                     ]
-                },
-                "container_build": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/ContainerBuildSpec"
-                        },
-                        {
-                            "type": "null"
-                        }
-                    ],
-                    "description": "Default container build specification for recipes in this node"
                 },
                 "decisions": {
                     "additionalProperties": {
@@ -316,38 +294,6 @@
             "title": "Analysis",
             "type": "object"
         },
-        "ContainerBuildSpec": {
-            "additionalProperties": false,
-            "description": "Specification for building a container image from a Containerfile",
-            "properties": {
-                "args": {
-                    "description": "Docker build arguments as key-value pairs",
-                    "items": {
-                        "$ref": "#/$defs/KeyValuePair"
-                    },
-                    "type": [
-                        "array",
-                        "null"
-                    ]
-                },
-                "build": {
-                    "description": "Path to Containerfile relative to project root",
-                    "type": "string"
-                },
-                "context": {
-                    "description": "Build context directory",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                }
-            },
-            "required": [
-                "build"
-            ],
-            "title": "ContainerBuildSpec",
-            "type": "object"
-        },
         "Decision": {
             "additionalProperties": false,
             "description": "A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision via from_ref.",
@@ -450,6 +396,28 @@
             },
             "required": [
                 "decision_id",
+                "option_id"
+            ],
+            "title": "DecisionSelection",
+            "type": "object"
+        },
+        "DecisionSelection__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A mapping from a decision ID to the selected option ID",
+            "properties": {
+                "decision_id": {
+                    "description": "ID of the decision",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "option_id": {
+                    "description": "ID of the selected option",
+                    "type": "string"
+                }
+            },
+            "required": [
                 "option_id"
             ],
             "title": "DecisionSelection",
@@ -1118,22 +1086,11 @@
                     "type": "string"
                 },
                 "container": {
-                    "description": "Container image name (pre-built image string)",
+                    "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
                     "type": [
                         "string",
                         "null"
                     ]
-                },
-                "container_build": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/$defs/ContainerBuildSpec"
-                        },
-                        {
-                            "type": "null"
-                        }
-                    ],
-                    "description": "Container image build specification (alternative to container string)"
                 },
                 "inputs": {
                     "description": "Output IDs that must be materialized before this recipe runs",
@@ -1252,12 +1209,20 @@
                     ]
                 },
                 "decisions": {
-                    "description": "Root-level decision selections",
-                    "items": {
-                        "$ref": "#/$defs/DecisionSelection"
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/DecisionSelection__identifier_optional"
+                            },
+                            {
+                                "description": "ID of the selected option",
+                                "type": "string"
+                            }
+                        ]
                     },
+                    "description": "Root-level decision selections",
                     "type": [
-                        "array",
+                        "object",
                         "null"
                     ]
                 },
@@ -1305,12 +1270,20 @@
                     ]
                 },
                 "decisions": {
-                    "description": "Decision selections (decision_id to option_id)",
-                    "items": {
-                        "$ref": "#/$defs/DecisionSelection"
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/DecisionSelection__identifier_optional"
+                            },
+                            {
+                                "description": "ID of the selected option",
+                                "type": "string"
+                            }
+                        ]
                     },
+                    "description": "Decision selections (decision_id to option_id)",
                     "type": [
-                        "array",
+                        "object",
                         "null"
                     ]
                 },
@@ -1357,12 +1330,20 @@
                     ]
                 },
                 "decisions": {
-                    "description": "Decision selections (decision_id to option_id)",
-                    "items": {
-                        "$ref": "#/$defs/DecisionSelection"
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/DecisionSelection__identifier_optional"
+                            },
+                            {
+                                "description": "ID of the selected option",
+                                "type": "string"
+                            }
+                        ]
                     },
+                    "description": "Decision selections (decision_id to option_id)",
                     "type": [
-                        "array",
+                        "object",
                         "null"
                     ]
                 },
@@ -1420,22 +1401,11 @@
             ]
         },
         "container": {
-            "description": "Default container image name for recipes in this node",
+            "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
             "type": [
                 "string",
                 "null"
             ]
-        },
-        "container_build": {
-            "anyOf": [
-                {
-                    "$ref": "#/$defs/ContainerBuildSpec"
-                },
-                {
-                    "type": "null"
-                }
-            ],
-            "description": "Default container build specification for recipes in this node"
         },
         "decisions": {
             "additionalProperties": {

@@ -237,8 +237,7 @@ A `Recipe` is an inline build rule on an output. Outputs with recipes form a DAG
 |-------|------|----------|-------------|
 | `command` | `string` | **Yes** | Command to execute |
 | `inputs` | `string[]` | No | Output IDs that must be produced first |
-| `container` | `string` | No | Pre-built container image name |
-| `container_build` | `ContainerBuildSpec` | No | Container image build specification (alternative to `container`) |
+| `container` | `string` | No | Container image name or path to a Containerfile |
 | `resources` | `Resources` | No | Compute requirements |
 
 **Resources**:
@@ -250,15 +249,7 @@ A `Recipe` is an inline build rule on an output. Outputs with recipes form a DAG
 | `gpus` | `integer` | Number of GPUs (min: 1) |
 | `time_limit` | `string` | Wall time limit (e.g., `"2h"`) |
 
-**Container build spec**:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `build` | `string` | **Yes** | Path to Containerfile |
-| `context` | `string` | No | Build context directory |
-| `args` | `KeyValuePair[]` | No | Build arguments |
-
-A node-level `container` (or `container_build`) field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it.
+A node-level `container` field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., `python:3.9`, `ghcr.io/org/img:latest`) are pulled as pre-built images; file paths (e.g., `Containerfile`, `containers/Dockerfile`) are built from source.
 
 ### Decisions
 

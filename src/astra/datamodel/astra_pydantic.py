@@ -303,17 +303,6 @@ class Resources(ConfiguredBaseModel):
     time_limit: Optional[str] = Field(default=None, description="""Maximum wall time (e.g., '2h', '30m')""", json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
 
 
-class ContainerBuildSpec(ConfiguredBaseModel):
-    """
-    Specification for building a container image from a Containerfile
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
-
-    build: str = Field(default=..., description="""Path to Containerfile relative to project root""", json_schema_extra = { "linkml_meta": {'domain_of': ['ContainerBuildSpec']} })
-    context: Optional[str] = Field(default=None, description="""Build context directory""", json_schema_extra = { "linkml_meta": {'domain_of': ['ContainerBuildSpec']} })
-    args: Optional[list[KeyValuePair]] = Field(default=None, description="""Docker build arguments as key-value pairs""", json_schema_extra = { "linkml_meta": {'domain_of': ['ContainerBuildSpec']} })
-
-
 class Recipe(ConfiguredBaseModel):
     """
     A build rule that produces an output. Recipes are the execution contract: run this command to produce the parent output.
@@ -322,8 +311,7 @@ class Recipe(ConfiguredBaseModel):
 
     command: str = Field(default=..., description="""Command to execute (e.g., 'python src/train.py')""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
     inputs: Optional[list[str]] = Field(default=None, description="""Output IDs that must be materialized before this recipe runs""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
-    container: Optional[str] = Field(default=None, description="""Container image name (pre-built image string)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
-    container_build: Optional[ContainerBuildSpec] = Field(default=None, description="""Container image build specification (alternative to container string)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
+    container: Optional[str] = Field(default=None, description="""Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     resources: Optional[Resources] = Field(default=None, description="""Compute resource requirements""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
 
 
@@ -486,8 +474,7 @@ class Analysis(ConfiguredBaseModel):
     decisions: Optional[dict[str, Decision]] = Field(default=None, description="""Decision points in this analysis (keyed by decision ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
     prior_insights: Optional[dict[str, Insight]] = Field(default=None, description="""Prior insights that inform decisions (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     findings: Optional[dict[str, Insight]] = Field(default=None, description="""Findings and conclusions from outputs (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    container: Optional[str] = Field(default=None, description="""Default container image name for recipes in this node""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
-    container_build: Optional[ContainerBuildSpec] = Field(default=None, description="""Default container build specification for recipes in this node""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
+    container: Optional[str] = Field(default=None, description="""Default container for recipes in this node. Image names are pulled; file paths are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     path: Optional[str] = Field(default=None, description="""Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     analyses: Optional[dict[str, Analysis]] = Field(default=None, description="""Nested sub-analyses (keyed by analysis ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
@@ -517,7 +504,6 @@ UniverseNode.model_rebuild()
 Universe.model_rebuild()
 KeyValuePair.model_rebuild()
 Resources.model_rebuild()
-ContainerBuildSpec.model_rebuild()
 Recipe.model_rebuild()
 Input.model_rebuild()
 Output.model_rebuild()
