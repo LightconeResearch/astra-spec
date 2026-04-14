@@ -81,8 +81,6 @@ linkml_meta = LinkMLMeta({'default_prefix': 'astra',
                             'prefix_reference': 'https://w3id.org/ASTRA/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'see_also': ['https://LightconeResearch.github.io/ASTRA',
-                  'https://astra-spec.org'],
      'source_file': 'src/astra/schema/analysis.yaml',
      'title': 'ASTRA'} )
 

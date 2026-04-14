@@ -4,14 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "astra-spec"
-description = "Agentic Schema for Transparent Research Analysis."
+description = "ASTRA spec."
 authors = [
   {name = "Francois Lanusse", email = "francois.lanusse@cnrs.fr"},
   {name = "Liam Parker", email = "lhparker@berkeley.edu"},
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
-readme = "README.md"
 requires-python = ">=3.9,<4.0"
 dynamic = ["version"]
 

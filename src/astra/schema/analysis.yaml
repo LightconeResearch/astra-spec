@@ -8,9 +8,6 @@ description: |-
   decision points, evidence-backed insights, and universe specifications.
 license: https://creativecommons.org/licenses/by/4.0/
 version: 0.0.1
-see_also:
-  - https://LightconeResearch.github.io/ASTRA
-  - https://astra-spec.org
 
 prefixes:
   astra: https://w3id.org/ASTRA/
