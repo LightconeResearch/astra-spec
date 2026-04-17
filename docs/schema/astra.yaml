@@ -376,6 +376,31 @@ slots:
     - KeyValuePair
     range: string
     required: true
+  narrativeSection__id:
+    name: narrativeSection__id
+    description: Section name (lowercase identifier). Renderers are responsible for
+      display formatting (title case, spaces, etc.).
+    from_schema: https://w3id.org/ASTRA/analysis
+    slot_uri: astra:id
+    identifier: true
+    alias: id
+    owner: NarrativeSection
+    domain_of:
+    - NarrativeSection
+    range: string
+    required: true
+    pattern: ^[a-z][a-z0-9_]*$
+  narrativeSection__content:
+    name: narrativeSection__content
+    description: Prose content for this section, Markdown-formatted.
+    from_schema: https://w3id.org/ASTRA/analysis
+    slot_uri: astra:content
+    alias: content
+    owner: NarrativeSection
+    domain_of:
+    - NarrativeSection
+    range: string
+    required: true
   resources__cpus:
     name: resources__cpus
     description: Number of CPUs
@@ -770,16 +795,24 @@ slots:
     domain_of:
     - Analysis
     range: string
-  analysis__description:
-    name: analysis__description
-    description: Detailed description of this analysis
+  analysis__narrative:
+    name: analysis__narrative
+    description: 'Named prose sections describing this analysis, keyed by section
+      name (e.g., ''abstract'', ''methods'', ''results'', ''discussion''). Section
+      keys are user-chosen lowercase identifiers; values are Markdown content.
+
+      Replaces the flat ''description'' field with a structured, extensible narrative.
+      See NarrativeSection for the anchor-reference grammar used inside content.'
     from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:description
-    alias: description
+    slot_uri: astra:narrative
+    alias: narrative
     owner: Analysis
     domain_of:
     - Analysis
-    range: string
+    range: NarrativeSection
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
   analysis__authors:
     name: analysis__authors
     description: List of authors
@@ -1337,6 +1370,37 @@ classes:
         description: The value
         required: true
     class_uri: astra:KeyValuePair
+  NarrativeSection:
+    name: NarrativeSection
+    definition_uri: https://w3id.org/ASTRA/NarrativeSection
+    description: "A named section of prose narrative describing an analysis. The id\
+      \ is a user-chosen section name (e.g., 'abstract', 'methods', 'results'); content\
+      \ is the prose body.\nContent is Markdown. Internal references to other elements\
+      \ of the analysis use anchor links: [text](#path.to.element).\nAnchor grammar\
+      \ is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id'\
+      \ in from_ref). Sub-analyses are traversed before the category:\n\n  [scaling\
+      \ decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n\
+      \  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n\
+      \  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n\
+      \  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\
+      \nReferences are interpreted relative to the hosting analysis. Use '../' prefix\
+      \ to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method))."
+    from_schema: https://w3id.org/ASTRA/analysis
+    slots:
+    - narrativeSection__id
+    - narrativeSection__content
+    attributes:
+      id:
+        name: id
+        description: Section name (lowercase identifier). Renderers are responsible
+          for display formatting (title case, spaces, etc.).
+        identifier: true
+        pattern: ^[a-z][a-z0-9_]*$
+      content:
+        name: content
+        description: Prose content for this section, Markdown-formatted.
+        required: true
+    class_uri: astra:NarrativeSection
   Resources:
     name: Resources
     definition_uri: https://w3id.org/ASTRA/Resources
@@ -1586,7 +1650,7 @@ classes:
     - analysis__id
     - analysis__version
     - analysis__name
-    - analysis__description
+    - analysis__narrative
     - analysis__authors
     - analysis__tags
     - analysis__inputs
@@ -1609,9 +1673,17 @@ classes:
       name:
         name: name
         description: Human-readable name for the analysis
-      description:
-        name: description
-        description: Detailed description of this analysis
+      narrative:
+        name: narrative
+        description: 'Named prose sections describing this analysis, keyed by section
+          name (e.g., ''abstract'', ''methods'', ''results'', ''discussion''). Section
+          keys are user-chosen lowercase identifiers; values are Markdown content.
+
+          Replaces the flat ''description'' field with a structured, extensible narrative.
+          See NarrativeSection for the anchor-reference grammar used inside content.'
+        range: NarrativeSection
+        multivalued: true
+        inlined: true
       authors:
         name: authors
         description: List of authors
@@ -1913,7 +1985,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-14T18:19:31'
-source_file_size: 9581
-generation_date: '2026-04-14T18:19:32'
+source_file_date: '2026-04-17T17:32:15'
+source_file_size: 11601
+generation_date: '2026-04-17T17:52:04'
 
