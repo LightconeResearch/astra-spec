@@ -91,9 +91,15 @@ decisions:
 ```yaml
 version: "1.0"
 name: Iris Classification Study
-description: |
-  A demonstration analysis that builds a classifier for the classic
-  Iris dataset, exploring different preprocessing and model choices.
+narrative:
+  abstract: |
+    A demonstration analysis that builds a classifier for the classic
+    Iris dataset, exploring different preprocessing and model choices.
+  methods: |
+    Compare StandardScaler, MinMaxScaler, and no scaling across
+    SVM, random forest, and logistic regression. See the
+    [scaling decision](#decisions.scaling) and the
+    [model decision](#decisions.model).
 authors:
   - ASTRA Examples
 tags:
@@ -181,11 +187,56 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 | `id` | `string` | No | Analysis identifier (used as key when nested as sub-analysis) |
 | `version` | `string` | No | ASTRA spec version (semver: `"1.0"`, `"1.0.0"`) |
 | `name` | `string` | No | Human-readable name |
-| `description` | `string` | No | Detailed description |
+| `narrative` | `map[string, string]` | No | Named prose sections (see [Narrative](#narrative)) |
 | `authors` | `string[]` | No | List of authors |
 | `tags` | `string[]` | No | Tags for categorization |
 
 **Version format**: `^\d+\.\d+(\.\d+)?$`
+
+### Narrative
+
+`narrative` is a map of user-chosen section keys to Markdown prose. Keys are lowercase identifiers matching `^[a-z][a-z0-9_]*$`. Values are free-form Markdown. Section order is preserved as written.
+
+```yaml
+narrative:
+  abstract: |
+    One-paragraph summary of the analysis.
+  methods: |
+    Full methodology write-up. Markdown supported.
+  results: |
+    Headline findings.
+```
+
+**Internal anchor references.** Inside `narrative` content you can link to other elements of the analysis with standard Markdown link syntax and a `#` target:
+
+```markdown
+See the [scaling decision](#decisions.scaling) for rationale.
+The [best_model finding](#findings.best_model) summarizes our
+recommendation.
+```
+
+The anchor grammar is **tree-path-first**, matching ASTRA's existing reference syntax (`sibling.output_id` in `from_ref`, etc.). Sub-analyses are traversed before the category:
+
+| Target | Anchor |
+|--------|--------|
+| Input | `#inputs.<id>` |
+| Output | `#outputs.<id>` |
+| Decision | `#decisions.<id>` |
+| Option within a decision | `#decisions.<id>.options.<id>` |
+| Finding | `#findings.<id>` |
+| Prior insight | `#prior_insights.<id>` |
+| Sub-analysis (whole node) | `#analyses.<sub>` |
+| Element inside sub-analysis | `#<sub>.<category>.<id>` (e.g. `#preprocessing.decisions.scaling`) |
+
+References are interpreted **relative to the hosting analysis**. Prefix with `../` to escape to parent scope, matching decision `from_ref` syntax:
+
+```markdown
+See [parent scaling](#../decisions.scaling).
+```
+
+Anchor resolution is a renderer concern — the spec treats the links as opaque strings. Plain Markdown viewers render them as hyperlinks that don't jump anywhere; richer tooling (Prism-UI, Canvas) resolves them to inline cards or scroll targets. Broken anchors are not a validation error today; a lint pass over narrative content may land later.
+
+
 
 ### Inputs
 

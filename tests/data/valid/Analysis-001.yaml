@@ -7,9 +7,10 @@ authors:
 tags:
   - photometric-redshifts
   - cosmology
-description: >-
-  End-to-end photometric redshift estimation pipeline
-  for the LSST DESC survey.
+narrative:
+  abstract: >-
+    End-to-end photometric redshift estimation pipeline
+    for the LSST DESC survey.
 inputs:
   - id: photometry_catalog
     type: data
@@ -131,7 +132,8 @@ analyses:
   calibration:
     id: calibration
     name: Calibration sub-analysis
-    description: Calibrate the photo-z estimates using spectroscopic data
+    narrative:
+      abstract: Calibrate the photo-z estimates using spectroscopic data
     inputs:
       - id: specz_data
         type: data

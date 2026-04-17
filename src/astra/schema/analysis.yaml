@@ -87,6 +87,44 @@ classes:
         required: true
         description: The value
 
+  NarrativeSection:
+    description: >-
+      A named section of prose narrative describing an analysis.
+      The id is a user-chosen section name (e.g., 'abstract',
+      'methods', 'results'); content is the prose body.
+
+      Content is Markdown. Internal references to other elements
+      of the analysis use anchor links: [text](#path.to.element).
+
+      Anchor grammar is tree-path-first, matching the rest of
+      ASTRA's reference syntax (e.g. 'sibling.output_id' in
+      from_ref). Sub-analyses are traversed before the category:
+
+        [scaling decision](#decisions.scaling)
+        [scaling option](#decisions.scaling.options.standard)
+        [finding](#findings.best_model)
+        [prior insight](#prior_insights.compute_scaling)
+        [input](#inputs.iris_data)
+        [sub-analysis output](#preprocessing.outputs.features)
+        [sub-analysis decision](#preprocessing.decisions.scaling)
+        [sub-analysis](#analyses.preprocessing)
+
+      References are interpreted relative to the hosting
+      analysis. Use '../' prefix to escape to parent scope, as
+      with decision from_ref (e.g. [see parent](#../decisions.method)).
+    attributes:
+      id:
+        identifier: true
+        pattern: "^[a-z][a-z0-9_]*$"
+        description: >-
+          Section name (lowercase identifier). Renderers are
+          responsible for display formatting (title case,
+          spaces, etc.).
+      content:
+        required: true
+        description: >-
+          Prose content for this section, Markdown-formatted.
+
   # --- Execution ---
 
   Resources:
@@ -269,8 +307,20 @@ classes:
         description: ASTRA specification version
       name:
         description: Human-readable name for the analysis
-      description:
-        description: Detailed description of this analysis
+      narrative:
+        range: NarrativeSection
+        multivalued: true
+        inlined: true
+        description: >-
+          Named prose sections describing this analysis, keyed
+          by section name (e.g., 'abstract', 'methods',
+          'results', 'discussion'). Section keys are
+          user-chosen lowercase identifiers; values are
+          Markdown content.
+
+          Replaces the flat 'description' field with a
+          structured, extensible narrative. See NarrativeSection
+          for the anchor-reference grammar used inside content.
       authors:
         multivalued: true
         description: List of authors
