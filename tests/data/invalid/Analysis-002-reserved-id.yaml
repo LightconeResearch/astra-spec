@@ -1,0 +1,19 @@
+# Invalid: sub-analysis named 'decisions' shadows the reserved category.
+# Anchor refs like #decisions.foo can never address this sub's contents.
+id: bad_reserved_analysis
+name: Reserved-name shadowing test
+inputs:
+  - id: data
+    type: data
+outputs:
+  - id: result
+    type: metric
+analyses:
+  decisions:
+    id: decisions
+    inputs:
+      - id: x
+        type: data
+    outputs:
+      - id: y
+        type: metric
