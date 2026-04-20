@@ -1748,8 +1748,16 @@ Universe (decision selections)  ─────▶  Execution Parameters
 </table>
 <p><strong>Version format</strong>: <code>^\d+\.\d+(\.\d+)?$</code></p>
 <h3 id="narrative">Narrative</h3>
-<p><code>narrative</code> is a structured prose field organized into five optional Markdown sections: <code>summary</code>, <code>findings</code>, <code>methods</code>, <code>inputs</code>, and <code>outputs</code>. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.</p>
-<p>All sections are optional. Tooling emits a warning when a section is absent or empty (a nudge, not an error). Authors may leave a section blank when they have nothing to add.</p>
+<p><code>narrative</code> is a structured prose field organized into five Markdown sections: <code>summary</code>, <code>findings</code>, <code>methods</code>, <code>inputs</code>, and <code>outputs</code>. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.</p>
+<p>All sections are schema-optional, but <code>astra validate</code> applies a <strong>conditional requirement</strong>: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.</p>
+<ul>
+<li><code>findings</code> required when <code>Analysis.findings</code> has entries.</li>
+<li><code>methods</code> required when <code>Analysis.decisions</code> or <code>Analysis.analyses</code> has entries.</li>
+<li><code>inputs</code> required when <code>Analysis.inputs</code> has entries.</li>
+<li><code>outputs</code> required when <code>Analysis.outputs</code> has entries.</li>
+<li><code>summary</code> is always optional (no structured counterpart).</li>
+</ul>
+<p>Authors narrate what they declare; stub analyses with only a <code>summary</code> stay clean.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">narrative</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 <span class="w">    </span><span class="no">One-paragraph overview of the analysis.</span>
