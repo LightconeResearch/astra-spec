@@ -158,7 +158,6 @@ class Evidence(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
@@ -196,12 +195,12 @@ class Insight(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
                        'Analysis']} })
+    label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     claim: str = Field(default=..., description="""What we learned (1-2 sentences)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
     created_at: datetime  = Field(default=..., description="""Creation timestamp (ISO 8601)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
     evidence: list[Evidence] = Field(default=..., description="""Supporting evidence (papers or analysis artifacts)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
@@ -240,7 +239,6 @@ class UniverseNode(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
@@ -261,7 +259,6 @@ class Universe(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
@@ -293,51 +290,6 @@ class KeyValuePair(ConfiguredBaseModel):
 
     key: str = Field(default=..., description="""The key""", json_schema_extra = { "linkml_meta": {'domain_of': ['KeyValuePair']} })
     value: str = Field(default=..., description="""The value""", json_schema_extra = { "linkml_meta": {'domain_of': ['FragmentSelector', 'KeyValuePair']} })
-
-
-class NarrativeSection(ConfiguredBaseModel):
-    """
-    A named section of prose narrative describing an analysis. The id is a user-chosen section name (e.g., 'abstract', 'methods', 'results'); content is the prose body.
-    Content is Markdown. Internal references to other elements of the analysis use anchor links: [text](#path.to.element).
-    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:
-
-      [scaling decision](#decisions.scaling)
-      [scaling option](#decisions.scaling.options.standard)
-      [finding](#findings.best_model)
-      [prior insight](#prior_insights.compute_scaling)
-      [input](#inputs.iris_data)
-      [sub-analysis output](#preprocessing.outputs.features)
-      [sub-analysis decision](#preprocessing.decisions.scaling)
-      [sub-analysis](#analyses.preprocessing)
-
-    References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
-
-    id: str = Field(default=..., description="""Section name (lowercase identifier). Renderers are responsible for display formatting (title case, spaces, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
-                       'Insight',
-                       'UniverseNode',
-                       'Universe',
-                       'NarrativeSection',
-                       'Input',
-                       'Output',
-                       'Option',
-                       'Decision',
-                       'Analysis']} })
-    content: str = Field(default=..., description="""Prose content for this section, Markdown-formatted.""", json_schema_extra = { "linkml_meta": {'domain_of': ['NarrativeSection']} })
-
-    @field_validator('id')
-    def pattern_id(cls, v):
-        pattern=re.compile(r"^[a-z][a-z0-9_]*$")
-        if isinstance(v, list):
-            for element in v:
-                if isinstance(element, str) and not pattern.match(element):
-                    err_msg = f"Invalid id format: {element}"
-                    raise ValueError(err_msg)
-        elif isinstance(v, str) and not pattern.match(v):
-            err_msg = f"Invalid id format: {v}"
-            raise ValueError(err_msg)
-        return v
 
 
 class Resources(ConfiguredBaseModel):
@@ -379,12 +331,12 @@ class Input(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
                        'Analysis']} })
+    label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: InputType = Field(default=..., description="""Type of input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
     description: Optional[str] = Field(default=None, description="""Description of the input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
     source: Optional[str] = Field(default=None, description="""URI or path to the data source""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
@@ -422,12 +374,12 @@ class Output(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
                        'Analysis']} })
+    label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: OutputType = Field(default=..., description="""Type of output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
     description: Optional[str] = Field(default=None, description="""Description of the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
     recipe: Optional[Recipe] = Field(default=None, description="""How to produce this output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output']} })
@@ -456,13 +408,12 @@ class Option(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
                        'Analysis']} })
-    label: str = Field(default=..., description="""Human-readable name for the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option', 'Decision']} })
+    label: str = Field(default=..., description="""Human-readable name for the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     description: Optional[str] = Field(default=None, description="""Detailed description of the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
     insights: Optional[list[str]] = Field(default=None, description="""Insight IDs supporting this option""", json_schema_extra = { "linkml_meta": {'domain_of': ['InsightCollection', 'Option']} })
     incompatible_with: Optional[list[str]] = Field(default=None, description="""Decision.option pairs that cannot be selected together""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })
@@ -489,13 +440,12 @@ class Decision(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
                        'Decision',
                        'Analysis']} })
-    label: Optional[str] = Field(default=None, description="""Human-readable name for the decision""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option', 'Decision']} })
+    label: Optional[str] = Field(default=None, description="""Human-readable name for the decision""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     rationale: Optional[str] = Field(default=None, description="""Why this decision exists""", json_schema_extra = { "linkml_meta": {'domain_of': ['Decision']} })
     tags: Optional[list[str]] = Field(default=None, description="""Tags for grouping and categorizing""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
     default: Optional[str] = Field(default=None, description="""Default option ID for baseline universes""", json_schema_extra = { "linkml_meta": {'domain_of': ['Decision']} })
@@ -512,7 +462,6 @@ class Analysis(ConfiguredBaseModel):
                        'Insight',
                        'UniverseNode',
                        'Universe',
-                       'NarrativeSection',
                        'Input',
                        'Output',
                        'Option',
@@ -520,8 +469,20 @@ class Analysis(ConfiguredBaseModel):
                        'Analysis']} })
     version: Optional[str] = Field(default=None, description="""ASTRA specification version""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence', 'Analysis']} })
     name: Optional[str] = Field(default=None, description="""Human-readable name for the analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    narrative: Optional[dict[str, Union[str, NarrativeSection]]] = Field(default=None, description="""Named prose sections describing this analysis, keyed by section name (e.g., 'abstract', 'methods', 'results', 'discussion'). Section keys are user-chosen lowercase identifiers; values are Markdown content.
-Replaces the flat 'description' field with a structured, extensible narrative. See NarrativeSection for the anchor-reference grammar used inside content.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
+    narrative: Optional[str] = Field(default=None, description="""Free-form Markdown prose describing this analysis. Document shape (abstract, methods, results, memo, slide outline, agent prompt, ...) is up to the author — the schema is deliberately agnostic. Renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on headings for a table of contents).
+Internal references to other elements of the analysis use Markdown anchor links: [text](#path.to.element).
+Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:
+
+  [scaling decision](#decisions.scaling)
+  [scaling option](#decisions.scaling.options.standard)
+  [finding](#findings.best_model)
+  [prior insight](#prior_insights.compute_scaling)
+  [input](#inputs.iris_data)
+  [sub-analysis output](#preprocessing.outputs.features)
+  [sub-analysis decision](#preprocessing.decisions.scaling)
+  [sub-analysis](#analyses.preprocessing)
+
+References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     authors: Optional[list[str]] = Field(default=None, description="""List of authors""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     tags: Optional[list[str]] = Field(default=None, description="""Tags for categorization""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
     inputs: Optional[list[Input]] = Field(default=None, description="""Inputs for this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
@@ -558,7 +519,6 @@ DecisionSelection.model_rebuild()
 UniverseNode.model_rebuild()
 Universe.model_rebuild()
 KeyValuePair.model_rebuild()
-NarrativeSection.model_rebuild()
 Resources.model_rebuild()
 Recipe.model_rebuild()
 Input.model_rebuild()
