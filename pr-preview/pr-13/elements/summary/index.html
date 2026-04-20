@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://astra-spec.org/elements/analyses/">
+        <link rel="canonical" href="https://astra-spec.org/elements/summary/">
       
       
       
@@ -21,7 +21,7 @@
     
     
       
-        <title>Slot: analyses - ASTRA</title>
+        <title>Slot: summary - ASTRA</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slot-analyses" class="md-skip">
+        <a href="#slot-summary" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Slot: analyses
+              Slot: summary
             
           </span>
         </div>
@@ -423,6 +423,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Identifier and Mapping Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schema-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -468,9 +485,10 @@
   
 
 
-<h1 id="slot-analyses">Slot: analyses</h1>
-<p>URI: <a href="https://w3id.org/ASTRA/analyses">astra:analyses</a>
-Alias: analyses</p>
+<h1 id="slot-summary">Slot: summary</h1>
+<p><em>High-level overview of the analysis — its question, scope, and a brief orientation for readers.</em></p>
+<p>URI: <a href="https://w3id.org/ASTRA/summary">astra:summary</a>
+Alias: summary</p>
 <!-- no inheritance hierarchy -->
 
 <h2 id="applicable-classes">Applicable Classes</h2>
@@ -484,18 +502,8 @@ Alias: analyses</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="../Analysis/">Analysis</a></td>
-<td>A self-similar analysis specification</td>
-<td>no</td>
-</tr>
-<tr>
-<td><a href="../UniverseNode/">UniverseNode</a></td>
-<td>A universe node mirroring the analysis tree structure</td>
-<td>no</td>
-</tr>
-<tr>
-<td><a href="../Universe/">Universe</a></td>
-<td>A universe specification - a complete set of decisions across the entire anal...</td>
+<td><a href="../Narrative/">Narrative</a></td>
+<td>Structured prose describing an analysis, organized into five sections: summar...</td>
 <td>no</td>
 </tr>
 </tbody>
@@ -516,7 +524,7 @@ Alias: analyses</p>
 </tr>
 <tr>
 <td>Domain Of</td>
-<td><a href="../Analysis/">Analysis</a>, <a href="../UniverseNode/">UniverseNode</a>, <a href="../Universe/">Universe</a></td>
+<td><a href="../Narrative/">Narrative</a></td>
 </tr>
 </tbody>
 </table>
@@ -530,12 +538,30 @@ Alias: analyses</p>
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td>### Slot Characteristics</td>
 <td></td>
 </tr>
 </tbody>
 </table>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Owner</td>
+<td><a href="../Narrative/">Narrative</a></td>
+</tr>
+</tbody>
+</table>
 <h2 id="identifier-and-mapping-information">Identifier and Mapping Information</h2>
+<h3 id="schema-source">Schema Source</h3>
+<ul>
+<li>from schema: https://w3id.org/ASTRA/analysis</li>
+</ul>
 <h2 id="mappings">Mappings</h2>
 <table>
 <thead>
@@ -547,22 +573,25 @@ Alias: analyses</p>
 <tbody>
 <tr>
 <td>self</td>
-<td>astra:analyses</td>
+<td>astra:summary</td>
 </tr>
 <tr>
 <td>native</td>
-<td>astra:analyses</td>
+<td>astra:summary</td>
 </tr>
 </tbody>
 </table>
 <h2 id="linkml-source">LinkML Source</h2>
 <details>
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analyses</span>
-<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analyses</span>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">summary</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">High-level overview of the analysis — its question, scope, and a brief</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">orientation for readers.</span>
+<span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
+<span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">summary</span>
+<span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Narrative</span>
 <span class="nt">domain_of</span><span class="p">:</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Analysis</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">UniverseNode</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Universe</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Narrative</span>
 <span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div>
 </details>

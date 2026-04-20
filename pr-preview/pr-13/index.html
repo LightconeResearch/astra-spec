@@ -1612,18 +1612,15 @@ Universe (decision selections)  ─────▶  Execution Parameters
 <h3 id="full-example">Full Example</h3>
 <div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span>
 <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Iris Classification Study</span>
-<span class="nt">narrative</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">  </span><span class="no">## Abstract</span>
-
-<span class="w">  </span><span class="no">A demonstration analysis that builds a classifier for the classic</span>
-<span class="w">  </span><span class="no">Iris dataset, exploring different preprocessing and model choices.</span>
-
-<span class="w">  </span><span class="no">## Methods</span>
-
-<span class="w">  </span><span class="no">Compare StandardScaler, MinMaxScaler, and no scaling across</span>
-<span class="w">  </span><span class="no">SVM, random forest, and logistic regression. See the</span>
-<span class="w">  </span><span class="no">[scaling decision](#decisions.scaling) and the</span>
-<span class="w">  </span><span class="no">[model decision](#decisions.model).</span>
+<span class="nt">narrative</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">    </span><span class="no">A demonstration analysis that builds a classifier for the classic</span>
+<span class="w">    </span><span class="no">Iris dataset, exploring different preprocessing and model choices.</span>
+<span class="w">  </span><span class="nt">methods</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">    </span><span class="no">Compare StandardScaler, MinMaxScaler, and no scaling across</span>
+<span class="w">    </span><span class="no">SVM, random forest, and logistic regression. See the</span>
+<span class="w">    </span><span class="no">[scaling decision](#decisions.scaling) and the</span>
+<span class="w">    </span><span class="no">[model decision](#decisions.model).</span>
 <span class="nt">authors</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ASTRA Examples</span>
 <span class="nt">tags</span><span class="p">:</span>
@@ -1731,9 +1728,9 @@ Universe (decision selections)  ─────▶  Execution Parameters
 </tr>
 <tr>
 <td><code>narrative</code></td>
-<td><code>string</code></td>
+<td><code>Narrative</code></td>
 <td>No</td>
-<td>Free-form Markdown prose (see <a href="#narrative">Narrative</a>)</td>
+<td>Structured prose split into five sections (see <a href="#narrative">Narrative</a>)</td>
 </tr>
 <tr>
 <td><code>authors</code></td>
@@ -1751,22 +1748,64 @@ Universe (decision selections)  ─────▶  Execution Parameters
 </table>
 <p><strong>Version format</strong>: <code>^\d+\.\d+(\.\d+)?$</code></p>
 <h3 id="narrative">Narrative</h3>
-<p><code>narrative</code> is a single free-form Markdown string describing the analysis. Document shape — abstract/methods/results, one-paragraph memo, slide outline, agent prompt — is chosen by the author. The schema is deliberately agnostic about document type; renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on <code>##</code> headings for a table of contents).</p>
-<div class="highlight"><pre><span></span><code><span class="nt">narrative</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">  </span><span class="no">## Abstract</span>
-
-<span class="w">  </span><span class="no">One-paragraph summary of the analysis.</span>
-
-<span class="w">  </span><span class="no">## Methods</span>
-
-<span class="w">  </span><span class="no">Full methodology write-up. Markdown supported.</span>
-
-<span class="w">  </span><span class="no">## Results</span>
-
-<span class="w">  </span><span class="no">Headline findings.</span>
+<p><code>narrative</code> is a structured prose field organized into five optional Markdown sections: <code>summary</code>, <code>findings</code>, <code>methods</code>, <code>inputs</code>, and <code>outputs</code>. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.</p>
+<p>All sections are optional. Tooling emits a warning when a section is absent or empty (a nudge, not an error). Authors may leave a section blank when they have nothing to add.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">narrative</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">    </span><span class="no">One-paragraph overview of the analysis.</span>
+<span class="w">  </span><span class="nt">findings</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">    </span><span class="no">Prose that frames the structured findings (see Analysis.findings).</span>
+<span class="w">  </span><span class="nt">methods</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">    </span><span class="no">Methodology write-up. References decisions and sub-analyses.</span>
+<span class="w">  </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">    </span><span class="no">Prose that frames the structured inputs.</span>
+<span class="w">  </span><span class="nt">outputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">    </span><span class="no">Prose that frames the expected outputs.</span>
 </code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>summary</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>High-level overview — question, scope, orientation.</td>
+</tr>
+<tr>
+<td><code>findings</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Prose framing <code>Analysis.findings</code> (structured <code>Insight</code>s).</td>
+</tr>
+<tr>
+<td><code>methods</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Methodology, decisions, sub-analyses.</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Prose framing <code>Analysis.inputs</code>.</td>
+</tr>
+<tr>
+<td><code>outputs</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Prose framing <code>Analysis.outputs</code>.</td>
+</tr>
+</tbody>
+</table>
 <p>Per-element prose (what each <code>Input</code>, <code>Output</code>, <code>Decision</code>, <code>Option</code>, or <code>Insight</code> is and why it matters) lives on those elements' own <code>description</code> / <code>rationale</code> / <code>notes</code> fields. <code>narrative</code> is for the analysis-level story that weaves those pieces together.</p>
-<p><strong>Internal anchor references.</strong> Inside <code>narrative</code> content you can link to other elements of the analysis with standard Markdown link syntax and a <code>#</code> target:</p>
+<p><strong>Internal anchor references.</strong> Inside any section you can link to other elements of the analysis with standard Markdown link syntax and a <code>#</code> target. References may appear in any section — coverage is resolved across the whole narrative, not per-section:</p>
 <div class="highlight"><pre><span></span><code>See the [<span class="nt">scaling decision</span>](<span class="na">#decisions.scaling</span>) for rationale.
 The [<span class="nt">best_model finding</span>](<span class="na">#findings.best_model</span>) summarizes our
 recommendation.
@@ -1817,7 +1856,7 @@ recommendation.
 <p>References are interpreted <strong>relative to the hosting analysis</strong>. Prefix with <code>../</code> to escape to parent scope, matching decision <code>from_ref</code> syntax:</p>
 <div class="highlight"><pre><span></span><code>See [<span class="nt">parent scaling</span>](<span class="na">#../decisions.scaling</span>).
 </code></pre></div>
-<p>Anchor resolution is a renderer concern — the spec treats the links as opaque strings. Plain Markdown viewers render them as hyperlinks that don't jump anywhere; richer tooling (Prism-UI, Canvas) resolves them to inline cards or scroll targets. Broken anchors are not a validation error today; a lint pass over narrative content may land later.</p>
+<p>Anchor resolution is a renderer concern at render time, but the ASTRA tooling validates anchors during <code>astra validate</code>: broken references are errors, and missing coverage (a declared finding, decision, output, or sub-analysis not cited anywhere in the tree's narrative) is a warning.</p>
 <h3 id="inputs">Inputs</h3>
 <p>Each input declares a data source or a reference to another analysis.</p>
 <table>
