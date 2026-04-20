@@ -7,9 +7,32 @@ authors:
 tags:
   - photometric-redshifts
   - cosmology
-narrative: >-
-  End-to-end photometric redshift estimation pipeline
-  for the LSST DESC survey.
+narrative:
+  summary: >-
+    End-to-end photometric redshift estimation pipeline for the
+    LSST DESC survey. Produces calibrated redshift point estimates
+    and PDFs from LSST-like photometry, with a
+    [calibration sub-analysis](#analyses.calibration) refining
+    them against spectroscopic data.
+  findings: >-
+    The [pipeline result](#findings.pipeline_result) demonstrates
+    that the neural-network method reaches the target bias budget.
+  methods: >-
+    Two high-level choices shape the pipeline:
+    [method](#decisions.method) selects the estimator (neural
+    network is the default, with [template
+    fitting](#decisions.method.options.template_fitting) as a
+    fallback), and [training_split](#decisions.training_split) sets
+    the train/validation ratio.
+  inputs: >-
+    A [photometry catalog](#inputs.photometry_catalog) provides the
+    LSST magnitudes; the
+    [spectroscopic sample](#inputs.spectroscopic_sample) supplies
+    labels for training and calibration.
+  outputs: >-
+    The pipeline emits [redshift estimates](#outputs.redshift_estimates)
+    (point values and PDFs), a [bias metric](#outputs.bias_metric), and
+    a [scatter plot](#outputs.scatter_plot) of z_phot vs z_spec.
 inputs:
   - id: photometry_catalog
     type: data
@@ -131,7 +154,12 @@ analyses:
   calibration:
     id: calibration
     name: Calibration sub-analysis
-    narrative: Calibrate the photo-z estimates using spectroscopic data
+    narrative:
+      summary: >-
+        Calibrate the photo-z estimates using spectroscopic data.
+      methods: >-
+        The calibration strategy is chosen by
+        [cal_method](#decisions.cal_method).
     inputs:
       - id: specz_data
         type: data

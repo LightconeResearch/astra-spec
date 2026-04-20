@@ -91,18 +91,15 @@ decisions:
 ```yaml
 version: "1.0"
 name: Iris Classification Study
-narrative: |
-  ## Abstract
-
-  A demonstration analysis that builds a classifier for the classic
-  Iris dataset, exploring different preprocessing and model choices.
-
-  ## Methods
-
-  Compare StandardScaler, MinMaxScaler, and no scaling across
-  SVM, random forest, and logistic regression. See the
-  [scaling decision](#decisions.scaling) and the
-  [model decision](#decisions.model).
+narrative:
+  summary: |
+    A demonstration analysis that builds a classifier for the classic
+    Iris dataset, exploring different preprocessing and model choices.
+  methods: |
+    Compare StandardScaler, MinMaxScaler, and no scaling across
+    SVM, random forest, and logistic regression. See the
+    [scaling decision](#decisions.scaling) and the
+    [model decision](#decisions.model).
 authors:
   - ASTRA Examples
 tags:
@@ -190,7 +187,7 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 | `id` | `string` | No | Analysis identifier (used as key when nested as sub-analysis) |
 | `version` | `string` | No | ASTRA spec version (semver: `"1.0"`, `"1.0.0"`) |
 | `name` | `string` | No | Human-readable name |
-| `narrative` | `string` | No | Free-form Markdown prose (see [Narrative](#narrative)) |
+| `narrative` | `Narrative` | No | Structured prose split into five sections (see [Narrative](#narrative)) |
 | `authors` | `string[]` | No | List of authors |
 | `tags` | `string[]` | No | Tags for categorization |
 
@@ -198,26 +195,35 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 
 ### Narrative
 
-`narrative` is a single free-form Markdown string describing the analysis. Document shape — abstract/methods/results, one-paragraph memo, slide outline, agent prompt — is chosen by the author. The schema is deliberately agnostic about document type; renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on `##` headings for a table of contents).
+`narrative` is a structured prose field organized into five optional Markdown sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.
+
+All sections are optional. Tooling emits a warning when a section is absent or empty (a nudge, not an error). Authors may leave a section blank when they have nothing to add.
 
 ```yaml
-narrative: |
-  ## Abstract
-
-  One-paragraph summary of the analysis.
-
-  ## Methods
-
-  Full methodology write-up. Markdown supported.
-
-  ## Results
-
-  Headline findings.
+narrative:
+  summary: |
+    One-paragraph overview of the analysis.
+  findings: |
+    Prose that frames the structured findings (see Analysis.findings).
+  methods: |
+    Methodology write-up. References decisions and sub-analyses.
+  inputs: |
+    Prose that frames the structured inputs.
+  outputs: |
+    Prose that frames the expected outputs.
 ```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `summary` | `string` | No | High-level overview — question, scope, orientation. |
+| `findings` | `string` | No | Prose framing `Analysis.findings` (structured `Insight`s). |
+| `methods` | `string` | No | Methodology, decisions, sub-analyses. |
+| `inputs` | `string` | No | Prose framing `Analysis.inputs`. |
+| `outputs` | `string` | No | Prose framing `Analysis.outputs`. |
 
 Per-element prose (what each `Input`, `Output`, `Decision`, `Option`, or `Insight` is and why it matters) lives on those elements' own `description` / `rationale` / `notes` fields. `narrative` is for the analysis-level story that weaves those pieces together.
 
-**Internal anchor references.** Inside `narrative` content you can link to other elements of the analysis with standard Markdown link syntax and a `#` target:
+**Internal anchor references.** Inside any section you can link to other elements of the analysis with standard Markdown link syntax and a `#` target. References may appear in any section — coverage is resolved across the whole narrative, not per-section:
 
 ```markdown
 See the [scaling decision](#decisions.scaling) for rationale.
@@ -244,7 +250,7 @@ References are interpreted **relative to the hosting analysis**. Prefix with `..
 See [parent scaling](#../decisions.scaling).
 ```
 
-Anchor resolution is a renderer concern — the spec treats the links as opaque strings. Plain Markdown viewers render them as hyperlinks that don't jump anywhere; richer tooling (Prism-UI, Canvas) resolves them to inline cards or scroll targets. Broken anchors are not a validation error today; a lint pass over narrative content may land later.
+Anchor resolution is a renderer concern at render time, but the ASTRA tooling validates anchors during `astra validate`: broken references are errors, and missing coverage (a declared finding, decision, output, or sub-analysis not cited anywhere in the tree's narrative) is a warning.
 
 
 

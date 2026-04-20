@@ -1,9 +1,28 @@
 id: iris_classification
 version: "0.1.0"
 name: Iris Classification Study
-narrative: |
-  A demonstration analysis that builds a classifier for the classic
-  Iris dataset, exploring different preprocessing and model choices.
+narrative:
+  summary: |
+    A demonstration analysis that builds a classifier for the classic
+    Iris dataset, exploring different preprocessing and model choices.
+  methods: |
+    Two main levers shape the classifier: feature [scaling](#decisions.scaling)
+    (none, standard, or minmax) and [model](#decisions.model) choice
+    (SVM, random forest, or logistic regression). A
+    [test_size](#decisions.test_size) decision sets the holdout
+    proportion and [random_seed](#decisions.random_seed) fixes
+    reproducibility.
+  inputs: |
+    The [iris_data](#inputs.iris_data) input is Fisher's 150-sample,
+    3-class dataset loaded from scikit-learn. An optional
+    [preprocessing_study](#inputs.preprocessing_study) input points
+    at a prior scaling-comparison analysis.
+  outputs: |
+    The analysis emits a [trained classifier](#outputs.trained_output),
+    [accuracy](#outputs.accuracy) and [F1 score](#outputs.f1_score)
+    metrics, a [confusion matrix](#outputs.confusion_matrix), a
+    [model_comparison](#outputs.model_comparison) table, and a final
+    [conclusion](#outputs.conclusion) report.
 authors:
   - ASTRA Examples
 tags:

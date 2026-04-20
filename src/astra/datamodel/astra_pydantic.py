@@ -292,6 +292,32 @@ class KeyValuePair(ConfiguredBaseModel):
     value: str = Field(default=..., description="""The value""", json_schema_extra = { "linkml_meta": {'domain_of': ['FragmentSelector', 'KeyValuePair']} })
 
 
+class Narrative(ConfiguredBaseModel):
+    """
+    Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are optional — renderers omit missing sections, and tooling emits a warning when a section is absent or empty. The structure is a scaffold, not a mandate: authors may leave a section blank when they have nothing to add.
+    Section content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section — coverage is resolved across the whole narrative, not per-section — so an author is free to cite a finding from the summary, or an input from the methods section.
+    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:
+
+      [scaling decision](#decisions.scaling)
+      [scaling option](#decisions.scaling.options.standard)
+      [finding](#findings.best_model)
+      [prior insight](#prior_insights.compute_scaling)
+      [input](#inputs.iris_data)
+      [sub-analysis output](#preprocessing.outputs.features)
+      [sub-analysis decision](#preprocessing.decisions.scaling)
+      [sub-analysis](#analyses.preprocessing)
+
+    References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).
+    """
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
+
+    summary: Optional[str] = Field(default=None, description="""High-level overview of the analysis — its question, scope, and a brief orientation for readers.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative']} })
+    findings: Optional[str] = Field(default=None, description="""Narrative discussion of the analysis's findings. Individual findings live under Analysis.findings as structured Insight objects; this section is the prose that frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
+    methods: Optional[str] = Field(default=None, description="""Narrative discussion of the methodology, including decision points and any sub-analyses. Structured decisions and nested analyses live under Analysis.decisions and Analysis.analyses; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative']} })
+    inputs: Optional[str] = Field(default=None, description="""Narrative discussion of the analysis's inputs. Individual inputs live under Analysis.inputs as structured objects; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Recipe', 'Analysis']} })
+    outputs: Optional[str] = Field(default=None, description="""Narrative discussion of the expected outputs. Individual outputs live under Analysis.outputs as structured objects; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
+
+
 class Resources(ConfiguredBaseModel):
     """
     Compute resource requirements for a recipe
@@ -311,7 +337,7 @@ class Recipe(ConfiguredBaseModel):
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
 
     command: str = Field(default=..., description="""Command to execute (e.g., 'python src/train.py')""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    inputs: Optional[list[str]] = Field(default=None, description="""Output IDs that must be materialized before this recipe runs""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
+    inputs: Optional[list[str]] = Field(default=None, description="""Output IDs that must be materialized before this recipe runs""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Recipe', 'Analysis']} })
     container: Optional[str] = Field(default=None, description="""Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     resources: Optional[Resources] = Field(default=None, description="""Compute resource requirements""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
 
@@ -469,27 +495,14 @@ class Analysis(ConfiguredBaseModel):
                        'Analysis']} })
     version: Optional[str] = Field(default=None, description="""ASTRA specification version""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence', 'Analysis']} })
     name: Optional[str] = Field(default=None, description="""Human-readable name for the analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    narrative: Optional[str] = Field(default=None, description="""Free-form Markdown prose describing this analysis. Document shape (abstract, methods, results, memo, slide outline, agent prompt, ...) is up to the author — the schema is deliberately agnostic. Renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on headings for a table of contents).
-Internal references to other elements of the analysis use Markdown anchor links: [text](#path.to.element).
-Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:
-
-  [scaling decision](#decisions.scaling)
-  [scaling option](#decisions.scaling.options.standard)
-  [finding](#findings.best_model)
-  [prior insight](#prior_insights.compute_scaling)
-  [input](#inputs.iris_data)
-  [sub-analysis output](#preprocessing.outputs.features)
-  [sub-analysis decision](#preprocessing.decisions.scaling)
-  [sub-analysis](#analyses.preprocessing)
-
-References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
+    narrative: Optional[Narrative] = Field(default=None, description="""Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     authors: Optional[list[str]] = Field(default=None, description="""List of authors""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     tags: Optional[list[str]] = Field(default=None, description="""Tags for categorization""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
-    inputs: Optional[list[Input]] = Field(default=None, description="""Inputs for this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
-    outputs: Optional[list[Output]] = Field(default=None, description="""Expected outputs from this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
+    inputs: Optional[list[Input]] = Field(default=None, description="""Inputs for this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Recipe', 'Analysis']} })
+    outputs: Optional[list[Output]] = Field(default=None, description="""Expected outputs from this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
     decisions: Optional[dict[str, Decision]] = Field(default=None, description="""Decision points in this analysis (keyed by decision ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
     prior_insights: Optional[dict[str, Insight]] = Field(default=None, description="""Prior insights that inform decisions (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    findings: Optional[dict[str, Insight]] = Field(default=None, description="""Findings and conclusions from outputs (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
+    findings: Optional[dict[str, Insight]] = Field(default=None, description="""Findings and conclusions from outputs (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
     container: Optional[str] = Field(default=None, description="""Default container for recipes in this node. Image names are pulled; file paths are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     path: Optional[str] = Field(default=None, description="""Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     analyses: Optional[dict[str, Analysis]] = Field(default=None, description="""Nested sub-analyses (keyed by analysis ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
@@ -519,6 +532,7 @@ DecisionSelection.model_rebuild()
 UniverseNode.model_rebuild()
 Universe.model_rebuild()
 KeyValuePair.model_rebuild()
+Narrative.model_rebuild()
 Resources.model_rebuild()
 Recipe.model_rebuild()
 Input.model_rebuild()

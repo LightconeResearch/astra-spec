@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-20T12:25:57
+# Generation date: 2026-04-20T16:39:56
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
@@ -143,6 +143,64 @@ class KeyValuePair(YAMLRoot):
             self.MissingRequiredField("value")
         if not isinstance(self.value, str):
             self.value = str(self.value)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Narrative(YAMLRoot):
+    """
+    Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and
+    outputs. All sections are optional — renderers omit missing sections, and tooling emits a warning when a section
+    is absent or empty. The structure is a scaffold, not a mandate: authors may leave a section blank when they have
+    nothing to add.
+    Section content is Markdown. Internal references to other elements of the analysis use anchor links of the form
+    ``[text](#path.to.element)``. References may appear in any section — coverage is resolved across the whole
+    narrative, not per-section — so an author is free to cite a finding from the summary, or an input from the methods
+    section.
+    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in
+    from_ref). Sub-analyses are traversed before the category:
+
+    [scaling decision](#decisions.scaling)
+    [scaling option](#decisions.scaling.options.standard)
+    [finding](#findings.best_model)
+    [prior insight](#prior_insights.compute_scaling)
+    [input](#inputs.iris_data)
+    [sub-analysis output](#preprocessing.outputs.features)
+    [sub-analysis decision](#preprocessing.decisions.scaling)
+    [sub-analysis](#analyses.preprocessing)
+
+    References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with
+    decision from_ref (e.g. [see parent](#../decisions.method)).
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = ASTRA["Narrative"]
+    class_class_curie: ClassVar[str] = "astra:Narrative"
+    class_name: ClassVar[str] = "Narrative"
+    class_model_uri: ClassVar[URIRef] = ASTRA.Narrative
+
+    summary: Optional[str] = None
+    findings: Optional[str] = None
+    methods: Optional[str] = None
+    inputs: Optional[str] = None
+    outputs: Optional[str] = None
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self.summary is not None and not isinstance(self.summary, str):
+            self.summary = str(self.summary)
+
+        if self.findings is not None and not isinstance(self.findings, str):
+            self.findings = str(self.findings)
+
+        if self.methods is not None and not isinstance(self.methods, str):
+            self.methods = str(self.methods)
+
+        if self.inputs is not None and not isinstance(self.inputs, str):
+            self.inputs = str(self.inputs)
+
+        if self.outputs is not None and not isinstance(self.outputs, str):
+            self.outputs = str(self.outputs)
 
         super().__post_init__(**kwargs)
 
@@ -453,7 +511,7 @@ class Analysis(YAMLRoot):
     id: Union[str, AnalysisId] = None
     version: Optional[str] = None
     name: Optional[str] = None
-    narrative: Optional[str] = None
+    narrative: Optional[Union[dict, Narrative]] = None
     authors: Optional[Union[str, list[str]]] = empty_list()
     tags: Optional[Union[str, list[str]]] = empty_list()
     inputs: Optional[Union[dict[Union[str, InputId], Union[dict, Input]], list[Union[dict, Input]]]] = empty_dict()
@@ -477,8 +535,8 @@ class Analysis(YAMLRoot):
         if self.name is not None and not isinstance(self.name, str):
             self.name = str(self.name)
 
-        if self.narrative is not None and not isinstance(self.narrative, str):
-            self.narrative = str(self.narrative)
+        if self.narrative is not None and not isinstance(self.narrative, Narrative):
+            self.narrative = Narrative(**as_dict(self.narrative))
 
         if not isinstance(self.authors, list):
             self.authors = [self.authors] if self.authors is not None else []
@@ -853,6 +911,21 @@ slots.keyValuePair__key = Slot(uri=ASTRA.key, name="keyValuePair__key", curie=AS
 slots.keyValuePair__value = Slot(uri=ASTRA.value, name="keyValuePair__value", curie=ASTRA.curie('value'),
                    model_uri=ASTRA.keyValuePair__value, domain=None, range=str)
 
+slots.narrative__summary = Slot(uri=ASTRA.summary, name="narrative__summary", curie=ASTRA.curie('summary'),
+                   model_uri=ASTRA.narrative__summary, domain=None, range=Optional[str])
+
+slots.narrative__findings = Slot(uri=ASTRA.findings, name="narrative__findings", curie=ASTRA.curie('findings'),
+                   model_uri=ASTRA.narrative__findings, domain=None, range=Optional[str])
+
+slots.narrative__methods = Slot(uri=ASTRA.methods, name="narrative__methods", curie=ASTRA.curie('methods'),
+                   model_uri=ASTRA.narrative__methods, domain=None, range=Optional[str])
+
+slots.narrative__inputs = Slot(uri=ASTRA.inputs, name="narrative__inputs", curie=ASTRA.curie('inputs'),
+                   model_uri=ASTRA.narrative__inputs, domain=None, range=Optional[str])
+
+slots.narrative__outputs = Slot(uri=ASTRA.outputs, name="narrative__outputs", curie=ASTRA.curie('outputs'),
+                   model_uri=ASTRA.narrative__outputs, domain=None, range=Optional[str])
+
 slots.resources__cpus = Slot(uri=ASTRA.cpus, name="resources__cpus", curie=ASTRA.curie('cpus'),
                    model_uri=ASTRA.resources__cpus, domain=None, range=Optional[int])
 
@@ -971,7 +1044,7 @@ slots.analysis__name = Slot(uri=ASTRA.name, name="analysis__name", curie=ASTRA.c
                    model_uri=ASTRA.analysis__name, domain=None, range=Optional[str])
 
 slots.analysis__narrative = Slot(uri=ASTRA.narrative, name="analysis__narrative", curie=ASTRA.curie('narrative'),
-                   model_uri=ASTRA.analysis__narrative, domain=None, range=Optional[str])
+                   model_uri=ASTRA.analysis__narrative, domain=None, range=Optional[Union[dict, Narrative]])
 
 slots.analysis__authors = Slot(uri=ASTRA.authors, name="analysis__authors", curie=ASTRA.curie('authors'),
                    model_uri=ASTRA.analysis__authors, domain=None, range=Optional[Union[str, list[str]]])
