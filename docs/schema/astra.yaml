@@ -1435,17 +1435,21 @@ classes:
     name: Narrative
     definition_uri: https://w3id.org/ASTRA/Narrative
     description: "Structured prose describing an analysis, organized into five sections:\
-      \ summary, findings, methods, inputs, and outputs. All sections are optional\
-      \ \u2014 renderers omit missing sections, and tooling emits a warning when a\
-      \ section is absent or empty. The structure is a scaffold, not a mandate: authors\
-      \ may leave a section blank when they have nothing to add.\nSection content\
-      \ is Markdown. Internal references to other elements of the analysis use anchor\
-      \ links of the form ``[text](#path.to.element)``. References may appear in any\
-      \ section \u2014 coverage is resolved across the whole narrative, not per-section\
-      \ \u2014 so an author is free to cite a finding from the summary, or an input\
-      \ from the methods section.\nAnchor grammar is tree-path-first, matching the\
-      \ rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses\
-      \ are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n\
+      \ summary, findings, methods, inputs, and outputs. All sections are schema-optional,\
+      \ but ``astra validate`` applies a conditional requirement: a section must hold\
+      \ non-empty prose when the corresponding structured data exists on the Analysis\
+      \ node.\n- ``findings`` required when Analysis.findings has entries. - ``methods``\
+      \ required when Analysis.decisions or\n  Analysis.analyses has entries.\n- ``inputs``\
+      \ required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs\
+      \ has entries. - ``summary`` is always optional \u2014 no structured counterpart.\n\
+      Authors narrate what they declare; stub analyses with only a summary stay clean.\n\
+      Section content is Markdown. Internal references to other elements of the analysis\
+      \ use anchor links of the form ``[text](#path.to.element)``. References may\
+      \ appear in any section \u2014 coverage is resolved across the whole narrative,\
+      \ not per-section \u2014 so an author is free to cite a finding from the summary,\
+      \ or an input from the methods section.\nAnchor grammar is tree-path-first,\
+      \ matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in\
+      \ from_ref). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n\
       \  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n\
       \  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n\
       \  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n\
@@ -2078,7 +2082,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-20T16:39:24'
-source_file_size: 13059
-generation_date: '2026-04-20T16:41:55'
+source_file_date: '2026-04-20T18:13:01'
+source_file_size: 13472
+generation_date: '2026-04-20T18:13:16'
 

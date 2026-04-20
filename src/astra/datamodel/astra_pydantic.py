@@ -294,7 +294,11 @@ class KeyValuePair(ConfiguredBaseModel):
 
 class Narrative(ConfiguredBaseModel):
     """
-    Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are optional — renderers omit missing sections, and tooling emits a warning when a section is absent or empty. The structure is a scaffold, not a mandate: authors may leave a section blank when they have nothing to add.
+    Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are schema-optional, but ``astra validate`` applies a conditional requirement: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.
+    - ``findings`` required when Analysis.findings has entries. - ``methods`` required when Analysis.decisions or
+      Analysis.analyses has entries.
+    - ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries. - ``summary`` is always optional — no structured counterpart.
+    Authors narrate what they declare; stub analyses with only a summary stay clean.
     Section content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section — coverage is resolved across the whole narrative, not per-section — so an author is free to cite a finding from the summary, or an input from the methods section.
     Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:
 

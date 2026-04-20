@@ -160,6 +160,11 @@ analyses:
       methods: >-
         The calibration strategy is chosen by
         [cal_method](#decisions.cal_method).
+      inputs: >-
+        Uses [specz_data](#inputs.specz_data), inherited from the
+        parent's spectroscopic sample.
+      outputs: >-
+        Produces [calibrated_pdfs](#outputs.calibrated_pdfs).
     inputs:
       - id: specz_data
         type: data

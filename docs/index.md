@@ -195,9 +195,17 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 
 ### Narrative
 
-`narrative` is a structured prose field organized into five optional Markdown sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.
+`narrative` is a structured prose field organized into five Markdown sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.
 
-All sections are optional. Tooling emits a warning when a section is absent or empty (a nudge, not an error). Authors may leave a section blank when they have nothing to add.
+All sections are schema-optional, but `astra validate` applies a **conditional requirement**: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.
+
+- `findings` required when `Analysis.findings` has entries.
+- `methods` required when `Analysis.decisions` or `Analysis.analyses` has entries.
+- `inputs` required when `Analysis.inputs` has entries.
+- `outputs` required when `Analysis.outputs` has entries.
+- `summary` is always optional (no structured counterpart).
+
+Authors narrate what they declare; stub analyses with only a `summary` stay clean.
 
 ```yaml
 narrative:
