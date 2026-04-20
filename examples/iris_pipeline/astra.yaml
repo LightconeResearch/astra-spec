@@ -1,17 +1,16 @@
 id: iris_pipeline
 version: "0.1.0"
 name: Iris Two-Stage Classification
-narrative:
-  abstract: |
-    A two-stage pipeline for Iris classification that demonstrates
-    sub-analyses. A feature-extraction stage learns a compact
-    representation of the raw features (PCA or MLP encoder), whose
-    output feeds into a separate classification stage.
-  methods: |
-    The [feature_extraction sub-analysis](#analyses.feature_extraction)
-    produces encoded features, which feed
-    [classification](#analyses.classification) via sibling-output
-    wiring.
+narrative: |
+  A two-stage pipeline for Iris classification that demonstrates
+  sub-analyses. A feature-extraction stage learns a compact
+  representation of the raw features (PCA or MLP encoder), whose
+  output feeds into a separate classification stage.
+
+  The [feature_extraction sub-analysis](#analyses.feature_extraction)
+  produces encoded features, which feed
+  [classification](#analyses.classification) via sibling-output
+  wiring.
 authors:
   - ASTRA Examples
 tags:

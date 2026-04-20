@@ -91,15 +91,18 @@ decisions:
 ```yaml
 version: "1.0"
 name: Iris Classification Study
-narrative:
-  abstract: |
-    A demonstration analysis that builds a classifier for the classic
-    Iris dataset, exploring different preprocessing and model choices.
-  methods: |
-    Compare StandardScaler, MinMaxScaler, and no scaling across
-    SVM, random forest, and logistic regression. See the
-    [scaling decision](#decisions.scaling) and the
-    [model decision](#decisions.model).
+narrative: |
+  ## Abstract
+
+  A demonstration analysis that builds a classifier for the classic
+  Iris dataset, exploring different preprocessing and model choices.
+
+  ## Methods
+
+  Compare StandardScaler, MinMaxScaler, and no scaling across
+  SVM, random forest, and logistic regression. See the
+  [scaling decision](#decisions.scaling) and the
+  [model decision](#decisions.model).
 authors:
   - ASTRA Examples
 tags:
@@ -187,7 +190,7 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 | `id` | `string` | No | Analysis identifier (used as key when nested as sub-analysis) |
 | `version` | `string` | No | ASTRA spec version (semver: `"1.0"`, `"1.0.0"`) |
 | `name` | `string` | No | Human-readable name |
-| `narrative` | `map[string, string]` | No | Named prose sections (see [Narrative](#narrative)) |
+| `narrative` | `string` | No | Free-form Markdown prose (see [Narrative](#narrative)) |
 | `authors` | `string[]` | No | List of authors |
 | `tags` | `string[]` | No | Tags for categorization |
 
@@ -195,17 +198,24 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 
 ### Narrative
 
-`narrative` is a map of user-chosen section keys to Markdown prose. Keys are lowercase identifiers matching `^[a-z][a-z0-9_]*$`. Values are free-form Markdown. Section order is preserved as written.
+`narrative` is a single free-form Markdown string describing the analysis. Document shape — abstract/methods/results, one-paragraph memo, slide outline, agent prompt — is chosen by the author. The schema is deliberately agnostic about document type; renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on `##` headings for a table of contents).
 
 ```yaml
-narrative:
-  abstract: |
-    One-paragraph summary of the analysis.
-  methods: |
-    Full methodology write-up. Markdown supported.
-  results: |
-    Headline findings.
+narrative: |
+  ## Abstract
+
+  One-paragraph summary of the analysis.
+
+  ## Methods
+
+  Full methodology write-up. Markdown supported.
+
+  ## Results
+
+  Headline findings.
 ```
+
+Per-element prose (what each `Input`, `Output`, `Decision`, `Option`, or `Insight` is and why it matters) lives on those elements' own `description` / `rationale` / `notes` fields. `narrative` is for the analysis-level story that weaves those pieces together.
 
 **Internal anchor references.** Inside `narrative` content you can link to other elements of the analysis with standard Markdown link syntax and a `#` target:
 
@@ -245,6 +255,7 @@ Each input declares a data source or a reference to another analysis.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | **Yes** | Unique identifier |
+| `label` | `string` | No | Short human-readable name for compact rendering |
 | `type` | `"data"` \| `"analysis"` | **Yes** | Kind of input |
 | `description` | `string` | No | What this input is |
 | `source` | `string` | No | URI or path (for `type: data`) |
@@ -264,6 +275,7 @@ Each output declares an expected result from the analysis.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | **Yes** | Unique identifier |
+| `label` | `string` | No | Short human-readable name for compact rendering |
 | `type` | `"metric"` \| `"figure"` \| `"table"` \| `"data"` \| `"report"` | **Yes** | Kind of output |
 | `description` | `string` | No | What this output is |
 | `from_ref` | `string` | No | Sub-analysis output that produces this (e.g., `"sub.output_id"`) |
@@ -455,6 +467,7 @@ Both use `evidence` to ground the claim. The placement determines direction; the
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | **Yes** | Unique identifier |
+| `label` | `string` | No | Short human-readable name for compact rendering |
 | `claim` | `string` | **Yes** | What we learned (1-2 sentences) |
 | `created_at` | `datetime` | **Yes** | ISO 8601 timestamp |
 | `evidence` | `Evidence[]` | **Yes** | Supporting evidence (at least one) |

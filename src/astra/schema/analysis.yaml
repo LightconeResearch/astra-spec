@@ -87,44 +87,6 @@ classes:
         required: true
         description: The value
 
-  NarrativeSection:
-    description: >-
-      A named section of prose narrative describing an analysis.
-      The id is a user-chosen section name (e.g., 'abstract',
-      'methods', 'results'); content is the prose body.
-
-      Content is Markdown. Internal references to other elements
-      of the analysis use anchor links: [text](#path.to.element).
-
-      Anchor grammar is tree-path-first, matching the rest of
-      ASTRA's reference syntax (e.g. 'sibling.output_id' in
-      from_ref). Sub-analyses are traversed before the category:
-
-        [scaling decision](#decisions.scaling)
-        [scaling option](#decisions.scaling.options.standard)
-        [finding](#findings.best_model)
-        [prior insight](#prior_insights.compute_scaling)
-        [input](#inputs.iris_data)
-        [sub-analysis output](#preprocessing.outputs.features)
-        [sub-analysis decision](#preprocessing.decisions.scaling)
-        [sub-analysis](#analyses.preprocessing)
-
-      References are interpreted relative to the hosting
-      analysis. Use '../' prefix to escape to parent scope, as
-      with decision from_ref (e.g. [see parent](#../decisions.method)).
-    attributes:
-      id:
-        identifier: true
-        pattern: "^[a-z][a-z0-9_]*$"
-        description: >-
-          Section name (lowercase identifier). Renderers are
-          responsible for display formatting (title case,
-          spaces, etc.).
-      content:
-        required: true
-        description: >-
-          Prose content for this section, Markdown-formatted.
-
   # --- Execution ---
 
   Resources:
@@ -185,6 +147,11 @@ classes:
         identifier: true
         pattern: "^[a-z][a-z0-9_]*$"
         description: Unique identifier for the input
+      label:
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       type:
         range: InputType
         required: true
@@ -218,6 +185,11 @@ classes:
         identifier: true
         pattern: "^[a-z][a-z0-9_]*$"
         description: Unique identifier for the output
+      label:
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       type:
         range: OutputType
         required: true
@@ -308,19 +280,36 @@ classes:
       name:
         description: Human-readable name for the analysis
       narrative:
-        range: NarrativeSection
-        multivalued: true
-        inlined: true
         description: >-
-          Named prose sections describing this analysis, keyed
-          by section name (e.g., 'abstract', 'methods',
-          'results', 'discussion'). Section keys are
-          user-chosen lowercase identifiers; values are
-          Markdown content.
+          Free-form Markdown prose describing this analysis.
+          Document shape (abstract, methods, results, memo,
+          slide outline, agent prompt, ...) is up to the author
+          — the schema is deliberately agnostic. Renderers are
+          responsible for any structural parsing (e.g. lifting
+          a leading paragraph as a summary, splitting on
+          headings for a table of contents).
 
-          Replaces the flat 'description' field with a
-          structured, extensible narrative. See NarrativeSection
-          for the anchor-reference grammar used inside content.
+          Internal references to other elements of the analysis
+          use Markdown anchor links: [text](#path.to.element).
+
+          Anchor grammar is tree-path-first, matching the rest
+          of ASTRA's reference syntax (e.g. 'sibling.output_id'
+          in from_ref). Sub-analyses are traversed before the
+          category:
+
+            [scaling decision](#decisions.scaling)
+            [scaling option](#decisions.scaling.options.standard)
+            [finding](#findings.best_model)
+            [prior insight](#prior_insights.compute_scaling)
+            [input](#inputs.iris_data)
+            [sub-analysis output](#preprocessing.outputs.features)
+            [sub-analysis decision](#preprocessing.decisions.scaling)
+            [sub-analysis](#analyses.preprocessing)
+
+          References are interpreted relative to the hosting
+          analysis. Use '../' prefix to escape to parent scope,
+          as with decision from_ref
+          (e.g. [see parent](#../decisions.method)).
       authors:
         multivalued: true
         description: List of authors

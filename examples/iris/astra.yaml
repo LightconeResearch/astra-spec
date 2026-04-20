@@ -1,10 +1,9 @@
 id: iris_classification
 version: "0.1.0"
 name: Iris Classification Study
-narrative:
-  abstract: |
-    A demonstration analysis that builds a classifier for the classic
-    Iris dataset, exploring different preprocessing and model choices.
+narrative: |
+  A demonstration analysis that builds a classifier for the classic
+  Iris dataset, exploring different preprocessing and model choices.
 authors:
   - ASTRA Examples
 tags:
