@@ -376,31 +376,6 @@ slots:
     - KeyValuePair
     range: string
     required: true
-  narrativeSection__id:
-    name: narrativeSection__id
-    description: Section name (lowercase identifier). Renderers are responsible for
-      display formatting (title case, spaces, etc.).
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:id
-    identifier: true
-    alias: id
-    owner: NarrativeSection
-    domain_of:
-    - NarrativeSection
-    range: string
-    required: true
-    pattern: ^[a-z][a-z0-9_]*$
-  narrativeSection__content:
-    name: narrativeSection__content
-    description: Prose content for this section, Markdown-formatted.
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:content
-    alias: content
-    owner: NarrativeSection
-    domain_of:
-    - NarrativeSection
-    range: string
-    required: true
   resources__cpus:
     name: resources__cpus
     description: Number of CPUs
@@ -502,6 +477,17 @@ slots:
     range: string
     required: true
     pattern: ^[a-z][a-z0-9_]*$
+  input__label:
+    name: input__label
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
+    from_schema: https://w3id.org/ASTRA/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Input
+    domain_of:
+    - Input
+    range: string
   input__type:
     name: input__type
     description: Type of input
@@ -577,6 +563,17 @@ slots:
     range: string
     required: true
     pattern: ^[a-z][a-z0-9_]*$
+  output__label:
+    name: output__label
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
+    from_schema: https://w3id.org/ASTRA/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Output
+    domain_of:
+    - Output
+    range: string
   output__type:
     name: output__type
     description: Type of output
@@ -797,22 +794,27 @@ slots:
     range: string
   analysis__narrative:
     name: analysis__narrative
-    description: 'Named prose sections describing this analysis, keyed by section
-      name (e.g., ''abstract'', ''methods'', ''results'', ''discussion''). Section
-      keys are user-chosen lowercase identifiers; values are Markdown content.
-
-      Replaces the flat ''description'' field with a structured, extensible narrative.
-      See NarrativeSection for the anchor-reference grammar used inside content.'
+    description: "Free-form Markdown prose describing this analysis. Document shape\
+      \ (abstract, methods, results, memo, slide outline, agent prompt, ...) is up\
+      \ to the author \u2014 the schema is deliberately agnostic. Renderers are responsible\
+      \ for any structural parsing (e.g. lifting a leading paragraph as a summary,\
+      \ splitting on headings for a table of contents).\nInternal references to other\
+      \ elements of the analysis use Markdown anchor links: [text](#path.to.element).\n\
+      Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax\
+      \ (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before\
+      \ the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n\
+      \  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n\
+      \  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n\
+      \  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\
+      \nReferences are interpreted relative to the hosting analysis. Use '../' prefix\
+      \ to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method))."
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:narrative
     alias: narrative
     owner: Analysis
     domain_of:
     - Analysis
-    range: NarrativeSection
-    multivalued: true
-    inlined: true
-    inlined_as_list: false
+    range: string
   analysis__authors:
     name: analysis__authors
     description: List of authors
@@ -1087,6 +1089,17 @@ slots:
     - Insight
     range: string
     required: true
+  insight__label:
+    name: insight__label
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
+    from_schema: https://w3id.org/ASTRA/insight
+    slot_uri: astra:label
+    alias: label
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
   insight__claim:
     name: insight__claim
     description: What we learned (1-2 sentences)
@@ -1370,37 +1383,6 @@ classes:
         description: The value
         required: true
     class_uri: astra:KeyValuePair
-  NarrativeSection:
-    name: NarrativeSection
-    definition_uri: https://w3id.org/ASTRA/NarrativeSection
-    description: "A named section of prose narrative describing an analysis. The id\
-      \ is a user-chosen section name (e.g., 'abstract', 'methods', 'results'); content\
-      \ is the prose body.\nContent is Markdown. Internal references to other elements\
-      \ of the analysis use anchor links: [text](#path.to.element).\nAnchor grammar\
-      \ is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id'\
-      \ in from_ref). Sub-analyses are traversed before the category:\n\n  [scaling\
-      \ decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n\
-      \  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n\
-      \  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n\
-      \  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\
-      \nReferences are interpreted relative to the hosting analysis. Use '../' prefix\
-      \ to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method))."
-    from_schema: https://w3id.org/ASTRA/analysis
-    slots:
-    - narrativeSection__id
-    - narrativeSection__content
-    attributes:
-      id:
-        name: id
-        description: Section name (lowercase identifier). Renderers are responsible
-          for display formatting (title case, spaces, etc.).
-        identifier: true
-        pattern: ^[a-z][a-z0-9_]*$
-      content:
-        name: content
-        description: Prose content for this section, Markdown-formatted.
-        required: true
-    class_uri: astra:NarrativeSection
   Resources:
     name: Resources
     definition_uri: https://w3id.org/ASTRA/Resources
@@ -1471,6 +1453,7 @@ classes:
     slots:
     - Input_from_ref
     - input__id
+    - input__label
     - input__type
     - input__description
     - input__source
@@ -1488,6 +1471,10 @@ classes:
         description: Unique identifier for the input
         identifier: true
         pattern: ^[a-z][a-z0-9_]*$
+      label:
+        name: label
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
       type:
         name: type
         description: Type of input
@@ -1520,6 +1507,7 @@ classes:
     - Output_from_ref
     - when
     - output__id
+    - output__label
     - output__type
     - output__description
     - output__recipe
@@ -1533,6 +1521,10 @@ classes:
         description: Unique identifier for the output
         identifier: true
         pattern: ^[a-z][a-z0-9_]*$
+      label:
+        name: label
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
       type:
         name: type
         description: Type of output
@@ -1675,15 +1667,22 @@ classes:
         description: Human-readable name for the analysis
       narrative:
         name: narrative
-        description: 'Named prose sections describing this analysis, keyed by section
-          name (e.g., ''abstract'', ''methods'', ''results'', ''discussion''). Section
-          keys are user-chosen lowercase identifiers; values are Markdown content.
-
-          Replaces the flat ''description'' field with a structured, extensible narrative.
-          See NarrativeSection for the anchor-reference grammar used inside content.'
-        range: NarrativeSection
-        multivalued: true
-        inlined: true
+        description: "Free-form Markdown prose describing this analysis. Document\
+          \ shape (abstract, methods, results, memo, slide outline, agent prompt,\
+          \ ...) is up to the author \u2014 the schema is deliberately agnostic. Renderers\
+          \ are responsible for any structural parsing (e.g. lifting a leading paragraph\
+          \ as a summary, splitting on headings for a table of contents).\nInternal\
+          \ references to other elements of the analysis use Markdown anchor links:\
+          \ [text](#path.to.element).\nAnchor grammar is tree-path-first, matching\
+          \ the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref).\
+          \ Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n\
+          \  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n\
+          \  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n\
+          \  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis\
+          \ decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\
+          \nReferences are interpreted relative to the hosting analysis. Use '../'\
+          \ prefix to escape to parent scope, as with decision from_ref (e.g. [see\
+          \ parent](#../decisions.method))."
       authors:
         name: authors
         description: List of authors
@@ -1841,6 +1840,7 @@ classes:
     from_schema: https://w3id.org/ASTRA/insight
     slots:
     - insight__id
+    - insight__label
     - insight__claim
     - insight__created_at
     - insight__evidence
@@ -1853,6 +1853,10 @@ classes:
         name: id
         description: Unique identifier
         identifier: true
+      label:
+        name: label
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
       claim:
         name: claim
         description: What we learned (1-2 sentences)
@@ -1985,7 +1989,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-17T15:52:38'
-source_file_size: 11601
-generation_date: '2026-04-17T15:52:41'
+source_file_date: '2026-04-20T10:34:21'
+source_file_size: 11375
+generation_date: '2026-04-20T10:34:31'
 

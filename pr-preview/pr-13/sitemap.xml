@@ -2,410 +2,402 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://astra-spec.org/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/about/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Analysis/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Boolean/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Curie/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Date/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/DateOrDatetime/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Datetime/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Decimal/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Decision/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/DecisionSelection/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Double/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Evidence/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Float/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/FragmentSelector/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Input/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/InputType/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Insight/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/InsightCollection/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Integer/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Jsonpath/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Jsonpointer/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/KeyValuePair/</loc>
-         <lastmod>2026-04-17</lastmod>
-    </url>
-    <url>
-         <loc>https://astra-spec.org/elements/NarrativeSection/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Ncname/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Nodeidentifier/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Objectidentifier/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Option/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Output/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/OutputType/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Recipe/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Resources/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Sparqlpath/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/String/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/TextQuoteSelector/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Time/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Universe/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/UniverseNode/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Uri/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/Uriorcurie/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/analyses/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/analysis/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/artifact/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/authors/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/claim/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/command/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/container/</loc>
-         <lastmod>2026-04-17</lastmod>
-    </url>
-    <url>
-         <loc>https://astra-spec.org/elements/content/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/cpus/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/created_at/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/decision_id/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/decisions/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/default/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/derived/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/description/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/doi/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/evidence/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/exact/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/excluded/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/excluded_reason/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/findings/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/from_ref/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/gpus/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/id/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/incompatible_with/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/inputs/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/insights/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/key/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/label/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/location/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/memory/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/name/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/narrative/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/notes/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/option_id/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/options/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/outputs/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/page/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/path/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/prefix/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/prior_insights/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/quote/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/rationale/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/recipe/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/ref/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/ref_version/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/requires/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/resources/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/scope/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/snapshot/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/source/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/source_commit/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/suffix/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/tags/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/time_limit/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/type/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/universe/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/use_outputs/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/value/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/version/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
     <url>
          <loc>https://astra-spec.org/elements/when/</loc>
-         <lastmod>2026-04-17</lastmod>
+         <lastmod>2026-04-20</lastmod>
     </url>
 </urlset>

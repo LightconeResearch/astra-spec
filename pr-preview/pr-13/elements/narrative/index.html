@@ -486,8 +486,20 @@
 
 
 <h1 id="slot-narrative">Slot: narrative</h1>
-<p><em>Named prose sections describing this analysis, keyed by section name (e.g., 'abstract', 'methods', 'results', 'discussion'). Section keys are user-chosen lowercase identifiers; values are Markdown content.</em></p>
-<p><em>Replaces the flat 'description' field with a structured, extensible narrative. See NarrativeSection for the anchor-reference grammar used inside content.</em></p>
+<p><em>Free-form Markdown prose describing this analysis. Document shape (abstract, methods, results, memo, slide outline, agent prompt, ...) is up to the author — the schema is deliberately agnostic. Renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on headings for a table of contents).</em></p>
+<p><em>Internal references to other elements of the analysis use Markdown anchor links: <a href="#path.to.element">text</a>.</em></p>
+<p><em>Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:</em></p>
+<p>__</p>
+<p>_  <a href="#decisions.scaling">scaling decision</a>_</p>
+<p>_  <a href="#decisions.scaling.options.standard">scaling option</a>_</p>
+<p>_  <a href="#findings.best_model">finding</a>_</p>
+<p>_  <a href="#prior_insights.compute_scaling">prior insight</a>_</p>
+<p>_  <a href="#inputs.iris_data">input</a>_</p>
+<p>_  <a href="#preprocessing.outputs.features">sub-analysis output</a>_</p>
+<p>_  <a href="#preprocessing.decisions.scaling">sub-analysis decision</a>_</p>
+<p>_  <a href="#analyses.preprocessing">sub-analysis</a>_</p>
+<p>__</p>
+<p><em>References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. <a href="#../decisions.method">see parent</a>).</em></p>
 <p>URI: <a href="https://w3id.org/ASTRA/narrative">astra:narrative</a>
 Alias: narrative</p>
 <!-- no inheritance hierarchy -->
@@ -521,7 +533,7 @@ Alias: narrative</p>
 <tbody>
 <tr>
 <td>Range</td>
-<td><a href="../NarrativeSection/">NarrativeSection</a></td>
+<td><a href="../String/">String</a></td>
 </tr>
 <tr>
 <td>Domain Of</td>
@@ -538,10 +550,6 @@ Alias: narrative</p>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>Multivalued</td>
-<td>Yes</td>
-</tr>
 <tr>
 <td>### Slot Characteristics</td>
 <td></td>
@@ -589,21 +597,27 @@ Alias: narrative</p>
 <h2 id="linkml-source">LinkML Source</h2>
 <details>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">narrative</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Named</span><span class="nv"> </span><span class="s">prose</span><span class="nv"> </span><span class="s">sections</span><span class="nv"> </span><span class="s">describing</span><span class="nv"> </span><span class="s">this</span><span class="nv"> </span><span class="s">analysis,</span><span class="nv"> </span><span class="s">keyed</span><span class="nv"> </span><span class="s">by</span><span class="nv"> </span><span class="s">section</span><span class="nv"> </span><span class="s">name</span>
-<span class="w">  </span><span class="s">(e.g.,</span><span class="nv"> </span><span class="se">&#39;&#39;</span><span class="s">abstract</span><span class="se">&#39;&#39;</span><span class="s">,</span><span class="nv"> </span><span class="se">&#39;&#39;</span><span class="s">methods</span><span class="se">&#39;&#39;</span><span class="s">,</span><span class="nv"> </span><span class="se">&#39;&#39;</span><span class="s">results</span><span class="se">&#39;&#39;</span><span class="s">,</span><span class="nv"> </span><span class="se">&#39;&#39;</span><span class="s">discussion</span><span class="se">&#39;&#39;</span><span class="s">).</span><span class="nv"> </span><span class="s">Section</span><span class="nv"> </span><span class="s">keys</span><span class="nv"> </span><span class="s">are</span>
-<span class="w">  </span><span class="s">user-chosen</span><span class="nv"> </span><span class="s">lowercase</span><span class="nv"> </span><span class="s">identifiers;</span><span class="nv"> </span><span class="s">values</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">Markdown</span><span class="nv"> </span><span class="s">content.</span>
-
-<span class="w">  </span><span class="s">Replaces</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">flat</span><span class="nv"> </span><span class="se">&#39;&#39;</span><span class="s">description</span><span class="se">&#39;&#39;</span><span class="nv"> </span><span class="s">field</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">structured,</span><span class="nv"> </span><span class="s">extensible</span><span class="nv"> </span><span class="s">narrative.</span>
-<span class="w">  </span><span class="s">See</span><span class="nv"> </span><span class="s">NarrativeSection</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">anchor-reference</span><span class="nv"> </span><span class="s">grammar</span><span class="nv"> </span><span class="s">used</span><span class="nv"> </span><span class="s">inside</span><span class="nv"> </span><span class="s">content.&#39;</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Free-form</span><span class="nv"> </span><span class="s">Markdown</span><span class="nv"> </span><span class="s">prose</span><span class="nv"> </span><span class="s">describing</span><span class="nv"> </span><span class="s">this</span><span class="nv"> </span><span class="s">analysis.</span><span class="nv"> </span><span class="s">Document</span><span class="nv"> </span><span class="s">shape</span><span class="nv"> </span><span class="s">(abstract,\</span>
+<span class="w">  </span><span class="s">\ methods,</span><span class="nv"> </span><span class="s">results,</span><span class="nv"> </span><span class="s">memo,</span><span class="nv"> </span><span class="s">slide</span><span class="nv"> </span><span class="s">outline,</span><span class="nv"> </span><span class="s">agent</span><span class="nv"> </span><span class="s">prompt,</span><span class="nv"> </span><span class="s">...)</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">up</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">author\</span>
+<span class="w">  </span><span class="s">\ —</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">schema</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">deliberately</span><span class="nv"> </span><span class="s">agnostic.</span><span class="nv"> </span><span class="s">Renderers</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">responsible</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">any</span><span class="nv"> </span><span class="s">structural\</span>
+<span class="w">  </span><span class="s">\ parsing</span><span class="nv"> </span><span class="s">(e.g.</span><span class="nv"> </span><span class="s">lifting</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">leading</span><span class="nv"> </span><span class="s">paragraph</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">summary,</span><span class="nv"> </span><span class="s">splitting</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">headings\</span>
+<span class="w">  </span><span class="s">\ for</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">table</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">contents).\nInternal</span><span class="nv"> </span><span class="s">references</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">other</span><span class="nv"> </span><span class="s">elements</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">analysis\</span>
+<span class="w">  </span><span class="s">\ use</span><span class="nv"> </span><span class="s">Markdown</span><span class="nv"> </span><span class="s">anchor</span><span class="nv"> </span><span class="s">links:</span><span class="nv"> </span><span class="s">[text](#path.to.element).\nAnchor</span><span class="nv"> </span><span class="s">grammar</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">tree-path-first,\</span>
+<span class="w">  </span><span class="s">\ matching</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">rest</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">ASTRA&#39;s</span><span class="nv"> </span><span class="s">reference</span><span class="nv"> </span><span class="s">syntax</span><span class="nv"> </span><span class="s">(e.g.</span><span class="nv"> </span><span class="s">&#39;sibling.output_id&#39;</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">from_ref).\</span>
+<span class="w">  </span><span class="s">\ Sub-analyses</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">traversed</span><span class="nv"> </span><span class="s">before</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">category:\n\n</span><span class="nv">  </span><span class="s">[scaling</span><span class="nv"> </span><span class="s">decision](#decisions.scaling)\n\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">[scaling</span><span class="nv"> </span><span class="s">option](#decisions.scaling.options.standard)\n</span><span class="nv">  </span><span class="s">[finding](#findings.best_model)\n\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">[prior</span><span class="nv"> </span><span class="s">insight](#prior_insights.compute_scaling)\n</span><span class="nv">  </span><span class="s">[input](#inputs.iris_data)\n\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">[sub-analysis</span><span class="nv"> </span><span class="s">output](#preprocessing.outputs.features)\n</span><span class="nv">  </span><span class="s">[sub-analysis</span><span class="nv"> </span><span class="s">decision](#preprocessing.decisions.scaling)\n\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">[sub-analysis](#analyses.preprocessing)\n\nReferences</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">interpreted</span><span class="nv"> </span><span class="s">relative\</span>
+<span class="w">  </span><span class="s">\ to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">hosting</span><span class="nv"> </span><span class="s">analysis.</span><span class="nv"> </span><span class="s">Use</span><span class="nv"> </span><span class="s">&#39;../&#39;</span><span class="nv"> </span><span class="s">prefix</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">escape</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">parent</span><span class="nv"> </span><span class="s">scope,</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">decision\</span>
+<span class="w">  </span><span class="s">\ from_ref</span><span class="nv"> </span><span class="s">(e.g.</span><span class="nv"> </span><span class="s">[see</span><span class="nv"> </span><span class="s">parent](#../decisions.method)).&quot;</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">narrative</span>
 <span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Analysis</span>
 <span class="nt">domain_of</span><span class="p">:</span>
 <span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Analysis</span>
-<span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NarrativeSection</span>
-<span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="nt">inlined</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div>
 </details>
 

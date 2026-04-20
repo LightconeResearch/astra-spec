@@ -90,20 +90,9 @@
                     ]
                 },
                 "narrative": {
-                    "additionalProperties": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/$defs/NarrativeSection__identifier_optional"
-                            },
-                            {
-                                "description": "Prose content for this section, Markdown-formatted.",
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "description": "Named prose sections describing this analysis, keyed by section name (e.g., 'abstract', 'methods', 'results', 'discussion'). Section keys are user-chosen lowercase identifiers; values are Markdown content.\nReplaces the flat 'description' field with a structured, extensible narrative. See NarrativeSection for the anchor-reference grammar used inside content.",
+                    "description": "Free-form Markdown prose describing this analysis. Document shape (abstract, methods, results, memo, slide outline, agent prompt, ...) is up to the author \u2014 the schema is deliberately agnostic. Renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on headings for a table of contents).\nInternal references to other elements of the analysis use Markdown anchor links: [text](#path.to.element).\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).",
                     "type": [
-                        "object",
+                        "string",
                         "null"
                     ]
                 },
@@ -249,20 +238,9 @@
                     ]
                 },
                 "narrative": {
-                    "additionalProperties": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/$defs/NarrativeSection__identifier_optional"
-                            },
-                            {
-                                "description": "Prose content for this section, Markdown-formatted.",
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "description": "Named prose sections describing this analysis, keyed by section name (e.g., 'abstract', 'methods', 'results', 'discussion'). Section keys are user-chosen lowercase identifiers; values are Markdown content.\nReplaces the flat 'description' field with a structured, extensible narrative. See NarrativeSection for the anchor-reference grammar used inside content.",
+                    "description": "Free-form Markdown prose describing this analysis. Document shape (abstract, methods, results, memo, slide outline, agent prompt, ...) is up to the author \u2014 the schema is deliberately agnostic. Renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on headings for a table of contents).\nInternal references to other elements of the analysis use Markdown anchor links: [text](#path.to.element).\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).",
                     "type": [
-                        "object",
+                        "string",
                         "null"
                     ]
                 },
@@ -653,6 +631,13 @@
                         "null"
                     ]
                 },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "ref": {
                     "description": "Reference to another ASTRA analysis",
                     "type": [
@@ -734,6 +719,13 @@
                 },
                 "id": {
                     "description": "Unique identifier",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
                     "type": [
                         "string",
                         "null"
@@ -825,6 +817,13 @@
                         "null"
                     ]
                 },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "notes": {
                     "description": "Reasoning notes",
                     "type": [
@@ -879,53 +878,6 @@
                 "value"
             ],
             "title": "KeyValuePair",
-            "type": "object"
-        },
-        "NarrativeSection": {
-            "additionalProperties": false,
-            "description": "A named section of prose narrative describing an analysis. The id is a user-chosen section name (e.g., 'abstract', 'methods', 'results'); content is the prose body.\nContent is Markdown. Internal references to other elements of the analysis use anchor links: [text](#path.to.element).\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).",
-            "properties": {
-                "content": {
-                    "description": "Prose content for this section, Markdown-formatted.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Section name (lowercase identifier). Renderers are responsible for display formatting (title case, spaces, etc.).",
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                }
-            },
-            "required": [
-                "id",
-                "content"
-            ],
-            "title": "NarrativeSection",
-            "type": "object"
-        },
-        "NarrativeSection__identifier_optional": {
-            "additionalProperties": false,
-            "description": "A named section of prose narrative describing an analysis. The id is a user-chosen section name (e.g., 'abstract', 'methods', 'results'); content is the prose body.\nContent is Markdown. Internal references to other elements of the analysis use anchor links: [text](#path.to.element).\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).",
-            "properties": {
-                "content": {
-                    "description": "Prose content for this section, Markdown-formatted.",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Section name (lowercase identifier). Renderers are responsible for display formatting (title case, spaces, etc.).",
-                    "pattern": "^[a-z][a-z0-9_]*$",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                }
-            },
-            "required": [
-                "content"
-            ],
-            "title": "NarrativeSection",
             "type": "object"
         },
         "Option": {
@@ -1096,6 +1048,13 @@
                 "id": {
                     "description": "Unique identifier for the output",
                     "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
                     "type": [
                         "string",
                         "null"
@@ -1528,20 +1487,9 @@
             ]
         },
         "narrative": {
-            "additionalProperties": {
-                "anyOf": [
-                    {
-                        "$ref": "#/$defs/NarrativeSection__identifier_optional"
-                    },
-                    {
-                        "description": "Prose content for this section, Markdown-formatted.",
-                        "type": "string"
-                    }
-                ]
-            },
-            "description": "Named prose sections describing this analysis, keyed by section name (e.g., 'abstract', 'methods', 'results', 'discussion'). Section keys are user-chosen lowercase identifiers; values are Markdown content.\nReplaces the flat 'description' field with a structured, extensible narrative. See NarrativeSection for the anchor-reference grammar used inside content.",
+            "description": "Free-form Markdown prose describing this analysis. Document shape (abstract, methods, results, memo, slide outline, agent prompt, ...) is up to the author \u2014 the schema is deliberately agnostic. Renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on headings for a table of contents).\nInternal references to other elements of the analysis use Markdown anchor links: [text](#path.to.element).\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).",
             "type": [
-                "object",
+                "string",
                 "null"
             ]
         },

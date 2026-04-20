@@ -1612,15 +1612,18 @@ Universe (decision selections)  ─────▶  Execution Parameters
 <h3 id="full-example">Full Example</h3>
 <div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1.0&quot;</span>
 <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Iris Classification Study</span>
-<span class="nt">narrative</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">abstract</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">    </span><span class="no">A demonstration analysis that builds a classifier for the classic</span>
-<span class="w">    </span><span class="no">Iris dataset, exploring different preprocessing and model choices.</span>
-<span class="w">  </span><span class="nt">methods</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">    </span><span class="no">Compare StandardScaler, MinMaxScaler, and no scaling across</span>
-<span class="w">    </span><span class="no">SVM, random forest, and logistic regression. See the</span>
-<span class="w">    </span><span class="no">[scaling decision](#decisions.scaling) and the</span>
-<span class="w">    </span><span class="no">[model decision](#decisions.model).</span>
+<span class="nt">narrative</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">## Abstract</span>
+
+<span class="w">  </span><span class="no">A demonstration analysis that builds a classifier for the classic</span>
+<span class="w">  </span><span class="no">Iris dataset, exploring different preprocessing and model choices.</span>
+
+<span class="w">  </span><span class="no">## Methods</span>
+
+<span class="w">  </span><span class="no">Compare StandardScaler, MinMaxScaler, and no scaling across</span>
+<span class="w">  </span><span class="no">SVM, random forest, and logistic regression. See the</span>
+<span class="w">  </span><span class="no">[scaling decision](#decisions.scaling) and the</span>
+<span class="w">  </span><span class="no">[model decision](#decisions.model).</span>
 <span class="nt">authors</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ASTRA Examples</span>
 <span class="nt">tags</span><span class="p">:</span>
@@ -1728,9 +1731,9 @@ Universe (decision selections)  ─────▶  Execution Parameters
 </tr>
 <tr>
 <td><code>narrative</code></td>
-<td><code>map[string, string]</code></td>
+<td><code>string</code></td>
 <td>No</td>
-<td>Named prose sections (see <a href="#narrative">Narrative</a>)</td>
+<td>Free-form Markdown prose (see <a href="#narrative">Narrative</a>)</td>
 </tr>
 <tr>
 <td><code>authors</code></td>
@@ -1748,15 +1751,21 @@ Universe (decision selections)  ─────▶  Execution Parameters
 </table>
 <p><strong>Version format</strong>: <code>^\d+\.\d+(\.\d+)?$</code></p>
 <h3 id="narrative">Narrative</h3>
-<p><code>narrative</code> is a map of user-chosen section keys to Markdown prose. Keys are lowercase identifiers matching <code>^[a-z][a-z0-9_]*$</code>. Values are free-form Markdown. Section order is preserved as written.</p>
-<div class="highlight"><pre><span></span><code><span class="nt">narrative</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">abstract</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">    </span><span class="no">One-paragraph summary of the analysis.</span>
-<span class="w">  </span><span class="nt">methods</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">    </span><span class="no">Full methodology write-up. Markdown supported.</span>
-<span class="w">  </span><span class="nt">results</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<span class="w">    </span><span class="no">Headline findings.</span>
+<p><code>narrative</code> is a single free-form Markdown string describing the analysis. Document shape — abstract/methods/results, one-paragraph memo, slide outline, agent prompt — is chosen by the author. The schema is deliberately agnostic about document type; renderers are responsible for any structural parsing (e.g. lifting a leading paragraph as a summary, splitting on <code>##</code> headings for a table of contents).</p>
+<div class="highlight"><pre><span></span><code><span class="nt">narrative</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">## Abstract</span>
+
+<span class="w">  </span><span class="no">One-paragraph summary of the analysis.</span>
+
+<span class="w">  </span><span class="no">## Methods</span>
+
+<span class="w">  </span><span class="no">Full methodology write-up. Markdown supported.</span>
+
+<span class="w">  </span><span class="no">## Results</span>
+
+<span class="w">  </span><span class="no">Headline findings.</span>
 </code></pre></div>
+<p>Per-element prose (what each <code>Input</code>, <code>Output</code>, <code>Decision</code>, <code>Option</code>, or <code>Insight</code> is and why it matters) lives on those elements' own <code>description</code> / <code>rationale</code> / <code>notes</code> fields. <code>narrative</code> is for the analysis-level story that weaves those pieces together.</p>
 <p><strong>Internal anchor references.</strong> Inside <code>narrative</code> content you can link to other elements of the analysis with standard Markdown link syntax and a <code>#</code> target:</p>
 <div class="highlight"><pre><span></span><code>See the [<span class="nt">scaling decision</span>](<span class="na">#decisions.scaling</span>) for rationale.
 The [<span class="nt">best_model finding</span>](<span class="na">#findings.best_model</span>) summarizes our
@@ -1828,6 +1837,12 @@ recommendation.
 <td>Unique identifier</td>
 </tr>
 <tr>
+<td><code>label</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Short human-readable name for compact rendering</td>
+</tr>
+<tr>
 <td><code>type</code></td>
 <td><code>"data"</code> | <code>"analysis"</code></td>
 <td><strong>Yes</strong></td>
@@ -1890,6 +1905,12 @@ recommendation.
 <td><code>string</code></td>
 <td><strong>Yes</strong></td>
 <td>Unique identifier</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Short human-readable name for compact rendering</td>
 </tr>
 <tr>
 <td><code>type</code></td>
@@ -2288,6 +2309,12 @@ recommendation.
 <td><code>string</code></td>
 <td><strong>Yes</strong></td>
 <td>Unique identifier</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td><code>string</code></td>
+<td>No</td>
+<td>Short human-readable name for compact rendering</td>
 </tr>
 <tr>
 <td><code>claim</code></td>
