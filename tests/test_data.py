@@ -22,6 +22,10 @@ INVALID_EXAMPLE_FILES = glob.glob(os.path.join(DATA_DIR_INVALID, '*.yaml'))
 # generated dataclass attribute is 'from_' because 'from' is a Python
 # keyword.  The linkml-runtime yaml_loader passes YAML keys straight
 # through as **kwargs, so we rewrite the key before loading.
+# Note: this regex rewrites any indented 'from:' in the file, including
+# inside multi-line block-scalar strings. This is safe for current fixtures
+# but could silently corrupt a future file whose string values contain
+# lines like "    from: ...".
 _FROM_KEY_RE = re.compile(r'^(\s+)from:', re.MULTILINE)
 
 
@@ -35,7 +39,7 @@ def test_valid_data_files(filepath):
     )
     text = Path(filepath).read_text()
     text = _FROM_KEY_RE.sub(r'\1from_:', text)
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml') as tmp:
         tmp.write(text)
         tmp.flush()
         obj = yaml_loader.load(tmp.name, target_class=tgt_class)
