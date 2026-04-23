@@ -67,6 +67,7 @@
                 },
                 "id": {
                     "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -219,6 +220,7 @@
                 },
                 "id": {
                     "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -322,6 +324,7 @@
                 },
                 "id": {
                     "description": "Decision identifier (the key in the decisions map)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -451,6 +454,7 @@
                 },
                 "id": {
                     "description": "Decision identifier (the key in the decisions map)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -534,6 +538,7 @@
                 },
                 "id": {
                     "description": "Evidence identifier",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -633,7 +638,7 @@
                 },
                 "id": {
                     "description": "Unique identifier for the input",
-                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -727,6 +732,7 @@
                 },
                 "id": {
                     "description": "Unique identifier",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -820,6 +826,7 @@
                 },
                 "id": {
                     "description": "Unique identifier",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -958,6 +965,7 @@
                 },
                 "id": {
                     "description": "Option identifier (the key in the options map)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -1032,6 +1040,7 @@
                 },
                 "id": {
                     "description": "Option identifier (the key in the options map)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -1098,7 +1107,7 @@
                 },
                 "id": {
                     "description": "Unique identifier for the output",
-                    "pattern": "^[a-z][a-z0-9_]*$",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -1368,6 +1377,7 @@
                 },
                 "id": {
                     "description": "Node identifier (the sub-analysis key)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -1428,6 +1438,7 @@
                 },
                 "id": {
                     "description": "Node identifier (the sub-analysis key)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -1515,6 +1526,7 @@
         },
         "id": {
             "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+            "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
             "type": [
                 "string",
                 "null"
@@ -1599,6 +1611,6 @@
     ],
     "title": "analysis",
     "type": "object",
-    "version": "0.0.1"
+    "version": "0.0.4"
 }
 

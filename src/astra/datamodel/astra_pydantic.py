@@ -30,7 +30,7 @@ from pydantic import (
 
 
 metamodel_version = "1.7.0"
-version = "0.0.1"
+version = "0.0.4"
 
 
 class ConfiguredBaseModel(BaseModel):
@@ -171,6 +171,19 @@ class Evidence(ConfiguredBaseModel):
     quote: Optional[TextQuoteSelector] = Field(default=None, description="""Text quote anchor""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
     location: Optional[FragmentSelector] = Field(default=None, description="""Location hint (page number for PDFs/reports)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
 
+    @field_validator('id')
+    def pattern_id(cls, v):
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
     @field_validator('doi')
     def pattern_doi(cls, v):
         pattern=re.compile(r"^10\.\d{4,}/.*$")
@@ -208,6 +221,19 @@ class Insight(ConfiguredBaseModel):
     scope: Optional[str] = Field(default=None, description="""Applicability conditions""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
     tags: Optional[list[str]] = Field(default=None, description="""Categorization tags""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
     notes: Optional[str] = Field(default=None, description="""Reasoning notes""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
+
+    @field_validator('id')
+    def pattern_id(cls, v):
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class InsightCollection(ConfiguredBaseModel):
@@ -247,6 +273,19 @@ class UniverseNode(ConfiguredBaseModel):
     universe: Optional[str] = Field(default=None, description="""Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode']} })
     decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Decision selections (decision_id to option_id)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
     analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+
+    @field_validator('id')
+    def pattern_id(cls, v):
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
 
 
 class Universe(ConfiguredBaseModel):
@@ -376,7 +415,7 @@ class Input(ConfiguredBaseModel):
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -416,7 +455,7 @@ class Output(ConfiguredBaseModel):
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -451,6 +490,19 @@ class Option(ConfiguredBaseModel):
     excluded: Optional[bool] = Field(default=None, description="""Whether this option was considered and rejected""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })
     excluded_reason: Optional[str] = Field(default=None, description="""Why this option was excluded""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })
 
+    @field_validator('id')
+    def pattern_id(cls, v):
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
 
 class Decision(ConfiguredBaseModel):
     """
@@ -481,6 +533,19 @@ class Decision(ConfiguredBaseModel):
     default: Optional[str] = Field(default=None, description="""Default option ID for baseline universes""", json_schema_extra = { "linkml_meta": {'domain_of': ['Decision']} })
     options: Optional[dict[str, Option]] = Field(default=None, description="""Map of option IDs to option specifications""", json_schema_extra = { "linkml_meta": {'domain_of': ['Decision']} })
 
+    @field_validator('id')
+    def pattern_id(cls, v):
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
 
 class Analysis(ConfiguredBaseModel):
     """
@@ -510,6 +575,19 @@ class Analysis(ConfiguredBaseModel):
     container: Optional[str] = Field(default=None, description="""Default container for recipes in this node. Image names are pulled; file paths are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     path: Optional[str] = Field(default=None, description="""Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     analyses: Optional[dict[str, Analysis]] = Field(default=None, description="""Nested sub-analyses (keyed by analysis ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+
+    @field_validator('id')
+    def pattern_id(cls, v):
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
 
     @field_validator('version')
     def pattern_version(cls, v):

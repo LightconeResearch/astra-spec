@@ -278,9 +278,20 @@ Each input declares a data source or a reference to another analysis.
 | `use_outputs` | `string[]` | No | Specific outputs to use from referenced analysis |
 | `from_ref` | `string` | No | Parent input or sibling output reference (for sub-analyses) |
 
-**ID pattern**: `^[a-z][a-z0-9_]*$` (lowercase, underscores, starts with letter)
+**ID pattern**: `^[a-z][a-z0-9_]*$` (lowercase, underscores, starts with letter), with reserved category names excluded — see [Reserved IDs](#reserved-ids).
 
 **Input wiring in sub-analyses**: The `from_ref` field references either a parent input by ID (`from_ref: parent_input_id`) or a sibling's output (`from_ref: sibling_id.output_id`).
+
+### Reserved IDs
+
+The following names cannot be used as identifiers for any analysis entity (sub-analyses, decisions, options, inputs, outputs, findings, prior insights, evidence, insights):
+
+```
+inputs   outputs   decisions   findings   prior_insights
+analyses options   content     narrative
+```
+
+These collide with reserved keywords in the narrative anchor grammar. For example, naming a sub-analysis `decisions` would make `[link](#decisions.foo)` ambiguous — it could mean "root decision `foo`" or "decision `foo` inside the sub-analysis named `decisions`" — so the spec rejects them up front.
 
 ### Outputs
 
