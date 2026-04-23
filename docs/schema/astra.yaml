@@ -6,7 +6,7 @@ description: 'Agentic Schema for Transparent Research Analysis.
   decision points, evidence-backed insights, and universe specifications.'
 title: ASTRA
 id: https://w3id.org/ASTRA/analysis
-version: 0.0.1
+version: 0.0.4
 imports:
 - linkml:types
 - insight
@@ -533,7 +533,7 @@ slots:
     - Input
     range: string
     required: true
-    pattern: ^[a-z][a-z0-9_]*$
+    pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
   input__label:
     name: input__label
     description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
@@ -619,7 +619,7 @@ slots:
     - Output
     range: string
     required: true
-    pattern: ^[a-z][a-z0-9_]*$
+    pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
   output__label:
     name: output__label
     description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
@@ -676,6 +676,7 @@ slots:
     - Option
     range: string
     required: true
+    pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
   option__label:
     name: option__label
     description: Human-readable name for the option
@@ -762,6 +763,7 @@ slots:
     - Decision
     range: string
     required: true
+    pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
   decision__label:
     name: decision__label
     description: Human-readable name for the decision
@@ -828,6 +830,7 @@ slots:
     - Analysis
     range: string
     required: true
+    pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
   analysis__version:
     name: analysis__version
     description: ASTRA specification version
@@ -1049,6 +1052,7 @@ slots:
     - Evidence
     range: string
     required: true
+    pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
   evidence__doi:
     name: evidence__doi
     description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
@@ -1137,6 +1141,7 @@ slots:
     - Insight
     range: string
     required: true
+    pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
   insight__label:
     name: insight__label
     description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
@@ -1574,7 +1579,7 @@ classes:
         name: id
         description: Unique identifier for the input
         identifier: true
-        pattern: ^[a-z][a-z0-9_]*$
+        pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
       label:
         name: label
         description: Short human-readable name for compact rendering (margin glyphs,
@@ -1624,7 +1629,7 @@ classes:
         name: id
         description: Unique identifier for the output
         identifier: true
-        pattern: ^[a-z][a-z0-9_]*$
+        pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
       label:
         name: label
         description: Short human-readable name for compact rendering (margin glyphs,
@@ -1662,6 +1667,7 @@ classes:
         name: id
         description: Option identifier (the key in the options map)
         identifier: true
+        pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
       label:
         name: label
         description: Human-readable name for the option
@@ -1715,6 +1721,7 @@ classes:
         name: id
         description: Decision identifier (the key in the decisions map)
         identifier: true
+        pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
       label:
         name: label
         description: Human-readable name for the decision
@@ -1762,6 +1769,7 @@ classes:
         name: id
         description: Analysis identifier (used as key when nested as a sub-analysis)
         identifier: true
+        pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
       version:
         name: version
         description: ASTRA specification version
@@ -1896,6 +1904,7 @@ classes:
         name: id
         description: Evidence identifier
         identifier: true
+        pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
       doi:
         name: doi
         description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
@@ -1946,6 +1955,7 @@ classes:
         name: id
         description: Unique identifier
         identifier: true
+        pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
       label:
         name: label
         description: Short human-readable name for compact rendering (margin glyphs,
@@ -2082,7 +2092,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-20T18:13:01'
-source_file_size: 13472
-generation_date: '2026-04-20T18:13:16'
+source_file_date: '2026-04-23T09:00:44'
+source_file_size: 14458
+generation_date: '2026-04-23T09:00:45'
 
