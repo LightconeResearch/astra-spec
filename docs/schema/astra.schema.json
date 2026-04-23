@@ -55,13 +55,6 @@
                         "null"
                     ]
                 },
-                "description": {
-                    "description": "Detailed description of this analysis",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
                 "findings": {
                     "additionalProperties": {
                         "$ref": "#/$defs/Insight__identifier_optional"
@@ -95,6 +88,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "narrative": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Narrative"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references."
                 },
                 "outputs": {
                     "description": "Expected outputs from this analysis",
@@ -203,13 +207,6 @@
                         "null"
                     ]
                 },
-                "description": {
-                    "description": "Detailed description of this analysis",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
                 "findings": {
                     "additionalProperties": {
                         "$ref": "#/$defs/Insight__identifier_optional"
@@ -243,6 +240,17 @@
                         "string",
                         "null"
                     ]
+                },
+                "narrative": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Narrative"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references."
                 },
                 "outputs": {
                     "description": "Expected outputs from this analysis",
@@ -631,6 +639,13 @@
                         "null"
                     ]
                 },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "ref": {
                     "description": "Reference to another ASTRA analysis",
                     "type": [
@@ -712,6 +727,13 @@
                 },
                 "id": {
                     "description": "Unique identifier",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
                     "type": [
                         "string",
                         "null"
@@ -803,6 +825,13 @@
                         "null"
                     ]
                 },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "notes": {
                     "description": "Reasoning notes",
                     "type": [
@@ -857,6 +886,49 @@
                 "value"
             ],
             "title": "KeyValuePair",
+            "type": "object"
+        },
+        "Narrative": {
+            "additionalProperties": false,
+            "description": "Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are schema-optional, but ``astra validate`` applies a conditional requirement: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.\n- ``findings`` required when Analysis.findings has entries. - ``methods`` required when Analysis.decisions or\n  Analysis.analyses has entries.\n- ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries. - ``summary`` is always optional \u2014 no structured counterpart.\nAuthors narrate what they declare; stub analyses with only a summary stay clean.\nSection content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section \u2014 coverage is resolved across the whole narrative, not per-section \u2014 so an author is free to cite a finding from the summary, or an input from the methods section.\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).",
+            "properties": {
+                "findings": {
+                    "description": "Narrative discussion of the analysis's findings. Individual findings live under Analysis.findings as structured Insight objects; this section is the prose that frames them.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "inputs": {
+                    "description": "Narrative discussion of the analysis's inputs. Individual inputs live under Analysis.inputs as structured objects; this section frames them.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "methods": {
+                    "description": "Narrative discussion of the methodology, including decision points and any sub-analyses. Structured decisions and nested analyses live under Analysis.decisions and Analysis.analyses; this section frames them.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "outputs": {
+                    "description": "Narrative discussion of the expected outputs. Individual outputs live under Analysis.outputs as structured objects; this section frames them.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "summary": {
+                    "description": "High-level overview of the analysis \u2014 its question, scope, and a brief orientation for readers.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Narrative",
             "type": "object"
         },
         "Option": {
@@ -1027,6 +1099,13 @@
                 "id": {
                     "description": "Unique identifier for the output",
                     "pattern": "^[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
                     "type": [
                         "string",
                         "null"
@@ -1424,13 +1503,6 @@
                 "null"
             ]
         },
-        "description": {
-            "description": "Detailed description of this analysis",
-            "type": [
-                "string",
-                "null"
-            ]
-        },
         "findings": {
             "additionalProperties": {
                 "$ref": "#/$defs/Insight__identifier_optional"
@@ -1464,6 +1536,17 @@
                 "string",
                 "null"
             ]
+        },
+        "narrative": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/Narrative"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "description": "Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references."
         },
         "outputs": {
             "description": "Expected outputs from this analysis",

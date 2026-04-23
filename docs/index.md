@@ -91,9 +91,15 @@ decisions:
 ```yaml
 version: "1.0"
 name: Iris Classification Study
-description: |
-  A demonstration analysis that builds a classifier for the classic
-  Iris dataset, exploring different preprocessing and model choices.
+narrative:
+  summary: |
+    A demonstration analysis that builds a classifier for the classic
+    Iris dataset, exploring different preprocessing and model choices.
+  methods: |
+    Compare StandardScaler, MinMaxScaler, and no scaling across
+    SVM, random forest, and logistic regression. See the
+    [scaling decision](#decisions.scaling) and the
+    [model decision](#decisions.model).
 authors:
   - ASTRA Examples
 tags:
@@ -181,11 +187,80 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 | `id` | `string` | No | Analysis identifier (used as key when nested as sub-analysis) |
 | `version` | `string` | No | ASTRA spec version (semver: `"1.0"`, `"1.0.0"`) |
 | `name` | `string` | No | Human-readable name |
-| `description` | `string` | No | Detailed description |
+| `narrative` | `Narrative` | No | Structured prose split into five sections (see [Narrative](#narrative)) |
 | `authors` | `string[]` | No | List of authors |
 | `tags` | `string[]` | No | Tags for categorization |
 
 **Version format**: `^\d+\.\d+(\.\d+)?$`
+
+### Narrative
+
+`narrative` is a structured prose field organized into five Markdown sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.
+
+All sections are schema-optional, but `astra validate` applies a **conditional requirement**: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.
+
+- `findings` required when `Analysis.findings` has entries.
+- `methods` required when `Analysis.decisions` or `Analysis.analyses` has entries.
+- `inputs` required when `Analysis.inputs` has entries.
+- `outputs` required when `Analysis.outputs` has entries.
+- `summary` is always optional (no structured counterpart).
+
+Authors narrate what they declare; stub analyses with only a `summary` stay clean.
+
+```yaml
+narrative:
+  summary: |
+    One-paragraph overview of the analysis.
+  findings: |
+    Prose that frames the structured findings (see Analysis.findings).
+  methods: |
+    Methodology write-up. References decisions and sub-analyses.
+  inputs: |
+    Prose that frames the structured inputs.
+  outputs: |
+    Prose that frames the expected outputs.
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `summary` | `string` | No | High-level overview — question, scope, orientation. |
+| `findings` | `string` | No | Prose framing `Analysis.findings` (structured `Insight`s). |
+| `methods` | `string` | No | Methodology, decisions, sub-analyses. |
+| `inputs` | `string` | No | Prose framing `Analysis.inputs`. |
+| `outputs` | `string` | No | Prose framing `Analysis.outputs`. |
+
+Per-element prose (what each `Input`, `Output`, `Decision`, `Option`, or `Insight` is and why it matters) lives on those elements' own `description` / `rationale` / `notes` fields. `narrative` is for the analysis-level story that weaves those pieces together.
+
+**Internal anchor references.** Inside any section you can link to other elements of the analysis with standard Markdown link syntax and a `#` target. References may appear in any section — coverage is resolved across the whole narrative, not per-section:
+
+```markdown
+See the [scaling decision](#decisions.scaling) for rationale.
+The [best_model finding](#findings.best_model) summarizes our
+recommendation.
+```
+
+The anchor grammar is **tree-path-first**, matching ASTRA's existing reference syntax (`sibling.output_id` in `from_ref`, etc.). Sub-analyses are traversed before the category:
+
+| Target | Anchor |
+|--------|--------|
+| Input | `#inputs.<id>` |
+| Output | `#outputs.<id>` |
+| Decision | `#decisions.<id>` |
+| Option within a decision | `#decisions.<id>.options.<id>` |
+| Finding | `#findings.<id>` |
+| Prior insight | `#prior_insights.<id>` |
+| Sub-analysis (whole node) | `#analyses.<sub>` |
+| Element inside sub-analysis | `#<sub>.<category>.<id>` (e.g. `#preprocessing.decisions.scaling`) |
+
+References are interpreted **relative to the hosting analysis**. Prefix with `../` to escape to parent scope, matching decision `from_ref` syntax:
+
+```markdown
+See [parent scaling](#../decisions.scaling).
+```
+
+Anchor resolution is a renderer concern at render time, but the ASTRA tooling validates anchors during `astra validate`: broken references are errors, and missing coverage (a declared finding, decision, output, or sub-analysis not cited anywhere in the tree's narrative) is a warning.
+
+
 
 ### Inputs
 
@@ -194,6 +269,7 @@ Each input declares a data source or a reference to another analysis.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | **Yes** | Unique identifier |
+| `label` | `string` | No | Short human-readable name for compact rendering |
 | `type` | `"data"` \| `"analysis"` | **Yes** | Kind of input |
 | `description` | `string` | No | What this input is |
 | `source` | `string` | No | URI or path (for `type: data`) |
@@ -213,6 +289,7 @@ Each output declares an expected result from the analysis.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | **Yes** | Unique identifier |
+| `label` | `string` | No | Short human-readable name for compact rendering |
 | `type` | `"metric"` \| `"figure"` \| `"table"` \| `"data"` \| `"report"` | **Yes** | Kind of output |
 | `description` | `string` | No | What this output is |
 | `from_ref` | `string` | No | Sub-analysis output that produces this (e.g., `"sub.output_id"`) |
@@ -404,6 +481,7 @@ Both use `evidence` to ground the claim. The placement determines direction; the
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | **Yes** | Unique identifier |
+| `label` | `string` | No | Short human-readable name for compact rendering |
 | `claim` | `string` | **Yes** | What we learned (1-2 sentences) |
 | `created_at` | `datetime` | **Yes** | ISO 8601 timestamp |
 | `evidence` | `Evidence[]` | **Yes** | Supporting evidence (at least one) |

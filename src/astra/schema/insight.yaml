@@ -95,6 +95,11 @@ classes:
       id:
         identifier: true
         description: Unique identifier
+      label:
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       claim:
         required: true
         description: What we learned (1-2 sentences)
