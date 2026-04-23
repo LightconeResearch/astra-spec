@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-23T09:01:00
+# Generation date: 2026-04-23T09:48:05
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
