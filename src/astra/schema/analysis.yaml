@@ -98,6 +98,79 @@ classes:
         required: true
         description: The value
 
+  # --- Narrative ---
+
+  Narrative:
+    description: >-
+      Structured prose describing an analysis, organized into five
+      sections: summary, findings, methods, inputs, and outputs.
+      All sections are schema-optional, but ``astra validate``
+      applies a conditional requirement: a section must hold
+      non-empty prose when the corresponding structured data exists
+      on the Analysis node.
+
+      - ``findings`` required when Analysis.findings has entries.
+      - ``methods`` required when Analysis.decisions or
+        Analysis.analyses has entries.
+      - ``inputs`` required when Analysis.inputs has entries.
+      - ``outputs`` required when Analysis.outputs has entries.
+      - ``summary`` is always optional — no structured counterpart.
+
+      Authors narrate what they declare; stub analyses with only a
+      summary stay clean.
+
+      Section content is Markdown. Internal references to other
+      elements of the analysis use anchor links of the form
+      ``[text](#path.to.element)``. References may appear in any
+      section — coverage is resolved across the whole narrative,
+      not per-section — so an author is free to cite a finding from
+      the summary, or an input from the methods section.
+
+      Anchor grammar is tree-path-first, matching the rest of
+      ASTRA's reference syntax (e.g. 'sibling.output_id' in
+      from_ref). Sub-analyses are traversed before the category:
+
+        [scaling decision](#decisions.scaling)
+        [scaling option](#decisions.scaling.options.standard)
+        [finding](#findings.best_model)
+        [prior insight](#prior_insights.compute_scaling)
+        [input](#inputs.iris_data)
+        [sub-analysis output](#preprocessing.outputs.features)
+        [sub-analysis decision](#preprocessing.decisions.scaling)
+        [sub-analysis](#analyses.preprocessing)
+
+      References are interpreted relative to the hosting analysis.
+      Use '../' prefix to escape to parent scope, as with decision
+      from_ref (e.g. [see parent](#../decisions.method)).
+    attributes:
+      summary:
+        description: >-
+          High-level overview of the analysis — its question, scope,
+          and a brief orientation for readers.
+      findings:
+        description: >-
+          Narrative discussion of the analysis's findings.
+          Individual findings live under Analysis.findings as
+          structured Insight objects; this section is the prose
+          that frames them.
+      methods:
+        description: >-
+          Narrative discussion of the methodology, including
+          decision points and any sub-analyses. Structured
+          decisions and nested analyses live under
+          Analysis.decisions and Analysis.analyses; this section
+          frames them.
+      inputs:
+        description: >-
+          Narrative discussion of the analysis's inputs.
+          Individual inputs live under Analysis.inputs as
+          structured objects; this section frames them.
+      outputs:
+        description: >-
+          Narrative discussion of the expected outputs.
+          Individual outputs live under Analysis.outputs as
+          structured objects; this section frames them.
+
   # --- Execution ---
 
   Resources:
@@ -158,6 +231,11 @@ classes:
         identifier: true
         pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$"
         description: Unique identifier for the input
+      label:
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       type:
         range: InputType
         required: true
@@ -191,6 +269,11 @@ classes:
         identifier: true
         pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$"
         description: Unique identifier for the output
+      label:
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       type:
         range: OutputType
         required: true
@@ -283,8 +366,15 @@ classes:
         description: ASTRA specification version
       name:
         description: Human-readable name for the analysis
-      description:
-        description: Detailed description of this analysis
+      narrative:
+        range: Narrative
+        inlined: true
+        description: >-
+          Structured prose describing this analysis, split into
+          five sections (summary, findings, methods, inputs,
+          outputs). See the Narrative class for section semantics
+          and the tree-path anchor grammar used for internal
+          cross-references.
       authors:
         multivalued: true
         description: List of authors

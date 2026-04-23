@@ -97,6 +97,11 @@ classes:
         identifier: true
         pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$"
         description: Unique identifier
+      label:
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       claim:
         required: true
         description: What we learned (1-2 sentences)
