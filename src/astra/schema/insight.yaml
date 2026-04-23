@@ -4,7 +4,7 @@ name: insight
 description: |-
   Insight and evidence models with W3C Web Annotation-compliant selectors
   for referencing content in scientific papers and analysis artifacts.
-version: 0.0.4
+version: 0.0.5
 license: https://creativecommons.org/licenses/by/4.0/
 
 prefixes:

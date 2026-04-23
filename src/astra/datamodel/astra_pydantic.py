@@ -30,7 +30,7 @@ from pydantic import (
 
 
 metamodel_version = "1.7.0"
-version = "0.0.4"
+version = "0.0.5"
 
 
 class ConfiguredBaseModel(BaseModel):
@@ -339,7 +339,7 @@ class Narrative(ConfiguredBaseModel):
     - ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries. - ``summary`` is always optional — no structured counterpart.
     Authors narrate what they declare; stub analyses with only a summary stay clean.
     Section content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section — coverage is resolved across the whole narrative, not per-section — so an author is free to cite a finding from the summary, or an input from the methods section.
-    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in from_ref). Sub-analyses are traversed before the category:
+    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in 'from'). Sub-analyses are traversed before the category:
 
       [scaling decision](#decisions.scaling)
       [scaling option](#decisions.scaling.options.standard)
@@ -350,7 +350,7 @@ class Narrative(ConfiguredBaseModel):
       [sub-analysis decision](#preprocessing.decisions.scaling)
       [sub-analysis](#analyses.preprocessing)
 
-    References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision from_ref (e.g. [see parent](#../decisions.method)).
+    References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision 'from' (e.g. [see parent](#../decisions.method)).
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
 
@@ -387,15 +387,15 @@ class Recipe(ConfiguredBaseModel):
 
 class Input(ConfiguredBaseModel):
     """
-    An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA analysis). Sub-analysis inputs can use from_ref to reference a parent input or a sibling's output (e.g., 'sibling_id.output_id').
+    An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA analysis). Sub-analysis inputs can use 'from' to reference a parent input or a sibling's output (e.g., 'sibling_id.output_id').
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
-         'slot_usage': {'from_ref': {'description': 'Reference to parent input or '
-                                                    "sibling output (e.g., 'input_id' "
-                                                    "or 'sibling.output_id').",
-                                     'name': 'from_ref'}}})
+         'slot_usage': {'from': {'description': 'Reference to parent input or sibling '
+                                                "output (e.g., 'input_id' or "
+                                                "'sibling.output_id').",
+                                 'name': 'from'}}})
 
-    from_ref: Optional[str] = Field(default=None, description="""Reference to parent input or sibling output (e.g., 'input_id' or 'sibling.output_id').""", json_schema_extra = { "linkml_meta": {'aliases': ['from'], 'domain_of': ['Input', 'Output', 'Decision']} })
+    from_: Optional[str] = Field(default=None, alias="from", description="""Reference to parent input or sibling output (e.g., 'input_id' or 'sibling.output_id').""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Decision']} })
     id: str = Field(default=..., description="""Unique identifier for the input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
                        'UniverseNode',
@@ -429,15 +429,15 @@ class Input(ConfiguredBaseModel):
 
 class Output(ConfiguredBaseModel):
     """
-    An expected output from the analysis. Outputs can declare their provenance via from_ref to trace which sub-analysis produces them.
+    An expected output from the analysis. Outputs can declare their provenance via 'from' to trace which sub-analysis produces them.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
-         'slot_usage': {'from_ref': {'description': 'Sub-analysis output that produces '
-                                                    'this (e.g., '
-                                                    "'sub_analysis.output_id').",
-                                     'name': 'from_ref'}}})
+         'slot_usage': {'from': {'description': 'Sub-analysis output that produces '
+                                                'this (e.g., '
+                                                "'sub_analysis.output_id').",
+                                 'name': 'from'}}})
 
-    from_ref: Optional[str] = Field(default=None, description="""Sub-analysis output that produces this (e.g., 'sub_analysis.output_id').""", json_schema_extra = { "linkml_meta": {'aliases': ['from'], 'domain_of': ['Input', 'Output', 'Decision']} })
+    from_: Optional[str] = Field(default=None, alias="from", description="""Sub-analysis output that produces this (e.g., 'sub_analysis.output_id').""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Decision']} })
     when: Optional[list[str]] = Field(default=None, description="""Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Decision']} })
     id: str = Field(default=..., description="""Unique identifier for the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
@@ -506,17 +506,17 @@ class Option(ConfiguredBaseModel):
 
 class Decision(ConfiguredBaseModel):
     """
-    A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision via from_ref.
+    A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision via 'from'.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
-         'slot_usage': {'from_ref': {'description': 'Reference to a parent decision '
-                                                    "using '../' prefix (e.g., "
-                                                    "'../z_min'). When set, this is a "
-                                                    'pure reference and must not have '
-                                                    'label, options, or default.',
-                                     'name': 'from_ref'}}})
+         'slot_usage': {'from': {'description': 'Reference to a parent decision using '
+                                                "'../' prefix (e.g., '../z_min'). When "
+                                                'set, this is a pure reference and '
+                                                'must not have label, options, or '
+                                                'default.',
+                                 'name': 'from'}}})
 
-    from_ref: Optional[str] = Field(default=None, description="""Reference to a parent decision using '../' prefix (e.g., '../z_min'). When set, this is a pure reference and must not have label, options, or default.""", json_schema_extra = { "linkml_meta": {'aliases': ['from'], 'domain_of': ['Input', 'Output', 'Decision']} })
+    from_: Optional[str] = Field(default=None, alias="from", description="""Reference to a parent decision using '../' prefix (e.g., '../z_min'). When set, this is a pure reference and must not have label, options, or default.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Decision']} })
     when: Optional[list[str]] = Field(default=None, description="""Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Decision']} })
     id: str = Field(default=..., description="""Decision identifier (the key in the decisions map)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',

@@ -6,7 +6,7 @@ description: 'Agentic Schema for Transparent Research Analysis.
   decision points, evidence-backed insights, and universe specifications.'
 title: ASTRA
 id: https://w3id.org/ASTRA/analysis
-version: 0.0.4
+version: 0.0.5
 imports:
 - linkml:types
 - insight
@@ -325,15 +325,12 @@ enums:
         text: report
         description: A report or document
 slots:
-  from_ref:
-    name: from_ref
-    definition_uri: https://w3id.org/ASTRA/from_ref
-    description: Reference to a parent or sibling element. Corresponds to 'from' in
-      ASTRA YAML format.
+  from:
+    name: from
+    definition_uri: https://w3id.org/ASTRA/from
+    description: Reference to a parent or sibling element.
     from_schema: https://w3id.org/ASTRA/analysis
-    aliases:
-    - from
-    slot_uri: astra:from_ref
+    slot_uri: astra:from
     owner: Decision
     domain_of:
     - Input
@@ -1365,58 +1362,52 @@ slots:
     multivalued: true
     inlined: true
     inlined_as_list: false
-  Input_from_ref:
-    name: Input_from_ref
-    definition_uri: https://w3id.org/ASTRA/from_ref
+  Input_from:
+    name: Input_from
+    definition_uri: https://w3id.org/ASTRA/from
     description: Reference to parent input or sibling output (e.g., 'input_id' or
       'sibling.output_id').
     from_schema: https://w3id.org/ASTRA/analysis
-    aliases:
-    - from
-    is_a: from_ref
+    is_a: from
     domain: Input
-    slot_uri: astra:from_ref
-    alias: from_ref
+    slot_uri: astra:from
+    alias: from
     owner: Input
     domain_of:
     - Input
     is_usage_slot: true
-    usage_slot_name: from_ref
+    usage_slot_name: from
     range: string
-  Output_from_ref:
-    name: Output_from_ref
-    definition_uri: https://w3id.org/ASTRA/from_ref
+  Output_from:
+    name: Output_from
+    definition_uri: https://w3id.org/ASTRA/from
     description: Sub-analysis output that produces this (e.g., 'sub_analysis.output_id').
     from_schema: https://w3id.org/ASTRA/analysis
-    aliases:
-    - from
-    is_a: from_ref
+    is_a: from
     domain: Output
-    slot_uri: astra:from_ref
-    alias: from_ref
+    slot_uri: astra:from
+    alias: from
     owner: Output
     domain_of:
     - Output
     is_usage_slot: true
-    usage_slot_name: from_ref
+    usage_slot_name: from
     range: string
-  Decision_from_ref:
-    name: Decision_from_ref
-    definition_uri: https://w3id.org/ASTRA/from_ref
+  Decision_from:
+    name: Decision_from
+    definition_uri: https://w3id.org/ASTRA/from
     description: Reference to a parent decision using '../' prefix (e.g., '../z_min').
       When set, this is a pure reference and must not have label, options, or default.
     from_schema: https://w3id.org/ASTRA/analysis
-    aliases:
-    - from
-    is_a: from_ref
+    is_a: from
     domain: Decision
-    slot_uri: astra:from_ref
-    alias: from_ref
+    slot_uri: astra:from
+    alias: from
     owner: Decision
     domain_of:
     - Decision
     is_usage_slot: true
-    usage_slot_name: from_ref
+    usage_slot_name: from
     range: string
 classes:
   KeyValuePair:
@@ -1455,13 +1446,13 @@ classes:
       \ not per-section \u2014 so an author is free to cite a finding from the summary,\
       \ or an input from the methods section.\nAnchor grammar is tree-path-first,\
       \ matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in\
-      \ from_ref). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n\
+      \ 'from'). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n\
       \  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n\
       \  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n\
       \  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n\
       \  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative\
       \ to the hosting analysis. Use '../' prefix to escape to parent scope, as with\
-      \ decision from_ref (e.g. [see parent](#../decisions.method))."
+      \ decision 'from' (e.g. [see parent](#../decisions.method))."
     from_schema: https://w3id.org/ASTRA/analysis
     slots:
     - narrative__summary
@@ -1558,10 +1549,10 @@ classes:
     definition_uri: https://w3id.org/ASTRA/Input
     description: 'An input to the analysis. Two kinds: data (dataset/file/resource)
       or analysis (outputs from another ASTRA analysis). Sub-analysis inputs can use
-      from_ref to reference a parent input or a sibling''s output (e.g., ''sibling_id.output_id'').'
+      ''from'' to reference a parent input or a sibling''s output (e.g., ''sibling_id.output_id'').'
     from_schema: https://w3id.org/ASTRA/analysis
     slots:
-    - Input_from_ref
+    - Input_from
     - input__id
     - input__label
     - input__type
@@ -1571,8 +1562,8 @@ classes:
     - input__ref_version
     - input__use_outputs
     slot_usage:
-      from_ref:
-        name: from_ref
+      from:
+        name: from
         description: Reference to parent input or sibling output (e.g., 'input_id'
           or 'sibling.output_id').
     attributes:
@@ -1611,10 +1602,10 @@ classes:
     name: Output
     definition_uri: https://w3id.org/ASTRA/Output
     description: An expected output from the analysis. Outputs can declare their provenance
-      via from_ref to trace which sub-analysis produces them.
+      via 'from' to trace which sub-analysis produces them.
     from_schema: https://w3id.org/ASTRA/analysis
     slots:
-    - Output_from_ref
+    - Output_from
     - when
     - output__id
     - output__label
@@ -1622,8 +1613,8 @@ classes:
     - output__description
     - output__recipe
     slot_usage:
-      from_ref:
-        name: from_ref
+      from:
+        name: from
         description: Sub-analysis output that produces this (e.g., 'sub_analysis.output_id').
     attributes:
       id:
@@ -1700,10 +1691,10 @@ classes:
     name: Decision
     definition_uri: https://w3id.org/ASTRA/Decision
     description: A decision point in the analysis. Can be locally defined (with label,
-      options) or a reference to a parent decision via from_ref.
+      options) or a reference to a parent decision via 'from'.
     from_schema: https://w3id.org/ASTRA/analysis
     slots:
-    - Decision_from_ref
+    - Decision_from
     - when
     - decision__id
     - decision__label
@@ -1712,8 +1703,8 @@ classes:
     - decision__default
     - decision__options
     slot_usage:
-      from_ref:
-        name: from_ref
+      from:
+        name: from
         description: Reference to a parent decision using '../' prefix (e.g., '../z_min').
           When set, this is a pure reference and must not have label, options, or
           default.
@@ -2094,7 +2085,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-23T09:47:50'
-source_file_size: 14458
-generation_date: '2026-04-23T09:47:51'
+source_file_date: '2026-04-23T19:45:07'
+source_file_size: 14344
+generation_date: '2026-04-23T19:45:07'
 

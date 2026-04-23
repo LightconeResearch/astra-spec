@@ -40,12 +40,12 @@ outputs:
   - id: accuracy
     type: metric
     description: Classification accuracy on held-out test set
-    from_ref: classification.accuracy
+    from: classification.accuracy
 
   - id: feature_plot
     type: figure
     description: Scatter plot of extracted features colored by class
-    from_ref: feature_extraction.feature_plot
+    from: feature_extraction.feature_plot
 
   - id: pipeline_summary
     type: report
@@ -100,7 +100,7 @@ analyses:
     inputs:
       - id: raw_features
         type: data
-        from_ref: iris_data
+        from: iris_data
         description: Raw 4-dimensional Iris features from parent
 
     outputs:
@@ -119,7 +119,7 @@ analyses:
 
     decisions:
       seed:
-        from_ref: ../random_seed
+        from: ../random_seed
 
       method:
         label: Extraction Method
@@ -167,7 +167,7 @@ analyses:
     inputs:
       - id: features
         type: data
-        from_ref: feature_extraction.features
+        from: feature_extraction.features
         description: Transformed features from the extraction stage
 
     outputs:
@@ -186,7 +186,7 @@ analyses:
 
     decisions:
       split:
-        from_ref: ../test_split
+        from: ../test_split
 
       classifier:
         label: Classifier

@@ -105,6 +105,7 @@ testdoc: gen-doc _serve
 # Generate the Python data models (dataclasses & pydantic)
 gen-python: _set-version
   uv run gen-project -d  {{pymodel}} -I python {{source_schema_path}}
+  just _fix-python-keywords
   uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
 
 # Generate project files including Python data model
@@ -112,6 +113,7 @@ gen-python: _set-version
 gen-project: _set-version
   uv run gen-project {{config_yaml}} -d {{dest}} {{source_schema_path}}
   mv {{dest}}/*.py {{pymodel}}
+  just _fix-python-keywords
   uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
 
   @# Some generators ignore config_yaml or cannot create directories, so we run them separately.
@@ -183,6 +185,19 @@ _update-template:
 _update-linkml:
   uv add linkml --upgrade-package linkml
 
+# Fix Python keywords in generated dataclass model (gen-project/pythongen
+# does not handle reserved words; the pydantic generator does this itself).
+_fix-python-keywords:
+  uv run python -c "\
+  import re, pathlib; \
+  p = pathlib.Path('{{pymodel}}/analysis.py'); \
+  s = p.read_text(); \
+  s = re.sub(r'^(\s+)from:', r'\1from_:', s, flags=re.MULTILINE); \
+  s = re.sub(r'\bself\.from\b', 'self.from_', s); \
+  s = re.sub(r'\bslots\.from\b', 'slots.from_', s); \
+  s = re.sub(r'ASTRA\.from\b', \"ASTRA['from']\", s); \
+  p.write_text(s)"
+
 # Test schema generation
 _test-schema:
   uv run gen-project {{config_yaml}} -d tmp {{source_schema_path}} 2>/dev/null
@@ -192,10 +207,12 @@ _test-python: gen-python
   uv run python -m pytest
 
 # Run example tests
-# NOTE: linkml-run-examples has a known bug with "simple dict" detection
-# for classes that have an identifier + exactly one required field (e.g. Option).
-# It misinterprets the full dict YAML form as a simple key-value pair.
-# Allow this step to fail until the upstream issue is resolved.
+# NOTE: linkml-run-examples has known issues:
+# 1. "simple dict" detection bug for classes with an identifier + exactly
+#    one required field (e.g. Option).
+# 2. The 'from' slot generates invalid Python (keyword conflict) when
+#    pythongen compiles the module on the fly.
+# Allow this step to fail until the upstream issues are resolved.
 _test-examples: _ensure_examples_output
   -uv run linkml-run-examples \
     --input-formats json \
