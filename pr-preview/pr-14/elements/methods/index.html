@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://astra-spec.org/elements/insights/">
+        <link rel="canonical" href="https://astra-spec.org/elements/methods/">
       
       
       
@@ -21,7 +21,7 @@
     
     
       
-        <title>Slot: insights - ASTRA</title>
+        <title>Slot: methods - ASTRA</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slot-insights" class="md-skip">
+        <a href="#slot-methods" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Slot: insights
+              Slot: methods
             
           </span>
         </div>
@@ -423,6 +423,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Identifier and Mapping Information">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#schema-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Schema Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -468,9 +485,10 @@
   
 
 
-<h1 id="slot-insights">Slot: insights</h1>
-<p>URI: <a href="https://w3id.org/ASTRA/insights">astra:insights</a>
-Alias: insights</p>
+<h1 id="slot-methods">Slot: methods</h1>
+<p><em>Narrative discussion of the methodology, including decision points and any sub-analyses. Structured decisions and nested analyses live under Analysis.decisions and Analysis.analyses; this section frames them.</em></p>
+<p>URI: <a href="https://w3id.org/ASTRA/methods">astra:methods</a>
+Alias: methods</p>
 <!-- no inheritance hierarchy -->
 
 <h2 id="applicable-classes">Applicable Classes</h2>
@@ -484,13 +502,8 @@ Alias: insights</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="../InsightCollection/">InsightCollection</a></td>
-<td>Collection of insights, usable standalone or embedded in an analysis</td>
-<td>no</td>
-</tr>
-<tr>
-<td><a href="../Option/">Option</a></td>
-<td>An option for a decision point</td>
+<td><a href="../Narrative/">Narrative</a></td>
+<td>Structured prose describing an analysis, organized into five sections: summar...</td>
 <td>no</td>
 </tr>
 </tbody>
@@ -511,7 +524,7 @@ Alias: insights</p>
 </tr>
 <tr>
 <td>Domain Of</td>
-<td><a href="../Option/">Option</a>, <a href="../InsightCollection/">InsightCollection</a></td>
+<td><a href="../Narrative/">Narrative</a></td>
 </tr>
 </tbody>
 </table>
@@ -525,12 +538,30 @@ Alias: insights</p>
 </thead>
 <tbody>
 <tr>
-<td></td>
+<td>### Slot Characteristics</td>
 <td></td>
 </tr>
 </tbody>
 </table>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Owner</td>
+<td><a href="../Narrative/">Narrative</a></td>
+</tr>
+</tbody>
+</table>
 <h2 id="identifier-and-mapping-information">Identifier and Mapping Information</h2>
+<h3 id="schema-source">Schema Source</h3>
+<ul>
+<li>from schema: https://w3id.org/ASTRA/analysis</li>
+</ul>
 <h2 id="mappings">Mappings</h2>
 <table>
 <thead>
@@ -542,21 +573,26 @@ Alias: insights</p>
 <tbody>
 <tr>
 <td>self</td>
-<td>astra:insights</td>
+<td>astra:methods</td>
 </tr>
 <tr>
 <td>native</td>
-<td>astra:insights</td>
+<td>astra:methods</td>
 </tr>
 </tbody>
 </table>
 <h2 id="linkml-source">LinkML Source</h2>
 <details>
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">insights</span>
-<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">insights</span>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">methods</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Narrative discussion of the methodology, including decision points and</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">any sub-analyses. Structured decisions and nested analyses live under Analysis.decisions</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">and Analysis.analyses; this section frames them.</span>
+<span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
+<span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">methods</span>
+<span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Narrative</span>
 <span class="nt">domain_of</span><span class="p">:</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Option</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">InsightCollection</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Narrative</span>
 <span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div>
 </details>
