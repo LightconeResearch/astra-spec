@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-23T09:48:05
+# Generation date: 2026-04-23T19:44:19
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
@@ -62,7 +62,7 @@ from linkml_runtime.linkml_model.types import Boolean, Datetime, Integer, String
 from linkml_runtime.utils.metamodelcore import Bool, XSDDateTime
 
 metamodel_version = "1.7.0"
-version = "0.0.4"
+version = "0.0.5"
 
 # Namespaces
 ASTRA = CurieNamespace('astra', 'https://w3id.org/ASTRA/')
@@ -163,7 +163,7 @@ class Narrative(YAMLRoot):
     narrative, not per-section — so an author is free to cite a finding from the summary, or an input from the methods
     section.
     Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in
-    from_ref). Sub-analyses are traversed before the category:
+    'from'). Sub-analyses are traversed before the category:
 
     [scaling decision](#decisions.scaling)
     [scaling option](#decisions.scaling.options.standard)
@@ -175,7 +175,7 @@ class Narrative(YAMLRoot):
     [sub-analysis](#analyses.preprocessing)
 
     References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with
-    decision from_ref (e.g. [see parent](#../decisions.method)).
+    decision 'from' (e.g. [see parent](#../decisions.method)).
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -283,7 +283,7 @@ class Recipe(YAMLRoot):
 class Input(YAMLRoot):
     """
     An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA
-    analysis). Sub-analysis inputs can use from_ref to reference a parent input or a sibling's output (e.g.,
+    analysis). Sub-analysis inputs can use 'from' to reference a parent input or a sibling's output (e.g.,
     'sibling_id.output_id').
     """
     _inherited_slots: ClassVar[list[str]] = []
@@ -295,7 +295,7 @@ class Input(YAMLRoot):
 
     id: Union[str, InputId] = None
     type: Union[str, "InputType"] = None
-    from_ref: Optional[str] = None
+    from_: Optional[str] = None
     label: Optional[str] = None
     description: Optional[str] = None
     source: Optional[str] = None
@@ -314,8 +314,8 @@ class Input(YAMLRoot):
         if not isinstance(self.type, InputType):
             self.type = InputType(self.type)
 
-        if self.from_ref is not None and not isinstance(self.from_ref, str):
-            self.from_ref = str(self.from_ref)
+        if self.from_ is not None and not isinstance(self.from_, str):
+            self.from_ = str(self.from_)
 
         if self.label is not None and not isinstance(self.label, str):
             self.label = str(self.label)
@@ -342,8 +342,8 @@ class Input(YAMLRoot):
 @dataclass(repr=False)
 class Output(YAMLRoot):
     """
-    An expected output from the analysis. Outputs can declare their provenance via from_ref to trace which
-    sub-analysis produces them.
+    An expected output from the analysis. Outputs can declare their provenance via 'from' to trace which sub-analysis
+    produces them.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -354,7 +354,7 @@ class Output(YAMLRoot):
 
     id: Union[str, OutputId] = None
     type: Union[str, "OutputType"] = None
-    from_ref: Optional[str] = None
+    from_: Optional[str] = None
     when: Optional[Union[str, list[str]]] = empty_list()
     label: Optional[str] = None
     description: Optional[str] = None
@@ -371,8 +371,8 @@ class Output(YAMLRoot):
         if not isinstance(self.type, OutputType):
             self.type = OutputType(self.type)
 
-        if self.from_ref is not None and not isinstance(self.from_ref, str):
-            self.from_ref = str(self.from_ref)
+        if self.from_ is not None and not isinstance(self.from_, str):
+            self.from_ = str(self.from_)
 
         if not isinstance(self.when, list):
             self.when = [self.when] if self.when is not None else []
@@ -450,7 +450,7 @@ class Option(YAMLRoot):
 class Decision(YAMLRoot):
     """
     A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision
-    via from_ref.
+    via 'from'.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -460,7 +460,7 @@ class Decision(YAMLRoot):
     class_model_uri: ClassVar[URIRef] = ASTRA.Decision
 
     id: Union[str, DecisionId] = None
-    from_ref: Optional[str] = None
+    from_: Optional[str] = None
     when: Optional[Union[str, list[str]]] = empty_list()
     label: Optional[str] = None
     rationale: Optional[str] = None
@@ -474,8 +474,8 @@ class Decision(YAMLRoot):
         if not isinstance(self.id, DecisionId):
             self.id = DecisionId(self.id)
 
-        if self.from_ref is not None and not isinstance(self.from_ref, str):
-            self.from_ref = str(self.from_ref)
+        if self.from_ is not None and not isinstance(self.from_, str):
+            self.from_ = str(self.from_)
 
         if not isinstance(self.when, list):
             self.when = [self.when] if self.when is not None else []
@@ -903,8 +903,8 @@ class OutputType(EnumDefinitionImpl):
 class slots:
     pass
 
-slots.from_ref = Slot(uri=ASTRA.from_ref, name="from_ref", curie=ASTRA.curie('from_ref'),
-                   model_uri=ASTRA.from_ref, domain=None, range=Optional[str])
+slots.from_ = Slot(uri=ASTRA['from'], name="from", curie=ASTRA.curie('from'),
+                   model_uri=ASTRA['from'], domain=None, range=Optional[str])
 
 slots.when = Slot(uri=ASTRA.when, name="when", curie=ASTRA.curie('when'),
                    model_uri=ASTRA.when, domain=None, range=Optional[Union[str, list[str]]])
@@ -1187,11 +1187,11 @@ slots.universe__decisions = Slot(uri=ASTRA.decisions, name="universe__decisions"
 slots.universe__analyses = Slot(uri=ASTRA.analyses, name="universe__analyses", curie=ASTRA.curie('analyses'),
                    model_uri=ASTRA.universe__analyses, domain=None, range=Optional[Union[dict[Union[str, UniverseNodeId], Union[dict, UniverseNode]], list[Union[dict, UniverseNode]]]])
 
-slots.Input_from_ref = Slot(uri=ASTRA.from_ref, name="Input_from_ref", curie=ASTRA.curie('from_ref'),
-                   model_uri=ASTRA.Input_from_ref, domain=Input, range=Optional[str])
+slots.Input_from = Slot(uri=ASTRA['from'], name="Input_from", curie=ASTRA.curie('from'),
+                   model_uri=ASTRA.Input_from, domain=Input, range=Optional[str])
 
-slots.Output_from_ref = Slot(uri=ASTRA.from_ref, name="Output_from_ref", curie=ASTRA.curie('from_ref'),
-                   model_uri=ASTRA.Output_from_ref, domain=Output, range=Optional[str])
+slots.Output_from = Slot(uri=ASTRA['from'], name="Output_from", curie=ASTRA.curie('from'),
+                   model_uri=ASTRA.Output_from, domain=Output, range=Optional[str])
 
-slots.Decision_from_ref = Slot(uri=ASTRA.from_ref, name="Decision_from_ref", curie=ASTRA.curie('from_ref'),
-                   model_uri=ASTRA.Decision_from_ref, domain=Decision, range=Optional[str])
+slots.Decision_from = Slot(uri=ASTRA['from'], name="Decision_from", curie=ASTRA.curie('from'),
+                   model_uri=ASTRA.Decision_from, domain=Decision, range=Optional[str])

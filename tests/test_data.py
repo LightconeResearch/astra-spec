@@ -1,6 +1,8 @@
 """Data test."""
 import os
 import glob
+import re
+import tempfile
 import pytest
 from pathlib import Path
 
@@ -16,6 +18,12 @@ DATA_DIR_INVALID = Path(__file__).parent / "data" / "invalid"
 VALID_EXAMPLE_FILES = glob.glob(os.path.join(DATA_DIR_VALID, '*.yaml'))
 INVALID_EXAMPLE_FILES = glob.glob(os.path.join(DATA_DIR_INVALID, '*.yaml'))
 
+# The LinkML slot is named 'from' (the canonical YAML key), but the
+# generated dataclass attribute is 'from_' because 'from' is a Python
+# keyword.  The linkml-runtime yaml_loader passes YAML keys straight
+# through as **kwargs, so we rewrite the key before loading.
+_FROM_KEY_RE = re.compile(r'^(\s+)from:', re.MULTILINE)
+
 
 @pytest.mark.parametrize("filepath", VALID_EXAMPLE_FILES)
 def test_valid_data_files(filepath):
@@ -25,7 +33,12 @@ def test_valid_data_files(filepath):
         astra.datamodel.analysis,
         target_class_name,
     )
-    obj = yaml_loader.load(filepath, target_class=tgt_class)
+    text = Path(filepath).read_text()
+    text = _FROM_KEY_RE.sub(r'\1from_:', text)
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as tmp:
+        tmp.write(text)
+        tmp.flush()
+        obj = yaml_loader.load(tmp.name, target_class=tgt_class)
     assert obj
 
 

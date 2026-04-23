@@ -168,7 +168,7 @@ analyses:
     inputs:
       - id: specz_data
         type: data
-        from_ref: spectroscopic_sample
+        from: spectroscopic_sample
     outputs:
       - id: calibrated_pdfs
         type: data

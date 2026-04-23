@@ -239,7 +239,7 @@ The [best_model finding](#findings.best_model) summarizes our
 recommendation.
 ```
 
-The anchor grammar is **tree-path-first**, matching ASTRA's existing reference syntax (`sibling.output_id` in `from_ref`, etc.). Sub-analyses are traversed before the category:
+The anchor grammar is **tree-path-first**, matching ASTRA's existing reference syntax (`sibling.output_id` in `from`, etc.). Sub-analyses are traversed before the category:
 
 | Target | Anchor |
 |--------|--------|
@@ -252,7 +252,7 @@ The anchor grammar is **tree-path-first**, matching ASTRA's existing reference s
 | Sub-analysis (whole node) | `#analyses.<sub>` |
 | Element inside sub-analysis | `#<sub>.<category>.<id>` (e.g. `#preprocessing.decisions.scaling`) |
 
-References are interpreted **relative to the hosting analysis**. Prefix with `../` to escape to parent scope, matching decision `from_ref` syntax:
+References are interpreted **relative to the hosting analysis**. Prefix with `../` to escape to parent scope, matching decision `from` syntax:
 
 ```markdown
 See [parent scaling](#../decisions.scaling).
@@ -276,11 +276,11 @@ Each input declares a data source or a reference to another analysis.
 | `ref` | `string` | No | Reference to another ASTRA analysis (for `type: analysis`) |
 | `ref_version` | `string` | No | Version of referenced analysis |
 | `use_outputs` | `string[]` | No | Specific outputs to use from referenced analysis |
-| `from_ref` | `string` | No | Parent input or sibling output reference (for sub-analyses) |
+| `from` | `string` | No | Parent input or sibling output reference (for sub-analyses) |
 
 **ID pattern**: `^[a-z][a-z0-9_]*$` (lowercase, underscores, starts with letter), with reserved category names excluded — see [Reserved IDs](#reserved-ids).
 
-**Input wiring in sub-analyses**: The `from_ref` field references either a parent input by ID (`from_ref: parent_input_id`) or a sibling's output (`from_ref: sibling_id.output_id`).
+**Input wiring in sub-analyses**: The `from` field references either a parent input by ID (`from: parent_input_id`) or a sibling's output (`from: sibling_id.output_id`).
 
 ### Reserved IDs
 
@@ -303,7 +303,7 @@ Each output declares an expected result from the analysis.
 | `label` | `string` | No | Short human-readable name for compact rendering |
 | `type` | `"metric"` \| `"figure"` \| `"table"` \| `"data"` \| `"report"` | **Yes** | Kind of output |
 | `description` | `string` | No | What this output is |
-| `from_ref` | `string` | No | Sub-analysis output that produces this (e.g., `"sub.output_id"`) |
+| `from` | `string` | No | Sub-analysis output that produces this (e.g., `"sub.output_id"`) |
 | `when` | `string[]` | No | Conditions for when this output is active (see [Conditional Elements](#conditional-elements)) |
 | `recipe` | `Recipe` | No | Inline build rule |
 
@@ -351,9 +351,9 @@ Decisions are the core of the multiverse. Each decision is a named choice point 
 | `when` | `string[]` | No | Conditions for when this decision is active (see [Conditional Elements](#conditional-elements)) |
 | `default` | `string` | No | Default option ID for baseline universes |
 | `options` | `map[string, Option]` | **Yes** | Available choices |
-| `from_ref` | `string` | No | Reference to a parent decision (see [Decision References](#decision-references)) |
+| `from` | `string` | No | Reference to a parent decision (see [Decision References](#decision-references)) |
 
-A decision with `from_ref` set is a pure reference — it must not have `label`, `options`, or `default`.
+A decision with `from` set is a pure reference — it must not have `label`, `options`, or `default`.
 
 ### Options
 
@@ -380,7 +380,7 @@ analyses:
     inputs:
       - id: raw_features
         type: data
-        from_ref: iris_data               # Parent input
+        from: iris_data                    # Parent input
     outputs:
       - id: features
         type: data
@@ -388,7 +388,7 @@ analyses:
           command: python src/extract_features.py
     decisions:
       seed:
-        from_ref: ../random_seed           # Parent decision reference
+        from: ../random_seed               # Parent decision reference
 
       method:
         label: Extraction Method
@@ -404,7 +404,7 @@ analyses:
     inputs:
       - id: features
         type: data
-        from_ref: feature_extraction.features  # Sibling output
+        from: feature_extraction.features      # Sibling output
     outputs:
       - id: accuracy
         type: metric
@@ -637,7 +637,7 @@ inputs:
     use_outputs: [best_method, performance_table]
 ```
 
-Within a nested analysis, sub-analyses wire inputs from the parent or from siblings using `from_ref`:
+Within a nested analysis, sub-analyses wire inputs from the parent or from siblings using `from`:
 
 ```yaml
 analyses:
@@ -645,7 +645,7 @@ analyses:
     inputs:
       - id: raw
         type: data
-        from_ref: survey_catalog          # Parent input
+        from: survey_catalog               # Parent input
     outputs:
       - id: processed
         type: data
@@ -654,7 +654,7 @@ analyses:
     inputs:
       - id: data
         type: data
-        from_ref: stage_a.processed       # Sibling output
+        from: stage_a.processed            # Sibling output
 ```
 
 ---
@@ -722,7 +722,7 @@ decisions:
 
 ## Decision References
 
-Sub-analyses can reference a parent decision using the `from_ref` field with a `../` prefix. This avoids duplicating the decision definition and ensures the sub-analysis uses the same selection as the parent:
+Sub-analyses can reference a parent decision using the `from` field with a `../` prefix. This avoids duplicating the decision definition and ensures the sub-analysis uses the same selection as the parent:
 
 ```yaml
 decisions:
@@ -739,7 +739,7 @@ analyses:
   feature_extraction:
     decisions:
       seed:
-        from_ref: ../random_seed    # Uses parent's random_seed decision
+        from: ../random_seed         # Uses parent's random_seed decision
       method:
         label: Extraction Method
         default: pca
@@ -748,7 +748,7 @@ analyses:
             label: PCA
 ```
 
-A decision with `from_ref` set is a pure reference — it must not define `label`, `options`, or `default`.
+A decision with `from` set is a pure reference — it must not define `label`, `options`, or `default`.
 
 ---
 
@@ -797,8 +797,8 @@ Checks logical correctness:
 - No duplicate IDs within a node
 - Default options exist in their decision's option map
 - Constraint references (`incompatible_with`, `requires`) resolve to valid `decision.option` pairs
-- Input `from_ref` references resolve to parent inputs or sibling outputs
-- Output `from_ref` references resolve to sub-analysis outputs
+- Input `from` references resolve to parent inputs or sibling outputs
+- Output `from` references resolve to sub-analysis outputs
 - Recipe input dependencies reference valid output IDs
 - Universe selections match analysis decisions
 - Universe selections respect all constraints
