@@ -1162,7 +1162,8 @@ slots.decisionSelection__option_id = Slot(uri=ASTRA.option_id, name="decisionSel
                    model_uri=ASTRA.decisionSelection__option_id, domain=None, range=str)
 
 slots.universeNode__id = Slot(uri=ASTRA.id, name="universeNode__id", curie=ASTRA.curie('id'),
-                   model_uri=ASTRA.universeNode__id, domain=None, range=URIRef)
+                   model_uri=ASTRA.universeNode__id, domain=None, range=URIRef,
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
 
 slots.universeNode__universe = Slot(uri=ASTRA.universe, name="universeNode__universe", curie=ASTRA.curie('universe'),
                    model_uri=ASTRA.universeNode__universe, domain=None, range=Optional[str])

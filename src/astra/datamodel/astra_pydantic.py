@@ -271,6 +271,19 @@ class UniverseNode(ConfiguredBaseModel):
                        'Decision',
                        'Analysis']} })
     universe: Optional[str] = Field(default=None, description="""Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode']} })
+
+    @field_validator('id')
+    def pattern_id(cls, v):
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid id format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
     decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Decision selections (decision_id to option_id)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
     analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 

@@ -1278,6 +1278,7 @@ slots:
     - UniverseNode
     range: string
     required: true
+    pattern: ^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$
   universeNode__universe:
     name: universeNode__universe
     description: Name of a universe in the sub-analysis's universes/ directory. Alternative
