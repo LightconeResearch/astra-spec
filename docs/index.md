@@ -331,7 +331,6 @@ Runners materialize the upstream inputs, surface the resolved input map and acti
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `shell` | `string` | **Yes** | POSIX shell command (e.g., `python src/train.py`, `Rscript analysis.R`) |
-| `params` | `map[string, string]` | No | Static parameters made available to the recipe body |
 | `resources` | `Resources` | No | Compute requirements |
 | `container` | `string` | No | Container image name or path to a Containerfile |
 
@@ -354,11 +353,12 @@ The `shell:` string is a template. Runners substitute `{...}` placeholders befor
 | `{inputs.<id>}` | Path to the named upstream input | `Output.inputs` |
 | `{inputs}` | Space-separated paths to all declared inputs (declaration order) | — |
 | `{decisions.<id>}` | Active option ID for the named decision in the current universe | `Output.decisions` |
-| `{params.<key>}` | Value of the named param | `Recipe.params` |
 | `{output}` | Path the artifact will be written to | — |
 | `{{` / `}}` | Literal `{` / `}` | — |
 
 Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.
+
+Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the shell string. There is no separate `params` channel because varying values are decisions and constants are just shell text.
 
 **Example:**
 
@@ -374,9 +374,8 @@ Validators reject unresolved or undeclared references. Runners choose the on-dis
       --features {inputs.features}
       --classifier {decisions.classifier}
       --seed {decisions.seed}
+      --max-iter 1000
       --out {output}
-    params:
-      max_iter: "1000"
     container: ghcr.io/lightcone/sklearn:latest
     resources:
       cpus: 4
@@ -384,7 +383,7 @@ Validators reject unresolved or undeclared references. Runners choose the on-dis
       time_limit: "30m"
 ```
 
-A runner materializes `training_data` and `features`, picks output paths, expands the template, and invokes the shell. If a universe selects `classifier=svm`, the command becomes `python src/classify.py --train ... --classifier svm --seed 42 --out ...`.
+A runner materializes `training_data` and `features`, picks output paths, expands the template, and invokes the shell. If a universe selects `classifier=svm`, the command becomes `python src/classify.py --train ... --classifier svm --seed 42 --max-iter 1000 --out ...`.
 
 A node-level `container` field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., `python:3.9`, `ghcr.io/org/img:latest`) are pulled as pre-built images; file paths (e.g., `Containerfile`, `containers/Dockerfile`) are built from source.
 

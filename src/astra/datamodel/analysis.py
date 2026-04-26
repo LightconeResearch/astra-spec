@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-26T13:25:51
+# Generation date: 2026-04-26T13:41:17
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
@@ -250,12 +250,11 @@ class Resources(YAMLRoot):
 @dataclass(repr=False)
 class Recipe(YAMLRoot):
     """
-    A build rule that produces an output. A recipe is pure *how*: a `shell` command, optional `params`, and the
-    execution context (`resources`, `container`).
+    A build rule that produces an output. A recipe is pure *how*: a `shell` command and the execution context
+    (`resources`, `container`).
     Recipes do not declare what the output depends on. Provenance — upstream inputs, decision-driven parameterization,
     and activation conditions — is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the
-    resolved input map and active decision values to the recipe (`{input.x}` substitution, env vars, sidecar JSON —
-    runner's choice).
+    resolved input map and active decision values to the recipe via `{...}` template substitution (see `shell`).
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -265,15 +264,12 @@ class Recipe(YAMLRoot):
     class_model_uri: ClassVar[URIRef] = ASTRA.Recipe
 
     shell: Optional[str] = None
-    params: Optional[Union[dict[Union[str, KeyValuePairKey], Union[dict, KeyValuePair]], list[Union[dict, KeyValuePair]]]] = empty_dict()
     resources: Optional[Union[dict, Resources]] = None
     container: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self.shell is not None and not isinstance(self.shell, str):
             self.shell = str(self.shell)
-
-        self._normalize_inlined_as_dict(slot_name="params", slot_type=KeyValuePair, key_name="key", keyed=True)
 
         if self.resources is not None and not isinstance(self.resources, Resources):
             self.resources = Resources(**as_dict(self.resources))
@@ -962,9 +958,6 @@ slots.resources__gpus = Slot(uri=ASTRA.gpus, name="resources__gpus", curie=ASTRA
 
 slots.recipe__shell = Slot(uri=ASTRA.shell, name="recipe__shell", curie=ASTRA.curie('shell'),
                    model_uri=ASTRA.recipe__shell, domain=None, range=Optional[str])
-
-slots.recipe__params = Slot(uri=ASTRA.params, name="recipe__params", curie=ASTRA.curie('params'),
-                   model_uri=ASTRA.recipe__params, domain=None, range=Optional[Union[dict[Union[str, KeyValuePairKey], Union[dict, KeyValuePair]], list[Union[dict, KeyValuePair]]]])
 
 slots.recipe__resources = Slot(uri=ASTRA.resources, name="recipe__resources", curie=ASTRA.curie('resources'),
                    model_uri=ASTRA.recipe__resources, domain=None, range=Optional[Union[dict, Resources]])
