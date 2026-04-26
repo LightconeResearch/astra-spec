@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://astra-spec.org/elements/shell/">
+        <link rel="canonical" href="https://astra-spec.org/elements/command/">
       
       
       
@@ -21,7 +21,7 @@
     
     
       
-        <title>Slot: shell - ASTRA</title>
+        <title>Slot: command - ASTRA</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slot-shell" class="md-skip">
+        <a href="#slot-command" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Slot: shell
+              Slot: command
             
           </span>
         </div>
@@ -485,9 +485,9 @@
   
 
 
-<h1 id="slot-shell">Slot: shell</h1>
+<h1 id="slot-command">Slot: command</h1>
 <p><em>POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.</em></p>
-<p><em>The command is a template. Runners substitute these placeholders before invoking the shell:</em></p>
+<p><em>The command is a template. Runners substitute these placeholders before invoking it:</em></p>
 <p>__</p>
 <p>_  {inputs.<id>}     -- path to the named upstream input_</p>
 <p>_                       (must be declared in Output.inputs)_</p>
@@ -499,9 +499,9 @@
 <p>_  {output}          -- path the artifact will be written to_</p>
 <p>__</p>
 <p><em>Use {{ and }} to emit literal '{' and '}'. Every placeholder must resolve to a declared item; the validator rejects unresolved or undeclared references.</em></p>
-<p><em>Static constants belong inline in the command (e.g., '--max-iter 1000'); there is no separate <code>params</code> channel because varying values are decisions and constants are just shell text.</em></p>
-<p>URI: <a href="https://w3id.org/ASTRA/shell">astra:shell</a>
-Alias: shell</p>
+<p><em>Static constants belong inline in the command (e.g., '--max-iter 1000'); there is no separate <code>params</code> channel because varying values are decisions and constants are just command text.</em></p>
+<p>URI: <a href="https://w3id.org/ASTRA/command">astra:command</a>
+Alias: command</p>
 <!-- no inheritance hierarchy -->
 
 <h2 id="applicable-classes">Applicable Classes</h2>
@@ -586,33 +586,33 @@ Alias: shell</p>
 <tbody>
 <tr>
 <td>self</td>
-<td>astra:shell</td>
+<td>astra:command</td>
 </tr>
 <tr>
 <td>native</td>
-<td>astra:shell</td>
+<td>astra:command</td>
 </tr>
 </tbody>
 </table>
 <h2 id="linkml-source">LinkML Source</h2>
 <details>
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shell</span>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">command</span>
 <span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;POSIX</span><span class="nv"> </span><span class="s">shell</span><span class="nv"> </span><span class="s">command</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">execute</span><span class="nv"> </span><span class="s">(e.g.,</span><span class="nv"> </span><span class="s">&#39;python</span><span class="nv"> </span><span class="s">src/train.py&#39;,</span><span class="nv"> </span><span class="s">&#39;Rscript\</span>
 <span class="w">  </span><span class="s">\ analysis.R&#39;,</span><span class="nv"> </span><span class="s">&#39;julia</span><span class="nv"> </span><span class="s">model.jl&#39;).</span><span class="nv"> </span><span class="s">Any</span><span class="nv"> </span><span class="s">executable</span><span class="nv"> </span><span class="s">invocation</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">fine.\nThe</span><span class="nv"> </span><span class="s">command\</span>
-<span class="w">  </span><span class="s">\ is</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">template.</span><span class="nv"> </span><span class="s">Runners</span><span class="nv"> </span><span class="s">substitute</span><span class="nv"> </span><span class="s">these</span><span class="nv"> </span><span class="s">placeholders</span><span class="nv"> </span><span class="s">before</span><span class="nv"> </span><span class="s">invoking</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">shell:\n\</span>
-<span class="w">  </span><span class="s">\n</span><span class="nv">  </span><span class="s">{inputs.&lt;id&gt;}</span><span class="nv">     </span><span class="s">--</span><span class="nv"> </span><span class="s">path</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">named</span><span class="nv"> </span><span class="s">upstream</span><span class="nv"> </span><span class="s">input\n</span><span class="nv">                    </span><span class="s">\</span>
-<span class="w">  </span><span class="s">\ </span><span class="nv">  </span><span class="s">(must</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">Output.inputs)\n</span><span class="nv">  </span><span class="s">{inputs}</span><span class="nv">          </span><span class="s">--</span><span class="nv"> </span><span class="s">space-separated\</span>
-<span class="w">  </span><span class="s">\ paths</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">declared\n</span><span class="nv">                       </span><span class="s">inputs,</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">declaration</span><span class="nv"> </span><span class="s">order\n</span><span class="nv"> </span><span class="s">\</span>
-<span class="w">  </span><span class="s">\ {decisions.&lt;id&gt;}</span><span class="nv">  </span><span class="s">--</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">option</span><span class="nv"> </span><span class="s">ID</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">named\n</span><span class="nv">                       </span><span class="s">decision\</span>
-<span class="w">  </span><span class="s">\ in</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">current</span><span class="nv"> </span><span class="s">universe\n</span><span class="nv">                       </span><span class="s">(must</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">Output.decisions)\n\</span>
-<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">{output}</span><span class="nv">          </span><span class="s">--</span><span class="nv"> </span><span class="s">path</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">artifact</span><span class="nv"> </span><span class="s">will</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">written</span><span class="nv"> </span><span class="s">to\n\nUse</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">}}</span><span class="nv"> </span><span class="s">to\</span>
-<span class="w">  </span><span class="s">\ emit</span><span class="nv"> </span><span class="s">literal</span><span class="nv"> </span><span class="s">&#39;{&#39;</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">&#39;}&#39;.</span><span class="nv"> </span><span class="s">Every</span><span class="nv"> </span><span class="s">placeholder</span><span class="nv"> </span><span class="s">must</span><span class="nv"> </span><span class="s">resolve</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">item;</span><span class="nv"> </span><span class="s">the\</span>
-<span class="w">  </span><span class="s">\ validator</span><span class="nv"> </span><span class="s">rejects</span><span class="nv"> </span><span class="s">unresolved</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">undeclared</span><span class="nv"> </span><span class="s">references.\nStatic</span><span class="nv"> </span><span class="s">constants</span><span class="nv"> </span><span class="s">belong\</span>
-<span class="w">  </span><span class="s">\ inline</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">command</span><span class="nv"> </span><span class="s">(e.g.,</span><span class="nv"> </span><span class="s">&#39;--max-iter</span><span class="nv"> </span><span class="s">1000&#39;);</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">no</span><span class="nv"> </span><span class="s">separate</span><span class="nv"> </span><span class="s">`params`\</span>
-<span class="w">  </span><span class="s">\ channel</span><span class="nv"> </span><span class="s">because</span><span class="nv"> </span><span class="s">varying</span><span class="nv"> </span><span class="s">values</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">decisions</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">constants</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">just</span><span class="nv"> </span><span class="s">shell</span><span class="nv"> </span><span class="s">text.&quot;</span>
+<span class="w">  </span><span class="s">\ is</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">template.</span><span class="nv"> </span><span class="s">Runners</span><span class="nv"> </span><span class="s">substitute</span><span class="nv"> </span><span class="s">these</span><span class="nv"> </span><span class="s">placeholders</span><span class="nv"> </span><span class="s">before</span><span class="nv"> </span><span class="s">invoking</span><span class="nv"> </span><span class="s">it:\n\n</span><span class="nv"> </span><span class="s">\</span>
+<span class="w">  </span><span class="s">\ {inputs.&lt;id&gt;}</span><span class="nv">     </span><span class="s">--</span><span class="nv"> </span><span class="s">path</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">named</span><span class="nv"> </span><span class="s">upstream</span><span class="nv"> </span><span class="s">input\n</span><span class="nv">                      </span><span class="s">\</span>
+<span class="w">  </span><span class="s">\ (must</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">Output.inputs)\n</span><span class="nv">  </span><span class="s">{inputs}</span><span class="nv">          </span><span class="s">--</span><span class="nv"> </span><span class="s">space-separated</span><span class="nv"> </span><span class="s">paths\</span>
+<span class="w">  </span><span class="s">\ to</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">declared\n</span><span class="nv">                       </span><span class="s">inputs,</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">declaration</span><span class="nv"> </span><span class="s">order\n</span><span class="nv">  </span><span class="s">{decisions.&lt;id&gt;}\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">--</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">option</span><span class="nv"> </span><span class="s">ID</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">named\n</span><span class="nv">                       </span><span class="s">decision</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">current\</span>
+<span class="w">  </span><span class="s">\ universe\n</span><span class="nv">                       </span><span class="s">(must</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">Output.decisions)\n</span><span class="nv">  </span><span class="s">{output}\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv">         </span><span class="s">--</span><span class="nv"> </span><span class="s">path</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">artifact</span><span class="nv"> </span><span class="s">will</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">written</span><span class="nv"> </span><span class="s">to\n\nUse</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">}}</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">emit</span><span class="nv"> </span><span class="s">literal\</span>
+<span class="w">  </span><span class="s">\ &#39;{&#39;</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">&#39;}&#39;.</span><span class="nv"> </span><span class="s">Every</span><span class="nv"> </span><span class="s">placeholder</span><span class="nv"> </span><span class="s">must</span><span class="nv"> </span><span class="s">resolve</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">item;</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">validator\</span>
+<span class="w">  </span><span class="s">\ rejects</span><span class="nv"> </span><span class="s">unresolved</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">undeclared</span><span class="nv"> </span><span class="s">references.\nStatic</span><span class="nv"> </span><span class="s">constants</span><span class="nv"> </span><span class="s">belong</span><span class="nv"> </span><span class="s">inline</span><span class="nv"> </span><span class="s">in\</span>
+<span class="w">  </span><span class="s">\ the</span><span class="nv"> </span><span class="s">command</span><span class="nv"> </span><span class="s">(e.g.,</span><span class="nv"> </span><span class="s">&#39;--max-iter</span><span class="nv"> </span><span class="s">1000&#39;);</span><span class="nv"> </span><span class="s">there</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">no</span><span class="nv"> </span><span class="s">separate</span><span class="nv"> </span><span class="s">`params`</span><span class="nv"> </span><span class="s">channel</span><span class="nv"> </span><span class="s">because\</span>
+<span class="w">  </span><span class="s">\ varying</span><span class="nv"> </span><span class="s">values</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">decisions</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">constants</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">just</span><span class="nv"> </span><span class="s">command</span><span class="nv"> </span><span class="s">text.&quot;</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shell</span>
+<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">command</span>
 <span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
 <span class="nt">domain_of</span><span class="p">:</span>
 <span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
