@@ -895,28 +895,6 @@
             "title": "KeyValuePair",
             "type": "object"
         },
-        "KeyValuePair__identifier_optional": {
-            "additionalProperties": false,
-            "description": "A key-value string pair",
-            "properties": {
-                "key": {
-                    "description": "The key",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "value": {
-                    "description": "The value",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "value"
-            ],
-            "title": "KeyValuePair",
-            "type": "object"
-        },
         "Narrative": {
             "additionalProperties": false,
             "description": "Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are schema-optional, but ``astra validate`` applies a conditional requirement: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.\n- ``findings`` required when Analysis.findings has entries. - ``methods`` required when Analysis.decisions or\n  Analysis.analyses has entries.\n- ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries. - ``summary`` is always optional \u2014 no structured counterpart.\nAuthors narrate what they declare; stub analyses with only a summary stay clean.\nSection content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section \u2014 coverage is resolved across the whole narrative, not per-section \u2014 so an author is free to cite a finding from the summary, or an input from the methods section.\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in 'from'). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision 'from' (e.g. [see parent](#../decisions.method)).",
@@ -1209,30 +1187,12 @@
         },
         "Recipe": {
             "additionalProperties": false,
-            "description": "A build rule that produces an output. A recipe is pure *how*: a `shell` command, optional `params`, and the execution context (`resources`, `container`).\nRecipes do not declare what the output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization, and activation conditions \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe (`{input.x}` substitution, env vars, sidecar JSON \u2014 runner's choice).",
+            "description": "A build rule that produces an output. A recipe is pure *how*: a `shell` command and the execution context (`resources`, `container`).\nRecipes do not declare what the output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization, and activation conditions \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe via `{...}` template substitution (see `shell`).",
             "properties": {
                 "container": {
                     "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
                     "type": [
                         "string",
-                        "null"
-                    ]
-                },
-                "params": {
-                    "additionalProperties": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/$defs/KeyValuePair__identifier_optional"
-                            },
-                            {
-                                "description": "The value",
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "description": "Static parameters made available to the recipe body. Values are strings; runners decide how to surface them (`{params.x}` substitution, env vars, etc.).",
-                    "type": [
-                        "object",
                         "null"
                     ]
                 },
@@ -1248,7 +1208,7 @@
                     "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
                 },
                 "shell": {
-                    "description": "POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.\nThe command is a template. Runners substitute these placeholders before invoking the shell:\n\n  {inputs.<id>}     -- path to the named upstream input\n                       (must be declared in Output.inputs)\n  {inputs}          -- space-separated paths to all declared\n                       inputs, in declaration order\n  {decisions.<id>}  -- active option ID for the named\n                       decision in the current universe\n                       (must be declared in Output.decisions)\n  {params.<key>}    -- value of the named param\n                       (must be declared in Recipe.params)\n  {output}          -- path the artifact will be written to\n\nUse {{ and }} to emit literal '{' and '}'. Every placeholder must resolve to a declared item; the validator rejects unresolved or undeclared references.",
+                    "description": "POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.\nThe command is a template. Runners substitute these placeholders before invoking the shell:\n\n  {inputs.<id>}     -- path to the named upstream input\n                       (must be declared in Output.inputs)\n  {inputs}          -- space-separated paths to all declared\n                       inputs, in declaration order\n  {decisions.<id>}  -- active option ID for the named\n                       decision in the current universe\n                       (must be declared in Output.decisions)\n  {output}          -- path the artifact will be written to\n\nUse {{ and }} to emit literal '{' and '}'. Every placeholder must resolve to a declared item; the validator rejects unresolved or undeclared references.\nStatic constants belong inline in the command (e.g., '--max-iter 1000'); there is no separate `params` channel because varying values are decisions and constants are just shell text.",
                     "type": [
                         "string",
                         "null"

@@ -494,11 +494,12 @@ slots:
       \ paths to all declared\n                       inputs, in declaration order\n\
       \  {decisions.<id>}  -- active option ID for the named\n                   \
       \    decision in the current universe\n                       (must be declared\
-      \ in Output.decisions)\n  {params.<key>}    -- value of the named param\n  \
-      \                     (must be declared in Recipe.params)\n  {output}      \
-      \    -- path the artifact will be written to\n\nUse {{ and }} to emit literal\
-      \ '{' and '}'. Every placeholder must resolve to a declared item; the validator\
-      \ rejects unresolved or undeclared references."
+      \ in Output.decisions)\n  {output}          -- path the artifact will be written\
+      \ to\n\nUse {{ and }} to emit literal '{' and '}'. Every placeholder must resolve\
+      \ to a declared item; the validator rejects unresolved or undeclared references.\n\
+      Static constants belong inline in the command (e.g., '--max-iter 1000'); there\
+      \ is no separate `params` channel because varying values are decisions and constants\
+      \ are just shell text."
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:shell
     alias: shell
@@ -506,20 +507,6 @@ slots:
     domain_of:
     - Recipe
     range: string
-  recipe__params:
-    name: recipe__params
-    description: Static parameters made available to the recipe body. Values are strings;
-      runners decide how to surface them (`{params.x}` substitution, env vars, etc.).
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:params
-    alias: params
-    owner: Recipe
-    domain_of:
-    - Recipe
-    range: KeyValuePair
-    multivalued: true
-    inlined: true
-    inlined_as_list: false
   recipe__resources:
     name: recipe__resources
     description: "Compute resource requirements (cpus, memory, time_limit, \u2026)"
@@ -1585,16 +1572,15 @@ classes:
     name: Recipe
     definition_uri: https://w3id.org/ASTRA/Recipe
     description: "A build rule that produces an output. A recipe is pure *how*: a\
-      \ `shell` command, optional `params`, and the execution context (`resources`,\
-      \ `container`).\nRecipes do not declare what the output depends on. Provenance\
-      \ \u2014 upstream inputs, decision-driven parameterization, and activation conditions\
-      \ \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners\
-      \ surface the resolved input map and active decision values to the recipe (`{input.x}`\
-      \ substitution, env vars, sidecar JSON \u2014 runner's choice)."
+      \ `shell` command and the execution context (`resources`, `container`).\nRecipes\
+      \ do not declare what the output depends on. Provenance \u2014 upstream inputs,\
+      \ decision-driven parameterization, and activation conditions \u2014 is declared\
+      \ on the parent Output (`inputs`, `decisions`, `when`). Runners surface the\
+      \ resolved input map and active decision values to the recipe via `{...}` template\
+      \ substitution (see `shell`)."
     from_schema: https://w3id.org/ASTRA/analysis
     slots:
     - recipe__shell
-    - recipe__params
     - recipe__resources
     - recipe__container
     attributes:
@@ -1609,19 +1595,12 @@ classes:
           \               inputs, in declaration order\n  {decisions.<id>}  -- active\
           \ option ID for the named\n                       decision in the current\
           \ universe\n                       (must be declared in Output.decisions)\n\
-          \  {params.<key>}    -- value of the named param\n                     \
-          \  (must be declared in Recipe.params)\n  {output}          -- path the\
-          \ artifact will be written to\n\nUse {{ and }} to emit literal '{' and '}'.\
-          \ Every placeholder must resolve to a declared item; the validator rejects\
-          \ unresolved or undeclared references."
-      params:
-        name: params
-        description: Static parameters made available to the recipe body. Values are
-          strings; runners decide how to surface them (`{params.x}` substitution,
-          env vars, etc.).
-        range: KeyValuePair
-        multivalued: true
-        inlined: true
+          \  {output}          -- path the artifact will be written to\n\nUse {{ and\
+          \ }} to emit literal '{' and '}'. Every placeholder must resolve to a declared\
+          \ item; the validator rejects unresolved or undeclared references.\nStatic\
+          \ constants belong inline in the command (e.g., '--max-iter 1000'); there\
+          \ is no separate `params` channel because varying values are decisions and\
+          \ constants are just shell text."
       resources:
         name: resources
         description: "Compute resource requirements (cpus, memory, time_limit, \u2026\
@@ -2199,7 +2178,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-26T11:26:37'
-source_file_size: 18228
-generation_date: '2026-04-26T11:26:41'
+source_file_date: '2026-04-26T11:42:08'
+source_file_size: 17979
+generation_date: '2026-04-26T11:42:12'
 
