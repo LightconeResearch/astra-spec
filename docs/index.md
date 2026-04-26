@@ -123,7 +123,7 @@ outputs:
     description: Best performing classifier
     decisions: [scaling, model]
     recipe:
-      shell: python src/train.py
+      command: python src/train.py
 
   - id: accuracy
     type: metric
@@ -131,7 +131,7 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model]
     recipe:
-      shell: python src/evaluate.py
+      command: python src/evaluate.py
 
   - id: confusion_matrix
     type: figure
@@ -139,7 +139,7 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model]
     recipe:
-      shell: python src/evaluate.py
+      command: python src/evaluate.py
 
 decisions:
   scaling:
@@ -330,7 +330,7 @@ Runners materialize the upstream inputs, surface the resolved input map and acti
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `shell` | `string` | **Yes** | POSIX shell command (e.g., `python src/train.py`, `Rscript analysis.R`) |
+| `command` | `string` | **Yes** | POSIX shell command (e.g., `python src/train.py`, `Rscript analysis.R`) |
 | `resources` | `Resources` | No | Compute requirements |
 | `container` | `string` | No | Container image name or path to a Containerfile |
 
@@ -344,9 +344,9 @@ Runners materialize the upstream inputs, surface the resolved input map and acti
 | `disk` | `string` | Disk with units (e.g., `"10Gi"`) |
 | `gpus` | `integer` | Number of GPUs (min: 1) |
 
-#### Shell template substitution
+#### Command template substitution
 
-The `shell:` string is a template. Runners substitute `{...}` placeholders before invoking the command. The substitution surface is *typed* by the Output's declarations: every placeholder must resolve to a declared input, decision, or param.
+The `command:` string is a template. Runners substitute `{...}` placeholders before invoking it. The substitution surface is *typed* by the Output's declarations: every placeholder must resolve to a declared input, decision, or param.
 
 | Placeholder | Resolves to | Source |
 |---|---|---|
@@ -358,7 +358,7 @@ The `shell:` string is a template. Runners substitute `{...}` placeholders befor
 
 Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.
 
-Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the shell string. There is no separate `params` channel because varying values are decisions and constants are just shell text.
+Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the command string. There is no separate `params` channel because varying values are decisions and constants are just command text.
 
 **Example:**
 
@@ -368,7 +368,7 @@ Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the shell st
   inputs: [training_data, features]
   decisions: [classifier, seed]
   recipe:
-    shell: >-
+    command: >-
       python src/classify.py
       --train {inputs.training_data}
       --features {inputs.features}
@@ -383,7 +383,7 @@ Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the shell st
       time_limit: "30m"
 ```
 
-A runner materializes `training_data` and `features`, picks output paths, expands the template, and invokes the shell. If a universe selects `classifier=svm`, the command becomes `python src/classify.py --train ... --classifier svm --seed 42 --max-iter 1000 --out ...`.
+A runner materializes `training_data` and `features`, picks output paths, expands the template, and invokes the command. If a universe selects `classifier=svm`, the command becomes `python src/classify.py --train ... --classifier svm --seed 42 --max-iter 1000 --out ...`.
 
 A node-level `container` field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., `python:3.9`, `ghcr.io/org/img:latest`) are pulled as pre-built images; file paths (e.g., `Containerfile`, `containers/Dockerfile`) are built from source.
 
@@ -434,7 +434,7 @@ analyses:
         type: data
         decisions: [method, seed]
         recipe:
-          shell: python src/extract_features.py
+          command: python src/extract_features.py
     decisions:
       seed:
         from: ../random_seed               # Parent decision reference
@@ -459,7 +459,7 @@ analyses:
         type: metric
         decisions: [classifier]
         recipe:
-          shell: python src/evaluate.py
+          command: python src/evaluate.py
           resources:
             cpus: 4
             memory: "32Gi"
@@ -752,7 +752,7 @@ outputs:
     when:
       - method.neural_net     # Only produced for neural net runs
     recipe:
-      shell: python src/plot_scatter.py
+      command: python src/plot_scatter.py
 ```
 
 ### Negation

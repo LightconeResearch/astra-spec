@@ -49,7 +49,7 @@ outputs:
     inputs:
       - redshift_estimates
     recipe:
-      shell: python src/evaluate.py --metric bias
+      command: python src/evaluate.py --metric bias
   - id: redshift_estimates
     type: data
     description: Redshift point estimates and PDFs
@@ -57,7 +57,7 @@ outputs:
       - method
       - training_split
     recipe:
-      shell: >-
+      command: >-
         python src/predict.py
         --method {decisions.method}
         --split {decisions.training_split}
@@ -74,7 +74,7 @@ outputs:
     when:
       - method.neural_net
     recipe:
-      shell: python src/plot_scatter.py
+      command: python src/plot_scatter.py
 decisions:
   method:
     label: Redshift estimation method
@@ -184,7 +184,7 @@ analyses:
         decisions:
           - cal_method
         recipe:
-          shell: python src/calibrate.py
+          command: python src/calibrate.py
     decisions:
       cal_method:
         label: Calibration method

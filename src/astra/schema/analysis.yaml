@@ -208,7 +208,7 @@ classes:
   Recipe:
     description: >-
       A build rule that produces an output. A recipe is pure *how*:
-      a `shell` command and the execution context
+      a `command` to invoke and the execution context
       (`resources`, `container`).
 
       Recipes do not declare what the output depends on. Provenance
@@ -216,16 +216,16 @@ classes:
       activation conditions — is declared on the parent Output
       (`inputs`, `decisions`, `when`). Runners surface the resolved
       input map and active decision values to the recipe via
-      `{...}` template substitution (see `shell`).
+      `{...}` template substitution (see `command`).
     attributes:
-      shell:
+      command:
         description: >-
           POSIX shell command to execute (e.g.,
           'python src/train.py', 'Rscript analysis.R',
           'julia model.jl'). Any executable invocation is fine.
 
           The command is a template. Runners substitute these
-          placeholders before invoking the shell:
+          placeholders before invoking it:
 
             {inputs.<id>}     -- path to the named upstream input
                                  (must be declared in Output.inputs)
@@ -243,7 +243,7 @@ classes:
           Static constants belong inline in the command (e.g.,
           '--max-iter 1000'); there is no separate `params` channel
           because varying values are decisions and constants are
-          just shell text.
+          just command text.
       resources:
         range: Resources
         inlined: true

@@ -47,7 +47,7 @@ outputs:
     description: Best performing classifier
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      shell: python src/train.py
+      command: python src/train.py
 
   - id: accuracy
     type: metric
@@ -55,7 +55,7 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      shell: python src/evaluate.py
+      command: python src/evaluate.py
 
   - id: f1_score
     type: metric
@@ -63,7 +63,7 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      shell: python src/evaluate.py
+      command: python src/evaluate.py
 
   - id: confusion_matrix
     type: figure
@@ -71,7 +71,7 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      shell: python src/evaluate.py
+      command: python src/evaluate.py
 
   - id: model_comparison
     type: table
@@ -79,14 +79,14 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      shell: python src/evaluate.py
+      command: python src/evaluate.py
 
   - id: conclusion
     type: report
     description: Summary of classifier performance and suitability for the application
     inputs: [trained_output]
     recipe:
-      shell: python src/evaluate.py
+      command: python src/evaluate.py
 
 decisions:
   scaling:
