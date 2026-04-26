@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://astra-spec.org/elements/mem_mb/">
+        <link rel="canonical" href="https://astra-spec.org/elements/disk/">
       
       
       
@@ -21,7 +21,7 @@
     
     
       
-        <title>Slot: mem_mb - ASTRA</title>
+        <title>Slot: disk - ASTRA</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slot-mem_mb" class="md-skip">
+        <a href="#slot-disk" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Slot: mem_mb
+              Slot: disk
             
           </span>
         </div>
@@ -409,17 +409,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#value-constraints" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Value Constraints
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -496,10 +485,10 @@
   
 
 
-<h1 id="slot-mem_mb">Slot: mem_mb</h1>
-<p><em>Memory requirement in megabytes</em></p>
-<p>URI: <a href="https://w3id.org/ASTRA/mem_mb">astra:mem_mb</a>
-Alias: mem_mb</p>
+<h1 id="slot-disk">Slot: disk</h1>
+<p><em>Disk requirement as a string with units (e.g., '10Gi', '500Mi').</em></p>
+<p>URI: <a href="https://w3id.org/ASTRA/disk">astra:disk</a>
+Alias: disk</p>
 <!-- no inheritance hierarchy -->
 
 <h2 id="applicable-classes">Applicable Classes</h2>
@@ -531,7 +520,7 @@ Alias: mem_mb</p>
 <tbody>
 <tr>
 <td>Range</td>
-<td><a href="../Integer/">Integer</a></td>
+<td><a href="../String/">String</a></td>
 </tr>
 <tr>
 <td>Domain Of</td>
@@ -568,21 +557,6 @@ Alias: mem_mb</p>
 </tr>
 </tbody>
 </table>
-<h3 id="value-constraints">Value Constraints</h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Minimum Value</td>
-<td>1</td>
-</tr>
-</tbody>
-</table>
 <h2 id="identifier-and-mapping-information">Identifier and Mapping Information</h2>
 <h3 id="schema-source">Schema Source</h3>
 <ul>
@@ -599,26 +573,25 @@ Alias: mem_mb</p>
 <tbody>
 <tr>
 <td>self</td>
-<td>astra:mem_mb</td>
+<td>astra:disk</td>
 </tr>
 <tr>
 <td>native</td>
-<td>astra:mem_mb</td>
+<td>astra:disk</td>
 </tr>
 </tbody>
 </table>
 <h2 id="linkml-source">LinkML Source</h2>
 <details>
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mem_mb</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Memory requirement in megabytes</span>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">disk</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Disk requirement as a string with units (e.g., &#39;10Gi&#39;, &#39;500Mi&#39;).</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mem_mb</span>
+<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">disk</span>
 <span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resources</span>
 <span class="nt">domain_of</span><span class="p">:</span>
 <span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resources</span>
-<span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
-<span class="nt">minimum_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div>
 </details>
 

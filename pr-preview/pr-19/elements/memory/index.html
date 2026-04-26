@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://astra-spec.org/elements/conda/">
+        <link rel="canonical" href="https://astra-spec.org/elements/memory/">
       
       
       
@@ -21,7 +21,7 @@
     
     
       
-        <title>Slot: conda - ASTRA</title>
+        <title>Slot: memory - ASTRA</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slot-conda" class="md-skip">
+        <a href="#slot-memory" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Slot: conda
+              Slot: memory
             
           </span>
         </div>
@@ -485,10 +485,10 @@
   
 
 
-<h1 id="slot-conda">Slot: conda</h1>
-<p><em>Path to a Conda environment YAML file. Provides an alternative to <code>container</code> for environment specification.</em></p>
-<p>URI: <a href="https://w3id.org/ASTRA/conda">astra:conda</a>
-Alias: conda</p>
+<h1 id="slot-memory">Slot: memory</h1>
+<p><em>Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').</em></p>
+<p>URI: <a href="https://w3id.org/ASTRA/memory">astra:memory</a>
+Alias: memory</p>
 <!-- no inheritance hierarchy -->
 
 <h2 id="applicable-classes">Applicable Classes</h2>
@@ -502,8 +502,8 @@ Alias: conda</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="../Recipe/">Recipe</a></td>
-<td>A build rule that produces an output</td>
+<td><a href="../Resources/">Resources</a></td>
+<td>Compute resource requirements for a recipe</td>
 <td>no</td>
 </tr>
 </tbody>
@@ -524,7 +524,7 @@ Alias: conda</p>
 </tr>
 <tr>
 <td>Domain Of</td>
-<td><a href="../Recipe/">Recipe</a></td>
+<td><a href="../Resources/">Resources</a></td>
 </tr>
 </tbody>
 </table>
@@ -553,7 +553,7 @@ Alias: conda</p>
 <tbody>
 <tr>
 <td>Owner</td>
-<td><a href="../Recipe/">Recipe</a></td>
+<td><a href="../Resources/">Resources</a></td>
 </tr>
 </tbody>
 </table>
@@ -573,25 +573,24 @@ Alias: conda</p>
 <tbody>
 <tr>
 <td>self</td>
-<td>astra:conda</td>
+<td>astra:memory</td>
 </tr>
 <tr>
 <td>native</td>
-<td>astra:conda</td>
+<td>astra:memory</td>
 </tr>
 </tbody>
 </table>
 <h2 id="linkml-source">LinkML Source</h2>
 <details>
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">conda</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Path to a Conda environment YAML file. Provides an alternative to `container`</span>
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">for environment specification.</span>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">memory</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Memory requirement as a string with units (e.g., &#39;16Gi&#39;, &#39;512Mi&#39;, &#39;8GB&#39;).</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">conda</span>
-<span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
+<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">memory</span>
+<span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resources</span>
 <span class="nt">domain_of</span><span class="p">:</span>
-<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resources</span>
 <span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div>
 </details>

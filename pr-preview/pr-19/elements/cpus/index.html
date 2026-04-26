@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://astra-spec.org/elements/disk_mb/">
+        <link rel="canonical" href="https://astra-spec.org/elements/cpus/">
       
       
       
@@ -21,7 +21,7 @@
     
     
       
-        <title>Slot: disk_mb - ASTRA</title>
+        <title>Slot: cpus - ASTRA</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slot-disk_mb" class="md-skip">
+        <a href="#slot-cpus" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Slot: disk_mb
+              Slot: cpus
             
           </span>
         </div>
@@ -496,10 +496,10 @@
   
 
 
-<h1 id="slot-disk_mb">Slot: disk_mb</h1>
-<p><em>Disk requirement in megabytes</em></p>
-<p>URI: <a href="https://w3id.org/ASTRA/disk_mb">astra:disk_mb</a>
-Alias: disk_mb</p>
+<h1 id="slot-cpus">Slot: cpus</h1>
+<p><em>CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.</em></p>
+<p>URI: <a href="https://w3id.org/ASTRA/cpus">astra:cpus</a>
+Alias: cpus</p>
 <!-- no inheritance hierarchy -->
 
 <h2 id="applicable-classes">Applicable Classes</h2>
@@ -531,7 +531,7 @@ Alias: disk_mb</p>
 <tbody>
 <tr>
 <td>Range</td>
-<td><a href="../Integer/">Integer</a></td>
+<td><a href="../Float/">Float</a></td>
 </tr>
 <tr>
 <td>Domain Of</td>
@@ -579,7 +579,7 @@ Alias: disk_mb</p>
 <tbody>
 <tr>
 <td>Minimum Value</td>
-<td>1</td>
+<td>0</td>
 </tr>
 </tbody>
 </table>
@@ -599,26 +599,27 @@ Alias: disk_mb</p>
 <tbody>
 <tr>
 <td>self</td>
-<td>astra:disk_mb</td>
+<td>astra:cpus</td>
 </tr>
 <tr>
 <td>native</td>
-<td>astra:disk_mb</td>
+<td>astra:cpus</td>
 </tr>
 </tbody>
 </table>
 <h2 id="linkml-source">LinkML Source</h2>
 <details>
-<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">disk_mb</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Disk requirement in megabytes</span>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpus</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">that support CPU shares.</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">disk_mb</span>
+<span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpus</span>
 <span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resources</span>
 <span class="nt">domain_of</span><span class="p">:</span>
 <span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resources</span>
-<span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
-<span class="nt">minimum_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float</span>
+<span class="nt">minimum_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
 </code></pre></div>
 </details>
 

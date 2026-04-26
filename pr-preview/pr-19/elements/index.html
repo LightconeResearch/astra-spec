@@ -657,12 +657,12 @@ decision points, evidence-backed insights, and universe specifications.</p>
 <td>What we learned (1-2 sentences)</td>
 </tr>
 <tr>
-<td><a href="conda/">conda</a></td>
-<td>Path to a Conda environment YAML file</td>
-</tr>
-<tr>
 <td><a href="container/">container</a></td>
 <td>Container image name or path to a Containerfile</td>
+</tr>
+<tr>
+<td><a href="cpus/">cpus</a></td>
+<td>CPU cores requested</td>
 </tr>
 <tr>
 <td><a href="created_at/">created_at</a></td>
@@ -689,8 +689,8 @@ decision points, evidence-backed insights, and universe specifications.</p>
 <td>Description of the input</td>
 </tr>
 <tr>
-<td><a href="disk_mb/">disk_mb</a></td>
-<td>Disk requirement in megabytes</td>
+<td><a href="disk/">disk</a></td>
+<td>Disk requirement as a string with units (e</td>
 </tr>
 <tr>
 <td><a href="doi/">doi</a></td>
@@ -753,12 +753,8 @@ decision points, evidence-backed insights, and universe specifications.</p>
 <td>Location hint (page number for PDFs/reports)</td>
 </tr>
 <tr>
-<td><a href="log/">log</a></td>
-<td>Path (or path template) where the runner should write the recipe's stdout/std...</td>
-</tr>
-<tr>
-<td><a href="mem_mb/">mem_mb</a></td>
-<td>Memory requirement in megabytes</td>
+<td><a href="memory/">memory</a></td>
+<td>Memory requirement as a string with units (e</td>
 </tr>
 <tr>
 <td><a href="methods/">methods</a></td>
@@ -834,23 +830,15 @@ decision points, evidence-backed insights, and universe specifications.</p>
 </tr>
 <tr>
 <td><a href="resources/">resources</a></td>
-<td>Compute resource requirements (mem_mb, runtime, …)</td>
-</tr>
-<tr>
-<td><a href="runtime/">runtime</a></td>
-<td>Maximum wall time in minutes</td>
+<td>Compute resource requirements (cpus, memory, time_limit, …)</td>
 </tr>
 <tr>
 <td><a href="scope/">scope</a></td>
 <td>Applicability conditions</td>
 </tr>
 <tr>
-<td><a href="script/">script</a></td>
-<td>Path to a script file to execute</td>
-</tr>
-<tr>
 <td><a href="shell/">shell</a></td>
-<td>Shell command to execute (e</td>
+<td>POSIX shell command to execute (e</td>
 </tr>
 <tr>
 <td><a href="snapshot/">snapshot</a></td>
@@ -877,8 +865,8 @@ decision points, evidence-backed insights, and universe specifications.</p>
 <td>Tags for grouping and categorizing</td>
 </tr>
 <tr>
-<td><a href="threads/">threads</a></td>
-<td>Number of threads (Snakemake-equivalent CPU count)</td>
+<td><a href="time_limit/">time_limit</a></td>
+<td>Maximum wall time as a duration string (e</td>
 </tr>
 <tr>
 <td><a href="type/">type</a></td>

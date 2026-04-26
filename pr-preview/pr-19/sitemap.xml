@@ -185,11 +185,11 @@
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
-         <loc>https://astra-spec.org/elements/conda/</loc>
+         <loc>https://astra-spec.org/elements/container/</loc>
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
-         <loc>https://astra-spec.org/elements/container/</loc>
+         <loc>https://astra-spec.org/elements/cpus/</loc>
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
@@ -217,7 +217,7 @@
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
-         <loc>https://astra-spec.org/elements/disk_mb/</loc>
+         <loc>https://astra-spec.org/elements/disk/</loc>
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
@@ -281,11 +281,7 @@
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
-         <loc>https://astra-spec.org/elements/log/</loc>
-         <lastmod>2026-04-26</lastmod>
-    </url>
-    <url>
-         <loc>https://astra-spec.org/elements/mem_mb/</loc>
+         <loc>https://astra-spec.org/elements/memory/</loc>
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
@@ -365,15 +361,7 @@
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
-         <loc>https://astra-spec.org/elements/runtime/</loc>
-         <lastmod>2026-04-26</lastmod>
-    </url>
-    <url>
          <loc>https://astra-spec.org/elements/scope/</loc>
-         <lastmod>2026-04-26</lastmod>
-    </url>
-    <url>
-         <loc>https://astra-spec.org/elements/script/</loc>
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
@@ -405,7 +393,7 @@
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>
-         <loc>https://astra-spec.org/elements/threads/</loc>
+         <loc>https://astra-spec.org/elements/time_limit/</loc>
          <lastmod>2026-04-26</lastmod>
     </url>
     <url>

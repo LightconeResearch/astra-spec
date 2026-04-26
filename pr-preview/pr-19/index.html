@@ -2072,8 +2072,8 @@ analyses options   content     narrative
 </tbody>
 </table>
 <h3 id="recipes">Recipes</h3>
-<p>A <code>Recipe</code> is an inline build rule on an Output. Recipe field names mirror Snakemake's rule grammar — <code>shell</code>, <code>script</code>, <code>params</code>, <code>threads</code>, <code>resources</code>, <code>container</code>, <code>conda</code>, <code>log</code> — so an ASTRA recipe maps cleanly onto established workflow vocabulary.</p>
-<p>ASTRA is asset-centric: the <em>Output</em> declares what it depends on (<code>inputs</code>, <code>decisions</code>) and when it's active (<code>when</code>). The recipe is pure <em>how</em>: it does not redeclare provenance. Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (Snakemake-style <code>{input.x}</code> substitution, env vars, sidecar JSON — runner's choice), and invoke the command.</p>
+<p>A <code>Recipe</code> is an inline build rule on an Output. ASTRA is asset-centric: the <em>Output</em> declares what it depends on (<code>inputs</code>, <code>decisions</code>) and when it's active (<code>when</code>). The recipe is pure <em>how</em> — a POSIX shell command plus the execution context. It does not redeclare provenance.</p>
+<p>Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (<code>{input.x}</code> substitution, env vars, sidecar JSON — runner's choice), and invoke the command.</p>
 <table>
 <thead>
 <tr>
@@ -2087,26 +2087,14 @@ analyses options   content     narrative
 <tr>
 <td><code>shell</code></td>
 <td><code>string</code></td>
-<td>One of <code>shell</code>/<code>script</code></td>
-<td>Shell command to execute</td>
-</tr>
-<tr>
-<td><code>script</code></td>
-<td><code>string</code></td>
-<td>One of <code>shell</code>/<code>script</code></td>
-<td>Path to a script file</td>
+<td><strong>Yes</strong></td>
+<td>POSIX shell command (e.g., <code>python src/train.py</code>, <code>Rscript analysis.R</code>)</td>
 </tr>
 <tr>
 <td><code>params</code></td>
 <td><code>map[string, string]</code></td>
 <td>No</td>
 <td>Static parameters made available to the recipe body</td>
-</tr>
-<tr>
-<td><code>threads</code></td>
-<td><code>integer</code></td>
-<td>No</td>
-<td>Thread/CPU count (min: 1)</td>
 </tr>
 <tr>
 <td><code>resources</code></td>
@@ -2120,21 +2108,9 @@ analyses options   content     narrative
 <td>No</td>
 <td>Container image name or path to a Containerfile</td>
 </tr>
-<tr>
-<td><code>conda</code></td>
-<td><code>string</code></td>
-<td>No</td>
-<td>Path to a Conda environment YAML file</td>
-</tr>
-<tr>
-<td><code>log</code></td>
-<td><code>string</code></td>
-<td>No</td>
-<td>Path (or template) for stdout/stderr capture</td>
-</tr>
 </tbody>
 </table>
-<p><strong>Resources</strong> (Snakemake-conventional keys):</p>
+<p><strong>Resources</strong> (cloud-native conventions):</p>
 <table>
 <thead>
 <tr>
@@ -2145,19 +2121,24 @@ analyses options   content     narrative
 </thead>
 <tbody>
 <tr>
-<td><code>mem_mb</code></td>
-<td><code>integer</code></td>
-<td>Memory requirement in megabytes</td>
+<td><code>cpus</code></td>
+<td><code>number</code></td>
+<td>CPU cores (fractional values allowed for runners that support shares)</td>
 </tr>
 <tr>
-<td><code>runtime</code></td>
-<td><code>integer</code></td>
-<td>Maximum wall time in minutes</td>
+<td><code>memory</code></td>
+<td><code>string</code></td>
+<td>Memory with units (e.g., <code>"16Gi"</code>, <code>"512Mi"</code>, <code>"8GB"</code>)</td>
 </tr>
 <tr>
-<td><code>disk_mb</code></td>
-<td><code>integer</code></td>
-<td>Disk requirement in megabytes</td>
+<td><code>time_limit</code></td>
+<td><code>string</code></td>
+<td>Wall-time duration (e.g., <code>"2h"</code>, <code>"30m"</code>, <code>"1h30m"</code>)</td>
+</tr>
+<tr>
+<td><code>disk</code></td>
+<td><code>string</code></td>
+<td>Disk with units (e.g., <code>"10Gi"</code>)</td>
 </tr>
 <tr>
 <td><code>gpus</code></td>
@@ -2320,11 +2301,11 @@ analyses options   content     narrative
 <span class="w">        </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">classifier</span><span class="p p-Indicator">]</span>
 <span class="w">        </span><span class="nt">recipe</span><span class="p">:</span>
 <span class="w">          </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/evaluate.py</span>
-<span class="w">          </span><span class="nt">threads</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
 <span class="w">          </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">cpus</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<span class="w">            </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;32Gi&quot;</span>
+<span class="w">            </span><span class="nt">time_limit</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1h&quot;</span>
 <span class="w">            </span><span class="nt">gpus</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
-<span class="w">            </span><span class="nt">mem_mb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32000</span>
-<span class="w">            </span><span class="nt">runtime</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
 <span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">classifier</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Classifier</span>

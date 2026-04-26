@@ -1209,24 +1209,10 @@
         },
         "Recipe": {
             "additionalProperties": false,
-            "description": "A build rule that produces an output. Recipes follow Snakemake's rule grammar: `shell` or `script` defines the work, `params` carries static parameters, and `threads` / `resources` / `container` / `conda` / `log` describe the execution context.\nRecipes are pure *how*: they do not declare what the output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization, and activation conditions \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON \u2014 runner's choice).",
+            "description": "A build rule that produces an output. A recipe is pure *how*: a `shell` command, optional `params`, and the execution context (`resources`, `container`).\nRecipes do not declare what the output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization, and activation conditions \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe (`{input.x}` substitution, env vars, sidecar JSON \u2014 runner's choice).",
             "properties": {
-                "conda": {
-                    "description": "Path to a Conda environment YAML file. Provides an alternative to `container` for environment specification.",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
                 "container": {
                     "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "log": {
-                    "description": "Path (or path template) where the runner should write the recipe's stdout/stderr.",
                     "type": [
                         "string",
                         "null"
@@ -1244,7 +1230,7 @@
                             }
                         ]
                     },
-                    "description": "Static parameters made available to the recipe body. Values are strings; runners decide how to surface them (Snakemake `{params.x}` substitution, env vars, etc.).",
+                    "description": "Static parameters made available to the recipe body. Values are strings; runners decide how to surface them (`{params.x}` substitution, env vars, etc.).",
                     "type": [
                         "object",
                         "null"
@@ -1259,27 +1245,12 @@
                             "type": "null"
                         }
                     ],
-                    "description": "Compute resource requirements (mem_mb, runtime, \u2026)"
-                },
-                "script": {
-                    "description": "Path to a script file to execute. Mutually exclusive with `shell`.",
-                    "type": [
-                        "string",
-                        "null"
-                    ]
+                    "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
                 },
                 "shell": {
-                    "description": "Shell command to execute (e.g., 'python src/train.py'). Mutually exclusive with `script`.",
+                    "description": "POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.",
                     "type": [
                         "string",
-                        "null"
-                    ]
-                },
-                "threads": {
-                    "description": "Number of threads (Snakemake-equivalent CPU count)",
-                    "minimum": 1,
-                    "type": [
-                        "integer",
                         "null"
                     ]
                 }
@@ -1289,13 +1260,20 @@
         },
         "Resources": {
             "additionalProperties": false,
-            "description": "Compute resource requirements for a recipe. Field names follow Snakemake's `resources:` conventions so that cluster executors (SLURM, Kubernetes, etc.) can consume them without remapping.",
+            "description": "Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.",
             "properties": {
-                "disk_mb": {
-                    "description": "Disk requirement in megabytes",
-                    "minimum": 1,
+                "cpus": {
+                    "description": "CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.",
+                    "minimum": 0,
                     "type": [
-                        "integer",
+                        "number",
+                        "null"
+                    ]
+                },
+                "disk": {
+                    "description": "Disk requirement as a string with units (e.g., '10Gi', '500Mi').",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -1307,19 +1285,17 @@
                         "null"
                     ]
                 },
-                "mem_mb": {
-                    "description": "Memory requirement in megabytes",
-                    "minimum": 1,
+                "memory": {
+                    "description": "Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').",
                     "type": [
-                        "integer",
+                        "string",
                         "null"
                     ]
                 },
-                "runtime": {
-                    "description": "Maximum wall time in minutes",
-                    "minimum": 1,
+                "time_limit": {
+                    "description": "Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').",
                     "type": [
-                        "integer",
+                        "string",
                         "null"
                     ]
                 }

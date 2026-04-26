@@ -430,39 +430,49 @@ slots:
     domain_of:
     - Narrative
     range: string
-  resources__mem_mb:
-    name: resources__mem_mb
-    description: Memory requirement in megabytes
+  resources__cpus:
+    name: resources__cpus
+    description: CPU cores requested. Fractional values are allowed (e.g., 0.5) for
+      runners that support CPU shares.
     from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:mem_mb
-    alias: mem_mb
+    slot_uri: astra:cpus
+    alias: cpus
     owner: Resources
     domain_of:
     - Resources
-    range: integer
-    minimum_value: 1
-  resources__runtime:
-    name: resources__runtime
-    description: Maximum wall time in minutes
+    range: float
+    minimum_value: 0
+  resources__memory:
+    name: resources__memory
+    description: Memory requirement as a string with units (e.g., '16Gi', '512Mi',
+      '8GB').
     from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:runtime
-    alias: runtime
+    slot_uri: astra:memory
+    alias: memory
     owner: Resources
     domain_of:
     - Resources
-    range: integer
-    minimum_value: 1
-  resources__disk_mb:
-    name: resources__disk_mb
-    description: Disk requirement in megabytes
+    range: string
+  resources__time_limit:
+    name: resources__time_limit
+    description: Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').
     from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:disk_mb
-    alias: disk_mb
+    slot_uri: astra:time_limit
+    alias: time_limit
     owner: Resources
     domain_of:
     - Resources
-    range: integer
-    minimum_value: 1
+    range: string
+  resources__disk:
+    name: resources__disk
+    description: Disk requirement as a string with units (e.g., '10Gi', '500Mi').
+    from_schema: https://w3id.org/ASTRA/analysis
+    slot_uri: astra:disk
+    alias: disk
+    owner: Resources
+    domain_of:
+    - Resources
+    range: string
   resources__gpus:
     name: resources__gpus
     description: Number of GPUs
@@ -476,8 +486,8 @@ slots:
     minimum_value: 1
   recipe__shell:
     name: recipe__shell
-    description: Shell command to execute (e.g., 'python src/train.py'). Mutually
-      exclusive with `script`.
+    description: POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript
+      analysis.R', 'julia model.jl'). Any executable invocation is fine.
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:shell
     alias: shell
@@ -485,21 +495,10 @@ slots:
     domain_of:
     - Recipe
     range: string
-  recipe__script:
-    name: recipe__script
-    description: Path to a script file to execute. Mutually exclusive with `shell`.
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:script
-    alias: script
-    owner: Recipe
-    domain_of:
-    - Recipe
-    range: string
   recipe__params:
     name: recipe__params
     description: Static parameters made available to the recipe body. Values are strings;
-      runners decide how to surface them (Snakemake `{params.x}` substitution, env
-      vars, etc.).
+      runners decide how to surface them (`{params.x}` substitution, env vars, etc.).
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:params
     alias: params
@@ -510,20 +509,9 @@ slots:
     multivalued: true
     inlined: true
     inlined_as_list: false
-  recipe__threads:
-    name: recipe__threads
-    description: Number of threads (Snakemake-equivalent CPU count)
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:threads
-    alias: threads
-    owner: Recipe
-    domain_of:
-    - Recipe
-    range: integer
-    minimum_value: 1
   recipe__resources:
     name: recipe__resources
-    description: "Compute resource requirements (mem_mb, runtime, \u2026)"
+    description: "Compute resource requirements (cpus, memory, time_limit, \u2026)"
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:resources
     alias: resources
@@ -541,28 +529,6 @@ slots:
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:container
     alias: container
-    owner: Recipe
-    domain_of:
-    - Recipe
-    range: string
-  recipe__conda:
-    name: recipe__conda
-    description: Path to a Conda environment YAML file. Provides an alternative to
-      `container` for environment specification.
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:conda
-    alias: conda
-    owner: Recipe
-    domain_of:
-    - Recipe
-    range: string
-  recipe__log:
-    name: recipe__log
-    description: Path (or path template) where the runner should write the recipe's
-      stdout/stderr.
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:log
-    alias: log
     owner: Recipe
     domain_of:
     - Recipe
@@ -1571,31 +1537,33 @@ classes:
   Resources:
     name: Resources
     definition_uri: https://w3id.org/ASTRA/Resources
-    description: Compute resource requirements for a recipe. Field names follow Snakemake's
-      `resources:` conventions so that cluster executors (SLURM, Kubernetes, etc.)
-      can consume them without remapping.
+    description: Compute resource requirements for a recipe. Values follow cloud-native
+      conventions (string-with-units for sized quantities) so cluster executors can
+      consume them directly.
     from_schema: https://w3id.org/ASTRA/analysis
     slots:
-    - resources__mem_mb
-    - resources__runtime
-    - resources__disk_mb
+    - resources__cpus
+    - resources__memory
+    - resources__time_limit
+    - resources__disk
     - resources__gpus
     attributes:
-      mem_mb:
-        name: mem_mb
-        description: Memory requirement in megabytes
-        range: integer
-        minimum_value: 1
-      runtime:
-        name: runtime
-        description: Maximum wall time in minutes
-        range: integer
-        minimum_value: 1
-      disk_mb:
-        name: disk_mb
-        description: Disk requirement in megabytes
-        range: integer
-        minimum_value: 1
+      cpus:
+        name: cpus
+        description: CPU cores requested. Fractional values are allowed (e.g., 0.5)
+          for runners that support CPU shares.
+        range: float
+        minimum_value: 0
+      memory:
+        name: memory
+        description: Memory requirement as a string with units (e.g., '16Gi', '512Mi',
+          '8GB').
+      time_limit:
+        name: time_limit
+        description: Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').
+      disk:
+        name: disk
+        description: Disk requirement as a string with units (e.g., '10Gi', '500Mi').
       gpus:
         name: gpus
         description: Number of GPUs
@@ -1605,49 +1573,36 @@ classes:
   Recipe:
     name: Recipe
     definition_uri: https://w3id.org/ASTRA/Recipe
-    description: "A build rule that produces an output. Recipes follow Snakemake's\
-      \ rule grammar: `shell` or `script` defines the work, `params` carries static\
-      \ parameters, and `threads` / `resources` / `container` / `conda` / `log` describe\
-      \ the execution context.\nRecipes are pure *how*: they do not declare what the\
-      \ output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization,\
-      \ and activation conditions \u2014 is declared on the parent Output (`inputs`,\
-      \ `decisions`, `when`). Runners surface the resolved input map and active decision\
-      \ values to the recipe (Snakemake-style `{input.x}` substitution, env vars,\
-      \ sidecar JSON \u2014 runner's choice)."
+    description: "A build rule that produces an output. A recipe is pure *how*: a\
+      \ `shell` command, optional `params`, and the execution context (`resources`,\
+      \ `container`).\nRecipes do not declare what the output depends on. Provenance\
+      \ \u2014 upstream inputs, decision-driven parameterization, and activation conditions\
+      \ \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners\
+      \ surface the resolved input map and active decision values to the recipe (`{input.x}`\
+      \ substitution, env vars, sidecar JSON \u2014 runner's choice)."
     from_schema: https://w3id.org/ASTRA/analysis
     slots:
     - recipe__shell
-    - recipe__script
     - recipe__params
-    - recipe__threads
     - recipe__resources
     - recipe__container
-    - recipe__conda
-    - recipe__log
     attributes:
       shell:
         name: shell
-        description: Shell command to execute (e.g., 'python src/train.py'). Mutually
-          exclusive with `script`.
-      script:
-        name: script
-        description: Path to a script file to execute. Mutually exclusive with `shell`.
+        description: POSIX shell command to execute (e.g., 'python src/train.py',
+          'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.
       params:
         name: params
         description: Static parameters made available to the recipe body. Values are
-          strings; runners decide how to surface them (Snakemake `{params.x}` substitution,
+          strings; runners decide how to surface them (`{params.x}` substitution,
           env vars, etc.).
         range: KeyValuePair
         multivalued: true
         inlined: true
-      threads:
-        name: threads
-        description: Number of threads (Snakemake-equivalent CPU count)
-        range: integer
-        minimum_value: 1
       resources:
         name: resources
-        description: "Compute resource requirements (mem_mb, runtime, \u2026)"
+        description: "Compute resource requirements (cpus, memory, time_limit, \u2026\
+          )"
         range: Resources
         inlined: true
       container:
@@ -1656,14 +1611,6 @@ classes:
           (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images;
           file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from
           source.
-      conda:
-        name: conda
-        description: Path to a Conda environment YAML file. Provides an alternative
-          to `container` for environment specification.
-      log:
-        name: log
-        description: Path (or path template) where the runner should write the recipe's
-          stdout/stderr.
     class_uri: astra:Recipe
   Input:
     name: Input
@@ -2229,7 +2176,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-26T11:15:57'
-source_file_size: 17686
-generation_date: '2026-04-26T11:16:02'
+source_file_date: '2026-04-26T11:22:27'
+source_file_size: 17263
+generation_date: '2026-04-26T11:22:30'
 

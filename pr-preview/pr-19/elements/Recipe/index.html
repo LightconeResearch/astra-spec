@@ -277,17 +277,13 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="class-recipe">Class: Recipe</h1>
-<p><em>A build rule that produces an output. Recipes follow Snakemake's rule grammar: <code>shell</code> or <code>script</code> defines the work, <code>params</code> carries static parameters, and <code>threads</code> / <code>resources</code> / <code>container</code> / <code>conda</code> / <code>log</code> describe the execution context.</em></p>
-<p><em>Recipes are pure <em>how</em>: they do not declare what the output depends on. Provenance — upstream inputs, decision-driven parameterization, and activation conditions — is declared on the parent Output (<code>inputs</code>, <code>decisions</code>, <code>when</code>). Runners surface the resolved input map and active decision values to the recipe (Snakemake-style <code>{input.x}</code> substitution, env vars, sidecar JSON — runner's choice).</em></p>
+<p><em>A build rule that produces an output. A recipe is pure <em>how</em>: a <code>shell</code> command, optional <code>params</code>, and the execution context (<code>resources</code>, <code>container</code>).</em></p>
+<p><em>Recipes do not declare what the output depends on. Provenance — upstream inputs, decision-driven parameterization, and activation conditions — is declared on the parent Output (<code>inputs</code>, <code>decisions</code>, <code>when</code>). Runners surface the resolved input map and active decision values to the recipe (<code>{input.x}</code> substitution, env vars, sidecar JSON — runner's choice).</em></p>
 <p>URI: <a href="https://w3id.org/ASTRA/Recipe">astra:Recipe</a></p>
 <pre class="mermaid"><code> classDiagram
     class Recipe
     click Recipe href "../Recipe/"
-      Recipe : conda
-
       Recipe : container
-
-      Recipe : log
 
       Recipe : params
 
@@ -311,11 +307,7 @@
 
 
 
-      Recipe : script
-
       Recipe : shell
-
-      Recipe : threads
 
 </code></pre>
 <!-- no inheritance hierarchy -->
@@ -333,13 +325,7 @@
 <tr>
 <td><a href="../shell/">shell</a></td>
 <td>0..1 <br/> <a href="../String/">String</a></td>
-<td>Shell command to execute (e</td>
-<td>direct</td>
-</tr>
-<tr>
-<td><a href="../script/">script</a></td>
-<td>0..1 <br/> <a href="../String/">String</a></td>
-<td>Path to a script file to execute</td>
+<td>POSIX shell command to execute (e</td>
 <td>direct</td>
 </tr>
 <tr>
@@ -349,33 +335,15 @@
 <td>direct</td>
 </tr>
 <tr>
-<td><a href="../threads/">threads</a></td>
-<td>0..1 <br/> <a href="../Integer/">Integer</a></td>
-<td>Number of threads (Snakemake-equivalent CPU count)</td>
-<td>direct</td>
-</tr>
-<tr>
 <td><a href="../resources/">resources</a></td>
 <td>0..1 <br/> <a href="../Resources/">Resources</a></td>
-<td>Compute resource requirements (mem_mb, runtime, …)</td>
+<td>Compute resource requirements (cpus, memory, time_limit, …)</td>
 <td>direct</td>
 </tr>
 <tr>
 <td><a href="../container/">container</a></td>
 <td>0..1 <br/> <a href="../String/">String</a></td>
 <td>Container image name or path to a Containerfile</td>
-<td>direct</td>
-</tr>
-<tr>
-<td><a href="../conda/">conda</a></td>
-<td>0..1 <br/> <a href="../String/">String</a></td>
-<td>Path to a Conda environment YAML file</td>
-<td>direct</td>
-</tr>
-<tr>
-<td><a href="../log/">log</a></td>
-<td>0..1 <br/> <a href="../String/">String</a></td>
-<td>Path (or path template) where the runner should write the recipe's stdout/std...</td>
 <td>direct</td>
 </tr>
 </tbody>
@@ -428,29 +396,20 @@
 <h3 id="direct">Direct</h3>
 <details>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'A</span><span class="nv"> </span><span class="s">build</span><span class="nv"> </span><span class="s">rule</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">produces</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">output.</span><span class="nv"> </span><span class="s">Recipes</span><span class="nv"> </span><span class="s">follow</span><span class="nv"> </span><span class="s">Snakemake</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">rule</span>
-<span class="w">  </span><span class="s">grammar:</span><span class="nv"> </span><span class="s">`shell`</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">`script`</span><span class="nv"> </span><span class="s">defines</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">work,</span><span class="nv"> </span><span class="s">`params`</span><span class="nv"> </span><span class="s">carries</span><span class="nv"> </span><span class="s">static</span><span class="nv"> </span><span class="s">parameters,</span>
-<span class="w">  </span><span class="s">and</span><span class="nv"> </span><span class="s">`threads`</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">`resources`</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">`container`</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">`conda`</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">`log`</span><span class="nv"> </span><span class="s">describe</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">execution</span>
-<span class="w">  </span><span class="s">context.</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'A</span><span class="nv"> </span><span class="s">build</span><span class="nv"> </span><span class="s">rule</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">produces</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">output.</span><span class="nv"> </span><span class="s">A</span><span class="nv"> </span><span class="s">recipe</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">pure</span><span class="nv"> </span><span class="s">*how*:</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">`shell`</span>
+<span class="w">  </span><span class="s">command,</span><span class="nv"> </span><span class="s">optional</span><span class="nv"> </span><span class="s">`params`,</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">execution</span><span class="nv"> </span><span class="s">context</span><span class="nv"> </span><span class="s">(`resources`,</span><span class="nv"> </span><span class="s">`container`).</span>
 
-<span class="w">  </span><span class="s">Recipes</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">pure</span><span class="nv"> </span><span class="s">*how*:</span><span class="nv"> </span><span class="s">they</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">declare</span><span class="nv"> </span><span class="s">what</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">depends</span><span class="nv"> </span><span class="s">on.</span><span class="nv"> </span><span class="s">Provenance</span>
-<span class="w">  </span><span class="s">—</span><span class="nv"> </span><span class="s">upstream</span><span class="nv"> </span><span class="s">inputs,</span><span class="nv"> </span><span class="s">decision-driven</span><span class="nv"> </span><span class="s">parameterization,</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">activation</span><span class="nv"> </span><span class="s">conditions</span><span class="nv"> </span><span class="s">—</span>
-<span class="w">  </span><span class="s">is</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">parent</span><span class="nv"> </span><span class="s">Output</span><span class="nv"> </span><span class="s">(`inputs`,</span><span class="nv"> </span><span class="s">`decisions`,</span><span class="nv"> </span><span class="s">`when`).</span><span class="nv"> </span><span class="s">Runners</span><span class="nv"> </span><span class="s">surface</span>
-<span class="w">  </span><span class="s">the</span><span class="nv"> </span><span class="s">resolved</span><span class="nv"> </span><span class="s">input</span><span class="nv"> </span><span class="s">map</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">decision</span><span class="nv"> </span><span class="s">values</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">recipe</span><span class="nv"> </span><span class="s">(Snakemake-style</span>
-<span class="w">  </span><span class="s">`{input.x}`</span><span class="nv"> </span><span class="s">substitution,</span><span class="nv"> </span><span class="s">env</span><span class="nv"> </span><span class="s">vars,</span><span class="nv"> </span><span class="s">sidecar</span><span class="nv"> </span><span class="s">JSON</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">runner</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">choice).'</span>
+<span class="w">  </span><span class="s">Recipes</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">declare</span><span class="nv"> </span><span class="s">what</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">depends</span><span class="nv"> </span><span class="s">on.</span><span class="nv"> </span><span class="s">Provenance</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">upstream</span><span class="nv"> </span><span class="s">inputs,</span>
+<span class="w">  </span><span class="s">decision-driven</span><span class="nv"> </span><span class="s">parameterization,</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">activation</span><span class="nv"> </span><span class="s">conditions</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">the</span>
+<span class="w">  </span><span class="s">parent</span><span class="nv"> </span><span class="s">Output</span><span class="nv"> </span><span class="s">(`inputs`,</span><span class="nv"> </span><span class="s">`decisions`,</span><span class="nv"> </span><span class="s">`when`).</span><span class="nv"> </span><span class="s">Runners</span><span class="nv"> </span><span class="s">surface</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">resolved</span><span class="nv"> </span><span class="s">input</span>
+<span class="w">  </span><span class="s">map</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">decision</span><span class="nv"> </span><span class="s">values</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">recipe</span><span class="nv"> </span><span class="s">(`{input.x}`</span><span class="nv"> </span><span class="s">substitution,</span><span class="nv"> </span><span class="s">env</span><span class="nv"> </span><span class="s">vars,</span>
+<span class="w">  </span><span class="s">sidecar</span><span class="nv"> </span><span class="s">JSON</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">runner</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">choice).'</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">attributes</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">shell</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shell</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Shell command to execute (e.g., 'python src/train.py'). Mutually</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">exclusive with `script`.</span>
-<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
-<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">  </span><span class="nt">script</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">script</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Path to a script file to execute. Mutually exclusive with `shell`.</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">analysis.R', 'julia model.jl'). Any executable invocation is fine.</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
@@ -458,8 +417,7 @@
 <span class="w">  </span><span class="nt">params</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">params</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Static parameters made available to the recipe body. Values are strings;</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">runners decide how to surface them (Snakemake `{params.x}` substitution, env</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">vars, etc.).</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">runners decide how to surface them (`{params.x}` substitution, env vars, etc.).</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
@@ -467,18 +425,9 @@
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyValuePair</span>
 <span class="w">    </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">    </span><span class="nt">inlined</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">threads</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">threads</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Number of threads (Snakemake-equivalent CPU count)</span>
-<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
-<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
-<span class="w">    </span><span class="nt">minimum_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">  </span><span class="nt">resources</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">resources</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Compute resource requirements (mem_mb, runtime, …)</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Compute resource requirements (cpus, memory, time_limit, …)</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
@@ -495,43 +444,25 @@
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Analysis</span>
-<span class="w">  </span><span class="nt">conda</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">conda</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Path to a Conda environment YAML file. Provides an alternative to</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">`container` for environment specification.</span>
-<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
-<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">  </span><span class="nt">log</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Path (or path template) where the runner should write the recipe's</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">stdout/stderr.</span>
-<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
-<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
 </code></pre></div>
 </details>
 <h3 id="induced">Induced</h3>
 <details>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'A</span><span class="nv"> </span><span class="s">build</span><span class="nv"> </span><span class="s">rule</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">produces</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">output.</span><span class="nv"> </span><span class="s">Recipes</span><span class="nv"> </span><span class="s">follow</span><span class="nv"> </span><span class="s">Snakemake</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">rule</span>
-<span class="w">  </span><span class="s">grammar:</span><span class="nv"> </span><span class="s">`shell`</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">`script`</span><span class="nv"> </span><span class="s">defines</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">work,</span><span class="nv"> </span><span class="s">`params`</span><span class="nv"> </span><span class="s">carries</span><span class="nv"> </span><span class="s">static</span><span class="nv"> </span><span class="s">parameters,</span>
-<span class="w">  </span><span class="s">and</span><span class="nv"> </span><span class="s">`threads`</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">`resources`</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">`container`</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">`conda`</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">`log`</span><span class="nv"> </span><span class="s">describe</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">execution</span>
-<span class="w">  </span><span class="s">context.</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'A</span><span class="nv"> </span><span class="s">build</span><span class="nv"> </span><span class="s">rule</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">produces</span><span class="nv"> </span><span class="s">an</span><span class="nv"> </span><span class="s">output.</span><span class="nv"> </span><span class="s">A</span><span class="nv"> </span><span class="s">recipe</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">pure</span><span class="nv"> </span><span class="s">*how*:</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">`shell`</span>
+<span class="w">  </span><span class="s">command,</span><span class="nv"> </span><span class="s">optional</span><span class="nv"> </span><span class="s">`params`,</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">execution</span><span class="nv"> </span><span class="s">context</span><span class="nv"> </span><span class="s">(`resources`,</span><span class="nv"> </span><span class="s">`container`).</span>
 
-<span class="w">  </span><span class="s">Recipes</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">pure</span><span class="nv"> </span><span class="s">*how*:</span><span class="nv"> </span><span class="s">they</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">declare</span><span class="nv"> </span><span class="s">what</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">depends</span><span class="nv"> </span><span class="s">on.</span><span class="nv"> </span><span class="s">Provenance</span>
-<span class="w">  </span><span class="s">—</span><span class="nv"> </span><span class="s">upstream</span><span class="nv"> </span><span class="s">inputs,</span><span class="nv"> </span><span class="s">decision-driven</span><span class="nv"> </span><span class="s">parameterization,</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">activation</span><span class="nv"> </span><span class="s">conditions</span><span class="nv"> </span><span class="s">—</span>
-<span class="w">  </span><span class="s">is</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">parent</span><span class="nv"> </span><span class="s">Output</span><span class="nv"> </span><span class="s">(`inputs`,</span><span class="nv"> </span><span class="s">`decisions`,</span><span class="nv"> </span><span class="s">`when`).</span><span class="nv"> </span><span class="s">Runners</span><span class="nv"> </span><span class="s">surface</span>
-<span class="w">  </span><span class="s">the</span><span class="nv"> </span><span class="s">resolved</span><span class="nv"> </span><span class="s">input</span><span class="nv"> </span><span class="s">map</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">decision</span><span class="nv"> </span><span class="s">values</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">recipe</span><span class="nv"> </span><span class="s">(Snakemake-style</span>
-<span class="w">  </span><span class="s">`{input.x}`</span><span class="nv"> </span><span class="s">substitution,</span><span class="nv"> </span><span class="s">env</span><span class="nv"> </span><span class="s">vars,</span><span class="nv"> </span><span class="s">sidecar</span><span class="nv"> </span><span class="s">JSON</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">runner</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">choice).'</span>
+<span class="w">  </span><span class="s">Recipes</span><span class="nv"> </span><span class="s">do</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">declare</span><span class="nv"> </span><span class="s">what</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">depends</span><span class="nv"> </span><span class="s">on.</span><span class="nv"> </span><span class="s">Provenance</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">upstream</span><span class="nv"> </span><span class="s">inputs,</span>
+<span class="w">  </span><span class="s">decision-driven</span><span class="nv"> </span><span class="s">parameterization,</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">activation</span><span class="nv"> </span><span class="s">conditions</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">declared</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">the</span>
+<span class="w">  </span><span class="s">parent</span><span class="nv"> </span><span class="s">Output</span><span class="nv"> </span><span class="s">(`inputs`,</span><span class="nv"> </span><span class="s">`decisions`,</span><span class="nv"> </span><span class="s">`when`).</span><span class="nv"> </span><span class="s">Runners</span><span class="nv"> </span><span class="s">surface</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">resolved</span><span class="nv"> </span><span class="s">input</span>
+<span class="w">  </span><span class="s">map</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">decision</span><span class="nv"> </span><span class="s">values</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">recipe</span><span class="nv"> </span><span class="s">(`{input.x}`</span><span class="nv"> </span><span class="s">substitution,</span><span class="nv"> </span><span class="s">env</span><span class="nv"> </span><span class="s">vars,</span>
+<span class="w">  </span><span class="s">sidecar</span><span class="nv"> </span><span class="s">JSON</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">runner</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">choice).'</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">attributes</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">shell</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shell</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Shell command to execute (e.g., 'python src/train.py'). Mutually</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">exclusive with `script`.</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">analysis.R', 'julia model.jl'). Any executable invocation is fine.</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">shell</span>
@@ -539,21 +470,10 @@
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<span class="w">  </span><span class="nt">script</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">script</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Path to a script file to execute. Mutually exclusive with `shell`.</span>
-<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
-<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">script</span>
-<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <span class="w">  </span><span class="nt">params</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">params</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Static parameters made available to the recipe body. Values are strings;</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">runners decide how to surface them (Snakemake `{params.x}` substitution, env</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">vars, etc.).</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">runners decide how to surface them (`{params.x}` substitution, env vars, etc.).</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">params</span>
@@ -563,20 +483,9 @@
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KeyValuePair</span>
 <span class="w">    </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">    </span><span class="nt">inlined</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">threads</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">threads</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Number of threads (Snakemake-equivalent CPU count)</span>
-<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
-<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">threads</span>
-<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
-<span class="w">    </span><span class="nt">minimum_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="w">  </span><span class="nt">resources</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">resources</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Compute resource requirements (mem_mb, runtime, …)</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Compute resource requirements (cpus, memory, time_limit, …)</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">resources</span>
@@ -597,28 +506,6 @@
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Analysis</span>
-<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<span class="w">  </span><span class="nt">conda</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">conda</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Path to a Conda environment YAML file. Provides an alternative to</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">`container` for environment specification.</span>
-<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
-<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">conda</span>
-<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-<span class="w">  </span><span class="nt">log</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Path (or path template) where the runner should write the recipe's</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">stdout/stderr.</span>
-<span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
-<span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-<span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">log</span>
-<span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
-<span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </code></pre></div>
 </details>
