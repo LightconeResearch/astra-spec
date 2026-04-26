@@ -495,19 +495,6 @@ slots:
     domain_of:
     - Recipe
     range: string
-  recipe__input:
-    name: recipe__input
-    description: Output IDs that must be materialized before this recipe runs. References
-      resolve to the upstream Output node; runners are responsible for translating
-      IDs into concrete paths.
-    from_schema: https://w3id.org/ASTRA/analysis
-    slot_uri: astra:input
-    alias: input
-    owner: Recipe
-    domain_of:
-    - Recipe
-    range: string
-    multivalued: true
   recipe__params:
     name: recipe__params
     description: Static parameters made available to the recipe body. Values are strings;
@@ -711,6 +698,22 @@ slots:
     domain_of:
     - Output
     range: string
+  output__inputs:
+    name: output__inputs
+    description: "IDs of upstream artifacts this output depends on. Each reference\
+      \ resolves to either an Input declared on the surrounding analysis (an external\
+      \ dataset/file/analysis) or a sibling Output (another artifact in scope). Runners\
+      \ materialize the upstream artifacts before invoking the recipe and surface\
+      \ the resolved input map to it (Snakemake-style `{input.x}` substitution, env\
+      \ vars, sidecar JSON \u2014 runner's choice)."
+    from_schema: https://w3id.org/ASTRA/analysis
+    slot_uri: astra:inputs
+    alias: inputs
+    owner: Output
+    domain_of:
+    - Output
+    range: string
+    multivalued: true
   output__decisions:
     name: output__decisions
     description: "Decision IDs (in the surrounding scope) that parameterize this output.\
@@ -731,7 +734,8 @@ slots:
     multivalued: true
   output__recipe:
     name: output__recipe
-    description: How to produce this output
+    description: How to produce this output (pure *how*; dependencies live on the
+      Output via `inputs`/`decisions`)
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:recipe
     alias: recipe
@@ -1601,19 +1605,19 @@ classes:
   Recipe:
     name: Recipe
     definition_uri: https://w3id.org/ASTRA/Recipe
-    description: 'A build rule that produces an output. Recipes follow Snakemake''s
-      rule grammar: `shell` or `script` defines the work, `input` lists upstream output
-      IDs, `params` carries static parameters, and `threads` / `resources` / `container`
-      / `conda` / `log` describe the execution context.
-
-      Decision-driven parameterization is declared on the parent Output via `decisions:`,
-      not here. The recipe describes how to build the output; the output declares
-      what it depends on.'
+    description: "A build rule that produces an output. Recipes follow Snakemake's\
+      \ rule grammar: `shell` or `script` defines the work, `params` carries static\
+      \ parameters, and `threads` / `resources` / `container` / `conda` / `log` describe\
+      \ the execution context.\nRecipes are pure *how*: they do not declare what the\
+      \ output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization,\
+      \ and activation conditions \u2014 is declared on the parent Output (`inputs`,\
+      \ `decisions`, `when`). Runners surface the resolved input map and active decision\
+      \ values to the recipe (Snakemake-style `{input.x}` substitution, env vars,\
+      \ sidecar JSON \u2014 runner's choice)."
     from_schema: https://w3id.org/ASTRA/analysis
     slots:
     - recipe__shell
     - recipe__script
-    - recipe__input
     - recipe__params
     - recipe__threads
     - recipe__resources
@@ -1628,12 +1632,6 @@ classes:
       script:
         name: script
         description: Path to a script file to execute. Mutually exclusive with `shell`.
-      input:
-        name: input
-        description: Output IDs that must be materialized before this recipe runs.
-          References resolve to the upstream Output node; runners are responsible
-          for translating IDs into concrete paths.
-        multivalued: true
       params:
         name: params
         description: Static parameters made available to the recipe body. Values are
@@ -1734,6 +1732,7 @@ classes:
     - output__label
     - output__type
     - output__description
+    - output__inputs
     - output__decisions
     - output__recipe
     slot_usage:
@@ -1758,6 +1757,15 @@ classes:
       description:
         name: description
         description: Description of the output
+      inputs:
+        name: inputs
+        description: "IDs of upstream artifacts this output depends on. Each reference\
+          \ resolves to either an Input declared on the surrounding analysis (an external\
+          \ dataset/file/analysis) or a sibling Output (another artifact in scope).\
+          \ Runners materialize the upstream artifacts before invoking the recipe\
+          \ and surface the resolved input map to it (Snakemake-style `{input.x}`\
+          \ substitution, env vars, sidecar JSON \u2014 runner's choice)."
+        multivalued: true
       decisions:
         name: decisions
         description: "Decision IDs (in the surrounding scope) that parameterize this\
@@ -1771,7 +1779,8 @@ classes:
         multivalued: true
       recipe:
         name: recipe
-        description: How to produce this output
+        description: How to produce this output (pure *how*; dependencies live on
+          the Output via `inputs`/`decisions`)
         range: Recipe
         inlined: true
     class_uri: astra:Output
@@ -2220,7 +2229,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-26T11:10:32'
-source_file_size: 17114
-generation_date: '2026-04-26T11:10:35'
+source_file_date: '2026-04-26T11:15:57'
+source_file_size: 17686
+generation_date: '2026-04-26T11:16:02'
 

@@ -1145,6 +1145,16 @@
                         "null"
                     ]
                 },
+                "inputs": {
+                    "description": "IDs of upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON \u2014 runner's choice).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "label": {
                     "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
                     "type": [
@@ -1161,7 +1171,7 @@
                             "type": "null"
                         }
                     ],
-                    "description": "How to produce this output"
+                    "description": "How to produce this output (pure *how*; dependencies live on the Output via `inputs`/`decisions`)"
                 },
                 "type": {
                     "$ref": "#/$defs/OutputType",
@@ -1199,7 +1209,7 @@
         },
         "Recipe": {
             "additionalProperties": false,
-            "description": "A build rule that produces an output. Recipes follow Snakemake's rule grammar: `shell` or `script` defines the work, `input` lists upstream output IDs, `params` carries static parameters, and `threads` / `resources` / `container` / `conda` / `log` describe the execution context.\nDecision-driven parameterization is declared on the parent Output via `decisions:`, not here. The recipe describes how to build the output; the output declares what it depends on.",
+            "description": "A build rule that produces an output. Recipes follow Snakemake's rule grammar: `shell` or `script` defines the work, `params` carries static parameters, and `threads` / `resources` / `container` / `conda` / `log` describe the execution context.\nRecipes are pure *how*: they do not declare what the output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization, and activation conditions \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON \u2014 runner's choice).",
             "properties": {
                 "conda": {
                     "description": "Path to a Conda environment YAML file. Provides an alternative to `container` for environment specification.",
@@ -1212,16 +1222,6 @@
                     "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
                     "type": [
                         "string",
-                        "null"
-                    ]
-                },
-                "input": {
-                    "description": "Output IDs that must be materialized before this recipe runs. References resolve to the upstream Output node; runners are responsible for translating IDs into concrete paths.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": [
-                        "array",
                         "null"
                     ]
                 },

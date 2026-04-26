@@ -1671,18 +1671,18 @@ Universe (decision selections)  ─────▶  Execution Parameters
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accuracy</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metric</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Classification accuracy on held-out test set</span>
+<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">trained_output</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">scaling</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">model</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/evaluate.py</span>
-<span class="w">      </span><span class="nt">input</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">trained_output</span><span class="p p-Indicator">]</span>
 
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">confusion_matrix</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">figure</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Confusion matrix heatmap</span>
+<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">trained_output</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">scaling</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">model</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/evaluate.py</span>
-<span class="w">      </span><span class="nt">input</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">trained_output</span><span class="p p-Indicator">]</span>
 
 <span class="nt">decisions</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">scaling</span><span class="p">:</span>
@@ -2015,6 +2015,12 @@ analyses options   content     narrative
 <td>Conditions for when this output is active (see <a href="#conditional-elements">Conditional Elements</a>)</td>
 </tr>
 <tr>
+<td><code>inputs</code></td>
+<td><code>string[]</code></td>
+<td>No</td>
+<td>Upstream artifact IDs this output depends on (Inputs or sibling Outputs)</td>
+</tr>
+<tr>
 <td><code>decisions</code></td>
 <td><code>string[]</code></td>
 <td>No</td>
@@ -2024,7 +2030,7 @@ analyses options   content     narrative
 <td><code>recipe</code></td>
 <td><code>Recipe</code></td>
 <td>No</td>
-<td>Inline build rule</td>
+<td>Inline build rule (pure <em>how</em>; dependencies live on the Output)</td>
 </tr>
 </tbody>
 </table>
@@ -2066,8 +2072,8 @@ analyses options   content     narrative
 </tbody>
 </table>
 <h3 id="recipes">Recipes</h3>
-<p>A <code>Recipe</code> is an inline build rule on an output. Recipe field names mirror Snakemake's rule grammar — <code>shell</code>, <code>input</code>, <code>params</code>, <code>threads</code>, <code>resources</code>, <code>container</code>, <code>conda</code>, <code>log</code> — so an ASTRA recipe maps cleanly onto established workflow vocabulary. Outputs with recipes form a DAG via their <code>input</code> field.</p>
-<p>ASTRA is a <em>specification</em> layer: it describes what to run, not how a runner delivers parameters. In particular, decision values are declared on the parent Output via <code>decisions:</code> (not on the recipe). Runners decide how to surface those values to the script (CLI flags, env vars, sidecar JSON).</p>
+<p>A <code>Recipe</code> is an inline build rule on an Output. Recipe field names mirror Snakemake's rule grammar — <code>shell</code>, <code>script</code>, <code>params</code>, <code>threads</code>, <code>resources</code>, <code>container</code>, <code>conda</code>, <code>log</code> — so an ASTRA recipe maps cleanly onto established workflow vocabulary.</p>
+<p>ASTRA is asset-centric: the <em>Output</em> declares what it depends on (<code>inputs</code>, <code>decisions</code>) and when it's active (<code>when</code>). The recipe is pure <em>how</em>: it does not redeclare provenance. Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (Snakemake-style <code>{input.x}</code> substitution, env vars, sidecar JSON — runner's choice), and invoke the command.</p>
 <table>
 <thead>
 <tr>
@@ -2089,12 +2095,6 @@ analyses options   content     narrative
 <td><code>string</code></td>
 <td>One of <code>shell</code>/<code>script</code></td>
 <td>Path to a script file</td>
-</tr>
-<tr>
-<td><code>input</code></td>
-<td><code>string[]</code></td>
-<td>No</td>
-<td>Output IDs that must be produced first</td>
 </tr>
 <tr>
 <td><code>params</code></td>
