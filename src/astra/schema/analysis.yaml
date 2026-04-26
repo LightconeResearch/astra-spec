@@ -224,6 +224,24 @@ classes:
           POSIX shell command to execute (e.g.,
           'python src/train.py', 'Rscript analysis.R',
           'julia model.jl'). Any executable invocation is fine.
+
+          The command is a template. Runners substitute these
+          placeholders before invoking the shell:
+
+            {inputs.<id>}     -- path to the named upstream input
+                                 (must be declared in Output.inputs)
+            {inputs}          -- space-separated paths to all declared
+                                 inputs, in declaration order
+            {decisions.<id>}  -- active option ID for the named
+                                 decision in the current universe
+                                 (must be declared in Output.decisions)
+            {params.<key>}    -- value of the named param
+                                 (must be declared in Recipe.params)
+            {output}          -- path the artifact will be written to
+
+          Use {{ and }} to emit literal '{' and '}'. Every
+          placeholder must resolve to a declared item; the
+          validator rejects unresolved or undeclared references.
       params:
         range: KeyValuePair
         multivalued: true

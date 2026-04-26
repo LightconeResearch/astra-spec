@@ -381,7 +381,21 @@ class Recipe(ConfiguredBaseModel):
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
 
-    shell: Optional[str] = Field(default=None, description="""POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    shell: Optional[str] = Field(default=None, description="""POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.
+The command is a template. Runners substitute these placeholders before invoking the shell:
+
+  {inputs.<id>}     -- path to the named upstream input
+                       (must be declared in Output.inputs)
+  {inputs}          -- space-separated paths to all declared
+                       inputs, in declaration order
+  {decisions.<id>}  -- active option ID for the named
+                       decision in the current universe
+                       (must be declared in Output.decisions)
+  {params.<key>}    -- value of the named param
+                       (must be declared in Recipe.params)
+  {output}          -- path the artifact will be written to
+
+Use {{ and }} to emit literal '{' and '}'. Every placeholder must resolve to a declared item; the validator rejects unresolved or undeclared references.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
     params: Optional[dict[str, Union[str, KeyValuePair]]] = Field(default=None, description="""Static parameters made available to the recipe body. Values are strings; runners decide how to surface them (`{params.x}` substitution, env vars, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
     resources: Optional[Resources] = Field(default=None, description="""Compute resource requirements (cpus, memory, time_limit, …)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
     container: Optional[str] = Field(default=None, description="""Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })

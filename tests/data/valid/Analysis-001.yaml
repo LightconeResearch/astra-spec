@@ -57,7 +57,11 @@ outputs:
       - method
       - training_split
     recipe:
-      shell: python src/predict.py
+      shell: >-
+        python src/predict.py
+        --method {decisions.method}
+        --split {decisions.training_split}
+        --out {output}
       container: ghcr.io/desc/photoz:latest
       resources:
         cpus: 8

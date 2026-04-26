@@ -345,6 +345,47 @@ Runners materialize the upstream inputs, surface the resolved input map and acti
 | `disk` | `string` | Disk with units (e.g., `"10Gi"`) |
 | `gpus` | `integer` | Number of GPUs (min: 1) |
 
+#### Shell template substitution
+
+The `shell:` string is a template. Runners substitute `{...}` placeholders before invoking the command. The substitution surface is *typed* by the Output's declarations: every placeholder must resolve to a declared input, decision, or param.
+
+| Placeholder | Resolves to | Source |
+|---|---|---|
+| `{inputs.<id>}` | Path to the named upstream input | `Output.inputs` |
+| `{inputs}` | Space-separated paths to all declared inputs (declaration order) | — |
+| `{decisions.<id>}` | Active option ID for the named decision in the current universe | `Output.decisions` |
+| `{params.<key>}` | Value of the named param | `Recipe.params` |
+| `{output}` | Path the artifact will be written to | — |
+| `{{` / `}}` | Literal `{` / `}` | — |
+
+Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.
+
+**Example:**
+
+```yaml
+- id: predictions
+  type: data
+  inputs: [training_data, features]
+  decisions: [classifier, seed]
+  recipe:
+    shell: >-
+      python src/classify.py
+      --train {inputs.training_data}
+      --features {inputs.features}
+      --classifier {decisions.classifier}
+      --seed {decisions.seed}
+      --out {output}
+    params:
+      max_iter: "1000"
+    container: ghcr.io/lightcone/sklearn:latest
+    resources:
+      cpus: 4
+      memory: "8Gi"
+      time_limit: "30m"
+```
+
+A runner materializes `training_data` and `features`, picks output paths, expands the template, and invokes the shell. If a universe selects `classifier=svm`, the command becomes `python src/classify.py --train ... --classifier svm --seed 42 --out ...`.
+
 A node-level `container` field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., `python:3.9`, `ghcr.io/org/img:latest`) are pulled as pre-built images; file paths (e.g., `Containerfile`, `containers/Dockerfile`) are built from source.
 
 ### Decisions
