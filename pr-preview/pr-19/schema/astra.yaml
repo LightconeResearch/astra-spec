@@ -486,8 +486,19 @@ slots:
     minimum_value: 1
   recipe__shell:
     name: recipe__shell
-    description: POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript
-      analysis.R', 'julia model.jl'). Any executable invocation is fine.
+    description: "POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript\
+      \ analysis.R', 'julia model.jl'). Any executable invocation is fine.\nThe command\
+      \ is a template. Runners substitute these placeholders before invoking the shell:\n\
+      \n  {inputs.<id>}     -- path to the named upstream input\n                \
+      \       (must be declared in Output.inputs)\n  {inputs}          -- space-separated\
+      \ paths to all declared\n                       inputs, in declaration order\n\
+      \  {decisions.<id>}  -- active option ID for the named\n                   \
+      \    decision in the current universe\n                       (must be declared\
+      \ in Output.decisions)\n  {params.<key>}    -- value of the named param\n  \
+      \                     (must be declared in Recipe.params)\n  {output}      \
+      \    -- path the artifact will be written to\n\nUse {{ and }} to emit literal\
+      \ '{' and '}'. Every placeholder must resolve to a declared item; the validator\
+      \ rejects unresolved or undeclared references."
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:shell
     alias: shell
@@ -1589,8 +1600,20 @@ classes:
     attributes:
       shell:
         name: shell
-        description: POSIX shell command to execute (e.g., 'python src/train.py',
-          'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.
+        description: "POSIX shell command to execute (e.g., 'python src/train.py',\
+          \ 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is\
+          \ fine.\nThe command is a template. Runners substitute these placeholders\
+          \ before invoking the shell:\n\n  {inputs.<id>}     -- path to the named\
+          \ upstream input\n                       (must be declared in Output.inputs)\n\
+          \  {inputs}          -- space-separated paths to all declared\n        \
+          \               inputs, in declaration order\n  {decisions.<id>}  -- active\
+          \ option ID for the named\n                       decision in the current\
+          \ universe\n                       (must be declared in Output.decisions)\n\
+          \  {params.<key>}    -- value of the named param\n                     \
+          \  (must be declared in Recipe.params)\n  {output}          -- path the\
+          \ artifact will be written to\n\nUse {{ and }} to emit literal '{' and '}'.\
+          \ Every placeholder must resolve to a declared item; the validator rejects\
+          \ unresolved or undeclared references."
       params:
         name: params
         description: Static parameters made available to the recipe body. Values are
@@ -2176,7 +2199,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-26T11:22:27'
-source_file_size: 17263
-generation_date: '2026-04-26T11:22:30'
+source_file_date: '2026-04-26T11:26:37'
+source_file_size: 18228
+generation_date: '2026-04-26T11:26:41'
 

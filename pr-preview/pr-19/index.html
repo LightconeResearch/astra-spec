@@ -495,6 +495,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Recipes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shell-template-substitution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell template substitution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -1125,6 +1142,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Recipes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shell-template-substitution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shell template substitution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2147,6 +2181,72 @@ analyses options   content     narrative
 </tr>
 </tbody>
 </table>
+<h4 id="shell-template-substitution">Shell template substitution</h4>
+<p>The <code>shell:</code> string is a template. Runners substitute <code>{...}</code> placeholders before invoking the command. The substitution surface is <em>typed</em> by the Output's declarations: every placeholder must resolve to a declared input, decision, or param.</p>
+<table>
+<thead>
+<tr>
+<th>Placeholder</th>
+<th>Resolves to</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{inputs.&lt;id&gt;}</code></td>
+<td>Path to the named upstream input</td>
+<td><code>Output.inputs</code></td>
+</tr>
+<tr>
+<td><code>{inputs}</code></td>
+<td>Space-separated paths to all declared inputs (declaration order)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>{decisions.&lt;id&gt;}</code></td>
+<td>Active option ID for the named decision in the current universe</td>
+<td><code>Output.decisions</code></td>
+</tr>
+<tr>
+<td><code>{params.&lt;key&gt;}</code></td>
+<td>Value of the named param</td>
+<td><code>Recipe.params</code></td>
+</tr>
+<tr>
+<td><code>{output}</code></td>
+<td>Path the artifact will be written to</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>{{</code> / <code>}}</code></td>
+<td>Literal <code>{</code> / <code>}</code></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predictions</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">  </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">training_data</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">features</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">classifier</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">seed</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">shell</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+<span class="w">      </span><span class="no">python src/classify.py</span>
+<span class="w">      </span><span class="no">--train {inputs.training_data}</span>
+<span class="w">      </span><span class="no">--features {inputs.features}</span>
+<span class="w">      </span><span class="no">--classifier {decisions.classifier}</span>
+<span class="w">      </span><span class="no">--seed {decisions.seed}</span>
+<span class="w">      </span><span class="no">--out {output}</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">max_iter</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1000&quot;</span>
+<span class="w">    </span><span class="nt">container</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ghcr.io/lightcone/sklearn:latest</span>
+<span class="w">    </span><span class="nt">resources</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">cpus</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span>
+<span class="w">      </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;8Gi&quot;</span>
+<span class="w">      </span><span class="nt">time_limit</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;30m&quot;</span>
+</code></pre></div>
+<p>A runner materializes <code>training_data</code> and <code>features</code>, picks output paths, expands the template, and invokes the shell. If a universe selects <code>classifier=svm</code>, the command becomes <code>python src/classify.py --train ... --classifier svm --seed 42 --out ...</code>.</p>
 <p>A node-level <code>container</code> field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., <code>python:3.9</code>, <code>ghcr.io/org/img:latest</code>) are pulled as pre-built images; file paths (e.g., <code>Containerfile</code>, <code>containers/Dockerfile</code>) are built from source.</p>
 <h3 id="decisions">Decisions</h3>
 <p>Decisions are the core of the multiverse. Each decision is a named choice point with multiple options.</p>

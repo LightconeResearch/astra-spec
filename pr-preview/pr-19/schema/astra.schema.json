@@ -1248,7 +1248,7 @@
                     "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
                 },
                 "shell": {
-                    "description": "POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.",
+                    "description": "POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.\nThe command is a template. Runners substitute these placeholders before invoking the shell:\n\n  {inputs.<id>}     -- path to the named upstream input\n                       (must be declared in Output.inputs)\n  {inputs}          -- space-separated paths to all declared\n                       inputs, in declaration order\n  {decisions.<id>}  -- active option ID for the named\n                       decision in the current universe\n                       (must be declared in Output.decisions)\n  {params.<key>}    -- value of the named param\n                       (must be declared in Recipe.params)\n  {output}          -- path the artifact will be written to\n\nUse {{ and }} to emit literal '{' and '}'. Every placeholder must resolve to a declared item; the validator rejects unresolved or undeclared references.",
                     "type": [
                         "string",
                         "null"
