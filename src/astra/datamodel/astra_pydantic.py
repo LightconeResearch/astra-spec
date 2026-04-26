@@ -30,7 +30,7 @@ from pydantic import (
 
 
 metamodel_version = "1.7.0"
-version = "0.0.5"
+version = "0.0.6"
 
 
 class ConfiguredBaseModel(BaseModel):
@@ -271,7 +271,7 @@ class UniverseNode(ConfiguredBaseModel):
                        'Decision',
                        'Analysis']} })
     universe: Optional[str] = Field(default=None, description="""Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode']} })
-    decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Decision selections (decision_id to option_id)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+    decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Decision selections (decision_id to option_id)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
     @field_validator('id')
@@ -304,7 +304,7 @@ class Universe(ConfiguredBaseModel):
                        'Decision',
                        'Analysis']} })
     description: Optional[str] = Field(default=None, description="""What this universe represents""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
-    decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Root-level decision selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+    decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Root-level decision selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
     @field_validator('id')
@@ -357,32 +357,38 @@ class Narrative(ConfiguredBaseModel):
     summary: Optional[str] = Field(default=None, description="""High-level overview of the analysis — its question, scope, and a brief orientation for readers.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative']} })
     findings: Optional[str] = Field(default=None, description="""Narrative discussion of the analysis's findings. Individual findings live under Analysis.findings as structured Insight objects; this section is the prose that frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
     methods: Optional[str] = Field(default=None, description="""Narrative discussion of the methodology, including decision points and any sub-analyses. Structured decisions and nested analyses live under Analysis.decisions and Analysis.analyses; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative']} })
-    inputs: Optional[str] = Field(default=None, description="""Narrative discussion of the analysis's inputs. Individual inputs live under Analysis.inputs as structured objects; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Recipe', 'Analysis']} })
+    inputs: Optional[str] = Field(default=None, description="""Narrative discussion of the analysis's inputs. Individual inputs live under Analysis.inputs as structured objects; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
     outputs: Optional[str] = Field(default=None, description="""Narrative discussion of the expected outputs. Individual outputs live under Analysis.outputs as structured objects; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
 
 
 class Resources(ConfiguredBaseModel):
     """
-    Compute resource requirements for a recipe
+    Compute resource requirements for a recipe. Field names follow Snakemake's `resources:` conventions so that cluster executors (SLURM, Kubernetes, etc.) can consume them without remapping.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
 
-    cpus: Optional[int] = Field(default=None, description="""Number of CPUs""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
-    memory: Optional[str] = Field(default=None, description="""Memory requirement (e.g., '8GB', '512MB')""", json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
+    mem_mb: Optional[int] = Field(default=None, description="""Memory requirement in megabytes""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
+    runtime: Optional[int] = Field(default=None, description="""Maximum wall time in minutes""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
+    disk_mb: Optional[int] = Field(default=None, description="""Disk requirement in megabytes""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
     gpus: Optional[int] = Field(default=None, description="""Number of GPUs""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
-    time_limit: Optional[str] = Field(default=None, description="""Maximum wall time (e.g., '2h', '30m')""", json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
 
 
 class Recipe(ConfiguredBaseModel):
     """
-    A build rule that produces an output. Recipes are the execution contract: run this command to produce the parent output.
+    A build rule that produces an output. Recipes follow Snakemake's rule grammar: `shell` or `script` defines the work, `input` lists upstream output IDs, `params` carries static parameters, and `threads` / `resources` / `container` / `conda` / `log` describe the execution context.
+    Decision-driven parameterization is declared on the parent Output via `decisions:`, not here. The recipe describes how to build the output; the output declares what it depends on.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
 
-    command: str = Field(default=..., description="""Command to execute (e.g., 'python src/train.py')""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    inputs: Optional[list[str]] = Field(default=None, description="""Output IDs that must be materialized before this recipe runs""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Recipe', 'Analysis']} })
+    shell: Optional[str] = Field(default=None, description="""Shell command to execute (e.g., 'python src/train.py'). Mutually exclusive with `script`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    script: Optional[str] = Field(default=None, description="""Path to a script file to execute. Mutually exclusive with `shell`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    input: Optional[list[str]] = Field(default=None, description="""Output IDs that must be materialized before this recipe runs. References resolve to the upstream Output node; runners are responsible for translating IDs into concrete paths.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    params: Optional[dict[str, Union[str, KeyValuePair]]] = Field(default=None, description="""Static parameters made available to the recipe body. Values are strings; runners decide how to surface them (Snakemake `{params.x}` substitution, env vars, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    threads: Optional[int] = Field(default=None, description="""Number of threads (Snakemake-equivalent CPU count)""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    resources: Optional[Resources] = Field(default=None, description="""Compute resource requirements (mem_mb, runtime, …)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
     container: Optional[str] = Field(default=None, description="""Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
-    resources: Optional[Resources] = Field(default=None, description="""Compute resource requirements""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    conda: Optional[str] = Field(default=None, description="""Path to a Conda environment YAML file. Provides an alternative to `container` for environment specification.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    log: Optional[str] = Field(default=None, description="""Path (or path template) where the runner should write the recipe's stdout/stderr.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
 
 
 class Input(ConfiguredBaseModel):
@@ -451,6 +457,9 @@ class Output(ConfiguredBaseModel):
     label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: OutputType = Field(default=..., description="""Type of output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
     description: Optional[str] = Field(default=None, description="""Description of the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
+    decisions: Optional[list[str]] = Field(default=None, description="""Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.
+Runners use this to (a) compute the per-output cache key, (b) determine the minimal universe set needed to materialize the output, and (c) deliver the active option values to the recipe (via flags, env vars, or a sidecar — runner's choice).
+References use plain decision IDs and resolve through any `from:` chain in the surrounding analysis scope.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     recipe: Optional[Recipe] = Field(default=None, description="""How to produce this output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output']} })
 
     @field_validator('id')
@@ -567,9 +576,9 @@ class Analysis(ConfiguredBaseModel):
     narrative: Optional[Narrative] = Field(default=None, description="""Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     authors: Optional[list[str]] = Field(default=None, description="""List of authors""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     tags: Optional[list[str]] = Field(default=None, description="""Tags for categorization""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
-    inputs: Optional[list[Input]] = Field(default=None, description="""Inputs for this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Recipe', 'Analysis']} })
+    inputs: Optional[list[Input]] = Field(default=None, description="""Inputs for this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
     outputs: Optional[list[Output]] = Field(default=None, description="""Expected outputs from this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
-    decisions: Optional[dict[str, Decision]] = Field(default=None, description="""Decision points in this analysis (keyed by decision ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+    decisions: Optional[dict[str, Decision]] = Field(default=None, description="""Decision points in this analysis (keyed by decision ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     prior_insights: Optional[dict[str, Insight]] = Field(default=None, description="""Prior insights that inform decisions (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     findings: Optional[dict[str, Insight]] = Field(default=None, description="""Findings and conclusions from outputs (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
     container: Optional[str] = Field(default=None, description="""Default container for recipes in this node. Image names are pulled; file paths are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })

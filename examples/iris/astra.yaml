@@ -45,43 +45,48 @@ outputs:
   - id: trained_output
     type: data
     description: Best performing classifier
+    decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/train.py
+      shell: python src/train.py
 
   - id: accuracy
     type: metric
     description: Classification accuracy on held-out test set
+    decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
-      inputs: [trained_output]
+      shell: python src/evaluate.py
+      input: [trained_output]
 
   - id: f1_score
     type: metric
     description: Macro-averaged F1 score
+    decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
-      inputs: [trained_output]
+      shell: python src/evaluate.py
+      input: [trained_output]
 
   - id: confusion_matrix
     type: figure
     description: Confusion matrix heatmap
+    decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
-      inputs: [trained_output]
+      shell: python src/evaluate.py
+      input: [trained_output]
 
   - id: model_comparison
     type: table
     description: Accuracy by model and preprocessing combination
+    decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
-      inputs: [trained_output]
+      shell: python src/evaluate.py
+      input: [trained_output]
 
   - id: conclusion
     type: report
     description: Summary of classifier performance and suitability for the application
     recipe:
-      command: python src/evaluate.py
-      inputs: [trained_output]
+      shell: python src/evaluate.py
+      input: [trained_output]
 
 decisions:
   scaling:

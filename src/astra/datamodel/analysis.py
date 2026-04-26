@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-23T19:44:19
+# Generation date: 2026-04-26T13:06:00
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
@@ -62,7 +62,7 @@ from linkml_runtime.linkml_model.types import Boolean, Datetime, Integer, String
 from linkml_runtime.utils.metamodelcore import Bool, XSDDateTime
 
 metamodel_version = "1.7.0"
-version = "0.0.5"
+version = "0.0.6"
 
 # Namespaces
 ASTRA = CurieNamespace('astra', 'https://w3id.org/ASTRA/')
@@ -212,7 +212,8 @@ class Narrative(YAMLRoot):
 @dataclass(repr=False)
 class Resources(YAMLRoot):
     """
-    Compute resource requirements for a recipe
+    Compute resource requirements for a recipe. Field names follow Snakemake's `resources:` conventions so that
+    cluster executors (SLURM, Kubernetes, etc.) can consume them without remapping.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -221,23 +222,23 @@ class Resources(YAMLRoot):
     class_name: ClassVar[str] = "Resources"
     class_model_uri: ClassVar[URIRef] = ASTRA.Resources
 
-    cpus: Optional[int] = None
-    memory: Optional[str] = None
+    mem_mb: Optional[int] = None
+    runtime: Optional[int] = None
+    disk_mb: Optional[int] = None
     gpus: Optional[int] = None
-    time_limit: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
-        if self.cpus is not None and not isinstance(self.cpus, int):
-            self.cpus = int(self.cpus)
+        if self.mem_mb is not None and not isinstance(self.mem_mb, int):
+            self.mem_mb = int(self.mem_mb)
 
-        if self.memory is not None and not isinstance(self.memory, str):
-            self.memory = str(self.memory)
+        if self.runtime is not None and not isinstance(self.runtime, int):
+            self.runtime = int(self.runtime)
+
+        if self.disk_mb is not None and not isinstance(self.disk_mb, int):
+            self.disk_mb = int(self.disk_mb)
 
         if self.gpus is not None and not isinstance(self.gpus, int):
             self.gpus = int(self.gpus)
-
-        if self.time_limit is not None and not isinstance(self.time_limit, str):
-            self.time_limit = str(self.time_limit)
 
         super().__post_init__(**kwargs)
 
@@ -245,8 +246,11 @@ class Resources(YAMLRoot):
 @dataclass(repr=False)
 class Recipe(YAMLRoot):
     """
-    A build rule that produces an output. Recipes are the execution contract: run this command to produce the parent
-    output.
+    A build rule that produces an output. Recipes follow Snakemake's rule grammar: `shell` or `script` defines the
+    work, `input` lists upstream output IDs, `params` carries static parameters, and `threads` / `resources` /
+    `container` / `conda` / `log` describe the execution context.
+    Decision-driven parameterization is declared on the parent Output via `decisions:`, not here. The recipe describes
+    how to build the output; the output declares what it depends on.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -255,26 +259,43 @@ class Recipe(YAMLRoot):
     class_name: ClassVar[str] = "Recipe"
     class_model_uri: ClassVar[URIRef] = ASTRA.Recipe
 
-    command: str = None
-    inputs: Optional[Union[str, list[str]]] = empty_list()
-    container: Optional[str] = None
+    shell: Optional[str] = None
+    script: Optional[str] = None
+    input: Optional[Union[str, list[str]]] = empty_list()
+    params: Optional[Union[dict[Union[str, KeyValuePairKey], Union[dict, KeyValuePair]], list[Union[dict, KeyValuePair]]]] = empty_dict()
+    threads: Optional[int] = None
     resources: Optional[Union[dict, Resources]] = None
+    container: Optional[str] = None
+    conda: Optional[str] = None
+    log: Optional[str] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.command):
-            self.MissingRequiredField("command")
-        if not isinstance(self.command, str):
-            self.command = str(self.command)
+        if self.shell is not None and not isinstance(self.shell, str):
+            self.shell = str(self.shell)
 
-        if not isinstance(self.inputs, list):
-            self.inputs = [self.inputs] if self.inputs is not None else []
-        self.inputs = [v if isinstance(v, str) else str(v) for v in self.inputs]
+        if self.script is not None and not isinstance(self.script, str):
+            self.script = str(self.script)
+
+        if not isinstance(self.input, list):
+            self.input = [self.input] if self.input is not None else []
+        self.input = [v if isinstance(v, str) else str(v) for v in self.input]
+
+        self._normalize_inlined_as_dict(slot_name="params", slot_type=KeyValuePair, key_name="key", keyed=True)
+
+        if self.threads is not None and not isinstance(self.threads, int):
+            self.threads = int(self.threads)
+
+        if self.resources is not None and not isinstance(self.resources, Resources):
+            self.resources = Resources(**as_dict(self.resources))
 
         if self.container is not None and not isinstance(self.container, str):
             self.container = str(self.container)
 
-        if self.resources is not None and not isinstance(self.resources, Resources):
-            self.resources = Resources(**as_dict(self.resources))
+        if self.conda is not None and not isinstance(self.conda, str):
+            self.conda = str(self.conda)
+
+        if self.log is not None and not isinstance(self.log, str):
+            self.log = str(self.log)
 
         super().__post_init__(**kwargs)
 
@@ -358,6 +379,7 @@ class Output(YAMLRoot):
     when: Optional[Union[str, list[str]]] = empty_list()
     label: Optional[str] = None
     description: Optional[str] = None
+    decisions: Optional[Union[str, list[str]]] = empty_list()
     recipe: Optional[Union[dict, Recipe]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
@@ -383,6 +405,10 @@ class Output(YAMLRoot):
 
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
+
+        if not isinstance(self.decisions, list):
+            self.decisions = [self.decisions] if self.decisions is not None else []
+        self.decisions = [v if isinstance(v, str) else str(v) for v in self.decisions]
 
         if self.recipe is not None and not isinstance(self.recipe, Recipe):
             self.recipe = Recipe(**as_dict(self.recipe))
@@ -930,29 +956,44 @@ slots.narrative__inputs = Slot(uri=ASTRA.inputs, name="narrative__inputs", curie
 slots.narrative__outputs = Slot(uri=ASTRA.outputs, name="narrative__outputs", curie=ASTRA.curie('outputs'),
                    model_uri=ASTRA.narrative__outputs, domain=None, range=Optional[str])
 
-slots.resources__cpus = Slot(uri=ASTRA.cpus, name="resources__cpus", curie=ASTRA.curie('cpus'),
-                   model_uri=ASTRA.resources__cpus, domain=None, range=Optional[int])
+slots.resources__mem_mb = Slot(uri=ASTRA.mem_mb, name="resources__mem_mb", curie=ASTRA.curie('mem_mb'),
+                   model_uri=ASTRA.resources__mem_mb, domain=None, range=Optional[int])
 
-slots.resources__memory = Slot(uri=ASTRA.memory, name="resources__memory", curie=ASTRA.curie('memory'),
-                   model_uri=ASTRA.resources__memory, domain=None, range=Optional[str])
+slots.resources__runtime = Slot(uri=ASTRA.runtime, name="resources__runtime", curie=ASTRA.curie('runtime'),
+                   model_uri=ASTRA.resources__runtime, domain=None, range=Optional[int])
+
+slots.resources__disk_mb = Slot(uri=ASTRA.disk_mb, name="resources__disk_mb", curie=ASTRA.curie('disk_mb'),
+                   model_uri=ASTRA.resources__disk_mb, domain=None, range=Optional[int])
 
 slots.resources__gpus = Slot(uri=ASTRA.gpus, name="resources__gpus", curie=ASTRA.curie('gpus'),
                    model_uri=ASTRA.resources__gpus, domain=None, range=Optional[int])
 
-slots.resources__time_limit = Slot(uri=ASTRA.time_limit, name="resources__time_limit", curie=ASTRA.curie('time_limit'),
-                   model_uri=ASTRA.resources__time_limit, domain=None, range=Optional[str])
+slots.recipe__shell = Slot(uri=ASTRA.shell, name="recipe__shell", curie=ASTRA.curie('shell'),
+                   model_uri=ASTRA.recipe__shell, domain=None, range=Optional[str])
 
-slots.recipe__command = Slot(uri=ASTRA.command, name="recipe__command", curie=ASTRA.curie('command'),
-                   model_uri=ASTRA.recipe__command, domain=None, range=str)
+slots.recipe__script = Slot(uri=ASTRA.script, name="recipe__script", curie=ASTRA.curie('script'),
+                   model_uri=ASTRA.recipe__script, domain=None, range=Optional[str])
 
-slots.recipe__inputs = Slot(uri=ASTRA.inputs, name="recipe__inputs", curie=ASTRA.curie('inputs'),
-                   model_uri=ASTRA.recipe__inputs, domain=None, range=Optional[Union[str, list[str]]])
+slots.recipe__input = Slot(uri=ASTRA.input, name="recipe__input", curie=ASTRA.curie('input'),
+                   model_uri=ASTRA.recipe__input, domain=None, range=Optional[Union[str, list[str]]])
+
+slots.recipe__params = Slot(uri=ASTRA.params, name="recipe__params", curie=ASTRA.curie('params'),
+                   model_uri=ASTRA.recipe__params, domain=None, range=Optional[Union[dict[Union[str, KeyValuePairKey], Union[dict, KeyValuePair]], list[Union[dict, KeyValuePair]]]])
+
+slots.recipe__threads = Slot(uri=ASTRA.threads, name="recipe__threads", curie=ASTRA.curie('threads'),
+                   model_uri=ASTRA.recipe__threads, domain=None, range=Optional[int])
+
+slots.recipe__resources = Slot(uri=ASTRA.resources, name="recipe__resources", curie=ASTRA.curie('resources'),
+                   model_uri=ASTRA.recipe__resources, domain=None, range=Optional[Union[dict, Resources]])
 
 slots.recipe__container = Slot(uri=ASTRA.container, name="recipe__container", curie=ASTRA.curie('container'),
                    model_uri=ASTRA.recipe__container, domain=None, range=Optional[str])
 
-slots.recipe__resources = Slot(uri=ASTRA.resources, name="recipe__resources", curie=ASTRA.curie('resources'),
-                   model_uri=ASTRA.recipe__resources, domain=None, range=Optional[Union[dict, Resources]])
+slots.recipe__conda = Slot(uri=ASTRA.conda, name="recipe__conda", curie=ASTRA.curie('conda'),
+                   model_uri=ASTRA.recipe__conda, domain=None, range=Optional[str])
+
+slots.recipe__log = Slot(uri=ASTRA.log, name="recipe__log", curie=ASTRA.curie('log'),
+                   model_uri=ASTRA.recipe__log, domain=None, range=Optional[str])
 
 slots.input__id = Slot(uri=ASTRA.id, name="input__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.input__id, domain=None, range=URIRef,
@@ -991,6 +1032,9 @@ slots.output__type = Slot(uri=ASTRA.type, name="output__type", curie=ASTRA.curie
 
 slots.output__description = Slot(uri=ASTRA.description, name="output__description", curie=ASTRA.curie('description'),
                    model_uri=ASTRA.output__description, domain=None, range=Optional[str])
+
+slots.output__decisions = Slot(uri=ASTRA.decisions, name="output__decisions", curie=ASTRA.curie('decisions'),
+                   model_uri=ASTRA.output__decisions, domain=None, range=Optional[Union[str, list[str]]])
 
 slots.output__recipe = Slot(uri=ASTRA.recipe, name="output__recipe", curie=ASTRA.curie('recipe'),
                    model_uri=ASTRA.output__recipe, domain=None, range=Optional[Union[dict, Recipe]])

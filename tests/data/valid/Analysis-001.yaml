@@ -47,26 +47,31 @@ outputs:
     type: metric
     description: Photo-z bias measurement
     recipe:
-      command: python src/evaluate.py --metric bias
-      inputs:
+      shell: python src/evaluate.py --metric bias
+      input:
         - redshift_estimates
   - id: redshift_estimates
     type: data
     description: Redshift point estimates and PDFs
+    decisions:
+      - method
+      - training_split
     recipe:
-      command: python src/predict.py
+      shell: python src/predict.py
       container: ghcr.io/desc/photoz:latest
+      threads: 8
       resources:
         gpus: 1
-        memory: 16GB
-        time_limit: 2h
+        mem_mb: 16000
+        runtime: 120
+      log: logs/predict.log
   - id: scatter_plot
     type: figure
     description: Photo-z scatter plot (z_phot vs z_spec)
     when:
       - method.neural_net
     recipe:
-      command: python src/plot_scatter.py
+      shell: python src/plot_scatter.py
 decisions:
   method:
     label: Redshift estimation method
@@ -173,8 +178,10 @@ analyses:
       - id: calibrated_pdfs
         type: data
         description: Calibrated redshift PDFs
+        decisions:
+          - cal_method
         recipe:
-          command: python src/calibrate.py
+          shell: python src/calibrate.py
     decisions:
       cal_method:
         label: Calibration method

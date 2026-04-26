@@ -51,7 +51,7 @@ outputs:
     type: report
     description: End-to-end comparison of feature extraction methods
     recipe:
-      command: python src/summarize.py
+      shell: python src/summarize.py
 
 decisions:
   test_split:
@@ -107,15 +107,17 @@ analyses:
       - id: features
         type: data
         description: Transformed feature matrix (n_samples x n_components)
+        decisions: [method, n_components, seed]
         recipe:
-          command: python src/extract_features.py
+          shell: python src/extract_features.py
 
       - id: feature_plot
         type: figure
         description: Scatter plot of extracted features
+        decisions: [method, n_components]
         recipe:
-          command: python src/plot_features.py
-          inputs: [features]
+          shell: python src/plot_features.py
+          input: [features]
 
     decisions:
       seed:
@@ -174,15 +176,17 @@ analyses:
       - id: predictions
         type: data
         description: Predicted class labels for the test set
+        decisions: [classifier, split]
         recipe:
-          command: python src/classify.py
+          shell: python src/classify.py
 
       - id: accuracy
         type: metric
         description: Classification accuracy on held-out test set
+        decisions: [classifier, split]
         recipe:
-          command: python src/evaluate.py
-          inputs: [predictions]
+          shell: python src/evaluate.py
+          input: [predictions]
 
     decisions:
       split:

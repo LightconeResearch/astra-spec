@@ -121,22 +121,25 @@ outputs:
   - id: trained_output
     type: data
     description: Best performing classifier
+    decisions: [scaling, model]
     recipe:
-      command: python src/train.py
+      shell: python src/train.py
 
   - id: accuracy
     type: metric
     description: Classification accuracy on held-out test set
+    decisions: [scaling, model]
     recipe:
-      command: python src/evaluate.py
-      inputs: [trained_output]
+      shell: python src/evaluate.py
+      input: [trained_output]
 
   - id: confusion_matrix
     type: figure
     description: Confusion matrix heatmap
+    decisions: [scaling, model]
     recipe:
-      command: python src/evaluate.py
-      inputs: [trained_output]
+      shell: python src/evaluate.py
+      input: [trained_output]
 
 decisions:
   scaling:
@@ -305,6 +308,7 @@ Each output declares an expected result from the analysis.
 | `description` | `string` | No | What this output is |
 | `from` | `string` | No | Sub-analysis output that produces this (e.g., `"sub.output_id"`) |
 | `when` | `string[]` | No | Conditions for when this output is active (see [Conditional Elements](#conditional-elements)) |
+| `decisions` | `string[]` | No | Decision IDs (in scope) that parameterize this output — declares the provenance contract |
 | `recipe` | `Recipe` | No | Inline build rule |
 
 **Output types**:
@@ -319,23 +323,30 @@ Each output declares an expected result from the analysis.
 
 ### Recipes
 
-A `Recipe` is an inline build rule on an output. Outputs with recipes form a DAG via their `inputs` field.
+A `Recipe` is an inline build rule on an output. Recipe field names mirror Snakemake's rule grammar — `shell`, `input`, `params`, `threads`, `resources`, `container`, `conda`, `log` — so an ASTRA recipe maps cleanly onto established workflow vocabulary. Outputs with recipes form a DAG via their `input` field.
+
+ASTRA is a *specification* layer: it describes what to run, not how a runner delivers parameters. In particular, decision values are declared on the parent Output via `decisions:` (not on the recipe). Runners decide how to surface those values to the script (CLI flags, env vars, sidecar JSON).
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `command` | `string` | **Yes** | Command to execute |
-| `inputs` | `string[]` | No | Output IDs that must be produced first |
-| `container` | `string` | No | Container image name or path to a Containerfile |
+| `shell` | `string` | One of `shell`/`script` | Shell command to execute |
+| `script` | `string` | One of `shell`/`script` | Path to a script file |
+| `input` | `string[]` | No | Output IDs that must be produced first |
+| `params` | `map[string, string]` | No | Static parameters made available to the recipe body |
+| `threads` | `integer` | No | Thread/CPU count (min: 1) |
 | `resources` | `Resources` | No | Compute requirements |
+| `container` | `string` | No | Container image name or path to a Containerfile |
+| `conda` | `string` | No | Path to a Conda environment YAML file |
+| `log` | `string` | No | Path (or template) for stdout/stderr capture |
 
-**Resources**:
+**Resources** (Snakemake-conventional keys):
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `cpus` | `integer` | Number of CPUs (min: 1) |
-| `memory` | `string` | Memory requirement (e.g., `"8GB"`) |
+| `mem_mb` | `integer` | Memory requirement in megabytes |
+| `runtime` | `integer` | Maximum wall time in minutes |
+| `disk_mb` | `integer` | Disk requirement in megabytes |
 | `gpus` | `integer` | Number of GPUs (min: 1) |
-| `time_limit` | `string` | Wall time limit (e.g., `"2h"`) |
 
 A node-level `container` field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., `python:3.9`, `ghcr.io/org/img:latest`) are pulled as pre-built images; file paths (e.g., `Containerfile`, `containers/Dockerfile`) are built from source.
 
@@ -384,8 +395,9 @@ analyses:
     outputs:
       - id: features
         type: data
+        decisions: [method, seed]
         recipe:
-          command: python src/extract_features.py
+          shell: python src/extract_features.py
     decisions:
       seed:
         from: ../random_seed               # Parent decision reference
@@ -408,11 +420,14 @@ analyses:
     outputs:
       - id: accuracy
         type: metric
+        decisions: [classifier]
         recipe:
-          command: python src/evaluate.py
+          shell: python src/evaluate.py
+          threads: 4
           resources:
             gpus: 1
-            memory: "32GB"
+            mem_mb: 32000
+            runtime: 60
     decisions:
       classifier:
         label: Classifier
@@ -700,7 +715,7 @@ outputs:
     when:
       - method.neural_net     # Only produced for neural net runs
     recipe:
-      command: python src/plot_scatter.py
+      shell: python src/plot_scatter.py
 ```
 
 ### Negation

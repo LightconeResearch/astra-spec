@@ -7,7 +7,7 @@ description: |-
   A framework for defining hierarchical scientific analyses with
   decision points, evidence-backed insights, and universe specifications.
 license: https://creativecommons.org/licenses/by/4.0/
-version: 0.0.5
+version: 0.0.6
 
 prefixes:
   astra: https://w3id.org/ASTRA/
@@ -169,44 +169,92 @@ classes:
           structured objects; this section frames them.
 
   # --- Execution ---
+  #
+  # Recipe field names mirror Snakemake's rule grammar so that ASTRA
+  # specifications map cleanly onto established workflow vocabulary.
+  # ASTRA itself remains a specification layer — *how* a recipe is
+  # delivered to a runner (CLI flags, env vars, sidecar JSON) is a
+  # runner concern, not a spec concern.
 
   Resources:
-    description: Compute resource requirements for a recipe
+    description: >-
+      Compute resource requirements for a recipe. Field names follow
+      Snakemake's `resources:` conventions so that cluster executors
+      (SLURM, Kubernetes, etc.) can consume them without remapping.
     attributes:
-      cpus:
+      mem_mb:
         range: integer
         minimum_value: 1
-        description: Number of CPUs
-      memory:
-        description: Memory requirement (e.g., '8GB', '512MB')
+        description: Memory requirement in megabytes
+      runtime:
+        range: integer
+        minimum_value: 1
+        description: Maximum wall time in minutes
+      disk_mb:
+        range: integer
+        minimum_value: 1
+        description: Disk requirement in megabytes
       gpus:
         range: integer
         minimum_value: 1
         description: Number of GPUs
-      time_limit:
-        description: Maximum wall time (e.g., '2h', '30m')
 
   Recipe:
     description: >-
-      A build rule that produces an output. Recipes are the execution
-      contract: run this command to produce the parent output.
+      A build rule that produces an output. Recipes follow Snakemake's
+      rule grammar: `shell` or `script` defines the work, `input`
+      lists upstream output IDs, `params` carries static parameters,
+      and `threads` / `resources` / `container` / `conda` / `log`
+      describe the execution context.
+
+      Decision-driven parameterization is declared on the parent
+      Output via `decisions:`, not here. The recipe describes how to
+      build the output; the output declares what it depends on.
     attributes:
-      command:
-        required: true
-        description: Command to execute (e.g., 'python src/train.py')
-      inputs:
+      shell:
+        description: >-
+          Shell command to execute (e.g., 'python src/train.py').
+          Mutually exclusive with `script`.
+      script:
+        description: >-
+          Path to a script file to execute. Mutually exclusive with
+          `shell`.
+      input:
         multivalued: true
-        description: Output IDs that must be materialized before this recipe runs
+        description: >-
+          Output IDs that must be materialized before this recipe runs.
+          References resolve to the upstream Output node; runners are
+          responsible for translating IDs into concrete paths.
+      params:
+        range: KeyValuePair
+        multivalued: true
+        inlined: true
+        description: >-
+          Static parameters made available to the recipe body. Values
+          are strings; runners decide how to surface them (Snakemake
+          `{params.x}` substitution, env vars, etc.).
+      threads:
+        range: integer
+        minimum_value: 1
+        description: Number of threads (Snakemake-equivalent CPU count)
+      resources:
+        range: Resources
+        inlined: true
+        description: Compute resource requirements (mem_mb, runtime, …)
       container:
         description: >-
           Container image name or path to a Containerfile.
           Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are
           pulled as pre-built images; file paths (e.g., 'Containerfile',
           'containers/Dockerfile') are built from source.
-      resources:
-        range: Resources
-        inlined: true
-        description: Compute resource requirements
+      conda:
+        description: >-
+          Path to a Conda environment YAML file. Provides an
+          alternative to `container` for environment specification.
+      log:
+        description: >-
+          Path (or path template) where the runner should write the
+          recipe's stdout/stderr.
 
   # --- Inputs and Outputs ---
 
@@ -277,6 +325,21 @@ classes:
         description: Type of output
       description:
         description: Description of the output
+      decisions:
+        multivalued: true
+        description: >-
+          Decision IDs (in the surrounding scope) that parameterize
+          this output. Declares the output's provenance contract:
+          re-running with a different option for any listed decision
+          must be expected to produce a different output.
+
+          Runners use this to (a) compute the per-output cache key,
+          (b) determine the minimal universe set needed to materialize
+          the output, and (c) deliver the active option values to the
+          recipe (via flags, env vars, or a sidecar — runner's choice).
+
+          References use plain decision IDs and resolve through any
+          `from:` chain in the surrounding analysis scope.
       recipe:
         range: Recipe
         inlined: true
