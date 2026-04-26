@@ -46,10 +46,10 @@ outputs:
   - id: bias_metric
     type: metric
     description: Photo-z bias measurement
+    inputs:
+      - redshift_estimates
     recipe:
       shell: python src/evaluate.py --metric bias
-      input:
-        - redshift_estimates
   - id: redshift_estimates
     type: data
     description: Redshift point estimates and PDFs

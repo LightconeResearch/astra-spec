@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-26T13:06:00
+# Generation date: 2026-04-26T13:15:09
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
@@ -247,10 +247,12 @@ class Resources(YAMLRoot):
 class Recipe(YAMLRoot):
     """
     A build rule that produces an output. Recipes follow Snakemake's rule grammar: `shell` or `script` defines the
-    work, `input` lists upstream output IDs, `params` carries static parameters, and `threads` / `resources` /
-    `container` / `conda` / `log` describe the execution context.
-    Decision-driven parameterization is declared on the parent Output via `decisions:`, not here. The recipe describes
-    how to build the output; the output declares what it depends on.
+    work, `params` carries static parameters, and `threads` / `resources` / `container` / `conda` / `log` describe the
+    execution context.
+    Recipes are pure *how*: they do not declare what the output depends on. Provenance — upstream inputs,
+    decision-driven parameterization, and activation conditions — is declared on the parent Output (`inputs`,
+    `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe
+    (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -261,7 +263,6 @@ class Recipe(YAMLRoot):
 
     shell: Optional[str] = None
     script: Optional[str] = None
-    input: Optional[Union[str, list[str]]] = empty_list()
     params: Optional[Union[dict[Union[str, KeyValuePairKey], Union[dict, KeyValuePair]], list[Union[dict, KeyValuePair]]]] = empty_dict()
     threads: Optional[int] = None
     resources: Optional[Union[dict, Resources]] = None
@@ -275,10 +276,6 @@ class Recipe(YAMLRoot):
 
         if self.script is not None and not isinstance(self.script, str):
             self.script = str(self.script)
-
-        if not isinstance(self.input, list):
-            self.input = [self.input] if self.input is not None else []
-        self.input = [v if isinstance(v, str) else str(v) for v in self.input]
 
         self._normalize_inlined_as_dict(slot_name="params", slot_type=KeyValuePair, key_name="key", keyed=True)
 
@@ -379,6 +376,7 @@ class Output(YAMLRoot):
     when: Optional[Union[str, list[str]]] = empty_list()
     label: Optional[str] = None
     description: Optional[str] = None
+    inputs: Optional[Union[str, list[str]]] = empty_list()
     decisions: Optional[Union[str, list[str]]] = empty_list()
     recipe: Optional[Union[dict, Recipe]] = None
 
@@ -405,6 +403,10 @@ class Output(YAMLRoot):
 
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
+
+        if not isinstance(self.inputs, list):
+            self.inputs = [self.inputs] if self.inputs is not None else []
+        self.inputs = [v if isinstance(v, str) else str(v) for v in self.inputs]
 
         if not isinstance(self.decisions, list):
             self.decisions = [self.decisions] if self.decisions is not None else []
@@ -974,9 +976,6 @@ slots.recipe__shell = Slot(uri=ASTRA.shell, name="recipe__shell", curie=ASTRA.cu
 slots.recipe__script = Slot(uri=ASTRA.script, name="recipe__script", curie=ASTRA.curie('script'),
                    model_uri=ASTRA.recipe__script, domain=None, range=Optional[str])
 
-slots.recipe__input = Slot(uri=ASTRA.input, name="recipe__input", curie=ASTRA.curie('input'),
-                   model_uri=ASTRA.recipe__input, domain=None, range=Optional[Union[str, list[str]]])
-
 slots.recipe__params = Slot(uri=ASTRA.params, name="recipe__params", curie=ASTRA.curie('params'),
                    model_uri=ASTRA.recipe__params, domain=None, range=Optional[Union[dict[Union[str, KeyValuePairKey], Union[dict, KeyValuePair]], list[Union[dict, KeyValuePair]]]])
 
@@ -1032,6 +1031,9 @@ slots.output__type = Slot(uri=ASTRA.type, name="output__type", curie=ASTRA.curie
 
 slots.output__description = Slot(uri=ASTRA.description, name="output__description", curie=ASTRA.curie('description'),
                    model_uri=ASTRA.output__description, domain=None, range=Optional[str])
+
+slots.output__inputs = Slot(uri=ASTRA.inputs, name="output__inputs", curie=ASTRA.curie('inputs'),
+                   model_uri=ASTRA.output__inputs, domain=None, range=Optional[Union[str, list[str]]])
 
 slots.output__decisions = Slot(uri=ASTRA.decisions, name="output__decisions", curie=ASTRA.curie('decisions'),
                    model_uri=ASTRA.output__decisions, domain=None, range=Optional[Union[str, list[str]]])

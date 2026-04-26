@@ -114,10 +114,10 @@ analyses:
       - id: feature_plot
         type: figure
         description: Scatter plot of extracted features
+        inputs: [features]
         decisions: [method, n_components]
         recipe:
           shell: python src/plot_features.py
-          input: [features]
 
     decisions:
       seed:
@@ -183,10 +183,10 @@ analyses:
       - id: accuracy
         type: metric
         description: Classification accuracy on held-out test set
+        inputs: [predictions]
         decisions: [classifier, split]
         recipe:
           shell: python src/evaluate.py
-          input: [predictions]
 
     decisions:
       split:

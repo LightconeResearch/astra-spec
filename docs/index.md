@@ -128,18 +128,18 @@ outputs:
   - id: accuracy
     type: metric
     description: Classification accuracy on held-out test set
+    inputs: [trained_output]
     decisions: [scaling, model]
     recipe:
       shell: python src/evaluate.py
-      input: [trained_output]
 
   - id: confusion_matrix
     type: figure
     description: Confusion matrix heatmap
+    inputs: [trained_output]
     decisions: [scaling, model]
     recipe:
       shell: python src/evaluate.py
-      input: [trained_output]
 
 decisions:
   scaling:
@@ -308,8 +308,9 @@ Each output declares an expected result from the analysis.
 | `description` | `string` | No | What this output is |
 | `from` | `string` | No | Sub-analysis output that produces this (e.g., `"sub.output_id"`) |
 | `when` | `string[]` | No | Conditions for when this output is active (see [Conditional Elements](#conditional-elements)) |
+| `inputs` | `string[]` | No | Upstream artifact IDs this output depends on (Inputs or sibling Outputs) |
 | `decisions` | `string[]` | No | Decision IDs (in scope) that parameterize this output — declares the provenance contract |
-| `recipe` | `Recipe` | No | Inline build rule |
+| `recipe` | `Recipe` | No | Inline build rule (pure *how*; dependencies live on the Output) |
 
 **Output types**:
 
@@ -323,15 +324,14 @@ Each output declares an expected result from the analysis.
 
 ### Recipes
 
-A `Recipe` is an inline build rule on an output. Recipe field names mirror Snakemake's rule grammar — `shell`, `input`, `params`, `threads`, `resources`, `container`, `conda`, `log` — so an ASTRA recipe maps cleanly onto established workflow vocabulary. Outputs with recipes form a DAG via their `input` field.
+A `Recipe` is an inline build rule on an Output. Recipe field names mirror Snakemake's rule grammar — `shell`, `script`, `params`, `threads`, `resources`, `container`, `conda`, `log` — so an ASTRA recipe maps cleanly onto established workflow vocabulary.
 
-ASTRA is a *specification* layer: it describes what to run, not how a runner delivers parameters. In particular, decision values are declared on the parent Output via `decisions:` (not on the recipe). Runners decide how to surface those values to the script (CLI flags, env vars, sidecar JSON).
+ASTRA is asset-centric: the *Output* declares what it depends on (`inputs`, `decisions`) and when it's active (`when`). The recipe is pure *how*: it does not redeclare provenance. Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice), and invoke the command.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `shell` | `string` | One of `shell`/`script` | Shell command to execute |
 | `script` | `string` | One of `shell`/`script` | Path to a script file |
-| `input` | `string[]` | No | Output IDs that must be produced first |
 | `params` | `map[string, string]` | No | Static parameters made available to the recipe body |
 | `threads` | `integer` | No | Thread/CPU count (min: 1) |
 | `resources` | `Resources` | No | Compute requirements |
