@@ -363,31 +363,28 @@ class Narrative(ConfiguredBaseModel):
 
 class Resources(ConfiguredBaseModel):
     """
-    Compute resource requirements for a recipe. Field names follow Snakemake's `resources:` conventions so that cluster executors (SLURM, Kubernetes, etc.) can consume them without remapping.
+    Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
 
-    mem_mb: Optional[int] = Field(default=None, description="""Memory requirement in megabytes""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
-    runtime: Optional[int] = Field(default=None, description="""Maximum wall time in minutes""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
-    disk_mb: Optional[int] = Field(default=None, description="""Disk requirement in megabytes""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
+    cpus: Optional[float] = Field(default=None, description="""CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.""", ge=0, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
+    memory: Optional[str] = Field(default=None, description="""Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').""", json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
+    time_limit: Optional[str] = Field(default=None, description="""Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').""", json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
+    disk: Optional[str] = Field(default=None, description="""Disk requirement as a string with units (e.g., '10Gi', '500Mi').""", json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
     gpus: Optional[int] = Field(default=None, description="""Number of GPUs""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
 
 
 class Recipe(ConfiguredBaseModel):
     """
-    A build rule that produces an output. Recipes follow Snakemake's rule grammar: `shell` or `script` defines the work, `params` carries static parameters, and `threads` / `resources` / `container` / `conda` / `log` describe the execution context.
-    Recipes are pure *how*: they do not declare what the output depends on. Provenance — upstream inputs, decision-driven parameterization, and activation conditions — is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
+    A build rule that produces an output. A recipe is pure *how*: a `shell` command, optional `params`, and the execution context (`resources`, `container`).
+    Recipes do not declare what the output depends on. Provenance — upstream inputs, decision-driven parameterization, and activation conditions — is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe (`{input.x}` substitution, env vars, sidecar JSON — runner's choice).
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
 
-    shell: Optional[str] = Field(default=None, description="""Shell command to execute (e.g., 'python src/train.py'). Mutually exclusive with `script`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    script: Optional[str] = Field(default=None, description="""Path to a script file to execute. Mutually exclusive with `shell`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    params: Optional[dict[str, Union[str, KeyValuePair]]] = Field(default=None, description="""Static parameters made available to the recipe body. Values are strings; runners decide how to surface them (Snakemake `{params.x}` substitution, env vars, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    threads: Optional[int] = Field(default=None, description="""Number of threads (Snakemake-equivalent CPU count)""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    resources: Optional[Resources] = Field(default=None, description="""Compute resource requirements (mem_mb, runtime, …)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    shell: Optional[str] = Field(default=None, description="""POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    params: Optional[dict[str, Union[str, KeyValuePair]]] = Field(default=None, description="""Static parameters made available to the recipe body. Values are strings; runners decide how to surface them (`{params.x}` substitution, env vars, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
+    resources: Optional[Resources] = Field(default=None, description="""Compute resource requirements (cpus, memory, time_limit, …)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
     container: Optional[str] = Field(default=None, description="""Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
-    conda: Optional[str] = Field(default=None, description="""Path to a Conda environment YAML file. Provides an alternative to `container` for environment specification.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    log: Optional[str] = Field(default=None, description="""Path (or path template) where the runner should write the recipe's stdout/stderr.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
 
 
 class Input(ConfiguredBaseModel):

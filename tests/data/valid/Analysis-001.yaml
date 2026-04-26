@@ -59,12 +59,11 @@ outputs:
     recipe:
       shell: python src/predict.py
       container: ghcr.io/desc/photoz:latest
-      threads: 8
       resources:
+        cpus: 8
+        memory: "16Gi"
+        time_limit: "2h"
         gpus: 1
-        mem_mb: 16000
-        runtime: 120
-      log: logs/predict.log
   - id: scatter_plot
     type: figure
     description: Photo-z scatter plot (z_phot vs z_spec)

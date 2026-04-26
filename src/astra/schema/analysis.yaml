@@ -170,30 +170,36 @@ classes:
 
   # --- Execution ---
   #
-  # Recipe field names mirror Snakemake's rule grammar so that ASTRA
-  # specifications map cleanly onto established workflow vocabulary.
-  # ASTRA itself remains a specification layer — *how* a recipe is
-  # delivered to a runner (CLI flags, env vars, sidecar JSON) is a
-  # runner concern, not a spec concern.
+  # ASTRA is a specification layer: a recipe describes *what* to run
+  # and *what it needs*, not how a runner schedules or instruments it.
+  # Field names follow modern container / cluster conventions so the
+  # spec reads naturally to anyone familiar with Docker, Kubernetes,
+  # Slurm, or batch schedulers.
 
   Resources:
     description: >-
-      Compute resource requirements for a recipe. Field names follow
-      Snakemake's `resources:` conventions so that cluster executors
-      (SLURM, Kubernetes, etc.) can consume them without remapping.
+      Compute resource requirements for a recipe. Values follow
+      cloud-native conventions (string-with-units for sized
+      quantities) so cluster executors can consume them directly.
     attributes:
-      mem_mb:
-        range: integer
-        minimum_value: 1
-        description: Memory requirement in megabytes
-      runtime:
-        range: integer
-        minimum_value: 1
-        description: Maximum wall time in minutes
-      disk_mb:
-        range: integer
-        minimum_value: 1
-        description: Disk requirement in megabytes
+      cpus:
+        range: float
+        minimum_value: 0
+        description: >-
+          CPU cores requested. Fractional values are allowed
+          (e.g., 0.5) for runners that support CPU shares.
+      memory:
+        description: >-
+          Memory requirement as a string with units
+          (e.g., '16Gi', '512Mi', '8GB').
+      time_limit:
+        description: >-
+          Maximum wall time as a duration string
+          (e.g., '2h', '30m', '1h30m').
+      disk:
+        description: >-
+          Disk requirement as a string with units
+          (e.g., '10Gi', '500Mi').
       gpus:
         range: integer
         minimum_value: 1
@@ -201,58 +207,41 @@ classes:
 
   Recipe:
     description: >-
-      A build rule that produces an output. Recipes follow Snakemake's
-      rule grammar: `shell` or `script` defines the work, `params`
-      carries static parameters, and
-      `threads` / `resources` / `container` / `conda` / `log`
-      describe the execution context.
+      A build rule that produces an output. A recipe is pure *how*:
+      a `shell` command, optional `params`, and the execution
+      context (`resources`, `container`).
 
-      Recipes are pure *how*: they do not declare what the output
-      depends on. Provenance — upstream inputs, decision-driven
-      parameterization, and activation conditions — is declared on
-      the parent Output (`inputs`, `decisions`, `when`). Runners
-      surface the resolved input map and active decision values to
-      the recipe (Snakemake-style `{input.x}` substitution, env
-      vars, sidecar JSON — runner's choice).
+      Recipes do not declare what the output depends on. Provenance
+      — upstream inputs, decision-driven parameterization, and
+      activation conditions — is declared on the parent Output
+      (`inputs`, `decisions`, `when`). Runners surface the resolved
+      input map and active decision values to the recipe
+      (`{input.x}` substitution, env vars, sidecar JSON — runner's
+      choice).
     attributes:
       shell:
         description: >-
-          Shell command to execute (e.g., 'python src/train.py').
-          Mutually exclusive with `script`.
-      script:
-        description: >-
-          Path to a script file to execute. Mutually exclusive with
-          `shell`.
+          POSIX shell command to execute (e.g.,
+          'python src/train.py', 'Rscript analysis.R',
+          'julia model.jl'). Any executable invocation is fine.
       params:
         range: KeyValuePair
         multivalued: true
         inlined: true
         description: >-
           Static parameters made available to the recipe body. Values
-          are strings; runners decide how to surface them (Snakemake
-          `{params.x}` substitution, env vars, etc.).
-      threads:
-        range: integer
-        minimum_value: 1
-        description: Number of threads (Snakemake-equivalent CPU count)
+          are strings; runners decide how to surface them (`{params.x}`
+          substitution, env vars, etc.).
       resources:
         range: Resources
         inlined: true
-        description: Compute resource requirements (mem_mb, runtime, …)
+        description: Compute resource requirements (cpus, memory, time_limit, …)
       container:
         description: >-
           Container image name or path to a Containerfile.
           Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are
           pulled as pre-built images; file paths (e.g., 'Containerfile',
           'containers/Dockerfile') are built from source.
-      conda:
-        description: >-
-          Path to a Conda environment YAML file. Provides an
-          alternative to `container` for environment specification.
-      log:
-        description: >-
-          Path (or path template) where the runner should write the
-          recipe's stdout/stderr.
 
   # --- Inputs and Outputs ---
 

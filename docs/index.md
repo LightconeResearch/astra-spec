@@ -324,28 +324,25 @@ Each output declares an expected result from the analysis.
 
 ### Recipes
 
-A `Recipe` is an inline build rule on an Output. Recipe field names mirror Snakemake's rule grammar — `shell`, `script`, `params`, `threads`, `resources`, `container`, `conda`, `log` — so an ASTRA recipe maps cleanly onto established workflow vocabulary.
+A `Recipe` is an inline build rule on an Output. ASTRA is asset-centric: the *Output* declares what it depends on (`inputs`, `decisions`) and when it's active (`when`). The recipe is pure *how* — a POSIX shell command plus the execution context. It does not redeclare provenance.
 
-ASTRA is asset-centric: the *Output* declares what it depends on (`inputs`, `decisions`) and when it's active (`when`). The recipe is pure *how*: it does not redeclare provenance. Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice), and invoke the command.
+Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (`{input.x}` substitution, env vars, sidecar JSON — runner's choice), and invoke the command.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `shell` | `string` | One of `shell`/`script` | Shell command to execute |
-| `script` | `string` | One of `shell`/`script` | Path to a script file |
+| `shell` | `string` | **Yes** | POSIX shell command (e.g., `python src/train.py`, `Rscript analysis.R`) |
 | `params` | `map[string, string]` | No | Static parameters made available to the recipe body |
-| `threads` | `integer` | No | Thread/CPU count (min: 1) |
 | `resources` | `Resources` | No | Compute requirements |
 | `container` | `string` | No | Container image name or path to a Containerfile |
-| `conda` | `string` | No | Path to a Conda environment YAML file |
-| `log` | `string` | No | Path (or template) for stdout/stderr capture |
 
-**Resources** (Snakemake-conventional keys):
+**Resources** (cloud-native conventions):
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `mem_mb` | `integer` | Memory requirement in megabytes |
-| `runtime` | `integer` | Maximum wall time in minutes |
-| `disk_mb` | `integer` | Disk requirement in megabytes |
+| `cpus` | `number` | CPU cores (fractional values allowed for runners that support shares) |
+| `memory` | `string` | Memory with units (e.g., `"16Gi"`, `"512Mi"`, `"8GB"`) |
+| `time_limit` | `string` | Wall-time duration (e.g., `"2h"`, `"30m"`, `"1h30m"`) |
+| `disk` | `string` | Disk with units (e.g., `"10Gi"`) |
 | `gpus` | `integer` | Number of GPUs (min: 1) |
 
 A node-level `container` field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., `python:3.9`, `ghcr.io/org/img:latest`) are pulled as pre-built images; file paths (e.g., `Containerfile`, `containers/Dockerfile`) are built from source.
@@ -423,11 +420,11 @@ analyses:
         decisions: [classifier]
         recipe:
           shell: python src/evaluate.py
-          threads: 4
           resources:
+            cpus: 4
+            memory: "32Gi"
+            time_limit: "1h"
             gpus: 1
-            mem_mb: 32000
-            runtime: 60
     decisions:
       classifier:
         label: Classifier
