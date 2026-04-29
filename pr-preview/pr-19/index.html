@@ -703,13 +703,74 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#composability" class="md-nav__link">
+  <a href="#bridges" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Composability
+        Bridges
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Bridges">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-is-a-pure-alias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from is a pure alias
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-grammar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path grammar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-slot-directions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-slot directions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-analysis-references-separate-from-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-analysis references (separate from from)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -760,17 +821,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-references" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision References
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1351,13 +1401,74 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#composability" class="md-nav__link">
+  <a href="#bridges" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Composability
+        Bridges
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Bridges">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-is-a-pure-alias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from is a pure alias
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-grammar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Path grammar
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-slot-directions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-slot directions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-analysis-references-separate-from-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-analysis references (separate from from)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1408,17 +1519,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#decision-references" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Decision References
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1877,7 +1977,7 @@ Universe (decision selections)  ─────▶  Execution Parameters
 The [<span class="nt">best_model finding</span>](<span class="na">#findings.best_model</span>) summarizes our
 recommendation.
 </code></pre></div>
-<p>The anchor grammar is <strong>tree-path-first</strong>, matching ASTRA's existing reference syntax (<code>sibling.output_id</code> in <code>from</code>, etc.). Sub-analyses are traversed before the category:</p>
+<p>The anchor grammar is <strong>tree-path-first</strong>, matching ASTRA's <a href="#bridges"><code>from:</code> path grammar</a> — <code>../</code> to escape upward, <code>name.subname</code> to descend. Sub-analyses are traversed before the category:</p>
 <table>
 <thead>
 <tr>
@@ -1920,12 +2020,12 @@ recommendation.
 </tr>
 </tbody>
 </table>
-<p>References are interpreted <strong>relative to the hosting analysis</strong>. Prefix with <code>../</code> to escape to parent scope, matching decision <code>from</code> syntax:</p>
+<p>References are interpreted <strong>relative to the hosting analysis</strong>. Prefix with <code>../</code> to escape to a parent scope (one or more levels), matching the <code>from:</code> path grammar:</p>
 <div class="highlight"><pre><span></span><code>See [<span class="nt">parent scaling</span>](<span class="na">#../decisions.scaling</span>).
 </code></pre></div>
 <p>Anchor resolution is a renderer concern at render time, but the ASTRA tooling validates anchors during <code>astra validate</code>: broken references are errors, and missing coverage (a declared finding, decision, output, or sub-analysis not cited anywhere in the tree's narrative) is a warning.</p>
 <h3 id="inputs">Inputs</h3>
-<p>Each input declares a data source or a reference to another analysis.</p>
+<p>Each input declares a data source, a reference to another analysis, or — inside a sub-analysis — an alias for an upstream artifact via <code>from</code>.</p>
 <table>
 <thead>
 <tr>
@@ -1951,7 +2051,7 @@ recommendation.
 <tr>
 <td><code>type</code></td>
 <td><code>"data"</code> | <code>"analysis"</code></td>
-<td><strong>Yes</strong></td>
+<td><strong>Yes</strong> when <code>from</code> unset</td>
 <td>Kind of input</td>
 </tr>
 <tr>
@@ -1988,12 +2088,12 @@ recommendation.
 <td><code>from</code></td>
 <td><code>string</code></td>
 <td>No</td>
-<td>Parent input or sibling output reference (for sub-analyses)</td>
+<td>Path-aliased upstream artifact — see <a href="#bridges">Bridges</a></td>
 </tr>
 </tbody>
 </table>
 <p><strong>ID pattern</strong>: <code>^[a-z][a-z0-9_]*$</code> (lowercase, underscores, starts with letter), with reserved category names excluded — see <a href="#reserved-ids">Reserved IDs</a>.</p>
-<p><strong>Input wiring in sub-analyses</strong>: The <code>from</code> field references either a parent input by ID (<code>from: parent_input_id</code>) or a sibling's output (<code>from: sibling_id.output_id</code>).</p>
+<p><strong>Aliasing with <code>from</code></strong>: When <code>from</code> is set, the Input is a pure pointer — only <code>id</code> and <code>from</code> may be declared; <code>type</code>, <code>description</code>, <code>source</code>, etc. are inherited from the source. See <a href="#bridges">Bridges</a> for the path grammar.</p>
 <h3 id="reserved-ids">Reserved IDs</h3>
 <p>The following names cannot be used as identifiers for any analysis entity (sub-analyses, decisions, options, inputs, outputs, findings, prior insights, evidence, insights):</p>
 <div class="highlight"><pre><span></span><code>inputs   outputs   decisions   findings   prior_insights
@@ -2001,7 +2101,7 @@ analyses options   content     narrative
 </code></pre></div>
 <p>These collide with reserved keywords in the narrative anchor grammar. For example, naming a sub-analysis <code>decisions</code> would make <code>[link](#decisions.foo)</code> ambiguous — it could mean "root decision <code>foo</code>" or "decision <code>foo</code> inside the sub-analysis named <code>decisions</code>" — so the spec rejects them up front.</p>
 <h3 id="outputs">Outputs</h3>
-<p>Each output declares an expected result from the analysis.</p>
+<p>Each output is either produced locally (with <code>inputs</code>, <code>decisions</code>, <code>recipe</code>) or re-exported from a sub-analysis via <code>from</code>.</p>
 <table>
 <thead>
 <tr>
@@ -2027,7 +2127,7 @@ analyses options   content     narrative
 <tr>
 <td><code>type</code></td>
 <td><code>"metric"</code> | <code>"figure"</code> | <code>"table"</code> | <code>"data"</code> | <code>"report"</code></td>
-<td><strong>Yes</strong></td>
+<td><strong>Yes</strong> when <code>from</code> unset</td>
 <td>Kind of output</td>
 </tr>
 <tr>
@@ -2040,7 +2140,7 @@ analyses options   content     narrative
 <td><code>from</code></td>
 <td><code>string</code></td>
 <td>No</td>
-<td>Sub-analysis output that produces this (e.g., <code>"sub.output_id"</code>)</td>
+<td>Path-aliased sub-analysis output — see <a href="#bridges">Bridges</a></td>
 </tr>
 <tr>
 <td><code>when</code></td>
@@ -2068,6 +2168,7 @@ analyses options   content     narrative
 </tr>
 </tbody>
 </table>
+<p><strong>Aliasing with <code>from</code></strong>: When <code>from</code> is set, the Output is a pure re-export — only <code>id</code>, <code>from</code>, and <code>when</code> may be declared; <code>type</code>, <code>description</code>, <code>inputs</code>, <code>decisions</code>, and <code>recipe</code> are inherited from the source. See <a href="#bridges">Bridges</a>.</p>
 <p><strong>Output types</strong>:</p>
 <table>
 <thead>
@@ -2214,6 +2315,7 @@ analyses options   content     narrative
 </tbody>
 </table>
 <p>Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.</p>
+<p>Placeholders always use <strong>local IDs</strong> in the surrounding scope. When an input or decision is aliased from another scope (via <a href="#bridges"><code>from:</code></a>), the recipe template still names it by its local id; the runner walks the <code>from:</code> chain to resolve the source. Recipes never use <code>../</code> syntax — bridging is declared once at the <code>Input</code>/<code>Decision</code>, not in the template.</p>
 <p>Static constants (e.g., a fixed <code>--max-iter 1000</code>) belong inline in the command string. There is no separate <code>params</code> channel because varying values are decisions and constants are just command text.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predictions</span>
@@ -2238,7 +2340,7 @@ analyses options   content     narrative
 <p>A runner materializes <code>training_data</code> and <code>features</code>, picks output paths, expands the template, and invokes the command. If a universe selects <code>classifier=svm</code>, the command becomes <code>python src/classify.py --train ... --classifier svm --seed 42 --max-iter 1000 --out ...</code>.</p>
 <p>A node-level <code>container</code> field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., <code>python:3.9</code>, <code>ghcr.io/org/img:latest</code>) are pulled as pre-built images; file paths (e.g., <code>Containerfile</code>, <code>containers/Dockerfile</code>) are built from source.</p>
 <h3 id="decisions">Decisions</h3>
-<p>Decisions are the core of the multiverse. Each decision is a named choice point with multiple options.</p>
+<p>Decisions are the core of the multiverse. Each decision is a named choice point with multiple options, or — inside a sub-analysis — a pure alias for an ancestor decision via <code>from</code>.</p>
 <table>
 <thead>
 <tr>
@@ -2252,7 +2354,7 @@ analyses options   content     narrative
 <tr>
 <td><code>label</code></td>
 <td><code>string</code></td>
-<td><strong>Yes</strong></td>
+<td><strong>Yes</strong> when <code>from</code> unset</td>
 <td>Human-readable name</td>
 </tr>
 <tr>
@@ -2282,18 +2384,18 @@ analyses options   content     narrative
 <tr>
 <td><code>options</code></td>
 <td><code>map[string, Option]</code></td>
-<td><strong>Yes</strong></td>
+<td><strong>Yes</strong> when <code>from</code> unset</td>
 <td>Available choices</td>
 </tr>
 <tr>
 <td><code>from</code></td>
 <td><code>string</code></td>
 <td>No</td>
-<td>Reference to a parent decision (see <a href="#decision-references">Decision References</a>)</td>
+<td>Path-aliased ancestor decision — see <a href="#bridges">Bridges</a></td>
 </tr>
 </tbody>
 </table>
-<p>A decision with <code>from</code> set is a pure reference — it must not have <code>label</code>, <code>options</code>, or <code>default</code>.</p>
+<p>When <code>from</code> is set, the Decision is a pure reference — only <code>id</code>, <code>from</code>, and <code>when</code> may be declared; <code>label</code>, <code>options</code>, <code>default</code>, <code>rationale</code>, and <code>tags</code> are inherited from the ancestor.</p>
 <h3 id="options">Options</h3>
 <table>
 <thead>
@@ -2357,8 +2459,7 @@ analyses options   content     narrative
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Learn a compact representation of the raw features</span>
 <span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw_features</span>
-<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
-<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">iris_data</span><span class="w">                    </span><span class="c1"># Parent input</span>
+<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../iris_data</span><span class="w">                 </span><span class="c1"># Parent input (aliased)</span>
 <span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">features</span>
 <span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
@@ -2367,7 +2468,7 @@ analyses options   content     narrative
 <span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/extract_features.py</span>
 <span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">seed</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../random_seed</span><span class="w">               </span><span class="c1"># Parent decision reference</span>
+<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../random_seed</span><span class="w">               </span><span class="c1"># Parent decision (aliased)</span>
 
 <span class="w">      </span><span class="nt">method</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Extraction Method</span>
@@ -2382,8 +2483,7 @@ analyses options   content     narrative
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Train a classifier on extracted features</span>
 <span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">features</span>
-<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
-<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">feature_extraction.features</span><span class="w">      </span><span class="c1"># Sibling output</span>
+<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../feature_extraction.features</span><span class="w">  </span><span class="c1"># Sibling sub&#39;s output (aliased)</span>
 <span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accuracy</span>
 <span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metric</span>
@@ -2740,8 +2840,105 @@ analyses options   content     narrative
 </code></pre></div>
 <p>Constraint references use the format <code>decision_id.option_id</code>. Universe validation rejects any selection that violates these constraints.</p>
 <hr />
-<h2 id="composability">Composability</h2>
-<p>Analyses can reference other analyses as inputs, enabling formal research chains:</p>
+<h2 id="bridges">Bridges</h2>
+<p>Each scope (an <code>Analysis</code> or sub-analysis) declares its own inputs, outputs, and decisions. Cross-scope linkage happens <em>only</em> through the <code>from:</code> field on <code>Input</code>, <code>Output</code>, and <code>Decision</code>. Recipe templates and <code>Output.inputs</code> / <code>Output.decisions</code> always use <strong>local IDs</strong> within the surrounding scope; <code>from</code> is the one primitive that crosses a boundary.</p>
+<h3 id="from-is-a-pure-alias"><code>from</code> is a pure alias</h3>
+<p>When <code>from</code> is set on any node, the node is a pointer. Only <code>id</code> and (where applicable) <code>when</code> may be declared alongside it. All content fields — <code>type</code>, <code>description</code>, <code>label</code>, <code>source</code>, <code>options</code>, <code>default</code>, <code>recipe</code>, etc. — are inherited from the source. Renaming, retyping, or redocumenting an artifact happens at exactly one place: its canonical declaration.</p>
+<h3 id="path-grammar">Path grammar</h3>
+<p>The grammar is uniform across <code>Input</code>, <code>Output</code>, and <code>Decision</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Form</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>../id</code></td>
+<td>escape one scope upward, then <code>id</code></td>
+</tr>
+<tr>
+<td><code>../../id</code></td>
+<td>escape two scopes upward, then <code>id</code></td>
+</tr>
+<tr>
+<td><code>../scope.id</code></td>
+<td>escape upward, then descend into named child <code>scope</code></td>
+</tr>
+<tr>
+<td><code>scope.id</code></td>
+<td>descend from current scope into named child <code>scope</code></td>
+</tr>
+<tr>
+<td><code>scope.sub.id</code></td>
+<td>descend through nested children</td>
+</tr>
+</tbody>
+</table>
+<p><code>../</code> always means "up"; bare descent (<code>name.subname</code>) always means "into a named subordinate scope." Multiple levels are allowed in either direction.</p>
+<h3 id="per-slot-directions">Per-slot directions</h3>
+<p>Each class restricts the legal directions to those that make semantic sense:</p>
+<table>
+<thead>
+<tr>
+<th>Slot</th>
+<th>Legal forms</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Input.from</code></td>
+<td><code>../id</code>, <code>../../id</code>, <code>../scope.out_id</code></td>
+<td>parent or further-ancestor Input; sibling sub's Output</td>
+</tr>
+<tr>
+<td><code>Output.from</code></td>
+<td><code>child.out_id</code>, <code>child.sub.out_id</code></td>
+<td>own child sub's Output (re-export); deeper descents allowed</td>
+</tr>
+<tr>
+<td><code>Decision.from</code></td>
+<td><code>../id</code>, <code>../../id</code></td>
+<td>parent or further-ancestor Decision</td>
+</tr>
+</tbody>
+</table>
+<p>Inputs and Outputs reach into named subordinate scopes for <em>artifacts</em> (which can flow up via re-export or laterally between siblings). Decisions only flow downward — to share a decision between siblings, lift it to the common ancestor and have each sub <code>from:</code> it.</p>
+<h3 id="examples">Examples</h3>
+<div class="highlight"><pre><span></span><code><span class="nt">analyses</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">stage_a</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw</span>
+<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../survey_catalog</span><span class="w">            </span><span class="c1"># parent Input</span>
+<span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processed</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">        </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/process.py</span>
+
+<span class="w">  </span><span class="nt">stage_b</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../stage_a.processed</span><span class="w">         </span><span class="c1"># sibling sub&#39;s Output</span>
+<span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">result</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metric</span>
+<span class="w">        </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">seed</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">recipe</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/eval.py</span>
+<span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">seed</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../random_seed</span><span class="w">               </span><span class="c1"># parent Decision</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Parent re-exports a sub-analysis output to its own outer scope:</span>
+<span class="nt">outputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">accuracy</span>
+<span class="w">    </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">classification.accuracy</span><span class="w">          </span><span class="c1"># own child&#39;s Output</span>
+</code></pre></div>
+<h3 id="cross-analysis-references-separate-from-from">Cross-analysis references (separate from <code>from</code>)</h3>
+<p>The <code>from:</code> mechanism wires elements <em>within</em> a single analysis tree. To consume the outputs of an external analysis as a whole-cloth dependency, declare an Input of <code>type: analysis</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">inputs</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prior_study</span>
 <span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analysis</span>
@@ -2749,23 +2946,7 @@ analyses options   content     narrative
 <span class="w">    </span><span class="nt">ref_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;v1.2&quot;</span>
 <span class="w">    </span><span class="nt">use_outputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">best_method</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">performance_table</span><span class="p p-Indicator">]</span>
 </code></pre></div>
-<p>Within a nested analysis, sub-analyses wire inputs from the parent or from siblings using <code>from</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">analyses</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">stage_a</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw</span>
-<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
-<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">survey_catalog</span><span class="w">               </span><span class="c1"># Parent input</span>
-<span class="w">    </span><span class="nt">outputs</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processed</span>
-<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
-
-<span class="w">  </span><span class="nt">stage_b</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
-<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
-<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage_a.processed</span><span class="w">            </span><span class="c1"># Sibling output</span>
-</code></pre></div>
+<p>This is a different operation: <code>ref</code> points to an external ASTRA analysis by reference, while <code>from</code> aliases an element within the current analysis tree.</p>
 <hr />
 <h2 id="conditional-elements">Conditional Elements</h2>
 <p>The <code>when</code> field makes decisions or outputs conditional. It accepts a list of conditions in the format <code>decision_id.option_id</code> or <code>~decision_id.option_id</code> (negated). Multiple conditions are AND'd together.</p>
@@ -2813,32 +2994,6 @@ analyses options   content     narrative
 <span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Linear Interpolation</span>
 </code></pre></div>
 <hr />
-<h2 id="decision-references">Decision References</h2>
-<p>Sub-analyses can reference a parent decision using the <code>from</code> field with a <code>../</code> prefix. This avoids duplicating the decision definition and ensures the sub-analysis uses the same selection as the parent:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">decisions</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">random_seed</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Random Seed</span>
-<span class="w">    </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">seed_42</span>
-<span class="w">    </span><span class="nt">options</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">seed_42</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;42&quot;</span>
-<span class="w">      </span><span class="nt">seed_7</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;7&quot;</span>
-
-<span class="nt">analyses</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">feature_extraction</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">seed</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../random_seed</span><span class="w">         </span><span class="c1"># Uses parent&#39;s random_seed decision</span>
-<span class="w">      </span><span class="nt">method</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Extraction Method</span>
-<span class="w">        </span><span class="nt">default</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pca</span>
-<span class="w">        </span><span class="nt">options</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">pca</span><span class="p">:</span>
-<span class="w">            </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PCA</span>
-</code></pre></div>
-<p>A decision with <code>from</code> set is a pure reference — it must not define <code>label</code>, <code>options</code>, or <code>default</code>.</p>
-<hr />
 <h2 id="external-sub-analyses">External Sub-Analyses</h2>
 <p>A sub-analysis can be defined externally by specifying a <code>path</code> to a directory containing its own <code>astra.yaml</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">analyses</span><span class="p">:</span>
@@ -2867,9 +3022,9 @@ analyses options   content     narrative
 <li>No duplicate IDs within a node</li>
 <li>Default options exist in their decision's option map</li>
 <li>Constraint references (<code>incompatible_with</code>, <code>requires</code>) resolve to valid <code>decision.option</code> pairs</li>
-<li>Input <code>from</code> references resolve to parent inputs or sibling outputs</li>
-<li>Output <code>from</code> references resolve to sub-analysis outputs</li>
-<li>Recipe input dependencies reference valid output IDs</li>
+<li><code>from:</code> paths conform to per-slot direction rules (see <a href="#bridges">Bridges</a>) and resolve to existing nodes</li>
+<li>A node with <code>from:</code> set has no other content fields (type, description, options, recipe, …)</li>
+<li>Recipe input dependencies reference valid output IDs in scope</li>
 <li>Universe selections match analysis decisions</li>
 <li>Universe selections respect all constraints</li>
 </ul>
@@ -2905,9 +3060,14 @@ analyses options   content     narrative
 <td><code>scaling.standard</code></td>
 </tr>
 <tr>
-<td>Decision references</td>
-<td><code>../decision_id</code></td>
-<td><code>../random_seed</code></td>
+<td><code>from:</code> path (upward)</td>
+<td><code>(\.\./)+id(\.scope.id)*</code></td>
+<td><code>../random_seed</code>, <code>../../iris_data</code>, <code>../stage_a.processed</code></td>
+</tr>
+<tr>
+<td><code>from:</code> path (downward)</td>
+<td><code>scope.id(\.scope.id)*</code></td>
+<td><code>classification.accuracy</code>, <code>feature_extraction.feature_plot</code></td>
 </tr>
 <tr>
 <td>Version</td>

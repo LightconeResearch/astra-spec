@@ -208,6 +208,91 @@
 </a>
 </li>
 <li class="md-nav__item">
+<a class="md-nav__link" href="#rules">
+<span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+</a>
+<nav aria-label="Rules" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#from_alias_forbids_type">
+<span class="md-ellipsis">
+      
+        from_alias_forbids_type
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#from_alias_forbids_label">
+<span class="md-ellipsis">
+      
+        from_alias_forbids_label
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#from_alias_forbids_description">
+<span class="md-ellipsis">
+      
+        from_alias_forbids_description
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#from_alias_forbids_source">
+<span class="md-ellipsis">
+      
+        from_alias_forbids_source
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#from_alias_forbids_ref">
+<span class="md-ellipsis">
+      
+        from_alias_forbids_ref
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#from_alias_forbids_ref_version">
+<span class="md-ellipsis">
+      
+        from_alias_forbids_ref_version
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#from_alias_forbids_use_outputs">
+<span class="md-ellipsis">
+      
+        from_alias_forbids_use_outputs
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#type_required_when_not_aliased">
+<span class="md-ellipsis">
+      
+        type_required_when_not_aliased
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
 <a class="md-nav__link" href="#identifier-and-mapping-information">
 <span class="md-ellipsis">
       
@@ -277,7 +362,14 @@
 <div class="md-content" data-md-component="content">
 <article class="md-content__inner md-typeset">
 <h1 id="class-input">Class: Input</h1>
-<p><em>An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA analysis). Sub-analysis inputs can use 'from' to reference a parent input or a sibling's output (e.g., 'sibling_id.output_id').</em></p>
+<p><em>An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA analysis).</em></p>
+<p><em>Sub-analysis inputs may alias an upstream artifact via <code>from</code>, using the unified path grammar:</em></p>
+<p>__</p>
+<p>_  from: ../id              -- a parent input_</p>
+<p>_  from: ../../id           -- a grandparent input_</p>
+<p>_  from: ../sibling.out_id  -- a sibling sub-analysis's output_</p>
+<p>__</p>
+<p><em>An aliased Input is a pure pointer: only <code>id</code> and <code>from</code> are allowed, with all other fields inherited from the source.</em></p>
 <p>URI: <a href="https://w3id.org/ASTRA/Input">astra:Input</a></p>
 <pre class="mermaid"><code> classDiagram
     class Input
@@ -302,7 +394,7 @@
 
 
 
-        Input --&gt; "1" InputType : type
+        Input --&gt; "0..1" InputType : type
         click InputType href "../InputType/"
 
 
@@ -325,7 +417,7 @@
 <tr>
 <td><a href="../from/">from</a></td>
 <td>0..1 <br/> <a href="../String/">String</a></td>
-<td>Reference to parent input or sibling output (e</td>
+<td>Path to the source: `</td>
 <td>direct</td>
 </tr>
 <tr>
@@ -342,7 +434,7 @@
 </tr>
 <tr>
 <td><a href="../type/">type</a></td>
-<td>1 <br/> <a href="../InputType/">InputType</a></td>
+<td>0..1 <br/> <a href="../InputType/">InputType</a></td>
 <td>Type of input</td>
 <td>direct</td>
 </tr>
@@ -397,6 +489,159 @@
 </tr>
 </tbody>
 </table>
+<h2 id="rules">Rules</h2>
+<h3 id="from_alias_forbids_type">from_alias_forbids_type</h3>
+<table>
+<thead>
+<tr>
+<th>Rule Applied</th>
+<th>Preconditions</th>
+<th>Postconditions</th>
+<th>Elseconditions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slot_conditions</td>
+<td><code>{'from': {'value_presence': 'PRESENT'}}</code></td>
+<td><code>{'type': {'value_presence': 'ABSENT'}}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="from_alias_forbids_label">from_alias_forbids_label</h3>
+<table>
+<thead>
+<tr>
+<th>Rule Applied</th>
+<th>Preconditions</th>
+<th>Postconditions</th>
+<th>Elseconditions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slot_conditions</td>
+<td><code>{'from': {'value_presence': 'PRESENT'}}</code></td>
+<td><code>{'label': {'value_presence': 'ABSENT'}}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="from_alias_forbids_description">from_alias_forbids_description</h3>
+<table>
+<thead>
+<tr>
+<th>Rule Applied</th>
+<th>Preconditions</th>
+<th>Postconditions</th>
+<th>Elseconditions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slot_conditions</td>
+<td><code>{'from': {'value_presence': 'PRESENT'}}</code></td>
+<td><code>{'description': {'value_presence': 'ABSENT'}}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="from_alias_forbids_source">from_alias_forbids_source</h3>
+<table>
+<thead>
+<tr>
+<th>Rule Applied</th>
+<th>Preconditions</th>
+<th>Postconditions</th>
+<th>Elseconditions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slot_conditions</td>
+<td><code>{'from': {'value_presence': 'PRESENT'}}</code></td>
+<td><code>{'source': {'value_presence': 'ABSENT'}}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="from_alias_forbids_ref">from_alias_forbids_ref</h3>
+<table>
+<thead>
+<tr>
+<th>Rule Applied</th>
+<th>Preconditions</th>
+<th>Postconditions</th>
+<th>Elseconditions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slot_conditions</td>
+<td><code>{'from': {'value_presence': 'PRESENT'}}</code></td>
+<td><code>{'ref': {'value_presence': 'ABSENT'}}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="from_alias_forbids_ref_version">from_alias_forbids_ref_version</h3>
+<table>
+<thead>
+<tr>
+<th>Rule Applied</th>
+<th>Preconditions</th>
+<th>Postconditions</th>
+<th>Elseconditions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slot_conditions</td>
+<td><code>{'from': {'value_presence': 'PRESENT'}}</code></td>
+<td><code>{'ref_version': {'value_presence': 'ABSENT'}}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="from_alias_forbids_use_outputs">from_alias_forbids_use_outputs</h3>
+<table>
+<thead>
+<tr>
+<th>Rule Applied</th>
+<th>Preconditions</th>
+<th>Postconditions</th>
+<th>Elseconditions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slot_conditions</td>
+<td><code>{'from': {'value_presence': 'PRESENT'}}</code></td>
+<td><code>{'use_outputs': {'value_presence': 'ABSENT'}}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="type_required_when_not_aliased">type_required_when_not_aliased</h3>
+<table>
+<thead>
+<tr>
+<th>Rule Applied</th>
+<th>Preconditions</th>
+<th>Postconditions</th>
+<th>Elseconditions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slot_conditions</td>
+<td><code>{'from': {'value_presence': 'ABSENT'}}</code></td>
+<td><code>{'type': {'required': True}}</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <h2 id="identifier-and-mapping-information">Identifier and Mapping Information</h2>
 <h3 id="schema-source">Schema Source</h3>
 <ul>
@@ -426,17 +671,23 @@
 <h3 id="direct">Direct</h3>
 <details>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Input</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'An</span><span class="nv"> </span><span class="s">input</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">analysis.</span><span class="nv"> </span><span class="s">Two</span><span class="nv"> </span><span class="s">kinds:</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">(dataset/file/resource)</span><span class="nv"> </span><span class="s">or</span>
-<span class="w">  </span><span class="s">analysis</span><span class="nv"> </span><span class="s">(outputs</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">another</span><span class="nv"> </span><span class="s">ASTRA</span><span class="nv"> </span><span class="s">analysis).</span><span class="nv"> </span><span class="s">Sub-analysis</span><span class="nv"> </span><span class="s">inputs</span><span class="nv"> </span><span class="s">can</span><span class="nv"> </span><span class="s">use</span><span class="nv"> </span><span class="se">''</span><span class="s">from</span><span class="se">''</span>
-<span class="w">  </span><span class="s">to</span><span class="nv"> </span><span class="s">reference</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">parent</span><span class="nv"> </span><span class="s">input</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">sibling</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">(e.g.,</span><span class="nv"> </span><span class="se">''</span><span class="s">sibling_id.output_id</span><span class="se">''</span><span class="s">).'</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"An</span><span class="nv"> </span><span class="s">input</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">analysis.</span><span class="nv"> </span><span class="s">Two</span><span class="nv"> </span><span class="s">kinds:</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">(dataset/file/resource)</span><span class="nv"> </span><span class="s">or\</span>
+<span class="w">  </span><span class="s">\ analysis</span><span class="nv"> </span><span class="s">(outputs</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">another</span><span class="nv"> </span><span class="s">ASTRA</span><span class="nv"> </span><span class="s">analysis).\nSub-analysis</span><span class="nv"> </span><span class="s">inputs</span><span class="nv"> </span><span class="s">may</span><span class="nv"> </span><span class="s">alias\</span>
+<span class="w">  </span><span class="s">\ an</span><span class="nv"> </span><span class="s">upstream</span><span class="nv"> </span><span class="s">artifact</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">`from`,</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">unified</span><span class="nv"> </span><span class="s">path</span><span class="nv"> </span><span class="s">grammar:\n\n</span><span class="nv">  </span><span class="s">from:</span><span class="nv"> </span><span class="s">../id\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv">             </span><span class="s">--</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">parent</span><span class="nv"> </span><span class="s">input\n</span><span class="nv">  </span><span class="s">from:</span><span class="nv"> </span><span class="s">../../id</span><span class="nv">           </span><span class="s">--</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">grandparent</span><span class="nv"> </span><span class="s">input\n\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">from:</span><span class="nv"> </span><span class="s">../sibling.out_id</span><span class="nv">  </span><span class="s">--</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">sibling</span><span class="nv"> </span><span class="s">sub-analysis's</span><span class="nv"> </span><span class="s">output\n\nAn</span><span class="nv"> </span><span class="s">aliased</span><span class="nv"> </span><span class="s">Input\</span>
+<span class="w">  </span><span class="s">\ is</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">pure</span><span class="nv"> </span><span class="s">pointer:</span><span class="nv"> </span><span class="s">only</span><span class="nv"> </span><span class="s">`id`</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">`from`</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">allowed,</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">other</span><span class="nv"> </span><span class="s">fields</span><span class="nv"> </span><span class="s">inherited\</span>
+<span class="w">  </span><span class="s">\ from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">source."</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">slots</span><span class="p">:</span>
 <span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
 <span class="nt">slot_usage</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">from</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Reference to parent input or sibling output (e.g., 'input_id' or</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">'sibling.output_id').</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'Path</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">source:</span><span class="nv"> </span><span class="s">`../id`</span><span class="nv"> </span><span class="s">(ancestor</span><span class="nv"> </span><span class="s">input),</span><span class="nv"> </span><span class="s">`../../id`</span><span class="nv"> </span><span class="s">(further</span>
+<span class="w">      </span><span class="s">ancestor),</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">`../scope.out_id`</span><span class="nv"> </span><span class="s">(sibling</span><span class="nv"> </span><span class="s">sub</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">output).</span><span class="nv"> </span><span class="s">Reaching</span><span class="nv"> </span><span class="s">down</span><span class="nv"> </span><span class="s">into</span>
+<span class="w">      </span><span class="s">own</span><span class="nv"> </span><span class="s">children</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">allowed</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">consume</span><span class="nv"> </span><span class="s">those</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">Output</span><span class="nv"> </span><span class="s">re-export</span><span class="nv"> </span><span class="s">instead.'</span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^(\.\./)+[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$</span>
 <span class="nt">attributes</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">id</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">id</span>
@@ -470,14 +721,14 @@
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Insight</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Type of input</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Type of input. Required when `from` is unset; forbidden when `from`</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">is set (inherited from the source).</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Input</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Output</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">InputType</span>
-<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">description</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">description</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Description of the input</span>
@@ -517,20 +768,116 @@
 <span class="w">    </span><span class="nt">domain_of</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Input</span>
 <span class="w">    </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">rules</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_type</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">label</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">label</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_label</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">description</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_description</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">source</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">source</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_source</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">ref</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_ref</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">ref_version</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref_version</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_ref_version</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">use_outputs</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">use_outputs</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_use_outputs</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type</span>
+<span class="w">        </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A non-aliased Input must declare its type.</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type_required_when_not_aliased</span>
 </code></pre></div>
 </details>
 <h3 id="induced">Induced</h3>
 <details>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Input</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'An</span><span class="nv"> </span><span class="s">input</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">analysis.</span><span class="nv"> </span><span class="s">Two</span><span class="nv"> </span><span class="s">kinds:</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">(dataset/file/resource)</span><span class="nv"> </span><span class="s">or</span>
-<span class="w">  </span><span class="s">analysis</span><span class="nv"> </span><span class="s">(outputs</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">another</span><span class="nv"> </span><span class="s">ASTRA</span><span class="nv"> </span><span class="s">analysis).</span><span class="nv"> </span><span class="s">Sub-analysis</span><span class="nv"> </span><span class="s">inputs</span><span class="nv"> </span><span class="s">can</span><span class="nv"> </span><span class="s">use</span><span class="nv"> </span><span class="se">''</span><span class="s">from</span><span class="se">''</span>
-<span class="w">  </span><span class="s">to</span><span class="nv"> </span><span class="s">reference</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">parent</span><span class="nv"> </span><span class="s">input</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">sibling</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">(e.g.,</span><span class="nv"> </span><span class="se">''</span><span class="s">sibling_id.output_id</span><span class="se">''</span><span class="s">).'</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"An</span><span class="nv"> </span><span class="s">input</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">analysis.</span><span class="nv"> </span><span class="s">Two</span><span class="nv"> </span><span class="s">kinds:</span><span class="nv"> </span><span class="s">data</span><span class="nv"> </span><span class="s">(dataset/file/resource)</span><span class="nv"> </span><span class="s">or\</span>
+<span class="w">  </span><span class="s">\ analysis</span><span class="nv"> </span><span class="s">(outputs</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">another</span><span class="nv"> </span><span class="s">ASTRA</span><span class="nv"> </span><span class="s">analysis).\nSub-analysis</span><span class="nv"> </span><span class="s">inputs</span><span class="nv"> </span><span class="s">may</span><span class="nv"> </span><span class="s">alias\</span>
+<span class="w">  </span><span class="s">\ an</span><span class="nv"> </span><span class="s">upstream</span><span class="nv"> </span><span class="s">artifact</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">`from`,</span><span class="nv"> </span><span class="s">using</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">unified</span><span class="nv"> </span><span class="s">path</span><span class="nv"> </span><span class="s">grammar:\n\n</span><span class="nv">  </span><span class="s">from:</span><span class="nv"> </span><span class="s">../id\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv">             </span><span class="s">--</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">parent</span><span class="nv"> </span><span class="s">input\n</span><span class="nv">  </span><span class="s">from:</span><span class="nv"> </span><span class="s">../../id</span><span class="nv">           </span><span class="s">--</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">grandparent</span><span class="nv"> </span><span class="s">input\n\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">from:</span><span class="nv"> </span><span class="s">../sibling.out_id</span><span class="nv">  </span><span class="s">--</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">sibling</span><span class="nv"> </span><span class="s">sub-analysis's</span><span class="nv"> </span><span class="s">output\n\nAn</span><span class="nv"> </span><span class="s">aliased</span><span class="nv"> </span><span class="s">Input\</span>
+<span class="w">  </span><span class="s">\ is</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">pure</span><span class="nv"> </span><span class="s">pointer:</span><span class="nv"> </span><span class="s">only</span><span class="nv"> </span><span class="s">`id`</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">`from`</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">allowed,</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">other</span><span class="nv"> </span><span class="s">fields</span><span class="nv"> </span><span class="s">inherited\</span>
+<span class="w">  </span><span class="s">\ from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">source."</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">slot_usage</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">from</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Reference to parent input or sibling output (e.g., 'input_id' or</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">'sibling.output_id').</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'Path</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">source:</span><span class="nv"> </span><span class="s">`../id`</span><span class="nv"> </span><span class="s">(ancestor</span><span class="nv"> </span><span class="s">input),</span><span class="nv"> </span><span class="s">`../../id`</span><span class="nv"> </span><span class="s">(further</span>
+<span class="w">      </span><span class="s">ancestor),</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">`../scope.out_id`</span><span class="nv"> </span><span class="s">(sibling</span><span class="nv"> </span><span class="s">sub</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">output).</span><span class="nv"> </span><span class="s">Reaching</span><span class="nv"> </span><span class="s">down</span><span class="nv"> </span><span class="s">into</span>
+<span class="w">      </span><span class="s">own</span><span class="nv"> </span><span class="s">children</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">allowed</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">consume</span><span class="nv"> </span><span class="s">those</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">Output</span><span class="nv"> </span><span class="s">re-export</span><span class="nv"> </span><span class="s">instead.'</span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^(\.\./)+[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$</span>
 <span class="nt">attributes</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">id</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">id</span>
@@ -570,7 +917,8 @@
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 <span class="w">  </span><span class="nt">type</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Type of input</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Type of input. Required when `from` is unset; forbidden when `from`</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">is set (inherited from the source).</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type</span>
@@ -579,7 +927,6 @@
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Input</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Output</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">InputType</span>
-<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">description</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">description</span>
 <span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Description of the input</span>
@@ -636,8 +983,9 @@
 <span class="w">    </span><span class="nt">multivalued</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 <span class="w">  </span><span class="nt">from</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
-<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Reference to parent input or sibling output (e.g., 'input_id' or</span>
-<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">'sibling.output_id').</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">'Path</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">source:</span><span class="nv"> </span><span class="s">`../id`</span><span class="nv"> </span><span class="s">(ancestor</span><span class="nv"> </span><span class="s">input),</span><span class="nv"> </span><span class="s">`../../id`</span><span class="nv"> </span><span class="s">(further</span>
+<span class="w">      </span><span class="s">ancestor),</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">`../scope.out_id`</span><span class="nv"> </span><span class="s">(sibling</span><span class="nv"> </span><span class="s">sub</span><span class="se">''</span><span class="s">s</span><span class="nv"> </span><span class="s">output).</span><span class="nv"> </span><span class="s">Reaching</span><span class="nv"> </span><span class="s">down</span><span class="nv"> </span><span class="s">into</span>
+<span class="w">      </span><span class="s">own</span><span class="nv"> </span><span class="s">children</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">not</span><span class="nv"> </span><span class="s">allowed</span><span class="nv"> </span><span class="s">—</span><span class="nv"> </span><span class="s">consume</span><span class="nv"> </span><span class="s">those</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">Output</span><span class="nv"> </span><span class="s">re-export</span><span class="nv"> </span><span class="s">instead.'</span>
 <span class="w">    </span><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="w">    </span><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="w">    </span><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
@@ -647,6 +995,97 @@
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Output</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Decision</span>
 <span class="w">    </span><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">    </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^(\.\./)+[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$</span>
+<span class="nt">rules</span><span class="p">:</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_type</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">label</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">label</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_label</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">description</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_description</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">source</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">source</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_source</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">ref</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_ref</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">ref_version</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ref_version</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_ref_version</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PRESENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">use_outputs</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">use_outputs</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from_alias_forbids_use_outputs</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">preconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">from</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
+<span class="w">        </span><span class="nt">value_presence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ABSENT</span>
+<span class="w">  </span><span class="nt">postconditions</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">slot_conditions</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type</span>
+<span class="w">        </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">A non-aliased Input must declare its type.</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">type_required_when_not_aliased</span>
 </code></pre></div>
 </details>
 </article>

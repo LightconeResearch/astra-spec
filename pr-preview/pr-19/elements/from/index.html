@@ -486,7 +486,16 @@
 
 
 <h1 id="slot-from">Slot: from</h1>
-<p><em>Reference to a parent or sibling element.</em></p>
+<p><em>Reference to a related element via a path expression. When set, the local node is a pure alias: only <code>id</code> and (where applicable) <code>when</code> may be declared alongside <code>from</code>; all content fields (type, description, label, source, options, recipe, etc.) are inherited from the referenced node.</em></p>
+<p><em>Path grammar (uniform across Input, Output, and Decision):</em></p>
+<p>__</p>
+<p>_  ../id              -- escape one scope upward, then name 'id'_</p>
+<p>_  ../../id           -- escape two scopes upward, then name 'id'_</p>
+<p>_  ../scope.id        -- escape upward, then descend into named child_</p>
+<p>_  scope.id           -- descend into a named child of the current scope_</p>
+<p>_  scope.sub.id       -- descend through nested children_</p>
+<p>__</p>
+<p><em>Each <code>from:</code> may cross one or more scope boundaries. Each class's <code>slot_usage</code> restricts the legal directions for that class: Input reaches up or up-then-into-sibling, Output reaches into own children, Decision reaches up only.</em></p>
 <p>URI: <a href="https://w3id.org/ASTRA/from">astra:from</a>
 Alias: from</p>
 <!-- no inheritance hierarchy -->
@@ -502,6 +511,11 @@ Alias: from</p>
 </thead>
 <tbody>
 <tr>
+<td><a href="../Decision/">Decision</a></td>
+<td>A decision point in the analysis</td>
+<td>yes</td>
+</tr>
+<tr>
 <td><a href="../Input/">Input</a></td>
 <td>An input to the analysis</td>
 <td>yes</td>
@@ -509,11 +523,6 @@ Alias: from</p>
 <tr>
 <td><a href="../Output/">Output</a></td>
 <td>An expected output from the analysis</td>
-<td>yes</td>
-</tr>
-<tr>
-<td><a href="../Decision/">Decision</a></td>
-<td>A decision point in the analysis</td>
 <td>yes</td>
 </tr>
 </tbody>
@@ -580,7 +589,18 @@ Alias: from</p>
 <h2 id="linkml-source">LinkML Source</h2>
 <details>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Reference to a parent or sibling element.</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Reference</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">related</span><span class="nv"> </span><span class="s">element</span><span class="nv"> </span><span class="s">via</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">path</span><span class="nv"> </span><span class="s">expression.</span><span class="nv"> </span><span class="s">When</span><span class="nv"> </span><span class="s">set,</span><span class="nv"> </span><span class="s">the\</span>
+<span class="w">  </span><span class="s">\ local</span><span class="nv"> </span><span class="s">node</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">pure</span><span class="nv"> </span><span class="s">alias:</span><span class="nv"> </span><span class="s">only</span><span class="nv"> </span><span class="s">`id`</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">(where</span><span class="nv"> </span><span class="s">applicable)</span><span class="nv"> </span><span class="s">`when`</span><span class="nv"> </span><span class="s">may</span><span class="nv"> </span><span class="s">be</span><span class="nv"> </span><span class="s">declared\</span>
+<span class="w">  </span><span class="s">\ alongside</span><span class="nv"> </span><span class="s">`from`;</span><span class="nv"> </span><span class="s">all</span><span class="nv"> </span><span class="s">content</span><span class="nv"> </span><span class="s">fields</span><span class="nv"> </span><span class="s">(type,</span><span class="nv"> </span><span class="s">description,</span><span class="nv"> </span><span class="s">label,</span><span class="nv"> </span><span class="s">source,</span><span class="nv"> </span><span class="s">options,\</span>
+<span class="w">  </span><span class="s">\ recipe,</span><span class="nv"> </span><span class="s">etc.)</span><span class="nv"> </span><span class="s">are</span><span class="nv"> </span><span class="s">inherited</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">referenced</span><span class="nv"> </span><span class="s">node.\nPath</span><span class="nv"> </span><span class="s">grammar</span><span class="nv"> </span><span class="s">(uniform</span><span class="nv"> </span><span class="s">across\</span>
+<span class="w">  </span><span class="s">\ Input,</span><span class="nv"> </span><span class="s">Output,</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">Decision):\n\n</span><span class="nv">  </span><span class="s">../id</span><span class="nv">              </span><span class="s">--</span><span class="nv"> </span><span class="s">escape</span><span class="nv"> </span><span class="s">one</span><span class="nv"> </span><span class="s">scope</span><span class="nv"> </span><span class="s">upward,\</span>
+<span class="w">  </span><span class="s">\ then</span><span class="nv"> </span><span class="s">name</span><span class="nv"> </span><span class="s">&#39;id&#39;\n</span><span class="nv">  </span><span class="s">../../id</span><span class="nv">           </span><span class="s">--</span><span class="nv"> </span><span class="s">escape</span><span class="nv"> </span><span class="s">two</span><span class="nv"> </span><span class="s">scopes</span><span class="nv"> </span><span class="s">upward,</span><span class="nv"> </span><span class="s">then</span><span class="nv"> </span><span class="s">name</span><span class="nv"> </span><span class="s">&#39;id&#39;\n\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv"> </span><span class="s">../scope.id</span><span class="nv">        </span><span class="s">--</span><span class="nv"> </span><span class="s">escape</span><span class="nv"> </span><span class="s">upward,</span><span class="nv"> </span><span class="s">then</span><span class="nv"> </span><span class="s">descend</span><span class="nv"> </span><span class="s">into</span><span class="nv"> </span><span class="s">named</span><span class="nv"> </span><span class="s">child\n</span><span class="nv">  </span><span class="s">scope.id\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv">          </span><span class="s">--</span><span class="nv"> </span><span class="s">descend</span><span class="nv"> </span><span class="s">into</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">named</span><span class="nv"> </span><span class="s">child</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">current</span><span class="nv"> </span><span class="s">scope\n</span><span class="nv">  </span><span class="s">scope.sub.id</span><span class="nv"> </span><span class="s">\</span>
+<span class="w">  </span><span class="s">\ </span><span class="nv">     </span><span class="s">--</span><span class="nv"> </span><span class="s">descend</span><span class="nv"> </span><span class="s">through</span><span class="nv"> </span><span class="s">nested</span><span class="nv"> </span><span class="s">children\n\nEach</span><span class="nv"> </span><span class="s">`from:`</span><span class="nv"> </span><span class="s">may</span><span class="nv"> </span><span class="s">cross</span><span class="nv"> </span><span class="s">one</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">more\</span>
+<span class="w">  </span><span class="s">\ scope</span><span class="nv"> </span><span class="s">boundaries.</span><span class="nv"> </span><span class="s">Each</span><span class="nv"> </span><span class="s">class&#39;s</span><span class="nv"> </span><span class="s">`slot_usage`</span><span class="nv"> </span><span class="s">restricts</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">legal</span><span class="nv"> </span><span class="s">directions</span><span class="nv"> </span><span class="s">for\</span>
+<span class="w">  </span><span class="s">\ that</span><span class="nv"> </span><span class="s">class:</span><span class="nv"> </span><span class="s">Input</span><span class="nv"> </span><span class="s">reaches</span><span class="nv"> </span><span class="s">up</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">up-then-into-sibling,</span><span class="nv"> </span><span class="s">Output</span><span class="nv"> </span><span class="s">reaches</span><span class="nv"> </span><span class="s">into</span><span class="nv"> </span><span class="s">own\</span>
+<span class="w">  </span><span class="s">\ children,</span><span class="nv"> </span><span class="s">Decision</span><span class="nv"> </span><span class="s">reaches</span><span class="nv"> </span><span class="s">up</span><span class="nv"> </span><span class="s">only.&quot;</span>
 <span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/ASTRA/analysis</span>
 <span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 <span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">from</span>
