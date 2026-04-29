@@ -93,6 +93,33 @@ test: _test-schema _test-python _test-examples
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
+# Tag a new release: bumps schema YAML versions, commits, and creates an annotated git tag
+[group('model development')]
+release version:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if ! [[ "{{version}}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "Error: version must be X.Y.Z (got '{{version}}')" >&2
+    exit 1
+  fi
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Error: working tree is not clean. Commit or stash changes first." >&2
+    exit 1
+  fi
+  if git rev-parse "v{{version}}" >/dev/null 2>&1; then
+    echo "Error: tag v{{version}} already exists." >&2
+    exit 1
+  fi
+  for f in {{source_schema_dir}}/*.yaml; do
+    grep -q '^version:' "$f" && sed -i "s/^version: .*/version: {{version}}/" "$f"
+  done
+  git add {{source_schema_dir}}/*.yaml
+  git commit -m "Release v{{version}}"
+  git tag -a "v{{version}}" -m "Release v{{version}}"
+  echo
+  echo "Created commit and tag v{{version}}."
+  echo "Push with: git push && git push origin v{{version}}"
+
 # Generate md documentation for the schema and add artifacts
 [group('model development')]
 gen-doc: _set-version _gen-yaml && _add-artifacts
