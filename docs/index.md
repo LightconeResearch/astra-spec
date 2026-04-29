@@ -328,7 +328,7 @@ Each output is either produced locally (with `inputs`, `decisions`, `recipe`) or
 
 A `Recipe` is an inline build rule on an Output. ASTRA is asset-centric: the *Output* declares what it depends on (`inputs`, `decisions`) and when it's active (`when`). The recipe is pure *how* — a POSIX shell command plus the execution context. It does not redeclare provenance.
 
-Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (`{input.x}` substitution, env vars, sidecar JSON — runner's choice), and invoke the command.
+Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (`{inputs.<id>}` template substitution, env vars, sidecar JSON — runner's choice), and invoke the command.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -348,7 +348,7 @@ Runners materialize the upstream inputs, surface the resolved input map and acti
 
 #### Command template substitution
 
-The `command:` string is a template. Runners substitute `{...}` placeholders before invoking it. The substitution surface is *typed* by the Output's declarations: every placeholder must resolve to a declared input, decision, or param.
+The `command:` string is a template. Runners substitute `{...}` placeholders before invoking it. The substitution surface is *typed* by the Output's declarations: every `{inputs.<id>}` and `{decisions.<id>}` placeholder must name something the parent Output has declared in `Output.inputs` or `Output.decisions`. The implicit `{output}` and the bare `{inputs}` are always available.
 
 | Placeholder | Resolves to | Source |
 |---|---|---|
@@ -387,7 +387,19 @@ Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the command 
       time_limit: "30m"
 ```
 
-A runner materializes `training_data` and `features`, picks output paths, expands the template, and invokes the command. If a universe selects `classifier=svm`, the command becomes `python src/classify.py --train ... --classifier svm --seed 42 --max-iter 1000 --out ...`.
+A runner materializes `training_data` and `features` (giving each a concrete on-disk path), picks an output path, expands the template, and invokes the command. With `classifier=svm` and `seed=seed_42` selected and paths chosen by the runner, the rendered command might be:
+
+```
+python src/classify.py \
+  --train /work/u_baseline/training_data.parquet \
+  --features /work/u_baseline/features.parquet \
+  --classifier svm \
+  --seed seed_42 \
+  --max-iter 1000 \
+  --out /work/u_baseline/predictions.parquet
+```
+
+Decision placeholders resolve to the **option ID** (constrained by the [ID pattern](#id-conventions) — lowercase, starts with a letter). If a script needs a numeric seed, the recipe author either maps `seed_42 → 42` inside the script or picks option IDs that are usable verbatim. On-disk path conventions and the delivery channel for non-string forms are entirely the runner's choice.
 
 A node-level `container` field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., `python:3.9`, `ghcr.io/org/img:latest`) are pulled as pre-built images; file paths (e.g., `Containerfile`, `containers/Dockerfile`) are built from source.
 
@@ -873,7 +885,9 @@ Checks logical correctness:
 - Constraint references (`incompatible_with`, `requires`) resolve to valid `decision.option` pairs
 - `from:` paths conform to per-slot direction rules (see [Bridges](#bridges)) and resolve to existing nodes
 - A node with `from:` set has no other content fields (type, description, options, recipe, …)
-- Recipe input dependencies reference valid output IDs in scope
+- `Output.inputs` references resolve to a declared `Input` or sibling `Output` in the surrounding scope
+- `Output.decisions` references resolve to a declared `Decision` in the surrounding scope
+- Recipe `command` template placeholders (`{inputs.<id>}`, `{decisions.<id>}`) resolve to declarations on the parent Output
 - Universe selections match analysis decisions
 - Universe selections respect all constraints
 
