@@ -1,0 +1,26 @@
+# Invalid: aliased Output (re-export) redeclares 'recipe'.
+# When 'from' is set on an Output, it is a pure pointer to a
+# sub-analysis output. Declaring a recipe alongside is a contradiction:
+# the source produces the artifact, the re-export only renames it.
+id: bad_reexport_with_recipe
+name: Re-exported Output redeclares recipe
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    from: child.metric
+    recipe:
+      command: python src/regenerate.py
+analyses:
+  child:
+    id: child
+    inputs:
+      - id: data
+        from: ../data
+    outputs:
+      - id: metric
+        type: metric
+        recipe:
+          command: python src/eval.py

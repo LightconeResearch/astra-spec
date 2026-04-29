@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-04-26T15:47:58
+# Generation date: 2026-04-29T14:59:51
 # Schema: analysis
 #
 # id: https://w3id.org/ASTRA/analysis
@@ -162,8 +162,8 @@ class Narrative(YAMLRoot):
     ``[text](#path.to.element)``. References may appear in any section — coverage is resolved across the whole
     narrative, not per-section — so an author is free to cite a finding from the summary, or an input from the methods
     section.
-    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in
-    'from'). Sub-analyses are traversed before the category:
+    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (the `from:` path grammar with
+    `../` prefixes for upward escape and `name.subname` for descent). Sub-analyses are traversed before the category:
 
     [scaling decision](#decisions.scaling)
     [scaling option](#decisions.scaling.options.standard)
@@ -284,8 +284,15 @@ class Recipe(YAMLRoot):
 class Input(YAMLRoot):
     """
     An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA
-    analysis). Sub-analysis inputs can use 'from' to reference a parent input or a sibling's output (e.g.,
-    'sibling_id.output_id').
+    analysis).
+    Sub-analysis inputs may alias an upstream artifact via `from`, using the unified path grammar:
+
+    from_: ../id              -- a parent input
+    from_: ../../id           -- a grandparent input
+    from_: ../sibling.out_id  -- a sibling sub-analysis's output
+
+    An aliased Input is a pure pointer: only `id` and `from` are allowed, with all other fields inherited from the
+    source.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -295,9 +302,9 @@ class Input(YAMLRoot):
     class_model_uri: ClassVar[URIRef] = ASTRA.Input
 
     id: Union[str, InputId] = None
-    type: Union[str, "InputType"] = None
     from_: Optional[str] = None
     label: Optional[str] = None
+    type: Optional[Union[str, "InputType"]] = None
     description: Optional[str] = None
     source: Optional[str] = None
     ref: Optional[str] = None
@@ -310,16 +317,14 @@ class Input(YAMLRoot):
         if not isinstance(self.id, InputId):
             self.id = InputId(self.id)
 
-        if self._is_empty(self.type):
-            self.MissingRequiredField("type")
-        if not isinstance(self.type, InputType):
-            self.type = InputType(self.type)
-
         if self.from_ is not None and not isinstance(self.from_, str):
             self.from_ = str(self.from_)
 
         if self.label is not None and not isinstance(self.label, str):
             self.label = str(self.label)
+
+        if self.type is not None and not isinstance(self.type, InputType):
+            self.type = InputType(self.type)
 
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
@@ -343,8 +348,15 @@ class Input(YAMLRoot):
 @dataclass(repr=False)
 class Output(YAMLRoot):
     """
-    An expected output from the analysis. Outputs can declare their provenance via 'from' to trace which sub-analysis
-    produces them.
+    An expected output from the analysis. An Output is either produced locally (with `inputs`, `decisions`, `recipe`)
+    or re-exported from a sub-analysis via `from`.
+    Re-export grammar:
+
+    from_: child.out_id           -- own child sub's output
+    from_: child.grandchild.out_id -- descend into nested children
+
+    A re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/recipe are
+    inherited.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -354,10 +366,10 @@ class Output(YAMLRoot):
     class_model_uri: ClassVar[URIRef] = ASTRA.Output
 
     id: Union[str, OutputId] = None
-    type: Union[str, "OutputType"] = None
     from_: Optional[str] = None
     when: Optional[Union[str, list[str]]] = empty_list()
     label: Optional[str] = None
+    type: Optional[Union[str, "OutputType"]] = None
     description: Optional[str] = None
     inputs: Optional[Union[str, list[str]]] = empty_list()
     decisions: Optional[Union[str, list[str]]] = empty_list()
@@ -369,11 +381,6 @@ class Output(YAMLRoot):
         if not isinstance(self.id, OutputId):
             self.id = OutputId(self.id)
 
-        if self._is_empty(self.type):
-            self.MissingRequiredField("type")
-        if not isinstance(self.type, OutputType):
-            self.type = OutputType(self.type)
-
         if self.from_ is not None and not isinstance(self.from_, str):
             self.from_ = str(self.from_)
 
@@ -383,6 +390,9 @@ class Output(YAMLRoot):
 
         if self.label is not None and not isinstance(self.label, str):
             self.label = str(self.label)
+
+        if self.type is not None and not isinstance(self.type, OutputType):
+            self.type = OutputType(self.type)
 
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
@@ -460,8 +470,15 @@ class Option(YAMLRoot):
 @dataclass(repr=False)
 class Decision(YAMLRoot):
     """
-    A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision
-    via 'from'.
+    A decision point in the analysis. Either locally defined (with label and options) or a pure reference to an
+    ancestor decision via `from`.
+    Reference grammar:
+
+    from_: ../id     -- a parent decision
+    from_: ../../id  -- a grandparent decision
+
+    Decisions only flow downward through scopes; sibling-sub or child references are not legal. An aliased Decision is
+    a pure pointer: only `id`, `from`, and `when` may be set.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -973,7 +990,7 @@ slots.input__label = Slot(uri=ASTRA.label, name="input__label", curie=ASTRA.curi
                    model_uri=ASTRA.input__label, domain=None, range=Optional[str])
 
 slots.input__type = Slot(uri=ASTRA.type, name="input__type", curie=ASTRA.curie('type'),
-                   model_uri=ASTRA.input__type, domain=None, range=Union[str, "InputType"])
+                   model_uri=ASTRA.input__type, domain=None, range=Optional[Union[str, "InputType"]])
 
 slots.input__description = Slot(uri=ASTRA.description, name="input__description", curie=ASTRA.curie('description'),
                    model_uri=ASTRA.input__description, domain=None, range=Optional[str])
@@ -998,7 +1015,7 @@ slots.output__label = Slot(uri=ASTRA.label, name="output__label", curie=ASTRA.cu
                    model_uri=ASTRA.output__label, domain=None, range=Optional[str])
 
 slots.output__type = Slot(uri=ASTRA.type, name="output__type", curie=ASTRA.curie('type'),
-                   model_uri=ASTRA.output__type, domain=None, range=Union[str, "OutputType"])
+                   model_uri=ASTRA.output__type, domain=None, range=Optional[Union[str, "OutputType"]])
 
 slots.output__description = Slot(uri=ASTRA.description, name="output__description", curie=ASTRA.curie('description'),
                    model_uri=ASTRA.output__description, domain=None, range=Optional[str])
@@ -1205,10 +1222,13 @@ slots.universe__analyses = Slot(uri=ASTRA.analyses, name="universe__analyses", c
                    model_uri=ASTRA.universe__analyses, domain=None, range=Optional[Union[dict[Union[str, UniverseNodeId], Union[dict, UniverseNode]], list[Union[dict, UniverseNode]]]])
 
 slots.Input_from = Slot(uri=ASTRA['from'], name="Input_from", curie=ASTRA.curie('from'),
-                   model_uri=ASTRA.Input_from, domain=Input, range=Optional[str])
+                   model_uri=ASTRA.Input_from, domain=Input, range=Optional[str],
+                   pattern=re.compile(r'^(\.\./)+[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$'))
 
 slots.Output_from = Slot(uri=ASTRA['from'], name="Output_from", curie=ASTRA.curie('from'),
-                   model_uri=ASTRA.Output_from, domain=Output, range=Optional[str])
+                   model_uri=ASTRA.Output_from, domain=Output, range=Optional[str],
+                   pattern=re.compile(r'^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$'))
 
 slots.Decision_from = Slot(uri=ASTRA['from'], name="Decision_from", curie=ASTRA.curie('from'),
-                   model_uri=ASTRA.Decision_from, domain=Decision, range=Optional[str])
+                   model_uri=ASTRA.Decision_from, domain=Decision, range=Optional[str],
+                   pattern=re.compile(r'^(\.\./)+[a-z][a-z0-9_]*$'))

@@ -175,8 +175,7 @@ analyses:
         Produces [calibrated_pdfs](#outputs.calibrated_pdfs).
     inputs:
       - id: specz_data
-        type: data
-        from: spectroscopic_sample
+        from: ../spectroscopic_sample
     outputs:
       - id: calibrated_pdfs
         type: data

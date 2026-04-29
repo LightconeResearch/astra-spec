@@ -12,5 +12,5 @@ model selection, test split, and random seed. Includes decision constraints
 
 A nested, two-stage pipeline demonstrating sub-analyses. A feature extraction stage
 (PCA or MLP encoder) feeds into a classification stage. Shows input wiring between
-parent and sibling analyses via `from`, and decision inheritance from parent
-via `from: ../parent_decision`.
+parent and sibling analyses via `from: ../...`, decision aliasing from a parent via
+`from: ../parent_decision`, and parent-level Output re-exports via `from: child.out_id`.

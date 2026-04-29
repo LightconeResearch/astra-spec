@@ -38,13 +38,9 @@ inputs:
 
 outputs:
   - id: accuracy
-    type: metric
-    description: Classification accuracy on held-out test set
     from: classification.accuracy
 
   - id: feature_plot
-    type: figure
-    description: Scatter plot of extracted features colored by class
     from: feature_extraction.feature_plot
 
   - id: pipeline_summary
@@ -99,9 +95,7 @@ analyses:
 
     inputs:
       - id: raw_features
-        type: data
-        from: iris_data
-        description: Raw 4-dimensional Iris features from parent
+        from: ../iris_data
 
     outputs:
       - id: features
@@ -168,9 +162,7 @@ analyses:
 
     inputs:
       - id: features
-        type: data
-        from: feature_extraction.features
-        description: Transformed features from the extraction stage
+        from: ../feature_extraction.features
 
     outputs:
       - id: predictions

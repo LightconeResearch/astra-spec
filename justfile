@@ -107,6 +107,7 @@ gen-python: _set-version
   uv run gen-project -d  {{pymodel}} -I python {{source_schema_path}}
   just _fix-python-keywords
   uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
+  uv run python scripts/postgen.py
 
 # Generate project files including Python data model
 [group('model development')]
@@ -115,6 +116,7 @@ gen-project: _set-version
   mv {{dest}}/*.py {{pymodel}}
   just _fix-python-keywords
   uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
+  uv run python scripts/postgen.py
 
   @# Some generators ignore config_yaml or cannot create directories, so we run them separately.
   uv run gen-java {{gen_java_args}} --output-directory {{dest}}/java/ {{source_schema_path}}

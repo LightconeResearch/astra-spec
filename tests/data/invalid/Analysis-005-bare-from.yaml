@@ -1,0 +1,22 @@
+# Invalid: bare 'from: parent_id' without the '../' prefix.
+# Input.from must use the unified path grammar — '../id' for an
+# ancestor, '../scope.id' for a sibling sub's output. A bare
+# identifier is ambiguous and rejected by the pattern.
+id: bad_bare_from
+name: Bare from without '..'
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    type: metric
+analyses:
+  child:
+    id: child
+    inputs:
+      - id: data
+        from: data
+    outputs:
+      - id: child_result
+        type: metric
