@@ -306,7 +306,131 @@
         },
         "Decision": {
             "additionalProperties": false,
-            "description": "A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision via 'from'.",
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "options"
+                            ]
+                        },
+                        "properties": {
+                            "options": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "default"
+                            ]
+                        },
+                        "properties": {
+                            "default": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "rationale"
+                            ]
+                        },
+                        "properties": {
+                            "rationale": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "tags"
+                            ]
+                        },
+                        "properties": {
+                            "tags": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "required": [
+                                "from"
+                            ]
+                        },
+                        "properties": {
+                            "from": {}
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "label": {},
+                            "options": {}
+                        },
+                        "required": [
+                            "label",
+                            "options"
+                        ]
+                    }
+                }
+            ],
+            "description": "A decision point in the analysis. Either locally defined (with label and options) or a pure reference to an ancestor decision via `from`.\nReference grammar:\n\n  from: ../id     -- a parent decision\n  from: ../../id  -- a grandparent decision\n\nDecisions only flow downward through scopes; sibling-sub or child references are not legal. An aliased Decision is a pure pointer: only `id`, `from`, and `when` may be set.",
             "properties": {
                 "default": {
                     "description": "Default option ID for baseline universes",
@@ -316,7 +440,8 @@
                     ]
                 },
                 "from": {
-                    "description": "Reference to a parent decision using '../' prefix (e.g., '../z_min'). When set, this is a pure reference and must not have label, options, or default.",
+                    "description": "Path to an ancestor decision: `../id` for a parent decision, `../../id` for a grandparent, and so on. Reaching laterally (`../sibling.id`) or downward (`child.id`) is not allowed \u2014 if siblings need a shared decision, lift it to the common ancestor and have each sub `from:` it.",
+                    "pattern": "^(\\.\\./)+[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -436,7 +561,131 @@
         },
         "Decision__identifier_optional": {
             "additionalProperties": false,
-            "description": "A decision point in the analysis. Can be locally defined (with label, options) or a reference to a parent decision via 'from'.",
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "options"
+                            ]
+                        },
+                        "properties": {
+                            "options": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "default"
+                            ]
+                        },
+                        "properties": {
+                            "default": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "rationale"
+                            ]
+                        },
+                        "properties": {
+                            "rationale": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "tags"
+                            ]
+                        },
+                        "properties": {
+                            "tags": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "required": [
+                                "from"
+                            ]
+                        },
+                        "properties": {
+                            "from": {}
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "label": {},
+                            "options": {}
+                        },
+                        "required": [
+                            "label",
+                            "options"
+                        ]
+                    }
+                }
+            ],
+            "description": "A decision point in the analysis. Either locally defined (with label and options) or a pure reference to an ancestor decision via `from`.\nReference grammar:\n\n  from: ../id     -- a parent decision\n  from: ../../id  -- a grandparent decision\n\nDecisions only flow downward through scopes; sibling-sub or child references are not legal. An aliased Decision is a pure pointer: only `id`, `from`, and `when` may be set.",
             "properties": {
                 "default": {
                     "description": "Default option ID for baseline universes",
@@ -446,7 +695,8 @@
                     ]
                 },
                 "from": {
-                    "description": "Reference to a parent decision using '../' prefix (e.g., '../z_min'). When set, this is a pure reference and must not have label, options, or default.",
+                    "description": "Path to an ancestor decision: `../id` for a parent decision, `../../id` for a grandparent, and so on. Reaching laterally (`../sibling.id`) or downward (`child.id`) is not allowed \u2014 if siblings need a shared decision, lift it to the common ancestor and have each sub `from:` it.",
+                    "pattern": "^(\\.\\./)+[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
                         "null"
@@ -620,7 +870,169 @@
         },
         "Input": {
             "additionalProperties": false,
-            "description": "An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA analysis). Sub-analysis inputs can use 'from' to reference a parent input or a sibling's output (e.g., 'sibling_id.output_id').",
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "type"
+                            ]
+                        },
+                        "properties": {
+                            "type": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "description"
+                            ]
+                        },
+                        "properties": {
+                            "description": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "source"
+                            ]
+                        },
+                        "properties": {
+                            "source": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "ref"
+                            ]
+                        },
+                        "properties": {
+                            "ref": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "ref_version"
+                            ]
+                        },
+                        "properties": {
+                            "ref_version": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "use_outputs"
+                            ]
+                        },
+                        "properties": {
+                            "use_outputs": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "required": [
+                                "from"
+                            ]
+                        },
+                        "properties": {
+                            "from": {}
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "type": {}
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    }
+                }
+            ],
+            "description": "An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA analysis).\nSub-analysis inputs may alias an upstream artifact via `from`, using the unified path grammar:\n\n  from: ../id              -- a parent input\n  from: ../../id           -- a grandparent input\n  from: ../sibling.out_id  -- a sibling sub-analysis's output\n\nAn aliased Input is a pure pointer: only `id` and `from` are allowed, with all other fields inherited from the source.",
             "properties": {
                 "description": {
                     "description": "Description of the input",
@@ -630,7 +1042,8 @@
                     ]
                 },
                 "from": {
-                    "description": "Reference to parent input or sibling output (e.g., 'input_id' or 'sibling.output_id').",
+                    "description": "Path to the source: `../id` (ancestor input), `../../id` (further ancestor), or `../scope.out_id` (sibling sub's output). Reaching down into own children is not allowed \u2014 consume those via Output re-export instead.",
+                    "pattern": "^(\\.\\./)+[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
                     "type": [
                         "string",
                         "null"
@@ -674,7 +1087,7 @@
                 },
                 "type": {
                     "$ref": "#/$defs/InputType",
-                    "description": "Type of input"
+                    "description": "Type of input. Required when `from` is unset; forbidden when `from` is set (inherited from the source)."
                 },
                 "use_outputs": {
                     "description": "Specific outputs to use from referenced analysis",
@@ -688,8 +1101,7 @@
                 }
             },
             "required": [
-                "id",
-                "type"
+                "id"
             ],
             "title": "Input",
             "type": "object"
@@ -897,7 +1309,7 @@
         },
         "Narrative": {
             "additionalProperties": false,
-            "description": "Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are schema-optional, but ``astra validate`` applies a conditional requirement: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.\n- ``findings`` required when Analysis.findings has entries. - ``methods`` required when Analysis.decisions or\n  Analysis.analyses has entries.\n- ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries. - ``summary`` is always optional \u2014 no structured counterpart.\nAuthors narrate what they declare; stub analyses with only a summary stay clean.\nSection content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section \u2014 coverage is resolved across the whole narrative, not per-section \u2014 so an author is free to cite a finding from the summary, or an input from the methods section.\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (e.g. 'sibling.output_id' in 'from'). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision 'from' (e.g. [see parent](#../decisions.method)).",
+            "description": "Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are schema-optional, but ``astra validate`` applies a conditional requirement: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.\n- ``findings`` required when Analysis.findings has entries. - ``methods`` required when Analysis.decisions or\n  Analysis.analyses has entries.\n- ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries. - ``summary`` is always optional \u2014 no structured counterpart.\nAuthors narrate what they declare; stub analyses with only a summary stay clean.\nSection content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section \u2014 coverage is resolved across the whole narrative, not per-section \u2014 so an author is free to cite a finding from the summary, or an input from the methods section.\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (the `from:` path grammar with `../` prefixes for upward escape and `name.subname` for descent). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision 'from' (e.g. [see parent](#../decisions.method)).",
             "properties": {
                 "findings": {
                     "description": "Narrative discussion of the analysis's findings. Individual findings live under Analysis.findings as structured Insight objects; this section is the prose that frames them.",
@@ -1089,8 +1501,160 @@
         },
         "Output": {
             "additionalProperties": false,
-            "description": "An expected output from the analysis. Outputs can declare their provenance via 'from' to trace which sub-analysis produces them.",
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "type"
+                            ]
+                        },
+                        "properties": {
+                            "type": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "description"
+                            ]
+                        },
+                        "properties": {
+                            "description": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "inputs"
+                            ]
+                        },
+                        "properties": {
+                            "inputs": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "decisions"
+                            ]
+                        },
+                        "properties": {
+                            "decisions": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "recipe"
+                            ]
+                        },
+                        "properties": {
+                            "recipe": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "required": [
+                                "from"
+                            ]
+                        },
+                        "properties": {
+                            "from": {}
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "type": {}
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    }
+                }
+            ],
+            "description": "An expected output from the analysis. An Output is either produced locally (with `inputs`, `decisions`, `recipe`) or re-exported from a sub-analysis via `from`.\nRe-export grammar:\n\n  from: child.out_id           -- own child sub's output\n  from: child.grandchild.out_id -- descend into nested children\n\nA re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/recipe are inherited.",
             "properties": {
+                "decisions": {
+                    "description": "Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.\nRunners use this to (a) compute the per-output cache key, (b) determine the minimal universe set needed to materialize the output, and (c) deliver the active option values to the recipe (via flags, env vars, or a sidecar \u2014 runner's choice).\nReferences use plain decision IDs and resolve through any `from:` chain in the surrounding analysis scope.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
                 "description": {
                     "description": "Description of the output",
                     "type": [
@@ -1099,7 +1663,8 @@
                     ]
                 },
                 "from": {
-                    "description": "Sub-analysis output that produces this (e.g., 'sub_analysis.output_id').",
+                    "description": "Path to a descendant Output: `child.out_id` for an own child sub-analysis's output, or deeper (`child.grand.out_id`) to descend through nested children. Reaching upward is not allowed \u2014 Outputs flow up only via re-export at each layer.",
+                    "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
                     "type": [
                         "string",
                         "null"
@@ -1110,6 +1675,16 @@
                     "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
                     "type": [
                         "string",
+                        "null"
+                    ]
+                },
+                "inputs": {
+                    "description": "IDs of upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON \u2014 runner's choice).\nReferences use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
                         "null"
                     ]
                 },
@@ -1129,11 +1704,11 @@
                             "type": "null"
                         }
                     ],
-                    "description": "How to produce this output"
+                    "description": "How to produce this output (pure *how*; dependencies live on the Output via `inputs`/`decisions`)"
                 },
                 "type": {
                     "$ref": "#/$defs/OutputType",
-                    "description": "Type of output"
+                    "description": "Type of output. Required when `from` is unset; forbidden when `from` is set (inherited from the source)."
                 },
                 "when": {
                     "description": "Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.",
@@ -1147,8 +1722,7 @@
                 }
             },
             "required": [
-                "id",
-                "type"
+                "id"
             ],
             "title": "Output",
             "type": "object"
@@ -1167,26 +1741,19 @@
         },
         "Recipe": {
             "additionalProperties": false,
-            "description": "A build rule that produces an output. Recipes are the execution contract: run this command to produce the parent output.",
+            "description": "A build rule that produces an output. A recipe is pure *how*: a `command` to invoke and the execution context (`resources`, `container`).\nRecipes do not declare what the output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization, and activation conditions \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe via `{...}` template substitution (see `command`).",
             "properties": {
                 "command": {
-                    "description": "Command to execute (e.g., 'python src/train.py')",
-                    "type": "string"
-                },
-                "container": {
-                    "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
+                    "description": "POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.\nThe command is a template. Runners substitute these placeholders before invoking it:\n\n  {inputs.<id>}     -- path to the named upstream input\n                       (must be declared in Output.inputs)\n  {inputs}          -- space-separated paths to all declared\n                       inputs, in declaration order\n  {decisions.<id>}  -- active option ID for the named\n                       decision in the current universe\n                       (must be declared in Output.decisions)\n  {output}          -- path the artifact will be written to\n\nUse {{ and }} to emit literal '{' and '}'. Every placeholder must resolve to a declared item; the validator rejects unresolved or undeclared references.\nStatic constants belong inline in the command (e.g., '--max-iter 1000'); there is no separate `params` channel because varying values are decisions and constants are just command text.",
                     "type": [
                         "string",
                         "null"
                     ]
                 },
-                "inputs": {
-                    "description": "Output IDs that must be materialized before this recipe runs",
-                    "items": {
-                        "type": "string"
-                    },
+                "container": {
+                    "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
                     "type": [
-                        "array",
+                        "string",
                         "null"
                     ]
                 },
@@ -1199,24 +1766,28 @@
                             "type": "null"
                         }
                     ],
-                    "description": "Compute resource requirements"
+                    "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
                 }
             },
-            "required": [
-                "command"
-            ],
             "title": "Recipe",
             "type": "object"
         },
         "Resources": {
             "additionalProperties": false,
-            "description": "Compute resource requirements for a recipe",
+            "description": "Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.",
             "properties": {
                 "cpus": {
-                    "description": "Number of CPUs",
-                    "minimum": 1,
+                    "description": "CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.",
+                    "minimum": 0,
                     "type": [
-                        "integer",
+                        "number",
+                        "null"
+                    ]
+                },
+                "disk": {
+                    "description": "Disk requirement as a string with units (e.g., '10Gi', '500Mi').",
+                    "type": [
+                        "string",
                         "null"
                     ]
                 },
@@ -1229,14 +1800,14 @@
                     ]
                 },
                 "memory": {
-                    "description": "Memory requirement (e.g., '8GB', '512MB')",
+                    "description": "Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').",
                     "type": [
                         "string",
                         "null"
                     ]
                 },
                 "time_limit": {
-                    "description": "Maximum wall time (e.g., '2h', '30m')",
+                    "description": "Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').",
                     "type": [
                         "string",
                         "null"
@@ -1611,6 +2182,6 @@
     ],
     "title": "analysis",
     "type": "object",
-    "version": "0.0.5"
+    "version": "0.0.6"
 }
 

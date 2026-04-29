@@ -1,0 +1,22 @@
+# Invalid: aliased Input redeclares 'type'.
+# When 'from' is set, type/description/source/etc. are inherited from
+# the source — declaring them locally is a schema violation.
+id: bad_aliased_input
+name: Aliased Input redeclares content
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    type: metric
+analyses:
+  child:
+    id: child
+    inputs:
+      - id: data
+        type: data
+        from: ../data
+    outputs:
+      - id: child_result
+        type: metric

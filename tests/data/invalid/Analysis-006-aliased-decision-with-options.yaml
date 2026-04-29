@@ -1,0 +1,35 @@
+# Invalid: aliased Decision redeclares 'options' and 'default'.
+# When 'from' is set, the Decision is a pure reference and inherits
+# label/options/default/rationale/tags from the ancestor decision.
+id: bad_aliased_decision
+name: Aliased Decision redeclares options
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    type: metric
+decisions:
+  random_seed:
+    label: Random Seed
+    default: seed_42
+    options:
+      seed_42:
+        label: "42"
+analyses:
+  child:
+    id: child
+    inputs:
+      - id: data
+        from: ../data
+    outputs:
+      - id: child_result
+        type: metric
+    decisions:
+      seed:
+        from: ../random_seed
+        default: seed_42
+        options:
+          seed_42:
+            label: "42"

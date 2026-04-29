@@ -242,7 +242,7 @@ The [best_model finding](#findings.best_model) summarizes our
 recommendation.
 ```
 
-The anchor grammar is **tree-path-first**, matching ASTRA's existing reference syntax (`sibling.output_id` in `from`, etc.). Sub-analyses are traversed before the category:
+The anchor grammar is **tree-path-first**, matching ASTRA's [`from:` path grammar](#bridges) — `../` to escape upward, `name.subname` to descend. Sub-analyses are traversed before the category:
 
 | Target | Anchor |
 |--------|--------|
@@ -255,7 +255,7 @@ The anchor grammar is **tree-path-first**, matching ASTRA's existing reference s
 | Sub-analysis (whole node) | `#analyses.<sub>` |
 | Element inside sub-analysis | `#<sub>.<category>.<id>` (e.g. `#preprocessing.decisions.scaling`) |
 
-References are interpreted **relative to the hosting analysis**. Prefix with `../` to escape to parent scope, matching decision `from` syntax:
+References are interpreted **relative to the hosting analysis**. Prefix with `../` to escape to a parent scope (one or more levels), matching the `from:` path grammar:
 
 ```markdown
 See [parent scaling](#../decisions.scaling).
@@ -267,23 +267,23 @@ Anchor resolution is a renderer concern at render time, but the ASTRA tooling va
 
 ### Inputs
 
-Each input declares a data source or a reference to another analysis.
+Each input declares a data source, a reference to another analysis, or — inside a sub-analysis — an alias for an upstream artifact via `from`.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | **Yes** | Unique identifier |
 | `label` | `string` | No | Short human-readable name for compact rendering |
-| `type` | `"data"` \| `"analysis"` | **Yes** | Kind of input |
+| `type` | `"data"` \| `"analysis"` | **Yes** when `from` unset | Kind of input |
 | `description` | `string` | No | What this input is |
 | `source` | `string` | No | URI or path (for `type: data`) |
 | `ref` | `string` | No | Reference to another ASTRA analysis (for `type: analysis`) |
 | `ref_version` | `string` | No | Version of referenced analysis |
 | `use_outputs` | `string[]` | No | Specific outputs to use from referenced analysis |
-| `from` | `string` | No | Parent input or sibling output reference (for sub-analyses) |
+| `from` | `string` | No | Path-aliased upstream artifact — see [Bridges](#bridges) |
 
 **ID pattern**: `^[a-z][a-z0-9_]*$` (lowercase, underscores, starts with letter), with reserved category names excluded — see [Reserved IDs](#reserved-ids).
 
-**Input wiring in sub-analyses**: The `from` field references either a parent input by ID (`from: parent_input_id`) or a sibling's output (`from: sibling_id.output_id`).
+**Aliasing with `from`**: When `from` is set, the Input is a pure pointer — only `id` and `from` may be declared; `type`, `description`, `source`, etc. are inherited from the source. See [Bridges](#bridges) for the path grammar.
 
 ### Reserved IDs
 
@@ -298,19 +298,21 @@ These collide with reserved keywords in the narrative anchor grammar. For exampl
 
 ### Outputs
 
-Each output declares an expected result from the analysis.
+Each output is either produced locally (with `inputs`, `decisions`, `recipe`) or re-exported from a sub-analysis via `from`.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `id` | `string` | **Yes** | Unique identifier |
 | `label` | `string` | No | Short human-readable name for compact rendering |
-| `type` | `"metric"` \| `"figure"` \| `"table"` \| `"data"` \| `"report"` | **Yes** | Kind of output |
+| `type` | `"metric"` \| `"figure"` \| `"table"` \| `"data"` \| `"report"` | **Yes** when `from` unset | Kind of output |
 | `description` | `string` | No | What this output is |
-| `from` | `string` | No | Sub-analysis output that produces this (e.g., `"sub.output_id"`) |
+| `from` | `string` | No | Path-aliased sub-analysis output — see [Bridges](#bridges) |
 | `when` | `string[]` | No | Conditions for when this output is active (see [Conditional Elements](#conditional-elements)) |
 | `inputs` | `string[]` | No | Upstream artifact IDs this output depends on (Inputs or sibling Outputs) |
 | `decisions` | `string[]` | No | Decision IDs (in scope) that parameterize this output — declares the provenance contract |
 | `recipe` | `Recipe` | No | Inline build rule (pure *how*; dependencies live on the Output) |
+
+**Aliasing with `from`**: When `from` is set, the Output is a pure re-export — only `id`, `from`, and `when` may be declared; `type`, `description`, `inputs`, `decisions`, and `recipe` are inherited from the source. See [Bridges](#bridges).
 
 **Output types**:
 
@@ -358,6 +360,8 @@ The `command:` string is a template. Runners substitute `{...}` placeholders bef
 
 Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.
 
+Placeholders always use **local IDs** in the surrounding scope. When an input or decision is aliased from another scope (via [`from:`](#bridges)), the recipe template still names it by its local id; the runner walks the `from:` chain to resolve the source. Recipes never use `../` syntax — bridging is declared once at the `Input`/`Decision`, not in the template.
+
 Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the command string. There is no separate `params` channel because varying values are decisions and constants are just command text.
 
 **Example:**
@@ -389,19 +393,19 @@ A node-level `container` field on the Analysis sets the default container for al
 
 ### Decisions
 
-Decisions are the core of the multiverse. Each decision is a named choice point with multiple options.
+Decisions are the core of the multiverse. Each decision is a named choice point with multiple options, or — inside a sub-analysis — a pure alias for an ancestor decision via `from`.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `label` | `string` | **Yes** | Human-readable name |
+| `label` | `string` | **Yes** when `from` unset | Human-readable name |
 | `rationale` | `string` | No | Why this decision exists |
 | `tags` | `string[]` | No | Grouping/categorization tags |
 | `when` | `string[]` | No | Conditions for when this decision is active (see [Conditional Elements](#conditional-elements)) |
 | `default` | `string` | No | Default option ID for baseline universes |
-| `options` | `map[string, Option]` | **Yes** | Available choices |
-| `from` | `string` | No | Reference to a parent decision (see [Decision References](#decision-references)) |
+| `options` | `map[string, Option]` | **Yes** when `from` unset | Available choices |
+| `from` | `string` | No | Path-aliased ancestor decision — see [Bridges](#bridges) |
 
-A decision with `from` set is a pure reference — it must not have `label`, `options`, or `default`.
+When `from` is set, the Decision is a pure reference — only `id`, `from`, and `when` may be declared; `label`, `options`, `default`, `rationale`, and `tags` are inherited from the ancestor.
 
 ### Options
 
@@ -427,8 +431,7 @@ analyses:
     description: Learn a compact representation of the raw features
     inputs:
       - id: raw_features
-        type: data
-        from: iris_data                    # Parent input
+        from: ../iris_data                 # Parent input (aliased)
     outputs:
       - id: features
         type: data
@@ -437,7 +440,7 @@ analyses:
           command: python src/extract_features.py
     decisions:
       seed:
-        from: ../random_seed               # Parent decision reference
+        from: ../random_seed               # Parent decision (aliased)
 
       method:
         label: Extraction Method
@@ -452,8 +455,7 @@ analyses:
     description: Train a classifier on extracted features
     inputs:
       - id: features
-        type: data
-        from: feature_extraction.features      # Sibling output
+        from: ../feature_extraction.features  # Sibling sub's output (aliased)
     outputs:
       - id: accuracy
         type: metric
@@ -676,9 +678,79 @@ Constraint references use the format `decision_id.option_id`. Universe validatio
 
 ---
 
-## Composability
+## Bridges
 
-Analyses can reference other analyses as inputs, enabling formal research chains:
+Each scope (an `Analysis` or sub-analysis) declares its own inputs, outputs, and decisions. Cross-scope linkage happens *only* through the `from:` field on `Input`, `Output`, and `Decision`. Recipe templates and `Output.inputs` / `Output.decisions` always use **local IDs** within the surrounding scope; `from` is the one primitive that crosses a boundary.
+
+### `from` is a pure alias
+
+When `from` is set on any node, the node is a pointer. Only `id` and (where applicable) `when` may be declared alongside it. All content fields — `type`, `description`, `label`, `source`, `options`, `default`, `recipe`, etc. — are inherited from the source. Renaming, retyping, or redocumenting an artifact happens at exactly one place: its canonical declaration.
+
+### Path grammar
+
+The grammar is uniform across `Input`, `Output`, and `Decision`:
+
+| Form | Meaning |
+|------|---------|
+| `../id` | escape one scope upward, then `id` |
+| `../../id` | escape two scopes upward, then `id` |
+| `../scope.id` | escape upward, then descend into named child `scope` |
+| `scope.id` | descend from current scope into named child `scope` |
+| `scope.sub.id` | descend through nested children |
+
+`../` always means "up"; bare descent (`name.subname`) always means "into a named subordinate scope." Multiple levels are allowed in either direction.
+
+### Per-slot directions
+
+Each class restricts the legal directions to those that make semantic sense:
+
+| Slot | Legal forms | Meaning |
+|------|-------------|---------|
+| `Input.from` | `../id`, `../../id`, `../scope.out_id` | parent or further-ancestor Input; sibling sub's Output |
+| `Output.from` | `child.out_id`, `child.sub.out_id` | own child sub's Output (re-export); deeper descents allowed |
+| `Decision.from` | `../id`, `../../id` | parent or further-ancestor Decision |
+
+Inputs and Outputs reach into named subordinate scopes for *artifacts* (which can flow up via re-export or laterally between siblings). Decisions only flow downward — to share a decision between siblings, lift it to the common ancestor and have each sub `from:` it.
+
+### Examples
+
+```yaml
+analyses:
+  stage_a:
+    inputs:
+      - id: raw
+        from: ../survey_catalog            # parent Input
+    outputs:
+      - id: processed
+        type: data
+        recipe:
+          command: python src/process.py
+
+  stage_b:
+    inputs:
+      - id: data
+        from: ../stage_a.processed         # sibling sub's Output
+    outputs:
+      - id: result
+        type: metric
+        decisions: [seed]
+        recipe:
+          command: python src/eval.py
+    decisions:
+      seed:
+        from: ../random_seed               # parent Decision
+```
+
+```yaml
+# Parent re-exports a sub-analysis output to its own outer scope:
+outputs:
+  - id: accuracy
+    from: classification.accuracy          # own child's Output
+```
+
+### Cross-analysis references (separate from `from`)
+
+The `from:` mechanism wires elements *within* a single analysis tree. To consume the outputs of an external analysis as a whole-cloth dependency, declare an Input of `type: analysis`:
 
 ```yaml
 inputs:
@@ -689,25 +761,7 @@ inputs:
     use_outputs: [best_method, performance_table]
 ```
 
-Within a nested analysis, sub-analyses wire inputs from the parent or from siblings using `from`:
-
-```yaml
-analyses:
-  stage_a:
-    inputs:
-      - id: raw
-        type: data
-        from: survey_catalog               # Parent input
-    outputs:
-      - id: processed
-        type: data
-
-  stage_b:
-    inputs:
-      - id: data
-        type: data
-        from: stage_a.processed            # Sibling output
-```
+This is a different operation: `ref` points to an external ASTRA analysis by reference, while `from` aliases an element within the current analysis tree.
 
 ---
 
@@ -772,38 +826,6 @@ decisions:
 
 ---
 
-## Decision References
-
-Sub-analyses can reference a parent decision using the `from` field with a `../` prefix. This avoids duplicating the decision definition and ensures the sub-analysis uses the same selection as the parent:
-
-```yaml
-decisions:
-  random_seed:
-    label: Random Seed
-    default: seed_42
-    options:
-      seed_42:
-        label: "42"
-      seed_7:
-        label: "7"
-
-analyses:
-  feature_extraction:
-    decisions:
-      seed:
-        from: ../random_seed         # Uses parent's random_seed decision
-      method:
-        label: Extraction Method
-        default: pca
-        options:
-          pca:
-            label: PCA
-```
-
-A decision with `from` set is a pure reference — it must not define `label`, `options`, or `default`.
-
----
-
 ## External Sub-Analyses
 
 A sub-analysis can be defined externally by specifying a `path` to a directory containing its own `astra.yaml`:
@@ -849,9 +871,9 @@ Checks logical correctness:
 - No duplicate IDs within a node
 - Default options exist in their decision's option map
 - Constraint references (`incompatible_with`, `requires`) resolve to valid `decision.option` pairs
-- Input `from` references resolve to parent inputs or sibling outputs
-- Output `from` references resolve to sub-analysis outputs
-- Recipe input dependencies reference valid output IDs
+- `from:` paths conform to per-slot direction rules (see [Bridges](#bridges)) and resolve to existing nodes
+- A node with `from:` set has no other content fields (type, description, options, recipe, …)
+- Recipe input dependencies reference valid output IDs in scope
 - Universe selections match analysis decisions
 - Universe selections respect all constraints
 
@@ -874,7 +896,8 @@ This downloads papers by DOI, extracts text from PDFs, and uses fuzzy matching t
 | Input, output, decision, sub-analysis IDs | `^[a-z][a-z0-9_]*$` | `iris_data`, `scaling` |
 | Universe IDs | `^[a-z][a-z0-9_-]*$` | `baseline`, `svm-focused` |
 | Constraint references | `decision_id.option_id` | `scaling.standard` |
-| Decision references | `../decision_id` | `../random_seed` |
+| `from:` path (upward) | `(\.\./)+id(\.scope.id)*` | `../random_seed`, `../../iris_data`, `../stage_a.processed` |
+| `from:` path (downward) | `scope.id(\.scope.id)*` | `classification.accuracy`, `feature_extraction.feature_plot` |
 | Version | `^\d+\.\d+(\.\d+)?$` | `"1.0"`, `"1.0.0"` |
 | DOI | `^10\.\d{4,}/.*$` | `"10.48550/arXiv.1706.03762"` |
 
