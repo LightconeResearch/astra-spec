@@ -25,8 +25,7 @@ from pydantic import (
     SerializationInfo,
     SerializerFunctionWrapHandler,
     field_validator,
-    model_serializer,
-    model_validator
+    model_serializer
 )
 
 
@@ -412,25 +411,41 @@ class Input(ConfiguredBaseModel):
     An aliased Input is a pure pointer: only `id` and `from` are allowed, with all other fields inherited from the source.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
-         'rules': [{'description': 'When `from` is set, the Input is a pure alias and '
-                                   'must not redeclare content fields.',
-                    'postconditions': {'slot_conditions': {'description': {'name': 'description',
-                                                                           'value_presence': 'ABSENT'},
-                                                           'label': {'name': 'label',
-                                                                     'value_presence': 'ABSENT'},
-                                                           'ref': {'name': 'ref',
-                                                                   'value_presence': 'ABSENT'},
-                                                           'ref_version': {'name': 'ref_version',
-                                                                           'value_presence': 'ABSENT'},
-                                                           'source': {'name': 'source',
-                                                                      'value_presence': 'ABSENT'},
-                                                           'type': {'name': 'type',
-                                                                    'value_presence': 'ABSENT'},
-                                                           'use_outputs': {'name': 'use_outputs',
+         'rules': [{'postconditions': {'slot_conditions': {'type': {'name': 'type',
+                                                                    'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_type'},
+                   {'postconditions': {'slot_conditions': {'label': {'name': 'label',
+                                                                     'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_label'},
+                   {'postconditions': {'slot_conditions': {'description': {'name': 'description',
                                                                            'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
                                                                    'value_presence': 'PRESENT'}}},
-                    'title': 'from_is_pure_alias'},
+                    'title': 'from_alias_forbids_description'},
+                   {'postconditions': {'slot_conditions': {'source': {'name': 'source',
+                                                                      'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_source'},
+                   {'postconditions': {'slot_conditions': {'ref': {'name': 'ref',
+                                                                   'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_ref'},
+                   {'postconditions': {'slot_conditions': {'ref_version': {'name': 'ref_version',
+                                                                           'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_ref_version'},
+                   {'postconditions': {'slot_conditions': {'use_outputs': {'name': 'use_outputs',
+                                                                           'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_use_outputs'},
                    {'description': 'A non-aliased Input must declare its type.',
                     'postconditions': {'slot_conditions': {'type': {'name': 'type',
                                                                     'required': True}}},
@@ -478,31 +493,6 @@ class Input(ConfiguredBaseModel):
             raise ValueError(err_msg)
         return v
 
-    @model_validator(mode="after")
-    def _check_from_alias(self):
-        if self.from_ is not None:
-            extras = [
-                f
-                for f in (
-                    "type",
-                    "label",
-                    "description",
-                    "source",
-                    "ref",
-                    "ref_version",
-                    "use_outputs",
-                )
-                if getattr(self, f) is not None
-            ]
-            if extras:
-                raise ValueError(
-                    f"Input with 'from' set must not declare {extras}; "
-                    "aliased nodes inherit content from the source"
-                )
-        elif self.type is None:
-            raise ValueError("Input must declare 'type' when 'from' is unset")
-        return self
-
     @field_validator('id')
     def pattern_id(cls, v):
         pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
@@ -528,24 +518,36 @@ class Output(ConfiguredBaseModel):
     A re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/recipe are inherited.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
-         'rules': [{'description': 'When `from` is set, the Output is a pure pointer '
-                                   '(re-export) and must not redeclare type, content, '
-                                   'or its own recipe.',
-                    'postconditions': {'slot_conditions': {'decisions': {'name': 'decisions',
-                                                                         'value_presence': 'ABSENT'},
-                                                           'description': {'name': 'description',
-                                                                           'value_presence': 'ABSENT'},
-                                                           'inputs': {'name': 'inputs',
-                                                                      'value_presence': 'ABSENT'},
-                                                           'label': {'name': 'label',
-                                                                     'value_presence': 'ABSENT'},
-                                                           'recipe': {'name': 'recipe',
-                                                                      'value_presence': 'ABSENT'},
-                                                           'type': {'name': 'type',
+         'rules': [{'postconditions': {'slot_conditions': {'type': {'name': 'type',
                                                                     'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
                                                                    'value_presence': 'PRESENT'}}},
-                    'title': 'from_is_pure_alias'},
+                    'title': 'from_alias_forbids_type'},
+                   {'postconditions': {'slot_conditions': {'label': {'name': 'label',
+                                                                     'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_label'},
+                   {'postconditions': {'slot_conditions': {'description': {'name': 'description',
+                                                                           'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_description'},
+                   {'postconditions': {'slot_conditions': {'inputs': {'name': 'inputs',
+                                                                      'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_inputs'},
+                   {'postconditions': {'slot_conditions': {'decisions': {'name': 'decisions',
+                                                                         'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_decisions'},
+                   {'postconditions': {'slot_conditions': {'recipe': {'name': 'recipe',
+                                                                      'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_recipe'},
                    {'description': 'A non-aliased Output must declare its type.',
                     'postconditions': {'slot_conditions': {'type': {'name': 'type',
                                                                     'required': True}}},
@@ -595,30 +597,6 @@ References use plain decision IDs and resolve through any `from:` chain in the s
             err_msg = f"Invalid from_ format: {v}"
             raise ValueError(err_msg)
         return v
-
-    @model_validator(mode="after")
-    def _check_from_alias(self):
-        if self.from_ is not None:
-            extras = [
-                f
-                for f in (
-                    "type",
-                    "label",
-                    "description",
-                    "inputs",
-                    "decisions",
-                    "recipe",
-                )
-                if getattr(self, f) is not None
-            ]
-            if extras:
-                raise ValueError(
-                    f"Output with 'from' set must not declare {extras}; "
-                    "aliased nodes inherit content from the source"
-                )
-        elif self.type is None:
-            raise ValueError("Output must declare 'type' when 'from' is unset")
-        return self
 
     @field_validator('id')
     def pattern_id(cls, v):
@@ -682,22 +660,31 @@ class Decision(ConfiguredBaseModel):
     Decisions only flow downward through scopes; sibling-sub or child references are not legal. An aliased Decision is a pure pointer: only `id`, `from`, and `when` may be set.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
-         'rules': [{'description': 'When `from` is set, the Decision is a pure '
-                                   'reference and must not redeclare label, options, '
-                                   'default, rationale, or tags.',
-                    'postconditions': {'slot_conditions': {'default': {'name': 'default',
-                                                                       'value_presence': 'ABSENT'},
-                                                           'label': {'name': 'label',
-                                                                     'value_presence': 'ABSENT'},
-                                                           'options': {'name': 'options',
-                                                                       'value_presence': 'ABSENT'},
-                                                           'rationale': {'name': 'rationale',
-                                                                         'value_presence': 'ABSENT'},
-                                                           'tags': {'name': 'tags',
+         'rules': [{'postconditions': {'slot_conditions': {'label': {'name': 'label',
+                                                                     'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_label'},
+                   {'postconditions': {'slot_conditions': {'options': {'name': 'options',
+                                                                       'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_options'},
+                   {'postconditions': {'slot_conditions': {'default': {'name': 'default',
+                                                                       'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_default'},
+                   {'postconditions': {'slot_conditions': {'rationale': {'name': 'rationale',
+                                                                         'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_rationale'},
+                   {'postconditions': {'slot_conditions': {'tags': {'name': 'tags',
                                                                     'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
                                                                    'value_presence': 'PRESENT'}}},
-                    'title': 'from_is_pure_alias'},
+                    'title': 'from_alias_forbids_tags'},
                    {'description': 'A non-aliased Decision must declare its label and '
                                    'options.',
                     'postconditions': {'slot_conditions': {'label': {'name': 'label',
@@ -747,27 +734,6 @@ class Decision(ConfiguredBaseModel):
             err_msg = f"Invalid from_ format: {v}"
             raise ValueError(err_msg)
         return v
-
-    @model_validator(mode="after")
-    def _check_from_alias(self):
-        if self.from_ is not None:
-            extras = [
-                f
-                for f in ("label", "options", "default", "rationale", "tags")
-                if getattr(self, f) is not None
-            ]
-            if extras:
-                raise ValueError(
-                    f"Decision with 'from' set must not declare {extras}; "
-                    "aliased nodes inherit content from the source"
-                )
-        else:
-            missing = [f for f in ("label", "options") if getattr(self, f) is None]
-            if missing:
-                raise ValueError(
-                    f"Decision must declare {missing} when 'from' is unset"
-                )
-        return self
 
     @field_validator('id')
     def pattern_id(cls, v):

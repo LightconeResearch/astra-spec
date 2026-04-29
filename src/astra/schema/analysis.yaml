@@ -326,30 +326,32 @@ classes:
         multivalued: true
         description: Specific outputs to use from referenced analysis
     rules:
-      - title: from_is_pure_alias
-        description: >-
-          When `from` is set, the Input is a pure alias and must not
-          redeclare content fields.
-        preconditions:
-          slot_conditions:
-            from:
-              value_presence: PRESENT
-        postconditions:
-          slot_conditions:
-            type:
-              value_presence: ABSENT
-            label:
-              value_presence: ABSENT
-            description:
-              value_presence: ABSENT
-            source:
-              value_presence: ABSENT
-            ref:
-              value_presence: ABSENT
-            ref_version:
-              value_presence: ABSENT
-            use_outputs:
-              value_presence: ABSENT
+      # `from_is_pure_alias` — split into one rule per forbidden slot so
+      # gen-json-schema emits `not: {required: [X]}` per slot. A single
+      # rule with multiple ABSENT postconditions translates incorrectly
+      # to `not: {required: [X, Y, ...]}`, which fires only when ALL are
+      # present.
+      - title: from_alias_forbids_type
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {type: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_label
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {label: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_description
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {description: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_source
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {source: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_ref
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {ref: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_ref_version
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {ref_version: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_use_outputs
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {use_outputs: {value_presence: ABSENT}}}
       - title: type_required_when_not_aliased
         description: >-
           A non-aliased Input must declare its type.
@@ -439,28 +441,26 @@ classes:
         inlined: true
         description: How to produce this output (pure *how*; dependencies live on the Output via `inputs`/`decisions`)
     rules:
-      - title: from_is_pure_alias
-        description: >-
-          When `from` is set, the Output is a pure pointer (re-export)
-          and must not redeclare type, content, or its own recipe.
-        preconditions:
-          slot_conditions:
-            from:
-              value_presence: PRESENT
-        postconditions:
-          slot_conditions:
-            type:
-              value_presence: ABSENT
-            label:
-              value_presence: ABSENT
-            description:
-              value_presence: ABSENT
-            inputs:
-              value_presence: ABSENT
-            decisions:
-              value_presence: ABSENT
-            recipe:
-              value_presence: ABSENT
+      # See note on Input.rules: split per slot so gen-json-schema
+      # emits one `not: {required: [X]}` per forbidden slot.
+      - title: from_alias_forbids_type
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {type: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_label
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {label: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_description
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {description: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_inputs
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {inputs: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_decisions
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {decisions: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_recipe
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {recipe: {value_presence: ABSENT}}}
       - title: type_required_when_not_aliased
         description: >-
           A non-aliased Output must declare its type.
@@ -548,26 +548,23 @@ classes:
         inlined: true
         description: Map of option IDs to option specifications
     rules:
-      - title: from_is_pure_alias
-        description: >-
-          When `from` is set, the Decision is a pure reference and
-          must not redeclare label, options, default, rationale, or tags.
-        preconditions:
-          slot_conditions:
-            from:
-              value_presence: PRESENT
-        postconditions:
-          slot_conditions:
-            label:
-              value_presence: ABSENT
-            options:
-              value_presence: ABSENT
-            default:
-              value_presence: ABSENT
-            rationale:
-              value_presence: ABSENT
-            tags:
-              value_presence: ABSENT
+      # See note on Input.rules: split per slot so gen-json-schema
+      # emits one `not: {required: [X]}` per forbidden slot.
+      - title: from_alias_forbids_label
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {label: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_options
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {options: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_default
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {default: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_rationale
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {rationale: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_tags
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {tags: {value_presence: ABSENT}}}
       - title: label_and_options_required_when_not_aliased
         description: >-
           A non-aliased Decision must declare its label and options.

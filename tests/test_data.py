@@ -7,13 +7,14 @@ import pytest
 from pathlib import Path
 
 import astra.datamodel.analysis
-from astra.datamodel import astra_pydantic
-from pydantic import ValidationError
 import yaml
 from linkml_runtime.loaders import yaml_loader
+from linkml.validator import Validator
+from linkml.validator.plugins import JsonschemaValidationPlugin
 
 DATA_DIR_VALID = Path(__file__).parent / "data" / "valid"
 DATA_DIR_INVALID = Path(__file__).parent / "data" / "invalid"
+SCHEMA_PATH = Path(__file__).parent.parent / "src" / "astra" / "schema" / "analysis.yaml"
 
 VALID_EXAMPLE_FILES = glob.glob(os.path.join(DATA_DIR_VALID, '*.yaml'))
 INVALID_EXAMPLE_FILES = glob.glob(os.path.join(DATA_DIR_INVALID, '*.yaml'))
@@ -27,6 +28,14 @@ INVALID_EXAMPLE_FILES = glob.glob(os.path.join(DATA_DIR_INVALID, '*.yaml'))
 # but could silently corrupt a future file whose string values contain
 # lines like "    from: ...".
 _FROM_KEY_RE = re.compile(r'^(\s+)from:', re.MULTILINE)
+
+
+@pytest.fixture(scope="module")
+def validator():
+    return Validator(
+        str(SCHEMA_PATH),
+        validation_plugins=[JsonschemaValidationPlugin(closed=True)],
+    )
 
 
 @pytest.mark.parametrize("filepath", VALID_EXAMPLE_FILES)
@@ -47,11 +56,10 @@ def test_valid_data_files(filepath):
 
 
 @pytest.mark.parametrize("filepath", INVALID_EXAMPLE_FILES)
-def test_invalid_data_files_rejected(filepath):
-    """Invalid fixtures must fail Pydantic validation."""
+def test_invalid_data_files_rejected(filepath, validator):
+    """Invalid fixtures must be rejected by linkml-validate."""
     target_class_name = Path(filepath).stem.split("-")[0]
-    tgt_class = getattr(astra_pydantic, target_class_name)
     with open(filepath) as f:
         data = yaml.safe_load(f)
-    with pytest.raises(ValidationError):
-        tgt_class(**data)
+    report = validator.validate(data, target_class=target_class_name)
+    assert report.results, f"Expected validation errors but got none for {filepath}"
