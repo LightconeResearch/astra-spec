@@ -319,18 +319,90 @@
                     "then": {
                         "not": {
                             "required": [
-                                "label",
-                                "options",
-                                "default",
-                                "rationale",
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "options"
+                            ]
+                        },
+                        "properties": {
+                            "options": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "default"
+                            ]
+                        },
+                        "properties": {
+                            "default": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "rationale"
+                            ]
+                        },
+                        "properties": {
+                            "rationale": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
                                 "tags"
                             ]
                         },
                         "properties": {
-                            "default": {},
-                            "label": {},
-                            "options": {},
-                            "rationale": {},
                             "tags": {}
                         }
                     }
@@ -502,18 +574,90 @@
                     "then": {
                         "not": {
                             "required": [
-                                "label",
-                                "options",
-                                "default",
-                                "rationale",
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "options"
+                            ]
+                        },
+                        "properties": {
+                            "options": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "default"
+                            ]
+                        },
+                        "properties": {
+                            "default": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "rationale"
+                            ]
+                        },
+                        "properties": {
+                            "rationale": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
                                 "tags"
                             ]
                         },
                         "properties": {
-                            "default": {},
-                            "label": {},
-                            "options": {},
-                            "rationale": {},
                             "tags": {}
                         }
                     }
@@ -739,22 +883,130 @@
                     "then": {
                         "not": {
                             "required": [
-                                "type",
-                                "label",
-                                "description",
-                                "source",
-                                "ref",
-                                "ref_version",
+                                "type"
+                            ]
+                        },
+                        "properties": {
+                            "type": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "description"
+                            ]
+                        },
+                        "properties": {
+                            "description": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "source"
+                            ]
+                        },
+                        "properties": {
+                            "source": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "ref"
+                            ]
+                        },
+                        "properties": {
+                            "ref": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "ref_version"
+                            ]
+                        },
+                        "properties": {
+                            "ref_version": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
                                 "use_outputs"
                             ]
                         },
                         "properties": {
-                            "description": {},
-                            "label": {},
-                            "ref": {},
-                            "ref_version": {},
-                            "source": {},
-                            "type": {},
                             "use_outputs": {}
                         }
                     }
@@ -1262,21 +1514,111 @@
                     "then": {
                         "not": {
                             "required": [
-                                "type",
-                                "label",
-                                "description",
-                                "inputs",
-                                "decisions",
+                                "type"
+                            ]
+                        },
+                        "properties": {
+                            "type": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "description"
+                            ]
+                        },
+                        "properties": {
+                            "description": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "inputs"
+                            ]
+                        },
+                        "properties": {
+                            "inputs": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "decisions"
+                            ]
+                        },
+                        "properties": {
+                            "decisions": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
                                 "recipe"
                             ]
                         },
                         "properties": {
-                            "decisions": {},
-                            "description": {},
-                            "inputs": {},
-                            "label": {},
-                            "recipe": {},
-                            "type": {}
+                            "recipe": {}
                         }
                     }
                 },
