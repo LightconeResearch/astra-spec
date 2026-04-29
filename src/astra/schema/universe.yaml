@@ -4,7 +4,7 @@ name: universe
 description: |-
   Universe specification models. A universe is a complete set of
   decisions across the entire analysis tree.
-version: 0.0.6
+version: 0.0.7
 license: https://creativecommons.org/licenses/by/4.0/
 
 prefixes:
