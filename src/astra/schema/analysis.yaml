@@ -414,6 +414,11 @@ classes:
           recipe and surface the resolved input map to it
           (Snakemake-style `{input.x}` substitution, env vars,
           sidecar JSON — runner's choice).
+
+          References use plain artifact IDs and resolve through any
+          `from:` chain in the surrounding analysis scope. An aliased
+          Input (one with `from:`) is a valid local reference here;
+          the runner walks the chain to the source.
       decisions:
         multivalued: true
         description: >-

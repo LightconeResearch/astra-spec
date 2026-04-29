@@ -360,6 +360,8 @@ The `command:` string is a template. Runners substitute `{...}` placeholders bef
 
 Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.
 
+Placeholders always use **local IDs** in the surrounding scope. When an input or decision is aliased from another scope (via [`from:`](#bridges)), the recipe template still names it by its local id; the runner walks the `from:` chain to resolve the source. Recipes never use `../` syntax — bridging is declared once at the `Input`/`Decision`, not in the template.
+
 Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the command string. There is no separate `params` channel because varying values are decisions and constants are just command text.
 
 **Example:**
