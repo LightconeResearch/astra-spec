@@ -2208,7 +2208,7 @@ analyses options   content     narrative
 </table>
 <h3 id="recipes">Recipes</h3>
 <p>A <code>Recipe</code> is an inline build rule on an Output. ASTRA is asset-centric: the <em>Output</em> declares what it depends on (<code>inputs</code>, <code>decisions</code>) and when it's active (<code>when</code>). The recipe is pure <em>how</em> — a POSIX shell command plus the execution context. It does not redeclare provenance.</p>
-<p>Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (<code>{input.x}</code> substitution, env vars, sidecar JSON — runner's choice), and invoke the command.</p>
+<p>Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (<code>{inputs.&lt;id&gt;}</code> template substitution, env vars, sidecar JSON — runner's choice), and invoke the command.</p>
 <table>
 <thead>
 <tr>
@@ -2277,7 +2277,7 @@ analyses options   content     narrative
 </tbody>
 </table>
 <h4 id="command-template-substitution">Command template substitution</h4>
-<p>The <code>command:</code> string is a template. Runners substitute <code>{...}</code> placeholders before invoking it. The substitution surface is <em>typed</em> by the Output's declarations: every placeholder must resolve to a declared input, decision, or param.</p>
+<p>The <code>command:</code> string is a template. Runners substitute <code>{...}</code> placeholders before invoking it. The substitution surface is <em>typed</em> by the Output's declarations: every <code>{inputs.&lt;id&gt;}</code> and <code>{decisions.&lt;id&gt;}</code> placeholder must name something the parent Output has declared in <code>Output.inputs</code> or <code>Output.decisions</code>. The implicit <code>{output}</code> and the bare <code>{inputs}</code> are always available.</p>
 <table>
 <thead>
 <tr>
@@ -2337,7 +2337,16 @@ analyses options   content     narrative
 <span class="w">      </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;8Gi&quot;</span>
 <span class="w">      </span><span class="nt">time_limit</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;30m&quot;</span>
 </code></pre></div>
-<p>A runner materializes <code>training_data</code> and <code>features</code>, picks output paths, expands the template, and invokes the command. If a universe selects <code>classifier=svm</code>, the command becomes <code>python src/classify.py --train ... --classifier svm --seed 42 --max-iter 1000 --out ...</code>.</p>
+<p>A runner materializes <code>training_data</code> and <code>features</code> (giving each a concrete on-disk path), picks an output path, expands the template, and invokes the command. With <code>classifier=svm</code> and <code>seed=seed_42</code> selected and paths chosen by the runner, the rendered command might be:</p>
+<div class="highlight"><pre><span></span><code>python src/classify.py \
+  --train /work/u_baseline/training_data.parquet \
+  --features /work/u_baseline/features.parquet \
+  --classifier svm \
+  --seed seed_42 \
+  --max-iter 1000 \
+  --out /work/u_baseline/predictions.parquet
+</code></pre></div>
+<p>Decision placeholders resolve to the <strong>option ID</strong> (constrained by the <a href="#id-conventions">ID pattern</a> — lowercase, starts with a letter). If a script needs a numeric seed, the recipe author either maps <code>seed_42 → 42</code> inside the script or picks option IDs that are usable verbatim. On-disk path conventions and the delivery channel for non-string forms are entirely the runner's choice.</p>
 <p>A node-level <code>container</code> field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., <code>python:3.9</code>, <code>ghcr.io/org/img:latest</code>) are pulled as pre-built images; file paths (e.g., <code>Containerfile</code>, <code>containers/Dockerfile</code>) are built from source.</p>
 <h3 id="decisions">Decisions</h3>
 <p>Decisions are the core of the multiverse. Each decision is a named choice point with multiple options, or — inside a sub-analysis — a pure alias for an ancestor decision via <code>from</code>.</p>
@@ -3024,7 +3033,9 @@ analyses options   content     narrative
 <li>Constraint references (<code>incompatible_with</code>, <code>requires</code>) resolve to valid <code>decision.option</code> pairs</li>
 <li><code>from:</code> paths conform to per-slot direction rules (see <a href="#bridges">Bridges</a>) and resolve to existing nodes</li>
 <li>A node with <code>from:</code> set has no other content fields (type, description, options, recipe, …)</li>
-<li>Recipe input dependencies reference valid output IDs in scope</li>
+<li><code>Output.inputs</code> references resolve to a declared <code>Input</code> or sibling <code>Output</code> in the surrounding scope</li>
+<li><code>Output.decisions</code> references resolve to a declared <code>Decision</code> in the surrounding scope</li>
+<li>Recipe <code>command</code> template placeholders (<code>{inputs.&lt;id&gt;}</code>, <code>{decisions.&lt;id&gt;}</code>) resolve to declarations on the parent Output</li>
 <li>Universe selections match analysis decisions</li>
 <li>Universe selections respect all constraints</li>
 </ul>
