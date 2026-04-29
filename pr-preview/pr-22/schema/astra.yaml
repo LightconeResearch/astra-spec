@@ -681,7 +681,10 @@ slots:
       \ dataset/file/analysis) or a sibling Output (another artifact in scope). Runners\
       \ materialize the upstream artifacts before invoking the recipe and surface\
       \ the resolved input map to it (Snakemake-style `{input.x}` substitution, env\
-      \ vars, sidecar JSON \u2014 runner's choice)."
+      \ vars, sidecar JSON \u2014 runner's choice).\nReferences use plain artifact\
+      \ IDs and resolve through any `from:` chain in the surrounding analysis scope.\
+      \ An aliased Input (one with `from:`) is a valid local reference here; the runner\
+      \ walks the chain to the source."
     from_schema: https://w3id.org/ASTRA/analysis
     slot_uri: astra:inputs
     alias: inputs
@@ -1803,7 +1806,10 @@ classes:
           \ dataset/file/analysis) or a sibling Output (another artifact in scope).\
           \ Runners materialize the upstream artifacts before invoking the recipe\
           \ and surface the resolved input map to it (Snakemake-style `{input.x}`\
-          \ substitution, env vars, sidecar JSON \u2014 runner's choice)."
+          \ substitution, env vars, sidecar JSON \u2014 runner's choice).\nReferences\
+          \ use plain artifact IDs and resolve through any `from:` chain in the surrounding\
+          \ analysis scope. An aliased Input (one with `from:`) is a valid local reference\
+          \ here; the runner walks the chain to the source."
         multivalued: true
       decisions:
         name: decisions
@@ -2371,7 +2377,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-04-29T13:07:25'
-source_file_size: 23943
-generation_date: '2026-04-29T13:07:30'
+source_file_date: '2026-04-29T13:12:17'
+source_file_size: 24202
+generation_date: '2026-04-29T13:12:20'
 

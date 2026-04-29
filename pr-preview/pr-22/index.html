@@ -2315,6 +2315,7 @@ analyses options   content     narrative
 </tbody>
 </table>
 <p>Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.</p>
+<p>Placeholders always use <strong>local IDs</strong> in the surrounding scope. When an input or decision is aliased from another scope (via <a href="#bridges"><code>from:</code></a>), the recipe template still names it by its local id; the runner walks the <code>from:</code> chain to resolve the source. Recipes never use <code>../</code> syntax — bridging is declared once at the <code>Input</code>/<code>Decision</code>, not in the template.</p>
 <p>Static constants (e.g., a fixed <code>--max-iter 1000</code>) belong inline in the command string. There is no separate <code>params</code> channel because varying values are decisions and constants are just command text.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">predictions</span>
