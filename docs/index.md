@@ -190,7 +190,7 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 | `id` | `string` | No | Analysis identifier (used as key when nested as sub-analysis) |
 | `version` | `string` | No | ASTRA spec version (semver: `"1.0"`, `"1.0.0"`) |
 | `name` | `string` | No | Human-readable name |
-| `narrative` | `Narrative` | No | Structured prose split into five sections (see [Narrative](#narrative)) |
+| `narrative` | `string` | No | Markdown prose describing the analysis (see [Narrative](#narrative)) |
 | `authors` | `string[]` | No | List of authors |
 | `tags` | `string[]` | No | Tags for categorization |
 
@@ -198,43 +198,26 @@ The `Analysis` is the root type. Every field marked *optional* can be omitted.
 
 ### Narrative
 
-`narrative` is a structured prose field organized into five Markdown sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.
-
-All sections are schema-optional, but `astra validate` applies a **conditional requirement**: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.
-
-- `findings` required when `Analysis.findings` has entries.
-- `methods` required when `Analysis.decisions` or `Analysis.analyses` has entries.
-- `inputs` required when `Analysis.inputs` has entries.
-- `outputs` required when `Analysis.outputs` has entries.
-- `summary` is always optional (no structured counterpart).
-
-Authors narrate what they declare; stub analyses with only a `summary` stay clean.
+`narrative` is a Markdown prose field describing the analysis. Authors organize content with `#`, `##`, and `###` headings — renderers treat `#` as a top-level (numbered) section and the deeper levels as subsections. Heading names carry no special meaning; structure the prose however the analysis warrants.
 
 ```yaml
-narrative:
-  summary: |
-    One-paragraph overview of the analysis.
-  findings: |
-    Prose that frames the structured findings (see Analysis.findings).
-  methods: |
-    Methodology write-up. References decisions and sub-analyses.
-  inputs: |
-    Prose that frames the structured inputs.
-  outputs: |
-    Prose that frames the expected outputs.
-```
+narrative: |
+  # Summary
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `summary` | `string` | No | High-level overview — question, scope, orientation. |
-| `findings` | `string` | No | Prose framing `Analysis.findings` (structured `Insight`s). |
-| `methods` | `string` | No | Methodology, decisions, sub-analyses. |
-| `inputs` | `string` | No | Prose framing `Analysis.inputs`. |
-| `outputs` | `string` | No | Prose framing `Analysis.outputs`. |
+  One-paragraph overview of the analysis.
+
+  # Methods
+
+  Methodology write-up. References decisions and sub-analyses.
+
+  # Outputs
+
+  Prose that frames the expected outputs.
+```
 
 Per-element prose (what each `Input`, `Output`, `Decision`, `Option`, or `Insight` is and why it matters) lives on those elements' own `description` / `rationale` / `notes` fields. `narrative` is for the analysis-level story that weaves those pieces together.
 
-**Internal anchor references.** Inside any section you can link to other elements of the analysis with standard Markdown link syntax and a `#` target. References may appear in any section — coverage is resolved across the whole narrative, not per-section:
+**Internal anchor references.** Inside the prose you can link to other elements of the analysis with standard Markdown link syntax and a `#` target:
 
 ```markdown
 See the [scaling decision](#decisions.scaling) for rationale.
