@@ -114,7 +114,8 @@ test: _test-schema _test-python _test-examples
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
-# Tag a new release: bumps schema YAML versions, commits, and creates an annotated git tag
+# Tag a new release: bumps schema YAML versions and CITATION.cff, commits,
+# and creates an annotated git tag.
 [group('model development')]
 release version:
   #!/usr/bin/env bash
@@ -134,7 +135,12 @@ release version:
   for f in {{source_schema_dir}}/*.yaml; do
     grep -q '^version:' "$f" && sed -i "s/^version: .*/version: {{version}}/" "$f"
   done
-  git add {{source_schema_dir}}/*.yaml
+  if [[ -f CITATION.cff ]]; then
+    today=$(date -u +%Y-%m-%d)
+    sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
+    sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff
+  fi
+  git add {{source_schema_dir}}/*.yaml CITATION.cff
   git commit -m "Release v{{version}}"
   git tag -a "v{{version}}" -m "Release v{{version}}"
   echo
