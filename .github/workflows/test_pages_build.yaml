@@ -68,7 +68,7 @@ jobs:
 
       # https://github.com/rossjrw/pr-preview-action
       - name: Deploy preview
-        uses: rossjrw/pr-preview-action@v1.6.2
+        uses: rossjrw/pr-preview-action@v1.8.1
         with:
           source-dir: site/
           preview-branch: gh-pages
