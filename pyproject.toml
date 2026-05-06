@@ -4,8 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "astra-spec"
-description = "ASTRA spec."
+description = "ASTRA — Agentic Schema for Transparent Research Analysis: a declarative YAML format for reproducible, auditable, and composable scientific analyses."
+readme = "README.md"
 authors = [
+  {name = "Francois Lanusse", email = "francois.lanusse@cnrs.fr"},
+  {name = "Liam Parker", email = "lhparker@berkeley.edu"},
+]
+maintainers = [
   {name = "Francois Lanusse", email = "francois.lanusse@cnrs.fr"},
   {name = "Liam Parker", email = "lhparker@berkeley.edu"},
 ]
@@ -13,10 +18,49 @@ license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 requires-python = ">=3.9,<4.0"
 dynamic = ["version"]
+keywords = [
+  "astra",
+  "linkml",
+  "schema",
+  "reproducibility",
+  "open-science",
+  "scientific-analysis",
+  "agentic-ai",
+  "declarative",
+  "yaml",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
 
 dependencies = [
   "linkml-runtime >=1.9.4",
 ]
+
+[project.urls]
+Homepage = "https://astra-spec.org"
+Documentation = "https://astra-spec.org"
+Repository = "https://github.com/LightconeResearch/astra-spec"
+Issues = "https://github.com/LightconeResearch/astra-spec/issues"
+Changelog = "https://github.com/LightconeResearch/astra-spec/releases"
+"Source Code" = "https://github.com/LightconeResearch/astra-spec"
 
 [dependency-groups]
 dev = [
