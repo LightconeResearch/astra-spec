@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: >-
+  If you use ASTRA in your research or tooling, please cite the
+  GitHub repository as below.
+title: "ASTRA: Agentic Schema for Transparent Research Analysis"
+abstract: >-
+  ASTRA is a declarative YAML format for scientific analyses that
+  separates what to learn from how to compute it. It captures inputs,
+  outputs, decisions, and evidence so every analytical choice is
+  explicit, traceable, and reproducible.
+type: software
+url: "https://astra-spec.org"
+repository-code: "https://github.com/LightconeResearch/astra-spec"
+license: BSD-3-Clause
+version: "0.0.7"
+date-released: "2026-04-30"
+keywords:
+  - agentic AI
+  - reproducibility
+  - scientific infrastructure
+  - declarative analysis
+  - LinkML
+  - open science
+authors:
+  - given-names: Francois
+    family-names: Lanusse
+    email: francois.lanusse@cnrs.fr
+    affiliation: "Université Paris-Saclay, Université Paris Cité, CEA, CNRS, AIM"
+    orcid: "https://orcid.org/0000-0001-7956-0542"
+  - given-names: Liam
+    family-names: Parker
+    email: lhparker@berkeley.edu
+    affiliation: "University of California, Berkeley"
+    orcid: "https://orcid.org/0009-0007-4952-1674"
