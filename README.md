@@ -1,43 +1,24 @@
-# ASTRA Specification
+# ASTRA
 
-**Agentic Schema for Transparent Research Analysis**
+**Agentic Schema for Transparent Research Analysis** — a declarative YAML format for scientific analyses that separates *what* you want to learn from *how* to compute it.
 
 [![Build and test](https://github.com/LightconeResearch/astra-spec/actions/workflows/main.yaml/badge.svg)](https://github.com/LightconeResearch/astra-spec/actions/workflows/main.yaml)
-[![License: CC BY 4.0](https://img.shields.io/badge/Schema_License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![License: BSD 3-Clause](https://img.shields.io/badge/Code_License-BSD_3--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause)
+[![Docs](https://img.shields.io/badge/docs-astra--spec.org-334155.svg)](https://astra-spec.org)
+[![Schema license: CC BY 4.0](https://img.shields.io/badge/schema-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![Code license: BSD 3-Clause](https://img.shields.io/badge/code-BSD_3--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause)
 
-ASTRA is a declarative specification format for scientific analyses. It separates **what** you want to learn from **how** to compute it: you declare inputs, outputs, and decisions; an agent or workflow engine handles execution.
+> [!WARNING]
+> ASTRA is in **early alpha**. Expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports from real-analysis attempts and design challenges are exactly what the project needs at this stage — please open an [issue](https://github.com/LightconeResearch/astra-spec/issues) or join the [Community](https://astra-spec.org/community/).
 
-```
-┌──────────────────┐       ┌───────────┐       ┌─────────┐
-│  ASTRA Analysis  │ ────> │   Agent   │ ────> │ Results │
-│                  │       │ (executes)│       │         │
-│  - inputs        │       │           │       │ metrics │
-│  - outputs       │       │           │       │ figures │
-│  - decisions     │       │           │       │ data    │
-└──────────────────┘       └───────────┘       └─────────┘
-         ^                                          │
-         └──── previous analyses (as inputs) ───────┘
-```
+---
 
-**Specification**: [astra-spec.org](https://astra-spec.org) | **Namespace**: `https://w3id.org/ASTRA/`
+## What is ASTRA?
 
-## Why ASTRA?
+ASTRA is a structured format that captures every consequential choice in a scientific analysis — its inputs, outputs, decisions, and the evidence behind them — so the result is **reproducible**, **auditable**, and **composable**. An agent, a workflow runner, a notebook, or a human reads the spec and produces the results; ASTRA itself stays out of execution.
 
-Scientific analyses are built on a cascade of methodological choices -- which algorithm to use, how to split the data, what priors to assume. These decisions are rarely documented systematically, and the alternatives considered are almost never recorded. This makes it hard to reproduce results, understand why one approach was chosen, or explore what would have happened differently.
+For the longer argument that motivates the project — per-result trust in the agentic-AI era and why an open substrate matters — see the [Lightcone Research position paper](https://github.com/LightconeResearch/astra-paper).
 
-ASTRA provides a structured format where every analytical choice is explicit, every alternative is documented, and every decision is backed by traceable evidence.
-
-## Design Principles
-
-1. **Declarative** -- the spec says *what*, not *how*
-2. **Self-similar** -- every level has the same structure; a sub-analysis is a valid analysis
-3. **Transparent** -- all decisions and alternatives are documented, including rejected options
-4. **Evidence-linked** -- decisions cite supporting evidence from papers or artifacts
-5. **Composable** -- analyses build on each other; outputs become inputs
-6. **Reproducible** -- precise provenance with W3C-compliant source references
-
-## Quick Example
+## Quick example
 
 ```yaml
 # astra.yaml
@@ -52,6 +33,7 @@ inputs:
 outputs:
   - id: accuracy
     type: metric
+    decisions: [scaling, model]
     recipe:
       command: python src/evaluate.py
 
@@ -60,67 +42,49 @@ decisions:
     label: Feature Scaling
     default: standard
     options:
-      none:
-        label: No Scaling
-      standard:
-        label: StandardScaler
+      none:     { label: No Scaling }
+      standard: { label: StandardScaler }
+
   model:
     label: Classification Model
     default: random_forest
     options:
-      random_forest:
-        label: Random Forest
+      random_forest: { label: Random Forest }
       svm:
         label: SVM
-        requires:
-          - scaling.standard
+        requires: [scaling.standard]
 ```
 
-See the [full specification](https://astra-spec.org) for details on sub-analyses, evidence-backed insights, universes, constraints, and more.
+A *universe* picks one option per decision (e.g. `{ scaling: standard, model: svm }`). The same analysis can carry many universes; each one yields one set of results.
 
-## Getting Started
-
-### Install
+## Install and try it
 
 ```bash
-pip install astra-spec
+uv tool install astra-tools           # installs the `astra` CLI on your PATH
+astra init my-analysis && cd my-analysis
+astra validate astra.yaml
+astra info
+astra viz
 ```
 
-### Use in Python
+Full walk-through: **[Getting started →](https://astra-spec.org/getting-started/)**
 
-```python
-from astra.datamodel import Analysis, Universe
-from linkml_runtime.loaders import yaml_loader
+## Repository layout
 
-# Load an analysis specification
-analysis = yaml_loader.load("astra.yaml", target_class=Analysis)
+This repository (`astra-spec`) holds the LinkML schema and the documentation site.
 
-# Load a universe (decision configuration)
-universe = yaml_loader.load("universes/baseline.yaml", target_class=Universe)
+```
+src/astra/
+  schema/       # LinkML schema source (edit these)
+  datamodel/    # Generated Python datamodel (do not edit directly)
+docs/           # Documentation source (Zensical → astra-spec.org)
+tests/data/    # Valid/invalid YAML fixtures
+project/        # Multi-language bindings (Python, TS, JSON Schema, JSON-LD, OWL, Java)
 ```
 
-### Schema Artifacts
-
-ASTRA is defined in [LinkML](https://linkml.io) and generates bindings for Python, TypeScript, JSON Schema, JSON-LD, and more.
-
-| Format | URL |
-|--------|-----|
-| LinkML (source) | [`astra-spec.org/schema/astra.yaml`](https://astra-spec.org/schema/astra.yaml) |
-| JSON Schema | [`astra-spec.org/schema/astra.schema.json`](https://astra-spec.org/schema/astra.schema.json) |
-| JSON-LD Context | [`astra-spec.org/schema/astra.context.jsonld`](https://astra-spec.org/schema/astra.context.jsonld) |
-
-## Non-Goals
-
-ASTRA intentionally does **not** address:
-
-- **Workflow execution** -- ASTRA defines what to compute; execution is handled by agents or workflow engines
-- **Code generation** -- the spec is not a template; agents interpret it
-- **Data storage** -- ASTRA references data, it does not store it
-- **Visualization** -- rendering is handled by separate tools
+The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/ASTRA`](https://github.com/LightconeResearch/ASTRA). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/).
 
 ## Development
-
-### Setup
 
 ```bash
 git clone https://github.com/LightconeResearch/astra-spec.git
@@ -130,35 +94,32 @@ uv sync --dev
 
 Requires Python 3.9+, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just/).
 
-### Commands
-
 ```bash
-just test        # Run all tests
-just gen-python  # Regenerate Python datamodels
-just gen-doc     # Generate documentation
-just lint        # Lint the schema
-just testdoc     # Build and preview docs locally
+just test         # Schema generation, Python datamodel, examples
+just lint         # LinkML schema lint
+just gen-python   # Regenerate Python datamodels
+just gen-doc      # Regenerate the schema reference docs
+just docs-serve   # Live-reload local preview of the docs site
+just --list       # Everything else
 ```
 
-Run `just --list` to see all available commands.
+The release recipe (`just release X.Y.Z`) bumps the schema YAMLs and `CITATION.cff` together, then creates an annotated tag.
 
-### Repository Structure
-
-```
-src/astra/
-  schema/       # LinkML schema source (edit these)
-  datamodel/    # Generated Python datamodel
-tests/
-  data/         # Example YAML fixtures (valid / invalid)
-docs/           # Documentation source
-project/        # Generated multi-language artifacts
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Community page](https://astra-spec.org/community/) for the full contribution workflow.
 
 ## License
 
-- **Schema**: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- **Code**: [BSD 3-Clause](LICENSE)
+- **Schema** — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Code** — [BSD 3-Clause](LICENSE)
+
+Both are permissive; commercial and academic use are unrestricted. Schema reuse requires attribution; code reuse requires the standard BSD-3 notice.
+
+## Citing
+
+If you use ASTRA, please cite the repository — the easiest way is the **"Cite this repository"** button on this page (it generates APA and BibTeX from [`CITATION.cff`](CITATION.cff)). Include the schema version you targeted; it is recorded at the top of each LinkML source file and in every generated artefact.
+
+For the broader context, the [Lightcone Research position paper](https://github.com/LightconeResearch/astra-paper) is a separate citation, not a replacement.
 
 ## Credits
 
-Built with [LinkML](https://linkml.io) using the [linkml-project-copier](https://github.com/dalito/linkml-project-copier) template.
+Developed by [Lightcone Research](https://github.com/LightconeResearch). Built with [LinkML](https://linkml.io) using the [linkml-project-copier](https://github.com/dalito/linkml-project-copier) template.
