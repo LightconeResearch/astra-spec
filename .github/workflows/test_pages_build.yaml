@@ -20,7 +20,7 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     # Grant GITHUB_TOKEN the permissions required to make a gh-pages deployment
     permissions:
-      contents: write  # to let mkdocs write the new docs
+      contents: write  # to let pr-preview-action push to gh-pages
       pages: write     # to deploy to Pages
       id-token: write  # allow to generate an OpenID Connect (OIDC) token
       pull-requests: write  # add comment on the PR with the preview URL
@@ -65,7 +65,6 @@ jobs:
         run: |
           just gen-doc
           uv run zensical build
-          touch site/.nojekyll
 
       # https://github.com/rossjrw/pr-preview-action
       - name: Deploy preview

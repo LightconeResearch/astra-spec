@@ -62,8 +62,6 @@ jobs:
         run: |
           just gen-doc
           uv run zensical build
-          touch site/.nojekyll
 
       - name: Publish to gh-pages branch
-        run: |
-          uv run --with ghp-import ghp-import --no-jekyll --push --force site/
+        run: uv run ghp-import --no-jekyll --push --force site/

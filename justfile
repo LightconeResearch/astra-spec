@@ -66,7 +66,7 @@ install:
   uv sync --group dev
 
 # Sync the docs dependency group (zensical)
-[group('project management')]
+[group('documentation')]
 docs-install:
   uv sync --group docs
 
@@ -84,30 +84,26 @@ clean: _clean_project
 [group('model development')]
 site: gen-project gen-doc
 
-# Build the static documentation site (outputs to site/)
-[group('model development')]
-docs: gen-doc docs-install
+# Build docs site (output: site/)
+[group('documentation')]
+docs: _docs-prep
   uv run zensical build
 
-# Build documentation in strict mode (fail on warnings)
-[group('model development')]
-docs-strict: gen-doc docs-install
+# Build docs in strict mode
+[group('documentation')]
+docs-strict: _docs-prep
   uv run zensical build --strict
 
-# Serve documentation with live reload at http://127.0.0.1:8000
-[group('model development')]
-docs-serve: gen-doc docs-install
+# Serve docs with live reload at http://127.0.0.1:8000
+[group('documentation')]
+docs-serve: _docs-prep
   uv run zensical serve
 
-# Remove the built documentation site
-[group('model development')]
+[group('documentation')]
 docs-clean:
   rm -rf site
 
-# Build the documentation site for deployment (output: site/)
-# Production deploy is handled by Cloudflare Pages from the built site/ directory.
-[group('deployment')]
-deploy: site docs
+_docs-prep: gen-doc docs-install
 
 # Run all tests
 [group('model development')]
@@ -149,10 +145,6 @@ release version:
 [group('model development')]
 gen-doc: _set-version _gen-yaml && _add-artifacts
   uv run gen-doc {{gen_doc_args}} -d {{docdir}} {{source_schema_path}}
-
-# Build docs and run live-reload server
-[group('model development')]
-testdoc: docs-serve
 
 # Generate the Python data models (dataclasses & pydantic)
 gen-python: _set-version

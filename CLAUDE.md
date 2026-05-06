@@ -16,7 +16,7 @@ just test        # Run all tests
 just gen-python  # Regenerate Python datamodels from schema
 just gen-doc     # Regenerate schema reference documentation
 just lint        # Lint the schema
-just testdoc     # Build and preview docs locally
+just docs-serve  # Build and preview docs locally with live reload
 ```
 
 ## Repository Layout

@@ -23,8 +23,8 @@ dev = [
     "linkml>=1.9.3",
 ]
 docs = [
-    # Zensical requires Python >= 3.10; package itself targets >= 3.9.
     "zensical>=0.0.33; python_version >= '3.10'",
+    "ghp-import>=2",
 ]
 
 [tool.hatch.build.targets.sdist]
