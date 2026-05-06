@@ -82,7 +82,7 @@ tests/data/    # Valid/invalid YAML fixtures
 project/        # Multi-language bindings (Python, TS, JSON Schema, JSON-LD, OWL, Java)
 ```
 
-The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/ASTRA`](https://github.com/LightconeResearch/ASTRA). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/).
+The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/).
 
 ## Development
 
