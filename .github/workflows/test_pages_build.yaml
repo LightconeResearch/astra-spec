@@ -59,12 +59,12 @@ jobs:
           uv tool install rust-just
 
       - name: Install dependencies
-        run: uv sync --dev --no-progress
+        run: uv sync --group dev --group docs --no-progress
 
       - name: Build documentation
         run: |
           just gen-doc
-          uv run mkdocs build -d site
+          uv run zensical build
           touch site/.nojekyll
 
       # https://github.com/rossjrw/pr-preview-action

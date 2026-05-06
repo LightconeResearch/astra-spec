@@ -65,6 +65,11 @@ _setup_part2: gen-project gen-doc
 install:
   uv sync --group dev
 
+# Sync the docs dependency group (zensical)
+[group('project management')]
+docs-install:
+  uv sync --group docs
+
 # Updates project template and LinkML package
 [group('project management')]
 update: _update-template _update-linkml
@@ -79,10 +84,30 @@ clean: _clean_project
 [group('model development')]
 site: gen-project gen-doc
 
-# Deploy documentation site to Github Pages
+# Build the static documentation site (outputs to site/)
+[group('model development')]
+docs: gen-doc docs-install
+  uv run zensical build
+
+# Build documentation in strict mode (fail on warnings)
+[group('model development')]
+docs-strict: gen-doc docs-install
+  uv run zensical build --strict
+
+# Serve documentation with live reload at http://127.0.0.1:8000
+[group('model development')]
+docs-serve: gen-doc docs-install
+  uv run zensical serve
+
+# Remove the built documentation site
+[group('model development')]
+docs-clean:
+  rm -rf site
+
+# Build the documentation site for deployment (output: site/)
+# Production deploy is handled by Cloudflare Pages from the built site/ directory.
 [group('deployment')]
-deploy: site
-  mkd-gh-deploy
+deploy: site docs
 
 # Run all tests
 [group('model development')]
@@ -125,9 +150,9 @@ release version:
 gen-doc: _set-version _gen-yaml && _add-artifacts
   uv run gen-doc {{gen_doc_args}} -d {{docdir}} {{source_schema_path}}
 
-# Build docs and run test server
+# Build docs and run live-reload server
 [group('model development')]
-testdoc: gen-doc _serve
+testdoc: docs-serve
 
 # Generate the Python data models (dataclasses & pydantic)
 gen-python: _set-version
@@ -269,10 +294,6 @@ _gen-yaml:
 _add-artifacts:
   uv run gen-json-schema {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.schema.json
   uv run gen-jsonld-context {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.context.jsonld
-
-# Run documentation server
-_serve:
-  uv run mkdocs serve
 
 # Initialize git repository
 _git-init:

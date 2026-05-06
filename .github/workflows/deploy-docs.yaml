@@ -19,7 +19,7 @@ jobs:
 
     # Grant GITHUB_TOKEN the permissions required to make a gh-pages deployment
     permissions:
-      contents: write  # to let mkdocs write the new docs
+      contents: write  # to let ghp-import push the gh-pages branch
       pages: write     # to deploy to Pages
       id-token: write  # allow to generate an OpenID Connect (OIDC) token
 
@@ -56,9 +56,14 @@ jobs:
           uv tool install rust-just
 
       - name: Install dependencies
-        run: uv sync --dev --no-progress
+        run: uv sync --group dev --group docs --no-progress
 
-      - name: Generate schema documentation
+      - name: Build documentation
         run: |
           just gen-doc
-          uv run mkdocs gh-deploy
+          uv run zensical build
+          touch site/.nojekyll
+
+      - name: Publish to gh-pages branch
+        run: |
+          uv run --with ghp-import ghp-import --no-jekyll --push --force site/

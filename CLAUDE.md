@@ -23,7 +23,7 @@ just testdoc     # Build and preview docs locally
 
 - `src/astra/schema/` — LinkML schema source files (edit these)
 - `src/astra/datamodel/` — Generated Python datamodel (do not edit directly)
-- `docs/` — Documentation source (MkDocs with Material theme)
+- `docs/` — Documentation source (rendered with [Zensical](https://zensical.org/); config in `zensical.toml`)
 - `docs/index.md` — The ASTRA format specification
 - `examples/` — Example ASTRA projects (iris, iris_pipeline)
 - `tests/data/` — Test fixtures (valid, invalid, problem)
