@@ -7,7 +7,7 @@ You declare inputs, outputs, and the decisions that shape the analysis. An agent
 ASTRA is intentionally agnostic to any execution engine: agents, workflow runners, or humans can all consume an ASTRA spec.
 
 [:lucide-rocket: **Get started**](getting-started.md){ .md-button .md-button--primary }
-[:lucide-book-open: Read the specification](specification.md){ .md-button }
+[:lucide-book-open: Read the specification](specification/draft/){ .md-button }
 
 !!! warning "Alpha development"
     ASTRA is in **early alpha**. The schema, CLI, and tooling are all still moving — expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports, design challenges, and use cases that the spec doesn't yet cover are exactly what we want to hear at this stage; please open an issue on the [GitHub repo](https://github.com/LightconeResearch/astra-spec/issues) or join the [Community](community.md) tab.

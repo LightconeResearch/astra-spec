@@ -38,8 +38,8 @@ dest := "project"
 pymodel := src / schema_name / "datamodel"
 schema_source_file := env_var_or_default("LINKML_SCHEMA_SOURCE_FILE", schema_name)
 source_schema_path := source_schema_dir / schema_source_file + ".yaml"
-docdir := "docs/elements"  # Directory for generated documentation
-distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
+docdir := "docs/specification/draft/elements"  # Directory for the generated draft schema reference
+distrib_schema_path := "docs/schema/draft"  # Directory for the draft machine-readable schema artifacts
 
 # ============== Project recipes ==============
 
@@ -114,8 +114,9 @@ test: _test-schema _test-python _test-examples
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
-# Tag a new release: bumps schema YAML versions and CITATION.cff, commits,
-# and creates an annotated git tag.
+# Tag a new release: stamps the version into the schema, snapshots draft/ into
+# a frozen X.Y.Z/ directory under docs/specification and docs/schema, updates
+# CITATION.cff, commits, and creates an annotated git tag.
 [group('model development')]
 release version:
   #!/usr/bin/env bash
@@ -132,20 +133,53 @@ release version:
     echo "Error: tag v{{version}} already exists." >&2
     exit 1
   fi
-  for f in {{source_schema_dir}}/*.yaml; do
-    grep -q '^version:' "$f" && sed -i "s/^version: .*/version: {{version}}/" "$f"
-  done
+  if [[ -e "docs/specification/{{version}}" || -e "docs/schema/{{version}}" ]]; then
+    echo "Error: a snapshot for {{version}} already exists." >&2
+    exit 1
+  fi
+  export LINKML_FORCE_VERSION={{version}}
+  just gen-doc
+  just snapshot-version {{version}}
   if [[ -f CITATION.cff ]]; then
     today=$(date -u +%Y-%m-%d)
     sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
     sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff
   fi
-  git add {{source_schema_dir}}/*.yaml CITATION.cff
+  git add {{source_schema_dir}}/*.yaml CITATION.cff docs/specification docs/schema
   git commit -m "Release v{{version}}"
   git tag -a "v{{version}}" -m "Release v{{version}}"
   echo
-  echo "Created commit and tag v{{version}}."
+  echo "Created snapshot, commit, and tag v{{version}}."
   echo "Push with: git push && git push origin v{{version}}"
+
+# Snapshot the current draft/ tree into a frozen X.Y.Z/ tree. Called by `release`,
+# but usable standalone to backfill a snapshot if the destination doesn't exist.
+[group('model development')]
+snapshot-version version: && _regen-spec-hub
+  #!/usr/bin/env python3
+  import re, shutil, sys
+  from pathlib import Path
+
+  v = "{{version}}"
+  if not re.match(r"^\d+\.\d+\.\d+$", v):
+      sys.exit(f"Error: version must be X.Y.Z (got '{v}')")
+  spec_dst = Path(f"docs/specification/{v}")
+  schema_dst = Path(f"docs/schema/{v}")
+  if spec_dst.exists() or schema_dst.exists():
+      sys.exit(f"Error: snapshot for {v} already exists.")
+
+  shutil.copytree("docs/specification/draft", spec_dst)
+  shutil.copytree("docs/schema/draft", schema_dst)
+
+  index = spec_dst / "index.md"
+  text = index.read_text().replace("**Version**: draft", f"**Version**: {v}")
+  banner = (
+      f'!!! note "Version {v}"\n'
+      f'    This is a frozen release of the ASTRA specification. '
+      f'See the [specification index](../) for other versions or the '
+      f'latest [draft](../draft/).\n\n'
+  )
+  index.write_text(banner + text)
 
 # Generate md documentation for the schema and add artifacts
 [group('model development')]
@@ -274,14 +308,48 @@ _test-examples: _ensure_examples_output
     --output-directory examples/output \
     --schema {{source_schema_path}} > examples/output/README.md
 
-# Inject version from latest git tag into all schema YAML files
+# Inject a version into all schema YAML files. Uses LINKML_FORCE_VERSION if
+# set (the `release` recipe relies on this to stamp X.Y.Z before its tag
+# exists); otherwise falls back to the latest git tag.
 _set-version:
   #!/usr/bin/env bash
-  TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-  VERSION=${TAG#v}
+  if [[ -n "${LINKML_FORCE_VERSION:-}" ]]; then
+    VERSION="${LINKML_FORCE_VERSION}"
+  else
+    TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+    VERSION=${TAG#v}
+  fi
   for f in {{source_schema_dir}}/*.yaml; do
     grep -q '^version:' "$f" && sed -i "s/^version: .*/version: ${VERSION}/" "$f"
   done
+
+# Regenerate the version list inside the markers in docs/specification/index.md
+_regen-spec-hub:
+  #!/usr/bin/env python3
+  import re
+  from pathlib import Path
+
+  spec_dir = Path("docs/specification")
+  versions = sorted(
+      (d.name for d in spec_dir.iterdir()
+       if d.is_dir() and d.name != "draft"
+       and re.match(r"^\d+\.\d+\.\d+$", d.name)),
+      key=lambda v: tuple(int(x) for x in v.split(".")),
+      reverse=True,
+  )
+
+  lines = []
+  if versions:
+      lines.append(f"- **[{versions[0]}]({versions[0]}/)** — current release")
+      for v in versions[1:]:
+          lines.append(f"- [{v}]({v}/)")
+  lines.append("- [draft](draft/) — work in progress")
+
+  hub = spec_dir / "index.md"
+  text = hub.read_text()
+  pattern = r"<!-- VERSIONS:START -->.*?<!-- VERSIONS:END -->"
+  replacement = "<!-- VERSIONS:START -->\n" + "\n".join(lines) + "\n<!-- VERSIONS:END -->"
+  hub.write_text(re.sub(pattern, replacement, text, flags=re.DOTALL))
 
 # Add the merged model to docs/schema.
 _gen-yaml:

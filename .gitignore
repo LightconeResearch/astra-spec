@@ -1,5 +1,7 @@
-# generated part of documentation
-/docs/elements/*.md
+# generated part of documentation (the draft schema reference is regenerated
+# by `just gen-doc`; per-version snapshots under docs/specification/<version>/
+# are tracked permanently)
+/docs/specification/draft/elements/*.md
 # linkml-run-examples output (not useful to have in git in its current form)
 /examples/output/
 
