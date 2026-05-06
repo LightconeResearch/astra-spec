@@ -40,7 +40,7 @@ features = [
 ]
 
 [project.theme.icon]
-logo = "lucide/book-open"
+logo = "lucide/sparkles"
 
 # Light/dark palettes with a manual toggle.
 [[project.theme.palette]]
