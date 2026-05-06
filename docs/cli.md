@@ -5,17 +5,15 @@ The `astra` command-line tool authors, validates, and inspects ASTRA analyses. I
 ## Installation
 
 ```bash
-pip install astra-tools
+uv tool install astra-tools
 ```
 
-This installs the `astra` executable. To verify:
+This installs the `astra` executable on your `PATH`, isolated from your project environments. See [Getting started](getting-started.md#install) for `pip` and from-source alternatives. To verify:
 
 ```bash
 astra --version
 astra --help
 ```
-
-The CLI is implemented with [Click](https://click.palletsprojects.com/) and rendered with [Rich](https://rich.readthedocs.io/). Source: [`LightconeResearch/ASTRA`](https://github.com/LightconeResearch/ASTRA).
 
 ## Commands at a glance
 
@@ -210,7 +208,7 @@ astra paper add 10.1038/s41586-023-06221-2
 astra paper add 10.1234/example --pdf ./local_paper.pdf
 ```
 
-`--pdf` registers a local file in the cache without downloading. Without it, the CLI downloads the paper using the DOI (arXiv DOIs follow the special arXiv code path; other DOIs use content-negotiation against `doi.org`).
+`--pdf` registers a local file in the cache without downloading. Without it, the CLI downloads the paper from the DOI: arXiv DOIs (prefix `10.48550/arXiv.`) are fetched directly from `arxiv.org`, with `--version` selecting a specific revision; other DOIs are resolved through [Unpaywall](https://unpaywall.org/) for an open-access PDF and will fail if no open copy is available. Title and authors are fetched separately via DOI content-negotiation against `doi.org`.
 
 ### `astra paper list`
 
@@ -277,38 +275,3 @@ echo '{"quotes":[{"text":"...","page":8},{"text":"..."}]}' \
 ```
 
 Designed to be driven by agents and CI scripts.
-
----
-
-## Python API
-
-`astra-tools` doubles as a small SDK. The most useful entry points:
-
-```python
-from astra.helpers import (
-    load_yaml, save_yaml,
-    get_inputs, get_outputs, get_decisions,
-    create_universe_from_defaults,
-)
-from astra.validation.schema import validate_analysis_data, validate_universe_data
-from astra.validation.semantic import validate_analysis, validate_universe_file
-```
-
-The dict-based helpers in `astra.helpers` are the recommended SDK surface — they operate on the raw YAML data and avoid coupling caller code to the generated Pydantic models. For typed access, the Pydantic models live in `astra.datamodel` (provided by [`astra-spec`](https://github.com/LightconeResearch/astra-spec)).
-
-```python
-from astra.datamodel import Analysis, Universe
-from linkml_runtime.loaders import yaml_loader
-
-analysis = yaml_loader.load("astra.yaml", target_class=Analysis)
-```
-
-For paper and verification utilities:
-
-```python
-from astra.papers.cache import PaperCache
-from astra.verification.core import verify_all_insights, verify_quote_in_pdf
-from astra.verification.pdf import extract_text_from_pdf
-```
-
-See the [astra-tools README](https://github.com/LightconeResearch/ASTRA) for further details.
