@@ -740,17 +740,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#python-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Python API
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1237,17 +1226,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#python-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Python API
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1275,13 +1253,12 @@
 <h1 id="cli-reference">CLI Reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
 <p>The <code>astra</code> command-line tool authors, validates, and inspects ASTRA analyses. It is shipped as the <code>astra-tools</code> package and is independent of any execution engine — it only reads, writes, and validates ASTRA YAML.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>astra-tools
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>astra-tools
 </span></code></pre></div>
-<p>This installs the <code>astra</code> executable. To verify:</p>
+<p>This installs the <code>astra</code> executable on your <code>PATH</code>, isolated from your project environments. See <a href="../getting-started/#install">Getting started</a> for <code>pip</code> and from-source alternatives. To verify:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>astra<span class="w"> </span>--version
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>astra<span class="w"> </span>--help
 </span></code></pre></div>
-<p>The CLI is implemented with <a href="https://click.palletsprojects.com/">Click</a> and rendered with <a href="https://rich.readthedocs.io/">Rich</a>. Source: <a href="https://github.com/LightconeResearch/ASTRA"><code>LightconeResearch/ASTRA</code></a>.</p>
 <h2 id="commands-at-a-glance">Commands at a glance<a class="headerlink" href="#commands-at-a-glance" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1474,7 +1451,7 @@
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.1038/s41586-023-06221-2
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.1234/example<span class="w"> </span>--pdf<span class="w"> </span>./local_paper.pdf
 </span></code></pre></div>
-<p><code>--pdf</code> registers a local file in the cache without downloading. Without it, the CLI downloads the paper using the DOI (arXiv DOIs follow the special arXiv code path; other DOIs use content-negotiation against <code>doi.org</code>).</p>
+<p><code>--pdf</code> registers a local file in the cache without downloading. Without it, the CLI downloads the paper from the DOI: arXiv DOIs (prefix <code>10.48550/arXiv.</code>) are fetched directly from <code>arxiv.org</code>, with <code>--version</code> selecting a specific revision; other DOIs are resolved through <a href="https://unpaywall.org/">Unpaywall</a> for an open-access PDF and will fail if no open copy is available. Title and authors are fetched separately via DOI content-negotiation against <code>doi.org</code>.</p>
 <h3 id="astra-paper-list"><code>astra paper list</code><a class="headerlink" href="#astra-paper-list" title="Permanent link">&para;</a></h3>
 <p>List all cached papers.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>list
@@ -1511,29 +1488,6 @@
 </span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>astra<span class="w"> </span>paper<span class="w"> </span>verify-quotes<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762
 </span></code></pre></div>
 <p>Designed to be driven by agents and CI scripts.</p>
-<hr />
-<h2 id="python-api">Python API<a class="headerlink" href="#python-api" title="Permanent link">&para;</a></h2>
-<p><code>astra-tools</code> doubles as a small SDK. The most useful entry points:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">astra.helpers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>    <span class="n">load_yaml</span><span class="p">,</span> <span class="n">save_yaml</span><span class="p">,</span>
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>    <span class="n">get_inputs</span><span class="p">,</span> <span class="n">get_outputs</span><span class="p">,</span> <span class="n">get_decisions</span><span class="p">,</span>
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>    <span class="n">create_universe_from_defaults</span><span class="p">,</span>
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="p">)</span>
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">astra.validation.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_analysis_data</span><span class="p">,</span> <span class="n">validate_universe_data</span>
-</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">astra.validation.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_analysis</span><span class="p">,</span> <span class="n">validate_universe_file</span>
-</span></code></pre></div>
-<p>The dict-based helpers in <code>astra.helpers</code> are the recommended SDK surface — they operate on the raw YAML data and avoid coupling caller code to the generated Pydantic models. For typed access, the Pydantic models live in <code>astra.datamodel</code> (provided by <a href="https://github.com/LightconeResearch/astra-spec"><code>astra-spec</code></a>).</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">astra.datamodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Analysis</span><span class="p">,</span> <span class="n">Universe</span>
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">linkml_runtime.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">yaml_loader</span>
-</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
-</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="n">analysis</span> <span class="o">=</span> <span class="n">yaml_loader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;astra.yaml&quot;</span><span class="p">,</span> <span class="n">target_class</span><span class="o">=</span><span class="n">Analysis</span><span class="p">)</span>
-</span></code></pre></div>
-<p>For paper and verification utilities:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">astra.papers.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">PaperCache</span>
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">astra.verification.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">verify_all_insights</span><span class="p">,</span> <span class="n">verify_quote_in_pdf</span>
-</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">astra.verification.pdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_text_from_pdf</span>
-</span></code></pre></div>
-<p>See the <a href="https://github.com/LightconeResearch/ASTRA">astra-tools README</a> for further details.</p>
 
 
 

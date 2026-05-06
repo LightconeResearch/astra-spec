@@ -502,10 +502,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-two-repositories" class="md-nav__link">
+  <a href="#who-builds-it" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        The two repositories
+        Who builds it
       </span>
     </span>
   </a>
@@ -513,21 +513,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#out-of-scope" class="md-nav__link">
+  <a href="#open-source-by-design" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Out of scope
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#schema-artefacts" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Schema artefacts
+        Open source by design
       </span>
     </span>
   </a>
@@ -761,10 +750,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-two-repositories" class="md-nav__link">
+  <a href="#who-builds-it" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        The two repositories
+        Who builds it
       </span>
     </span>
   </a>
@@ -772,21 +761,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#out-of-scope" class="md-nav__link">
+  <a href="#open-source-by-design" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Out of scope
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#schema-artefacts" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Schema artefacts
+        Open source by design
       </span>
     </span>
   </a>
@@ -852,64 +830,16 @@
 
 <h1 id="about-astra">About ASTRA<a class="headerlink" href="#about-astra" title="Permanent link">&para;</a></h1>
 <p><strong>ASTRA</strong> stands for <em>Agentic Schema for Transparent Research Analysis</em>. It is a declarative format for describing scientific analyses in a way that is precise enough to drive automated execution and transparent enough to be audited, reproduced, and revisited.</p>
-<h2 id="the-two-repositories">The two repositories<a class="headerlink" href="#the-two-repositories" title="Permanent link">&para;</a></h2>
-<p>ASTRA is split across two packages with a clean boundary at the agentic layer.</p>
-<table>
-<thead>
-<tr>
-<th>Package</th>
-<th>Repository</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="https://pypi.org/project/astra-spec/"><code>astra-spec</code></a></td>
-<td><a href="https://github.com/LightconeResearch/astra-spec"><code>LightconeResearch/astra-spec</code></a></td>
-<td>LinkML schema, generated bindings, and this documentation site.</td>
-</tr>
-<tr>
-<td><a href="https://pypi.org/project/astra-tools/"><code>astra-tools</code></a></td>
-<td><a href="https://github.com/LightconeResearch/ASTRA"><code>LightconeResearch/ASTRA</code></a></td>
-<td>Python CLI and SDK: validation, paper cache, evidence verification, helpers.</td>
-</tr>
-</tbody>
-</table>
-<p>Both packages share the <code>astra.*</code> Python namespace via <a href="https://peps.python.org/pep-0420/">PEP 420</a> implicit namespace packages — there is intentionally no <code>src/astra/__init__.py</code> in either repo.</p>
-<p><code>astra-spec</code> is the authoritative source for the specification. Schema definitions, valid field names, and semantic rules originate there. <code>astra-tools</code> consumes the schema and provides the human and machine surface for working with it.</p>
-<h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
-<p>ASTRA is intentionally agnostic to the agentic and execution layers. The specification and tooling do not:</p>
+<h2 id="who-builds-it">Who builds it<a class="headerlink" href="#who-builds-it" title="Permanent link">&para;</a></h2>
+<p>ASTRA is developed by <a href="https://github.com/LightconeResearch"><strong>Lightcone Research</strong></a>. We write most of the code today, but ASTRA is intended to grow into a community-owned standard — we are looking for collaborators across disciplines and tooling stacks to help shape it.</p>
+<h2 id="open-source-by-design">Open source by design<a class="headerlink" href="#open-source-by-design" title="Permanent link">&para;</a></h2>
+<p>The position paper that motivated ASTRA argues that the substrate for agentic-era scientific records cannot live behind a vendor wall. We agree, and we are committed to keeping ASTRA open in three concrete ways:</p>
 <ul>
-<li>prescribe how to run an analysis — any agent, workflow engine, notebook, or human can consume an ASTRA spec;</li>
-<li>store data — ASTRA references data sources but does not persist them;</li>
-<li>generate code — the spec is not a template, and the tooling does not emit implementations;</li>
-<li>render results — visualisation and reporting are handled by downstream tools.</li>
+<li><strong>Open licenses.</strong> The schema is released under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> and the code under <a href="https://github.com/LightconeResearch/astra-spec/blob/main/LICENSE">BSD 3-Clause</a>. Both permit unrestricted commercial and academic use.</li>
+<li><strong>Open development.</strong> All work happens on public GitHub repositories — issues, discussions, and pull requests are visible from the first commit onward. There is no parallel private fork.</li>
+<li><strong>Open governance, eventually.</strong> As ASTRA stabilises beyond alpha, we will move it into a community-governed structure (steering group, public RFC process, version-decision protocol). The current Lightcone Research stewardship is a starting point, not the long-term home.</li>
 </ul>
-<h2 id="schema-artefacts">Schema artefacts<a class="headerlink" href="#schema-artefacts" title="Permanent link">&para;</a></h2>
-<p>The LinkML schema is published in several formats, all derived from the source files under <a href="https://github.com/LightconeResearch/astra-spec/tree/main/src/astra/schema"><code>src/astra/schema/</code></a>:</p>
-<table>
-<thead>
-<tr>
-<th>Format</th>
-<th>Path</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>LinkML YAML (source)</td>
-<td><a href="../schema/astra.yaml"><code>schema/astra.yaml</code></a></td>
-</tr>
-<tr>
-<td>JSON Schema</td>
-<td><a href="../schema/astra.schema.json"><code>schema/astra.schema.json</code></a></td>
-</tr>
-<tr>
-<td>JSON-LD context</td>
-<td><a href="../schema/astra.context.jsonld"><code>schema/astra.context.jsonld</code></a></td>
-</tr>
-</tbody>
-</table>
-<p>Additional language bindings (Python dataclasses, Pydantic, TypeScript, Java, OWL) are generated by <code>just gen-project</code>; see the <a href="https://github.com/LightconeResearch/astra-spec/tree/main/project">project layout on GitHub</a>.</p>
+<p>If you would like to help shape that trajectory — through code, schema review, downstream tooling, or simply by trying ASTRA on a real analysis — see the <a href="../community/">Community</a> page.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Schema</strong> — <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></li>
@@ -918,7 +848,7 @@
 <h2 id="citing">Citing<a class="headerlink" href="#citing" title="Permanent link">&para;</a></h2>
 <p>The canonical namespace for ASTRA is <code>https://w3id.org/ASTRA/</code>. The current schema version is recorded at the top of each LinkML source file and surfaces in the generated artefacts.</p>
 <h2 id="credits">Credits<a class="headerlink" href="#credits" title="Permanent link">&para;</a></h2>
-<p>ASTRA is developed by <a href="https://github.com/LightconeResearch">Lightcone Research</a>. The repository scaffolding is based on <a href="https://github.com/dalito/linkml-project-copier"><code>linkml-project-copier</code></a>.</p>
+<p>The repository scaffolding is based on <a href="https://github.com/dalito/linkml-project-copier"><code>linkml-project-copier</code></a>.</p>
 
 
 
