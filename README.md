@@ -1,4 +1,4 @@
-# ASTRA
+# ASTRA Specification
 
 **Agentic Schema for Transparent Research Analysis** — a declarative YAML format for scientific analyses that separates *what* you want to learn from *how* to compute it.
 
