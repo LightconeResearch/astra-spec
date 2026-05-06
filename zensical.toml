@@ -4,20 +4,29 @@ site_name = "ASTRA"
 site_description = "ASTRA — Agentic Schema for Transparent Research Analysis."
 site_author = "Lightcone Research"
 site_url = "https://astra-spec.org"
-copyright = "&copy; 2026 Lightcone Research"
+copyright = "&copy; 2026 ASTRA Contributors"
 
 repo_url = "https://github.com/LightconeResearch/astra-spec"
 repo_name = "LightconeResearch/astra-spec"
 
 nav = [
-  { "Specification" = "index.md" },
-  { "Schema Reference" = "elements/index.md" },
-  { "About" = "about.md" },
+  { "Documentation" = [
+      { "Home" = "index.md" },
+      { "Getting started" = "getting-started.md" },
+      { "CLI reference" = "cli.md" },
+      { "About" = "about.md" },
+  ] },
+  { "Specification" = [
+      { "Format reference" = "specification.md" },
+      { "Schema reference" = "elements/index.md" },
+  ] },
+  { "Community" = "community.md" },
 ]
 
 [project.theme]
 
 variant = "modern"
+favicon = "assets/favicon.svg"
 
 features = [
   "announce.dismiss",
@@ -27,12 +36,13 @@ features = [
   "content.tabs.link",
   "content.tooltips",
   "navigation.footer",
-  "navigation.indexes",
   "navigation.instant",
   "navigation.instant.prefetch",
   "navigation.instant.progress",
   "navigation.path",
   "navigation.sections",
+  "navigation.tabs",
+  "navigation.tabs.sticky",
   "navigation.top",
   "navigation.tracking",
   "search.highlight",
