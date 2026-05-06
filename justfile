@@ -65,6 +65,11 @@ _setup_part2: gen-project gen-doc
 install:
   uv sync --group dev
 
+# Sync the docs dependency group (zensical)
+[group('documentation')]
+docs-install:
+  uv sync --group docs
+
 # Updates project template and LinkML package
 [group('project management')]
 update: _update-template _update-linkml
@@ -79,10 +84,26 @@ clean: _clean_project
 [group('model development')]
 site: gen-project gen-doc
 
-# Deploy documentation site to Github Pages
-[group('deployment')]
-deploy: site
-  mkd-gh-deploy
+# Build docs site (output: site/)
+[group('documentation')]
+docs: _docs-prep
+  uv run zensical build
+
+# Build docs in strict mode
+[group('documentation')]
+docs-strict: _docs-prep
+  uv run zensical build --strict
+
+# Serve docs with live reload at http://127.0.0.1:8000
+[group('documentation')]
+docs-serve: _docs-prep
+  uv run zensical serve
+
+[group('documentation')]
+docs-clean:
+  rm -rf site
+
+_docs-prep: gen-doc docs-install
 
 # Run all tests
 [group('model development')]
@@ -124,10 +145,6 @@ release version:
 [group('model development')]
 gen-doc: _set-version _gen-yaml && _add-artifacts
   uv run gen-doc {{gen_doc_args}} -d {{docdir}} {{source_schema_path}}
-
-# Build docs and run test server
-[group('model development')]
-testdoc: gen-doc _serve
 
 # Generate the Python data models (dataclasses & pydantic)
 gen-python: _set-version
@@ -269,10 +286,6 @@ _gen-yaml:
 _add-artifacts:
   uv run gen-json-schema {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.schema.json
   uv run gen-jsonld-context {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.context.jsonld
-
-# Run documentation server
-_serve:
-  uv run mkdocs serve
 
 # Initialize git repository
 _git-init:

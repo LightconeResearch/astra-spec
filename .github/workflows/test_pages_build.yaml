@@ -20,7 +20,7 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     # Grant GITHUB_TOKEN the permissions required to make a gh-pages deployment
     permissions:
-      contents: write  # to let mkdocs write the new docs
+      contents: write  # to let pr-preview-action push to gh-pages
       pages: write     # to deploy to Pages
       id-token: write  # allow to generate an OpenID Connect (OIDC) token
       pull-requests: write  # add comment on the PR with the preview URL
@@ -59,13 +59,12 @@ jobs:
           uv tool install rust-just
 
       - name: Install dependencies
-        run: uv sync --dev --no-progress
+        run: uv sync --group dev --group docs --no-progress
 
       - name: Build documentation
         run: |
           just gen-doc
-          uv run mkdocs build -d site
-          touch site/.nojekyll
+          uv run zensical build
 
       # https://github.com/rossjrw/pr-preview-action
       - name: Deploy preview
