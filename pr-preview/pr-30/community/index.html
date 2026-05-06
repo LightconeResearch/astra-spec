@@ -651,6 +651,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#whats-most-useful-right-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What's most useful right now
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#contributing" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -690,17 +701,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#citing-astra" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Citing ASTRA
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#code-of-conduct" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -712,10 +712,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
+  <a href="#citing-and-license" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        License
+        Citing and license
       </span>
     </span>
   </a>
@@ -782,6 +782,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#whats-most-useful-right-now" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What's most useful right now
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#contributing" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -821,17 +832,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#citing-astra" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Citing ASTRA
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#code-of-conduct" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -843,10 +843,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
+  <a href="#citing-and-license" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        License
+        Citing and license
       </span>
     </span>
   </a>
@@ -878,7 +878,8 @@
 
 
 <h1 id="community">Community<a class="headerlink" href="#community" title="Permanent link">&para;</a></h1>
-<p>ASTRA is an open project. The schema, tooling, and documentation are all developed in the open, and contributions of every kind are welcome — from typo fixes and validation bug reports to new schema elements and downstream consumer libraries.</p>
+<p>ASTRA is an open project, intentionally early. The schema, tooling, and documentation are all developed in the open on GitHub, and the most valuable thing the project can have right now — while it is still in alpha — is contact with people who are actually trying to use it.</p>
+<p>If you find ASTRA useful, awkward, surprising, missing something, or just adjacent to a problem you care about, the project wants to hear from you.</p>
 <h2 id="where-to-find-us">Where to find us<a class="headerlink" href="#where-to-find-us" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -890,15 +891,15 @@
 <tbody>
 <tr>
 <td><a href="https://github.com/LightconeResearch/astra-spec/issues"><code>astra-spec</code> issues</a></td>
-<td>Schema bugs, proposed schema changes, documentation issues.</td>
+<td>Schema bugs, proposed schema changes, doc issues.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/LightconeResearch/ASTRA/issues"><code>ASTRA</code> (tools) issues</a></td>
-<td>CLI bugs, validation issues, paper-cache problems.</td>
+<td>CLI bugs, validator issues, paper-cache problems.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/LightconeResearch/astra-spec/discussions">GitHub Discussions</a></td>
-<td>Questions, design discussion, "is this the right approach?" threads.</td>
+<td>Open-ended questions, design conversations, "is this the right approach?" threads.</td>
 </tr>
 <tr>
 <td>Pull requests</td>
@@ -906,44 +907,54 @@
 </tr>
 </tbody>
 </table>
-<p>When in doubt about which repo to file an issue in: schema or specification questions go to <code>astra-spec</code>; CLI / validator / paper-tool questions go to <code>ASTRA</code>.</p>
+<p>When in doubt about which repo to file an issue in: schema or specification questions go to <code>astra-spec</code>; CLI / validator / paper-tool questions go to <a href="https://github.com/LightconeResearch/ASTRA"><code>ASTRA</code></a>.</p>
+<h2 id="whats-most-useful-right-now">What's most useful right now<a class="headerlink" href="#whats-most-useful-right-now" title="Permanent link">&para;</a></h2>
+<p>In alpha, three kinds of contribution are worth more than they will be later:</p>
+<ul>
+<li><strong>Real-analysis attempts.</strong> Take an analysis you actually ran and try to express it in ASTRA. Report what fits, what doesn't, and where the spec forced you to invent a workaround. These reports are the single best signal for what to fix at the schema level.</li>
+<li><strong>Schema review.</strong> Read the <a href="../specification/">specification</a> and the <a href="../elements/">schema reference</a> with an adversarial eye. Ambiguity, missing constraints, and reserved-name collisions are easier to fix now than after the format has consumers.</li>
+<li><strong>Downstream tooling experiments.</strong> Build something that consumes an ASTRA spec — a runner, a renderer, a retrieval index, a JSON-Schema-driven editor. Even a prototype tells the project what is awkward to consume, which is information the spec authors otherwise don't have.</li>
+</ul>
+<p>Documentation fixes, typo PRs, and tightening of error messages are also welcome and small enough to ship the same day.</p>
 <h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
-<p>The full guide lives in <a href="https://github.com/LightconeResearch/astra-spec/blob/main/CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a>. The short version:</p>
+<p>The full guide is in <a href="https://github.com/LightconeResearch/astra-spec/blob/main/CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a>. The short version:</p>
 <ol>
-<li><strong>Open an issue first</strong> for non-trivial changes — it gives reviewers context and avoids parallel work.</li>
-<li><strong>Keep changes focused.</strong> A schema change, a doc change, and a tooling change are three separate PRs.</li>
-<li><strong>Run the project checks</strong> locally before pushing. <code>just test</code> exercises schema validation, the Python data model, and the example fixtures. <code>just lint</code> lints the LinkML schema. <code>just docs-strict</code> builds the docs in strict mode.</li>
-<li><strong>Update the docs alongside the schema.</strong> Changes to <code>src/astra/schema/*.yaml</code> should also touch <a href="../specification/"><code>docs/specification.md</code></a> and the relevant tables.</li>
+<li><strong>Open an issue first</strong> for anything non-trivial. It gives reviewers context and avoids parallel work.</li>
+<li><strong>Keep changes focused.</strong> A schema change, a doc change, and a tooling change are three separate pull requests.</li>
+<li>
+<p><strong>Run the project checks</strong> locally before pushing:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">          </span><span class="c1"># schema generation, Python data model, examples</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>just<span class="w"> </span>lint<span class="w">          </span><span class="c1"># LinkML schema lint</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>just<span class="w"> </span>docs-strict<span class="w">   </span><span class="c1"># build docs in strict mode</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><strong>Update the docs alongside the schema.</strong> Changes to <code>src/astra/schema/*.yaml</code> should also touch <a href="../specification/"><code>docs/specification.md</code></a> and the relevant tables. The auto-generated <a href="../elements/">schema reference</a> is regenerated by <code>just gen-doc</code>.</p>
+</li>
 </ol>
 <h3 id="adding-schema-elements">Adding schema elements<a class="headerlink" href="#adding-schema-elements" title="Permanent link">&para;</a></h3>
 <p>Schema changes follow a small ritual:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Edit src/astra/schema/{analysis,universe,insight}.yaml</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>just<span class="w"> </span>gen-python<span class="w">    </span><span class="c1"># Regenerate Python datamodels</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>just<span class="w"> </span>gen-doc<span class="w">       </span><span class="c1"># Regenerate the schema reference docs (docs/elements/)</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>just<span class="w"> </span>lint<span class="w">          </span><span class="c1"># Lint the LinkML schema</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">          </span><span class="c1"># Run all tests</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Edit src/astra/schema/{analysis,universe,insight}.yaml</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>just<span class="w"> </span>gen-python<span class="w">    </span><span class="c1"># Regenerate Python datamodels</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>just<span class="w"> </span>gen-doc<span class="w">       </span><span class="c1"># Regenerate the schema reference docs (docs/elements/)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>just<span class="w"> </span>lint<span class="w">          </span><span class="c1"># Lint the LinkML schema</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">          </span><span class="c1"># Run all tests</span>
 </span></code></pre></div>
 <p>Open a PR with the schema, generated artefacts, and any doc updates in a single commit so reviewers see the full picture.</p>
 <h3 id="reporting-problems">Reporting problems<a class="headerlink" href="#reporting-problems" title="Permanent link">&para;</a></h3>
 <p>A useful issue includes:</p>
 <ul>
-<li>The version of <code>astra-spec</code> and <code>astra-tools</code> (e.g. <code>astra --version</code>).</li>
+<li>The version of <code>astra-spec</code> and <code>astra-tools</code> (run <code>astra --version</code>).</li>
 <li>A minimal <code>astra.yaml</code> (or universe file) that reproduces the problem.</li>
-<li>The full error output, with copy-paste from the terminal.</li>
+<li>The full error output, copy-pasted from the terminal.</li>
 <li>What you expected to happen instead.</li>
 </ul>
-<p>Validation issues are easier to triage when accompanied by a fixture small enough to drop into <code>tests/data/</code> — a single decision and a single output is usually plenty.</p>
-<h2 id="citing-astra">Citing ASTRA<a class="headerlink" href="#citing-astra" title="Permanent link">&para;</a></h2>
-<p>The canonical namespace for ASTRA is <code>https://w3id.org/ASTRA/</code>. The schema version is recorded at the top of each LinkML source file (and in the generated artefacts). When citing the format in a paper or technical report, please reference both the version and the schema URL.</p>
+<p>Validation issues are easier to triage when accompanied by a fixture small enough to drop into <a href="https://github.com/LightconeResearch/astra-spec/tree/main/tests/data"><code>tests/data/</code></a> — usually a single decision and a single output is plenty.</p>
 <h2 id="code-of-conduct">Code of Conduct<a class="headerlink" href="#code-of-conduct" title="Permanent link">&para;</a></h2>
 <p>We expect respectful, thoughtful collaboration in all project spaces — issues, pull requests, and discussions. Treat other contributors the way you would want to be treated; assume good faith; disagree with the idea, not the person. Conduct issues can be raised privately with the maintainers via GitHub.</p>
-<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Schema</strong> — <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></li>
-<li><strong>Code</strong> — <a href="https://github.com/LightconeResearch/astra-spec/blob/main/LICENSE">BSD 3-Clause</a></li>
-</ul>
-<p>Both licenses are permissive: you can adopt ASTRA in commercial and academic work alike. Schema reuse requires attribution; code reuse requires the standard BSD-3 notice.</p>
+<h2 id="citing-and-license">Citing and license<a class="headerlink" href="#citing-and-license" title="Permanent link">&para;</a></h2>
+<p>For citation guidance and license details, see the <a href="../about/#citing">About</a> page.</p>
 
 
 
