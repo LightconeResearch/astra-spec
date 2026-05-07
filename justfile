@@ -38,8 +38,8 @@ dest := "project"
 pymodel := src / schema_name / "datamodel"
 schema_source_file := env_var_or_default("LINKML_SCHEMA_SOURCE_FILE", schema_name)
 source_schema_path := source_schema_dir / schema_source_file + ".yaml"
-docdir := "docs/elements"  # Directory for generated documentation
-distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
+docdir := "docs/specification/draft/elements"  # Directory for generated documentation (draft)
+distrib_schema_path := "docs/specification/draft/schema"  # Directory for publishing schema artifacts (draft)
 
 # ============== Project recipes ==============
 
@@ -114,8 +114,9 @@ test: _test-schema _test-python _test-examples
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
-# Tag a new release: bumps schema YAML versions and CITATION.cff, commits,
-# and creates an annotated git tag.
+# Tag a new release: bumps schema YAML versions and CITATION.cff, regenerates
+# the draft spec, snapshots it as docs/specification/{{version}}/, updates
+# versions.json and the docs nav, commits, and creates an annotated git tag.
 [group('model development')]
 release version:
   #!/usr/bin/env bash
@@ -132,6 +133,13 @@ release version:
     echo "Error: tag v{{version}} already exists." >&2
     exit 1
   fi
+  SNAPSHOT_DIR="docs/specification/{{version}}"
+  if [[ -e "${SNAPSHOT_DIR}" ]]; then
+    echo "Error: ${SNAPSHOT_DIR} already exists." >&2
+    exit 1
+  fi
+
+  # 1. Bump schema YAML versions and CITATION.cff
   for f in {{source_schema_dir}}/*.yaml; do
     grep -q '^version:' "$f" && sed -i "s/^version: .*/version: {{version}}/" "$f"
   done
@@ -140,11 +148,55 @@ release version:
     sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
     sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff
   fi
-  git add {{source_schema_dir}}/*.yaml CITATION.cff
+
+  # 2. Regenerate the draft spec at the bumped version. Forwarding
+  #    RELEASE_VERSION keeps _set-version from reverting the YAML bump
+  #    (no v{{version}} tag exists yet).
+  RELEASE_VERSION="{{version}}" just gen-doc
+
+  # 3. Snapshot draft -> {{version}}
+  cp -r docs/specification/draft "${SNAPSHOT_DIR}"
+
+  # 4. Update versions.json: prepend the new entry, mark as latest. Read the
+  #    previous latest (or "draft") so we know what to rewrite in the nav.
+  PREV_LATEST=$(uv run python -c "import json; d=json.load(open('docs/specification/versions.json')); print(d.get('latest') or 'draft')")
+  RELEASE_VERSION="{{version}}" uv run python <<'PYEOF'
+  import json, datetime, os
+  version = os.environ["RELEASE_VERSION"]
+  p = "docs/specification/versions.json"
+  with open(p) as f:
+      d = json.load(f)
+  d["latest"] = version
+  entry = {
+      "id": version,
+      "label": version,
+      "status": "stable",
+      "released": datetime.date.today().isoformat(),
+  }
+  if version not in [v["id"] for v in d["versions"]]:
+      insert_at = 1 if d["versions"] and d["versions"][0]["id"] == "draft" else 0
+      d["versions"].insert(insert_at, entry)
+  with open(p, "w") as f:
+      json.dump(d, f, indent=2)
+      f.write("\n")
+  PYEOF
+
+  # 5. Repoint nav and unversioned docs from the previous latest (or draft)
+  #    to the new version. Frozen versions under docs/specification/<v>/ are
+  #    never rewritten — those links are intentionally pinned.
+  for f in zensical.toml docs/*.md; do
+    [[ -f "$f" ]] || continue
+    sed -i "s|specification/${PREV_LATEST}/|specification/{{version}}/|g" "$f"
+  done
+
+  # 6. Commit and tag
+  git add -A
   git commit -m "Release v{{version}}"
   git tag -a "v{{version}}" -m "Release v{{version}}"
   echo
   echo "Created commit and tag v{{version}}."
+  echo "  - Snapshot: ${SNAPSHOT_DIR}/"
+  echo "  - Updated:  docs/specification/versions.json, zensical.toml, docs/*.md"
   echo "Push with: git push && git push origin v{{version}}"
 
 # Generate md documentation for the schema and add artifacts
@@ -274,11 +326,17 @@ _test-examples: _ensure_examples_output
     --output-directory examples/output \
     --schema {{source_schema_path}} > examples/output/README.md
 
-# Inject version from latest git tag into all schema YAML files
+# Inject version into all schema YAML files. Uses $RELEASE_VERSION when set
+# (so the `release` recipe can pre-stage the new version before gen-doc runs);
+# otherwise falls back to the latest git tag.
 _set-version:
   #!/usr/bin/env bash
-  TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-  VERSION=${TAG#v}
+  if [[ -n "${RELEASE_VERSION:-}" ]]; then
+    VERSION="${RELEASE_VERSION}"
+  else
+    TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+    VERSION=${TAG#v}
+  fi
   for f in {{source_schema_dir}}/*.yaml; do
     grep -q '^version:' "$f" && sed -i "s/^version: .*/version: ${VERSION}/" "$f"
   done

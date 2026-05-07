@@ -2,7 +2,7 @@
 
 This walk-through gets you from zero to a validated ASTRA analysis in about ten minutes. You will install the CLI, scaffold a project, edit the analysis, and validate it.
 
-If you'd rather see the schema first, jump to the [specification](specification.md).
+If you'd rather see the schema first, jump to the [specification](specification/draft/format.md).
 
 ## Install
 
@@ -101,7 +101,7 @@ A few things worth noting:
 
 - **Decisions parameterize outputs.** `Output.decisions` declares the contract — only the listed decisions resolve inside `recipe.command`. The validator rejects `{decisions.foo}` if `foo` isn't in the list.
 - **Recipe placeholders.** Four forms are legal: `{inputs}` (all declared inputs, space-separated), `{inputs.<id>}` (one declared input), `{decisions.<id>}` (one declared decision), and `{output}` (where to write). `{{` and `}}` are literal braces.
-- **The narrative is structured.** Five sections — `summary`, `findings`, `methods`, `inputs`, `outputs` — exist so renderers can navigate them reliably. The validator makes a section *required* when its structured counterpart exists: declare `decisions:` and you owe `methods:` prose; declare `outputs:` and you owe `outputs:` prose. See [Narrative](specification.md#narrative).
+- **The narrative is structured.** Five sections — `summary`, `findings`, `methods`, `inputs`, `outputs` — exist so renderers can navigate them reliably. The validator makes a section *required* when its structured counterpart exists: declare `decisions:` and you owe `methods:` prose; declare `outputs:` and you owe `outputs:` prose. See [Narrative](specification/draft/format.md#narrative).
 - **Constraints between options.** `requires:` and `incompatible_with:` (format: `decision.option`) gate which option combinations are valid. They are checked when you validate a universe.
 
 ## Validate

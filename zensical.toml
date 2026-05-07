@@ -17,10 +17,14 @@ nav = [
       { "About" = "about.md" },
   ] },
   { "Specification" = [
-      { "Format reference" = "specification.md" },
-      { "Schema reference" = "elements/index.md" },
+      { "Format reference" = "specification/draft/format.md" },
+      { "Schema reference" = "specification/draft/elements/index.md" },
   ] },
   { "Community" = "community.md" },
+]
+
+extra_javascript = [
+  "assets/js/version-selector.js",
 ]
 
 [project.theme]
