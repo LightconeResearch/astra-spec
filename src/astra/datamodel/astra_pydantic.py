@@ -73,12 +73,12 @@ linkml_meta = LinkMLMeta({'default_prefix': 'astra',
                     'with\n'
                     'decision points, evidence-backed insights, and universe '
                     'specifications.',
-     'id': 'https://w3id.org/ASTRA/analysis',
+     'id': 'https://w3id.org/astra/analysis',
      'imports': ['linkml:types', 'insight', 'universe'],
      'license': 'https://creativecommons.org/licenses/by/4.0/',
      'name': 'analysis',
      'prefixes': {'astra': {'prefix_prefix': 'astra',
-                            'prefix_reference': 'https://w3id.org/ASTRA/'},
+                            'prefix_reference': 'https://w3id.org/astra/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
      'source_file': 'analysis.yaml',
@@ -130,7 +130,7 @@ class TextQuoteSelector(ConfiguredBaseModel):
     W3C TextQuoteSelector for locating text in a document. The authoritative anchor for verification.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'oa:TextQuoteSelector',
-         'from_schema': 'https://w3id.org/ASTRA/insight'})
+         'from_schema': 'https://w3id.org/astra/insight'})
 
     exact: str = Field(default=..., description="""Exact quoted text (1-3 sentences)""", json_schema_extra = { "linkml_meta": {'domain_of': ['TextQuoteSelector']} })
     prefix: Optional[str] = Field(default=None, description="""~20-100 chars before for disambiguation""", json_schema_extra = { "linkml_meta": {'domain_of': ['TextQuoteSelector']} })
@@ -142,7 +142,7 @@ class FragmentSelector(ConfiguredBaseModel):
     W3C FragmentSelector for PDF locations. Conforms to RFC 3778/8118 for PDF fragments.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'oa:FragmentSelector',
-         'from_schema': 'https://w3id.org/ASTRA/insight'})
+         'from_schema': 'https://w3id.org/astra/insight'})
 
     value: Optional[str] = Field(default=None, description="""Fragment value (e.g., 'page=6')""", json_schema_extra = { "linkml_meta": {'domain_of': ['FragmentSelector', 'KeyValuePair']} })
     page: Optional[int] = Field(default=None, description="""1-indexed page number""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['FragmentSelector']} })
@@ -152,7 +152,7 @@ class Evidence(ConfiguredBaseModel):
     """
     Evidence from a source with W3C-compliant selectors. Can reference literature (by DOI) or analysis artifacts (by output ID). Exactly one of doi or artifact must be set.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/insight'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/insight'})
 
     id: str = Field(default=..., description="""Evidence identifier""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
@@ -202,7 +202,7 @@ class Insight(ConfiguredBaseModel):
     """
     A unit of scientific knowledge backed by evidence. Used for both prior_insights (informing decisions) and findings (conclusions from the analysis).
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/insight'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/insight'})
 
     id: str = Field(default=..., description="""Unique identifier""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
@@ -240,7 +240,7 @@ class InsightCollection(ConfiguredBaseModel):
     """
     Collection of insights, usable standalone or embedded in an analysis
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/insight'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/insight'})
 
     insights: Optional[dict[str, Insight]] = Field(default=None, description="""Map of insight IDs to insights""", json_schema_extra = { "linkml_meta": {'domain_of': ['InsightCollection', 'Option']} })
 
@@ -249,7 +249,7 @@ class DecisionSelection(ConfiguredBaseModel):
     """
     A mapping from a decision ID to the selected option ID
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/universe'})
 
     decision_id: str = Field(default=..., description="""ID of the decision""", json_schema_extra = { "linkml_meta": {'domain_of': ['DecisionSelection']} })
     option_id: str = Field(default=..., description="""ID of the selected option""", json_schema_extra = { "linkml_meta": {'domain_of': ['DecisionSelection']} })
@@ -259,7 +259,7 @@ class UniverseNode(ConfiguredBaseModel):
     """
     A universe node mirroring the analysis tree structure. Represents decision selections at a specific sub-analysis node.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/universe'})
 
     id: str = Field(default=..., description="""Node identifier (the sub-analysis key)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
@@ -292,7 +292,7 @@ class Universe(ConfiguredBaseModel):
     """
     A universe specification - a complete set of decisions across the entire analysis tree.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/universe'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/universe'})
 
     id: str = Field(default=..., description="""Unique identifier for the universe""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
@@ -325,7 +325,7 @@ class KeyValuePair(ConfiguredBaseModel):
     """
     A key-value string pair
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis'})
 
     key: str = Field(default=..., description="""The key""", json_schema_extra = { "linkml_meta": {'domain_of': ['KeyValuePair']} })
     value: str = Field(default=..., description="""The value""", json_schema_extra = { "linkml_meta": {'domain_of': ['FragmentSelector', 'KeyValuePair']} })
@@ -352,7 +352,7 @@ class Narrative(ConfiguredBaseModel):
 
     References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision 'from' (e.g. [see parent](#../decisions.method)).
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis'})
 
     summary: Optional[str] = Field(default=None, description="""High-level overview of the analysis — its question, scope, and a brief orientation for readers.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative']} })
     findings: Optional[str] = Field(default=None, description="""Narrative discussion of the analysis's findings. Individual findings live under Analysis.findings as structured Insight objects; this section is the prose that frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
@@ -365,7 +365,7 @@ class Resources(ConfiguredBaseModel):
     """
     Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis'})
 
     cpus: Optional[float] = Field(default=None, description="""CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.""", ge=0, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
     memory: Optional[str] = Field(default=None, description="""Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').""", json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
@@ -379,7 +379,7 @@ class Recipe(ConfiguredBaseModel):
     A build rule that produces an output. A recipe is pure *how*: a `command` to invoke and the execution context (`resources`, `container`).
     Recipes do not declare what the output depends on. Provenance — upstream inputs, decision-driven parameterization, and activation conditions — is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe via `{...}` template substitution (see `command`).
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis'})
 
     command: Optional[str] = Field(default=None, description="""POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.
 The command is a template. Runners substitute these placeholders before invoking it:
@@ -410,7 +410,7 @@ class Input(ConfiguredBaseModel):
 
     An aliased Input is a pure pointer: only `id` and `from` are allowed, with all other fields inherited from the source.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis',
          'rules': [{'postconditions': {'slot_conditions': {'type': {'name': 'type',
                                                                     'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
@@ -517,7 +517,7 @@ class Output(ConfiguredBaseModel):
 
     A re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/recipe are inherited.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis',
          'rules': [{'postconditions': {'slot_conditions': {'type': {'name': 'type',
                                                                     'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
@@ -616,7 +616,7 @@ class Option(ConfiguredBaseModel):
     """
     An option for a decision point
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis'})
 
     id: str = Field(default=..., description="""Option identifier (the key in the options map)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
@@ -659,7 +659,7 @@ class Decision(ConfiguredBaseModel):
 
     Decisions only flow downward through scopes; sibling-sub or child references are not legal. An aliased Decision is a pure pointer: only `id`, `from`, and `when` may be set.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis',
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis',
          'rules': [{'postconditions': {'slot_conditions': {'label': {'name': 'label',
                                                                      'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
@@ -753,7 +753,7 @@ class Analysis(ConfiguredBaseModel):
     """
     A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/ASTRA/analysis', 'tree_root': True})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis', 'tree_root': True})
 
     id: str = Field(default=..., description="""Analysis identifier (used as key when nested as a sub-analysis)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',

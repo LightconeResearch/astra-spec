@@ -26,7 +26,7 @@ First-time setup: after the first deploy, run `just docs-set-default latest` onc
 
 Hosting: mike pushes to `gh-pages`. The hosting platform (Cloudflare Pages, GitHub Pages, etc.) must be configured to serve from `gh-pages`, not `main`. Without this, `mike deploy` runs successfully but the site doesn't pick up versioned URLs in production.
 
-Schema artifacts (`docs/schema/*.{yaml,json,jsonld}`) are versioned along with the rest of the site: machine consumers should resolve them via the canonical `https://w3id.org/ASTRA/...` URI (which redirects to a hosted location), or pin to `astra-spec.org/X.Y.Z/schema/...`.
+Schema artifacts (`docs/schema/*.{yaml,json,jsonld}`) are versioned along with the rest of the site: machine consumers should resolve them via the canonical `https://w3id.org/astra/...` URI (which redirects to a hosted location), or pin to `astra-spec.org/X.Y.Z/schema/...`.
 
 ## Key Commands
 

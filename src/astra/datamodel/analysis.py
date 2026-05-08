@@ -1,8 +1,8 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-05-08T11:15:39
+# Generation date: 2026-05-08T11:35:14
 # Schema: analysis
 #
-# id: https://w3id.org/ASTRA/analysis
+# id: https://w3id.org/astra/analysis
 # description: Agentic Schema for Transparent Research Analysis.
 #   A framework for defining hierarchical scientific analyses with
 #   decision points, evidence-backed insights, and universe specifications.
@@ -65,7 +65,7 @@ metamodel_version = "1.7.0"
 version = "0.0.8"
 
 # Namespaces
-ASTRA = CurieNamespace('astra', 'https://w3id.org/ASTRA/')
+ASTRA = CurieNamespace('astra', 'https://w3id.org/astra/')
 LINKML = CurieNamespace('linkml', 'https://w3id.org/linkml/')
 OA = CurieNamespace('oa', 'http://www.w3.org/ns/oa#')
 DEFAULT_ = ASTRA
