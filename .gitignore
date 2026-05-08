@@ -1,5 +1,9 @@
 # generated part of documentation
 /docs/elements/*.md
+# generated schema artifacts (regenerated on every docs build and served from gh-pages)
+/docs/schema/*.yaml
+/docs/schema/*.json
+/docs/schema/*.jsonld
 # linkml-run-examples output (not useful to have in git in its current form)
 /examples/output/
 

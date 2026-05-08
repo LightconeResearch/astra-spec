@@ -7,7 +7,9 @@ description: |-
   A framework for defining hierarchical scientific analyses with
   decision points, evidence-backed insights, and universe specifications.
 license: https://creativecommons.org/licenses/by/4.0/
-version: 0.0.8
+# Placeholder version. The real version is injected at build time from the
+# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
 
 prefixes:
   astra: https://w3id.org/ASTRA/

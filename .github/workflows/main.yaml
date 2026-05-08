@@ -90,14 +90,9 @@ jobs:
 
       - name: Check for uncommitted changes
         run: |
-          # Ignore lines that change on every regeneration (timestamps, version from git tags)
-          if ! git diff --exit-code \
-            -I 'Generation date:' \
-            -I 'generation_date' \
-            -I 'source_file_date' \
-            -I '^version' \
-            -I '"version"' \
-            -- src/astra/datamodel/ docs/schema/; then
-            echo "::error::Generated files are out of date. Run 'just gen-python' and 'just gen-doc' and commit the results."
+          # docs/schema artifacts are git-ignored and regenerated on every docs build,
+          # so they are intentionally excluded here.
+          if ! git diff --exit-code -- src/astra/datamodel/; then
+            echo "::error::Generated datamodels are out of date. Run 'just gen-python' and commit the results."
             exit 1
           fi

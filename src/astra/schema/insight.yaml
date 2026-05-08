@@ -4,7 +4,9 @@ name: insight
 description: |-
   Insight and evidence models with W3C Web Annotation-compliant selectors
   for referencing content in scientific papers and analysis artifacts.
-version: 0.0.8
+# Placeholder version. The real version is injected at build time from the
+# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
 license: https://creativecommons.org/licenses/by/4.0/
 
 prefixes:

@@ -30,7 +30,7 @@ from pydantic import (
 
 
 metamodel_version = "1.7.0"
-version = "0.0.6"
+version = "0.0.8"
 
 
 class ConfiguredBaseModel(BaseModel):
@@ -81,7 +81,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'astra',
                             'prefix_reference': 'https://w3id.org/ASTRA/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': 'src/astra/schema/analysis.yaml',
+     'source_file': 'analysis.yaml',
      'title': 'ASTRA'} )
 
 class InputType(str, Enum):

@@ -38,6 +38,11 @@ dest := "project"
 pymodel := src / schema_name / "datamodel"
 schema_source_file := env_var_or_default("LINKML_SCHEMA_SOURCE_FILE", schema_name)
 source_schema_path := source_schema_dir / schema_source_file + ".yaml"
+# Generators read from a staged copy under tmp/schema/ where the version is
+# injected at build time. Source YAMLs keep a placeholder version, so running
+# generators never produces a "fix version" diff in the working tree.
+staged_schema_dir := "tmp/schema"
+staged_schema_path := staged_schema_dir / schema_source_file + ".yaml"
 docdir := "docs/elements"  # Directory for generated documentation
 distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
 
@@ -132,9 +137,10 @@ test: _test-schema _test-python _test-examples
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
-# Tag a new release: bumps schema YAML versions and CITATION.cff, commits,
-# and creates an annotated git tag. Run `just docs-deploy {{version}}`
-# afterwards to publish the docs for this version with mike.
+# Tag a new release: updates CITATION.cff, commits, and creates an annotated
+# git tag. Schema YAMLs are no longer mutated — generators inject the version
+# from the tag at build time. After pushing the tag, the
+# `Deploy versioned docs on tag` workflow will publish the docs automatically.
 [group('model development')]
 release version:
   #!/usr/bin/env bash
@@ -151,51 +157,54 @@ release version:
     echo "Error: tag v{{version}} already exists." >&2
     exit 1
   fi
-  RELEASE_VERSION="{{version}}" just _set-version
-  if [[ -f CITATION.cff ]]; then
-    today=$(date -u +%Y-%m-%d)
-    sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
-    sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff
+  if [[ ! -f CITATION.cff ]]; then
+    echo "Error: CITATION.cff is missing." >&2
+    exit 1
   fi
-  git add {{source_schema_dir}}/*.yaml CITATION.cff
+  today=$(date -u +%Y-%m-%d)
+  sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
+  sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff
+  git add CITATION.cff
   git commit -m "Release v{{version}}"
   git tag -a "v{{version}}" -m "Release v{{version}}"
   echo
   echo "Created commit and tag v{{version}}. Next steps:"
   echo "  - git push && git push origin v{{version}}"
-  echo "  - just docs-deploy {{version}}"
+  echo "  - the deploy-docs-on-tag workflow will publish the docs automatically"
 
 # Generate md documentation for the schema and add artifacts
 [group('model development')]
-gen-doc: _set-version _gen-yaml && _add-artifacts
-  uv run gen-doc {{gen_doc_args}} -d {{docdir}} {{source_schema_path}}
+gen-doc: _stage-versioned _gen-yaml && _add-artifacts
+  uv run gen-doc {{gen_doc_args}} -d {{docdir}} {{staged_schema_path}}
 
 # Generate the Python data models (dataclasses & pydantic)
-gen-python: _set-version
-  uv run gen-project -d  {{pymodel}} -I python {{source_schema_path}}
+gen-python: _stage-versioned
+  uv run gen-project -d  {{pymodel}} -I python {{staged_schema_path}}
   just _fix-python-keywords
-  uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
+  @# Run gen-pydantic from the staged dir so the recorded source_file is just
+  @# the bare filename (e.g. "analysis.yaml") rather than the tmp/ build path.
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
 
 # Generate project files including Python data model
 [group('model development')]
-gen-project: _set-version
-  uv run gen-project {{config_yaml}} -d {{dest}} {{source_schema_path}}
+gen-project: _stage-versioned
+  uv run gen-project {{config_yaml}} -d {{dest}} {{staged_schema_path}}
   mv {{dest}}/*.py {{pymodel}}
   just _fix-python-keywords
-  uv run gen-pydantic {{gen_pydantic_args}} {{source_schema_path}} > {{pymodel}}/{{schema_name}}_pydantic.py
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
 
   @# Some generators ignore config_yaml or cannot create directories, so we run them separately.
-  uv run gen-java {{gen_java_args}} --output-directory {{dest}}/java/ {{source_schema_path}}
+  uv run gen-java {{gen_java_args}} --output-directory {{dest}}/java/ {{staged_schema_path}}
 
   @if [ ! -d "{{dest}}/typescript" ]; then \
     mkdir -p {{dest}}/typescript ; \
   fi
-  uv run gen-typescript {{gen_ts_args}} {{source_schema_path}} > {{dest}}/typescript/{{schema_name}}.ts
+  uv run gen-typescript {{gen_ts_args}} {{staged_schema_path}} > {{dest}}/typescript/{{schema_name}}.ts
 
   @if [ ! -d "{{dest}}/owl" ]; then \
     mkdir -p {{dest}}/owl ; \
   fi
-  uv run gen-owl {{gen_owl_args}} {{source_schema_path}} > "{{dest}}/owl/{{schema_name}}.owl.ttl"
+  uv run gen-owl {{gen_owl_args}} {{staged_schema_path}} > "{{dest}}/owl/{{schema_name}}.owl.ttl"
 
 # ============== Migrations recipes for Copier ==============
 
@@ -267,8 +276,8 @@ _fix-python-keywords:
   p.write_text(s)"
 
 # Test schema generation
-_test-schema:
-  uv run gen-project {{config_yaml}} -d tmp {{source_schema_path}} 2>/dev/null
+_test-schema: _stage-versioned
+  uv run gen-project {{config_yaml}} -d tmp {{staged_schema_path}} 2>/dev/null
 
 # Run Python unit tests with pytest
 _test-python: gen-python
@@ -281,7 +290,7 @@ _test-python: gen-python
 # 2. The 'from' slot generates invalid Python (keyword conflict) when
 #    pythongen compiles the module on the fly.
 # Allow this step to fail until the upstream issues are resolved.
-_test-examples: _ensure_examples_output
+_test-examples: _stage-versioned _ensure_examples_output
   -uv run linkml-run-examples \
     --input-formats json \
     --input-formats yaml \
@@ -290,32 +299,40 @@ _test-examples: _ensure_examples_output
     --counter-example-input-directory tests/data/invalid \
     --input-directory tests/data/valid \
     --output-directory examples/output \
-    --schema {{source_schema_path}} > examples/output/README.md
+    --schema {{staged_schema_path}} > examples/output/README.md
 
-# Inject version into all schema YAML files. Uses $RELEASE_VERSION when set
-# (so the `release` recipe can pre-stage the new version before gen-doc runs);
+# Stage a versioned copy of every schema YAML under tmp/schema/. The version
+# is injected at build time so source files keep a stable placeholder and are
+# never mutated by `gen-doc`/`gen-python`. Uses $RELEASE_VERSION when set,
 # otherwise falls back to the latest git tag.
-_set-version:
+_stage-versioned:
   #!/usr/bin/env bash
+  set -euo pipefail
   if [[ -n "${RELEASE_VERSION:-}" ]]; then
     VERSION="${RELEASE_VERSION}"
   else
     TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
     VERSION=${TAG#v}
   fi
+  mkdir -p {{staged_schema_dir}}
   for f in {{source_schema_dir}}/*.yaml; do
-    grep -q '^version:' "$f" && sed -i "s/^version: .*/version: ${VERSION}/" "$f"
+    base=$(basename "$f")
+    if grep -q '^version:' "$f"; then
+      sed "s/^version: .*/version: ${VERSION}/" "$f" > "{{staged_schema_dir}}/${base}"
+    else
+      cp "$f" "{{staged_schema_dir}}/${base}"
+    fi
   done
 
 # Add the merged model to docs/schema.
 _gen-yaml:
   -mkdir -p {{distrib_schema_path}}
-  uv run gen-yaml {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
+  uv run gen-yaml {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
 
 # Generate JSON Schema and JSON-LD context into the distribution schema path
 _add-artifacts:
-  uv run gen-json-schema {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.schema.json
-  uv run gen-jsonld-context {{source_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.context.jsonld
+  uv run gen-json-schema {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.schema.json
+  uv run gen-jsonld-context {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.context.jsonld
 
 # Initialize git repository
 _git-init:
