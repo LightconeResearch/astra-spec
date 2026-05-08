@@ -1,5 +1,5 @@
 ---
-id: https://w3id.org/ASTRA/insight
+id: https://w3id.org/astra/insight
 name: insight
 description: |-
   Insight and evidence models with W3C Web Annotation-compliant selectors
@@ -10,7 +10,7 @@ version: 0.0.0
 license: https://creativecommons.org/licenses/by/4.0/
 
 prefixes:
-  astra: https://w3id.org/ASTRA/
+  astra: https://w3id.org/astra/
   linkml: https://w3id.org/linkml/
   oa: http://www.w3.org/ns/oa#
 

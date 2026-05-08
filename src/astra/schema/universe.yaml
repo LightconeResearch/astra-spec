@@ -1,5 +1,5 @@
 ---
-id: https://w3id.org/ASTRA/universe
+id: https://w3id.org/astra/universe
 name: universe
 description: |-
   Universe specification models. A universe is a complete set of
@@ -10,7 +10,7 @@ version: 0.0.0
 license: https://creativecommons.org/licenses/by/4.0/
 
 prefixes:
-  astra: https://w3id.org/ASTRA/
+  astra: https://w3id.org/astra/
   linkml: https://w3id.org/linkml/
 
 default_prefix: astra

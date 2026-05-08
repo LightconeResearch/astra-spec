@@ -25,7 +25,7 @@ If you would like to help shape that trajectory — through code, schema review,
 
 If you use ASTRA in your work, please cite the GitHub repository — the easiest way is the **"Cite this repository"** button on the [`astra-spec` GitHub page](https://github.com/LightconeResearch/astra-spec), which produces APA and BibTeX entries from the [`CITATION.cff`](https://github.com/LightconeResearch/astra-spec/blob/main/CITATION.cff) at the repo root. Include the schema version you targeted (it is recorded at the top of each LinkML source file and in every generated artefact).
 
-The canonical namespace for ASTRA is `https://w3id.org/ASTRA/`.
+The canonical namespace for ASTRA is `https://w3id.org/astra/`.
 
 For the broader argument that motivates the project — agentic-era science, per-result trust, and why an open substrate matters — see the [Lightcone Research position paper](https://github.com/LightconeResearch/astra-paper) (a separate citation; not a replacement for citing ASTRA itself).
 
