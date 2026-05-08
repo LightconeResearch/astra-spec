@@ -89,24 +89,20 @@ site: gen-project gen-doc
 docs: _docs-prep
   uv run zensical build
 
-# Deploy a versioned snapshot of the docs to the gh-pages branch via mike.
-# Updates the `latest` alias to point at this version. Run after `just release`.
-# Use `just docs-deploy 0.0.9 stable` to use a different alias.
+# Deploy a versioned snapshot of the docs to gh-pages via mike, updating
+# the named alias (default: latest). Run after `just release`.
 [group('documentation')]
 docs-deploy version alias='latest': _docs-prep
   uv run mike deploy --push --update-aliases {{version}} {{alias}}
 
-# Set the default version served at the site root (one-shot, first deploy only).
 [group('documentation')]
 docs-set-default alias='latest':
   uv run mike set-default --push {{alias}}
 
-# List all versions deployed to the gh-pages branch.
 [group('documentation')]
 docs-versions:
   uv run mike list
 
-# Remove a version (or alias) from the gh-pages branch.
 [group('documentation')]
 docs-delete-version version:
   uv run mike delete --push {{version}}
@@ -155,9 +151,7 @@ release version:
     echo "Error: tag v{{version}} already exists." >&2
     exit 1
   fi
-  for f in {{source_schema_dir}}/*.yaml; do
-    grep -q '^version:' "$f" && sed -i "s/^version: .*/version: {{version}}/" "$f"
-  done
+  RELEASE_VERSION="{{version}}" just _set-version
   if [[ -f CITATION.cff ]]; then
     today=$(date -u +%Y-%m-%d)
     sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
@@ -167,9 +161,9 @@ release version:
   git commit -m "Release v{{version}}"
   git tag -a "v{{version}}" -m "Release v{{version}}"
   echo
-  echo "Created commit and tag v{{version}}."
-  echo "Push with:           git push && git push origin v{{version}}"
-  echo "Publish versioned docs: just docs-deploy {{version}}"
+  echo "Created commit and tag v{{version}}. Next steps:"
+  echo "  - git push && git push origin v{{version}}"
+  echo "  - just docs-deploy {{version}}"
 
 # Generate md documentation for the schema and add artifacts
 [group('model development')]
