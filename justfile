@@ -137,9 +137,10 @@ test: _test-schema _test-python _test-examples
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
-# Tag a new release: updates CITATION.cff, commits, and creates an annotated
-# git tag. Schema YAMLs are no longer mutated — generators inject the version
-# from the tag at build time. After pushing the tag, the
+# Tag a new release: regenerates the Python datamodels with the new version
+# baked in, updates CITATION.cff, commits both, and creates an annotated git
+# tag. Schema YAMLs are not mutated — generators inject the version from
+# $RELEASE_VERSION at build time. After pushing the tag, the
 # `Deploy versioned docs on tag` workflow will publish the docs automatically.
 [group('model development')]
 release version:
@@ -161,6 +162,8 @@ release version:
     echo "Error: CITATION.cff is missing." >&2
     exit 1
   fi
+  RELEASE_VERSION="{{version}}" just gen-python
+  git add src/astra/datamodel
   today=$(date -u +%Y-%m-%d)
   sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
   sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff
