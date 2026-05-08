@@ -89,6 +89,24 @@ site: gen-project gen-doc
 docs: _docs-prep
   uv run zensical build
 
+# Deploy a versioned snapshot of the docs to gh-pages via mike, updating
+# the named alias (default: latest). Run after `just release`.
+[group('documentation')]
+docs-deploy version alias='latest': _docs-prep
+  uv run mike deploy --push --update-aliases {{version}} {{alias}}
+
+[group('documentation')]
+docs-set-default alias='latest':
+  uv run mike set-default --push {{alias}}
+
+[group('documentation')]
+docs-versions:
+  uv run mike list
+
+[group('documentation')]
+docs-delete-version version:
+  uv run mike delete --push {{version}}
+
 # Build docs in strict mode
 [group('documentation')]
 docs-strict: _docs-prep
@@ -115,7 +133,8 @@ lint:
   uv run linkml-lint {{source_schema_dir}}
 
 # Tag a new release: bumps schema YAML versions and CITATION.cff, commits,
-# and creates an annotated git tag.
+# and creates an annotated git tag. Run `just docs-deploy {{version}}`
+# afterwards to publish the docs for this version with mike.
 [group('model development')]
 release version:
   #!/usr/bin/env bash
@@ -132,9 +151,7 @@ release version:
     echo "Error: tag v{{version}} already exists." >&2
     exit 1
   fi
-  for f in {{source_schema_dir}}/*.yaml; do
-    grep -q '^version:' "$f" && sed -i "s/^version: .*/version: {{version}}/" "$f"
-  done
+  RELEASE_VERSION="{{version}}" just _set-version
   if [[ -f CITATION.cff ]]; then
     today=$(date -u +%Y-%m-%d)
     sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
@@ -144,8 +161,9 @@ release version:
   git commit -m "Release v{{version}}"
   git tag -a "v{{version}}" -m "Release v{{version}}"
   echo
-  echo "Created commit and tag v{{version}}."
-  echo "Push with: git push && git push origin v{{version}}"
+  echo "Created commit and tag v{{version}}. Next steps:"
+  echo "  - git push && git push origin v{{version}}"
+  echo "  - just docs-deploy {{version}}"
 
 # Generate md documentation for the schema and add artifacts
 [group('model development')]
@@ -274,11 +292,17 @@ _test-examples: _ensure_examples_output
     --output-directory examples/output \
     --schema {{source_schema_path}} > examples/output/README.md
 
-# Inject version from latest git tag into all schema YAML files
+# Inject version into all schema YAML files. Uses $RELEASE_VERSION when set
+# (so the `release` recipe can pre-stage the new version before gen-doc runs);
+# otherwise falls back to the latest git tag.
 _set-version:
   #!/usr/bin/env bash
-  TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-  VERSION=${TAG#v}
+  if [[ -n "${RELEASE_VERSION:-}" ]]; then
+    VERSION="${RELEASE_VERSION}"
+  else
+    TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+    VERSION=${TAG#v}
+  fi
   for f in {{source_schema_dir}}/*.yaml; do
     grep -q '^version:' "$f" && sed -i "s/^version: .*/version: ${VERSION}/" "$f"
   done

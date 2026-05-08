@@ -3,7 +3,7 @@
 site_name = "ASTRA"
 site_description = "ASTRA — Agentic Schema for Transparent Research Analysis."
 site_author = "Lightcone Research"
-site_url = "https://astra-spec.org"
+site_url = "https://astra-spec.org/"
 copyright = "&copy; 2026 ASTRA Contributors"
 
 repo_url = "https://github.com/LightconeResearch/astra-spec"
@@ -22,6 +22,12 @@ nav = [
   ] },
   { "Community" = "community.md" },
 ]
+
+# Versioning is handled by mike (https://github.com/squidfunk/mike).
+# Each version of the site is deployed as a subdirectory under site_url
+# (e.g. /0.0.9/, /latest/). The picker is rendered natively in the header.
+[project.extra.version]
+provider = "mike"
 
 [project.theme]
 

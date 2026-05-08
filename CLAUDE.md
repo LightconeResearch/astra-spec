@@ -11,6 +11,22 @@ The ASTRA schema is defined in LinkML files under `src/astra/schema/`. When modi
 
 Run `just gen-python` to regenerate Python datamodels and `just gen-doc` to regenerate the schema reference docs after any schema change.
 
+## Documentation versioning (mike)
+
+The whole docs site is versioned with [mike](https://github.com/squidfunk/mike) — specifically squidfunk's fork, which Zensical's versioning provider depends on. Each release deploys a full copy of the site to a subdirectory of the `gh-pages` branch (`/0.0.9/`, `/latest/`, etc.). Mike is enabled via `[project.extra.version] provider = "mike"` in `zensical.toml`; the version dropdown in the header is rendered natively.
+
+Release flow:
+
+1. `just release X.Y.Z` — bumps schema YAML versions and CITATION.cff, commits, tags. Does not push.
+2. `git push && git push origin vX.Y.Z` — review then push.
+3. `just docs-deploy X.Y.Z` — runs `mike deploy --push --update-aliases X.Y.Z latest`. This builds the site at the current commit and pushes a new version snapshot + updates the `latest` alias on `gh-pages`.
+
+First-time setup: after the first `docs-deploy`, run `just docs-set-default latest` once so the bare site root redirects to `/latest/`.
+
+Hosting: mike pushes to `gh-pages`. The hosting platform (Cloudflare Pages, GitHub Pages, etc.) must be configured to serve from `gh-pages`, not `main`. Without this, `mike deploy` runs successfully but the site doesn't pick up versioned URLs in production.
+
+Schema artifacts (`docs/schema/*.{yaml,json,jsonld}`) are versioned along with the rest of the site: machine consumers should resolve them via the canonical `https://w3id.org/ASTRA/...` URI (which redirects to a hosted location), or pin to `astra-spec.org/X.Y.Z/schema/...`.
+
 ## Key Commands
 
 ```bash
