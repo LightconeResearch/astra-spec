@@ -12,7 +12,7 @@ type: software
 url: "https://astra-spec.org"
 repository-code: "https://github.com/LightconeResearch/astra-spec"
 license: BSD-3-Clause
-version: "0.0.9"
+version: "0.0.10"
 date-released: "2026-05-08"
 keywords:
   - agentic AI
