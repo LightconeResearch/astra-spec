@@ -1,0 +1,1607 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="ASTRA — Agentic Schema for Transparent Research Analysis.">
+      
+      
+        <meta name="author" content="Lightcone Research">
+      
+      
+        <link rel="canonical" href="https://astra-spec.org/0.0.8/cli/">
+      
+      
+        <link rel="prev" href="../getting-started/">
+      
+      
+        <link rel="next" href="../about/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/favicon.svg">
+      <meta name="generator" content="zensical-0.0.40">
+    
+    
+      
+        <title>CLI Reference - ASTRA</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.fba56155.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cli-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="ASTRA" class="md-header__button md-logo" aria-label="ASTRA" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594zM20 2v4M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ASTRA
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CLI Reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/LightconeResearch/astra-spec" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    LightconeResearch/astra-spec
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./.." class="md-tabs__link">
+          
+  
+  Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../specification/" class="md-tabs__link">
+          
+  
+  Specification
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../community/" class="md-tabs__link">
+        
+  
+  Community
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="ASTRA" class="md-nav__button md-logo" aria-label="ASTRA" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594zM20 2v4M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
+
+    </a>
+    ASTRA
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/LightconeResearch/astra-spec" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    LightconeResearch/astra-spec
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Documentation
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Documentation
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  CLI reference
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  CLI reference
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Installation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Commands at a glance
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra init</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra validate</code>
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="astra validate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evidence-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Evidence verification
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra info</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-viz" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra viz</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-universe" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra universe</code>
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="astra universe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#astra-universe-generate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra universe generate</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-universe-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra universe check</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra schema</code>
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="astra schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#astra-schema-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra schema export</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-schema-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra schema show</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper</code>
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="astra paper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-add" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper add</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper list</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper show</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper path</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper remove</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-fetch-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper fetch-metadata</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-verify-quote" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper verify-quote</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-verify-quotes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper verify-quotes</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  About
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Specification
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Specification
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Format reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Schema reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Community
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Installation
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Commands at a glance
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra init</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra validate</code>
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="astra validate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evidence-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Evidence verification
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra info</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-viz" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra viz</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-universe" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra universe</code>
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="astra universe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#astra-universe-generate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra universe generate</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-universe-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra universe check</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra schema</code>
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="astra schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#astra-schema-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra schema export</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-schema-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra schema show</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-paper" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper</code>
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="astra paper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-add" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper add</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper list</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper show</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper path</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper remove</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-fetch-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper fetch-metadata</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-verify-quote" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper verify-quote</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#astra-paper-verify-quotes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra paper verify-quotes</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="cli-reference">CLI Reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
+<p>The <code>astra</code> command-line tool authors, validates, and inspects ASTRA analyses. It is shipped as the <code>astra-tools</code> package and is independent of any execution engine — it only reads, writes, and validates ASTRA YAML.</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>astra-tools
+</span></code></pre></div>
+<p>This installs the <code>astra</code> executable on your <code>PATH</code>, isolated from your project environments. See <a href="../getting-started/#install">Getting started</a> for <code>pip</code> and from-source alternatives. To verify:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>astra<span class="w"> </span>--version
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>astra<span class="w"> </span>--help
+</span></code></pre></div>
+<h2 id="commands-at-a-glance">Commands at a glance<a class="headerlink" href="#commands-at-a-glance" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#astra-init"><code>astra init</code></a></td>
+<td>Scaffold a minimal ASTRA project</td>
+</tr>
+<tr>
+<td><a href="#astra-validate"><code>astra validate</code></a></td>
+<td>Validate an analysis or universe file</td>
+</tr>
+<tr>
+<td><a href="#astra-info"><code>astra info</code></a></td>
+<td>Show a summary of an analysis</td>
+</tr>
+<tr>
+<td><a href="#astra-viz"><code>astra viz</code></a></td>
+<td>Visualise the decision space</td>
+</tr>
+<tr>
+<td><a href="#astra-universe"><code>astra universe</code></a></td>
+<td>Generate and check universe files</td>
+</tr>
+<tr>
+<td><a href="#astra-schema"><code>astra schema</code></a></td>
+<td>Export or print the LinkML schema</td>
+</tr>
+<tr>
+<td><a href="#astra-paper"><code>astra paper</code></a></td>
+<td>Manage cached papers and verify quotes</td>
+</tr>
+</tbody>
+</table>
+<p><code>astra</code> and most subcommands accept <code>--help</code> for full inline documentation.</p>
+<hr />
+<h2 id="astra-init"><code>astra init</code><a class="headerlink" href="#astra-init" title="Permanent link">&para;</a></h2>
+<p>Create a minimal ASTRA analysis scaffold. The scaffold contains an <code>astra.yaml</code> boilerplate, a <code>universes/baseline.yaml</code>, an empty <code>src/</code> for analysis code, and a <code>.gitignore</code>. By default a fresh git repository is initialised in the new directory.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>astra<span class="w"> </span>init<span class="w"> </span>my-analysis
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>astra<span class="w"> </span>init<span class="w"> </span>my-analysis<span class="w"> </span>--no-git<span class="w">     </span><span class="c1"># skip git initialisation</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>astra<span class="w"> </span>init<span class="w"> </span>.<span class="w">                        </span><span class="c1"># scaffold in the current directory</span>
+</span></code></pre></div>
+<p><strong>Resulting layout:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>my-analysis/
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── astra.yaml              # Analysis specification (source of truth)
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── .gitignore
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── src/                    # Your analysis code
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>└── universes/
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    └── baseline.yaml       # Default decision selection
+</span></code></pre></div>
+<p>The boilerplate <code>astra.yaml</code> includes a single example decision and outputs marked with <code>TODO:</code> to guide you through filling them in.</p>
+<hr />
+<h2 id="astra-validate"><code>astra validate</code><a class="headerlink" href="#astra-validate" title="Permanent link">&para;</a></h2>
+<p>Validate an analysis or universe file.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>astra.yaml
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>astra<span class="w"> </span>validate<span class="w"> </span>universes/baseline.yaml<span class="w">          </span><span class="c1"># universe (analysis auto-discovered)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>astra<span class="w"> </span>validate<span class="w"> </span>universes/foo.yaml<span class="w"> </span>-a<span class="w"> </span>astra.yaml<span class="w"> </span><span class="c1"># universe with explicit analysis</span>
+</span></code></pre></div>
+<p>Validation runs in stages:</p>
+<ol>
+<li><strong>Schema validation</strong> — structure, types, required fields, format patterns (Pydantic models generated from the LinkML schema).</li>
+<li><strong>Semantic validation</strong> — duplicate IDs, default options exist, <code>from:</code> paths resolve, recipe template placeholders match <code>Output.inputs</code> / <code>Output.decisions</code>, universe selections match analysis decisions, constraints respected, etc.</li>
+<li><strong>Narrative validation</strong> — section presence (conditional on declared structure), anchor reference resolution, and a coverage warning for declared elements that are never cited.</li>
+</ol>
+<h3 id="evidence-verification">Evidence verification<a class="headerlink" href="#evidence-verification" title="Permanent link">&para;</a></h3>
+<p>When an analysis declares <code>prior_insights:</code> or <code>findings:</code>, <code>astra validate</code> can additionally check that quoted text in literature evidence actually appears in the source PDFs:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>astra.yaml<span class="w"> </span>--verify-evidence
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>astra<span class="w"> </span>validate<span class="w"> </span>astra.yaml<span class="w"> </span>--skip-evidence<span class="w">    </span><span class="c1"># skip even when present</span>
+</span></code></pre></div>
+<p>Papers must be cached locally first with <a href="#astra-paper-add"><code>astra paper add</code></a>. Evidence backed by analysis artifacts (typical for <code>findings</code>) is reported as <code>SKIPPED</code> until the artifact is materialised.</p>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-a, --analysis PATH</code></td>
+<td>Analysis file (when validating a universe)</td>
+</tr>
+<tr>
+<td><code>-e, --verify-evidence</code></td>
+<td>Verify evidence quotes against cached papers</td>
+</tr>
+<tr>
+<td><code>--skip-evidence</code></td>
+<td>Skip evidence verification</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="astra-info"><code>astra info</code><a class="headerlink" href="#astra-info" title="Permanent link">&para;</a></h2>
+<p>Print a summary of an analysis: name, version, narrative sections, counts, and tables of inputs, outputs, and decisions. The analysis file is auto-discovered by walking up from the current directory if <code>--file</code> is not provided.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>astra<span class="w"> </span>info<span class="w">                          </span><span class="c1"># full summary</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>astra<span class="w"> </span>info<span class="w"> </span>--decisions<span class="w">              </span><span class="c1"># decisions only</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>astra<span class="w"> </span>info<span class="w"> </span>--inputs<span class="w">                 </span><span class="c1"># inputs only</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>astra<span class="w"> </span>info<span class="w"> </span>--outputs<span class="w">                </span><span class="c1"># outputs only</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>astra<span class="w"> </span>info<span class="w"> </span>-f<span class="w"> </span>path/to/astra.yaml<span class="w">    </span><span class="c1"># explicit file</span>
+</span></code></pre></div>
+<p>Decisions are displayed as a tree, with sub-analyses nested under their parent.</p>
+<hr />
+<h2 id="astra-viz"><code>astra viz</code><a class="headerlink" href="#astra-viz" title="Permanent link">&para;</a></h2>
+<p>Visualise the decision space.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>astra<span class="w"> </span>viz<span class="w">                           </span><span class="c1"># ASCII tree (default)</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>astra<span class="w"> </span>viz<span class="w"> </span>--format<span class="w"> </span>mermaid<span class="w">          </span><span class="c1"># Mermaid diagram (paste into Markdown)</span>
+</span></code></pre></div>
+<p>The Mermaid output renders all decisions and options, highlights defaults, and draws <code>incompatible_with</code> / <code>requires</code> constraint edges. It can be embedded directly in Markdown documentation:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="sb">```mermaid</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="s">graph TD</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="s">    ...</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="sb">```</span>
+</span></code></pre></div>
+<hr />
+<h2 id="astra-universe"><code>astra universe</code><a class="headerlink" href="#astra-universe" title="Permanent link">&para;</a></h2>
+<p>Universe management commands.</p>
+<h3 id="astra-universe-generate"><code>astra universe generate</code><a class="headerlink" href="#astra-universe-generate" title="Permanent link">&para;</a></h3>
+<p>Generate a universe YAML file from the analysis's <code>default</code> options.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>astra<span class="w"> </span>universe<span class="w"> </span>generate<span class="w"> </span>--name<span class="w"> </span>baseline
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>astra<span class="w"> </span>universe<span class="w"> </span>generate<span class="w"> </span>-n<span class="w"> </span>svm-focused<span class="w"> </span>-d<span class="w"> </span><span class="s2">&quot;SVM with standard scaling&quot;</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>astra<span class="w"> </span>universe<span class="w"> </span>generate<span class="w"> </span>-n<span class="w"> </span>baseline<span class="w"> </span>-o<span class="w"> </span>custom/path.yaml
+</span></code></pre></div>
+<p>Every decision in the analysis tree must declare a <code>default</code>; otherwise the command lists the missing decisions and exits.</p>
+<p><strong>Options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-n, --name</code></td>
+<td><code>baseline</code></td>
+<td>Universe ID and filename stem</td>
+</tr>
+<tr>
+<td><code>-a, --analysis</code></td>
+<td>auto</td>
+<td>Analysis file</td>
+</tr>
+<tr>
+<td><code>-o, --output</code></td>
+<td><code>universes/&lt;name&gt;.yaml</code></td>
+<td>Output path</td>
+</tr>
+<tr>
+<td><code>-d, --description</code></td>
+<td><em>(none)</em></td>
+<td>Universe description string</td>
+</tr>
+</tbody>
+</table>
+<h3 id="astra-universe-check"><code>astra universe check</code><a class="headerlink" href="#astra-universe-check" title="Permanent link">&para;</a></h3>
+<p>Validate a universe file against the constraints declared in the analysis.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>astra<span class="w"> </span>universe<span class="w"> </span>check<span class="w"> </span>universes/baseline.yaml
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>astra<span class="w"> </span>universe<span class="w"> </span>check<span class="w"> </span>universes/foo.yaml<span class="w"> </span>-a<span class="w"> </span>path/to/astra.yaml
+</span></code></pre></div>
+<p>The same checks run inside <code>astra validate</code>, but <code>universe check</code> is convenient when iterating on universe files without re-running the full analysis validation.</p>
+<hr />
+<h2 id="astra-schema"><code>astra schema</code><a class="headerlink" href="#astra-schema" title="Permanent link">&para;</a></h2>
+<p>Operate on the underlying LinkML schema files (sourced from <code>astra-spec</code>).</p>
+<h3 id="astra-schema-export"><code>astra schema export</code><a class="headerlink" href="#astra-schema-export" title="Permanent link">&para;</a></h3>
+<p>Copy the LinkML schema YAMLs into a directory of your choice.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>astra<span class="w"> </span>schema<span class="w"> </span><span class="nb">export</span><span class="w">                    </span><span class="c1"># default: ./schemas/</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>astra<span class="w"> </span>schema<span class="w"> </span><span class="nb">export</span><span class="w"> </span>-o<span class="w"> </span>vendor/astra/<span class="w">   </span><span class="c1"># custom path</span>
+</span></code></pre></div>
+<h3 id="astra-schema-show"><code>astra schema show</code><a class="headerlink" href="#astra-schema-show" title="Permanent link">&para;</a></h3>
+<p>Print one of the schema files to stdout.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>analysis<span class="w">     </span><span class="c1"># main analysis schema</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>universe<span class="w">     </span><span class="c1"># universe schema</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>insights<span class="w">     </span><span class="c1"># insight + evidence schema</span>
+</span></code></pre></div>
+<hr />
+<h2 id="astra-paper"><code>astra paper</code><a class="headerlink" href="#astra-paper" title="Permanent link">&para;</a></h2>
+<p>Manage a local cache of papers used as evidence sources, and verify that quoted text exists in the cached PDFs.</p>
+<p>The cache lives under <code>~/.cache/astra/papers/</code> (XDG-compliant) and is keyed by DOI (and version, for arXiv). Operations are content-addressed: each cached paper records a SHA-256 of the PDF.</p>
+<h3 id="astra-paper-add"><code>astra paper add</code><a class="headerlink" href="#astra-paper-add" title="Permanent link">&para;</a></h3>
+<p>Add a paper to the cache.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>--version<span class="w"> </span><span class="m">7</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.1038/s41586-023-06221-2
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.1234/example<span class="w"> </span>--pdf<span class="w"> </span>./local_paper.pdf
+</span></code></pre></div>
+<p><code>--pdf</code> registers a local file in the cache without downloading. Without it, the CLI downloads the paper from the DOI: arXiv DOIs (prefix <code>10.48550/arXiv.</code>) are fetched directly from <code>arxiv.org</code>, with <code>--version</code> selecting a specific revision; other DOIs are resolved through <a href="https://unpaywall.org/">Unpaywall</a> for an open-access PDF and will fail if no open copy is available. Title and authors are fetched separately via DOI content-negotiation against <code>doi.org</code>.</p>
+<h3 id="astra-paper-list"><code>astra paper list</code><a class="headerlink" href="#astra-paper-list" title="Permanent link">&para;</a></h3>
+<p>List all cached papers.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>list
+</span></code></pre></div>
+<h3 id="astra-paper-show"><code>astra paper show</code><a class="headerlink" href="#astra-paper-show" title="Permanent link">&para;</a></h3>
+<p>Show metadata of a single cached paper.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>show<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>--version<span class="w"> </span><span class="m">7</span>
+</span></code></pre></div>
+<h3 id="astra-paper-path"><code>astra paper path</code><a class="headerlink" href="#astra-paper-path" title="Permanent link">&para;</a></h3>
+<p>Print the absolute path of a cached PDF — handy for piping into other tools or agents.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>path<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>xdg-open<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>astra<span class="w"> </span>paper<span class="w"> </span>path<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span><span class="k">)</span><span class="s2">&quot;</span>
+</span></code></pre></div>
+<h3 id="astra-paper-remove"><code>astra paper remove</code><a class="headerlink" href="#astra-paper-remove" title="Permanent link">&para;</a></h3>
+<p>Remove a paper from the cache.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>remove<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span>
+</span></code></pre></div>
+<h3 id="astra-paper-fetch-metadata"><code>astra paper fetch-metadata</code><a class="headerlink" href="#astra-paper-fetch-metadata" title="Permanent link">&para;</a></h3>
+<p>Fetch title and authors via DOI content negotiation. Useful when papers were added with <code>--pdf</code> and have no upstream metadata yet.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>fetch-metadata<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>astra<span class="w"> </span>paper<span class="w"> </span>fetch-metadata<span class="w"> </span>--all<span class="w">      </span><span class="c1"># back-fill metadata for all cached papers</span>
+</span></code></pre></div>
+<h3 id="astra-paper-verify-quote"><code>astra paper verify-quote</code><a class="headerlink" href="#astra-paper-verify-quote" title="Permanent link">&para;</a></h3>
+<p>Check that a single quoted text appears in a cached paper. Uses fuzzy matching to tolerate minor extraction differences.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span>-q<span class="w"> </span><span class="s2">&quot;FlexZBoost achieves a normalized median absolute deviation of 0.018&quot;</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span>DOI<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span>--page<span class="w"> </span><span class="m">8</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span>DOI<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span>--json<span class="w">     </span><span class="c1"># machine-readable output</span>
+</span></code></pre></div>
+<p>Exit codes: <code>0</code> (verified), <code>1</code> (not found), <code>2</code> (paper not cached or extraction error).</p>
+<h3 id="astra-paper-verify-quotes"><code>astra paper verify-quotes</code><a class="headerlink" href="#astra-paper-verify-quotes" title="Permanent link">&para;</a></h3>
+<p>Bulk variant of <code>verify-quote</code>. Reads a JSON list of quotes from <code>stdin</code>, extracts PDF text once, and writes a JSON report to <code>stdout</code>.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;{&quot;quotes&quot;:[{&quot;text&quot;:&quot;...&quot;,&quot;page&quot;:8},{&quot;text&quot;:&quot;...&quot;}]}&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>astra<span class="w"> </span>paper<span class="w"> </span>verify-quotes<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762
+</span></code></pre></div>
+<p>Designed to be driven by agents and CI scripts.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../getting-started/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Getting started">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Getting started
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../about/" class="md-footer__link md-footer__link--next" aria-label="Next: About">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                About
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2026 ASTRA Contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.code.select","content.tabs.link","content.tooltips","navigation.footer","navigation.instant","navigation.instant.prefetch","navigation.instant.progress","navigation.path","navigation.sections","navigation.tabs","navigation.tabs.sticky","navigation.top","navigation.tracking","search.highlight","search.suggest"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.dbc0afdc.min.js"></script>
+      
+    
+  </body>
+</html>
