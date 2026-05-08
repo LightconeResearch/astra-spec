@@ -7,7 +7,9 @@
  * and shows a banner when not viewing the latest stable version.
  *
  * Robust to Material/Zensical instant navigation: the injection is
- * idempotent and re-runs on DOM swaps.
+ * idempotent (a single .astra-version-selector node per article) and
+ * re-runs on every relevant DOM/navigation event, debounced to one call
+ * per animation frame.
  */
 (function () {
   "use strict";
@@ -16,25 +18,61 @@
   const SELECTOR_CLASS = "astra-version-selector";
   const BANNER_CLASS = "astra-version-banner";
 
-  injectStyles();
-  setup();
+  let cachedData = null;
+  let cachedFetchUrl = null;
+  let pendingFrame = false;
 
-  // Re-run on instant-navigation DOM swaps. Observing <main> (or body as
-  // a fallback) is enough — content swaps replace its children.
-  const observerTarget = document.querySelector("main") || document.body;
-  new MutationObserver(setup).observe(observerTarget, { childList: true, subtree: false });
+  injectStyles();
+  scheduleSetup();
+
+  // Belt-and-suspenders triggers — any one of these can carry us through
+  // initial load, instant-nav swaps, hash navigation, or bfcache restores.
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scheduleSetup, { once: true });
+  }
+  window.addEventListener("popstate", scheduleSetup);
+  window.addEventListener("pageshow", scheduleSetup);
+  window.addEventListener("hashchange", scheduleSetup);
+
+  // Watch for content swaps anywhere under <body>. The rAF debounce keeps
+  // this cheap even with subtree:true.
+  new MutationObserver(scheduleSetup).observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  function scheduleSetup() {
+    if (pendingFrame) return;
+    pendingFrame = true;
+    requestAnimationFrame(() => {
+      pendingFrame = false;
+      try { setup(); } catch (err) { console.warn("[astra] version selector:", err); }
+    });
+  }
 
   function setup() {
+    const ctx = parsePath(window.location.pathname);
+    if (!ctx) return;
+
     const article = document.querySelector("article");
     if (!article) return;
     if (article.querySelector("." + SELECTOR_CLASS)) return; // already injected
 
-    const ctx = parsePath(window.location.pathname);
-    if (!ctx) return;
+    const fetchUrl = ctx.baseUrl + "versions.json";
+    if (cachedData && cachedFetchUrl === fetchUrl) {
+      render(article, ctx, cachedData);
+      return;
+    }
 
-    fetch(ctx.baseUrl + "versions.json", { cache: "no-cache" })
+    fetch(fetchUrl, { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status))))
-      .then((data) => render(article, ctx, data))
+      .then((data) => {
+        cachedData = data;
+        cachedFetchUrl = fetchUrl;
+        // Article reference may be stale after async hop — re-resolve.
+        const a = document.querySelector("article");
+        if (a && !a.querySelector("." + SELECTOR_CLASS)) render(a, ctx, data);
+      })
       .catch((err) => console.warn("[astra] version selector:", err));
   }
 
