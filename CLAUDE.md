@@ -17,11 +17,12 @@ The whole docs site is versioned with [mike](https://github.com/squidfunk/mike) 
 
 Release flow:
 
-1. `just release X.Y.Z` — bumps schema YAML versions and CITATION.cff, commits, tags. Does not push.
-2. `git push && git push origin vX.Y.Z` — review then push.
-3. `just docs-deploy X.Y.Z` — runs `mike deploy --push --update-aliases X.Y.Z latest`. This builds the site at the current commit and pushes a new version snapshot + updates the `latest` alias on `gh-pages`.
+1. `just release X.Y.Z` — updates `CITATION.cff`, commits, and creates an annotated tag. Does not push. Schema YAMLs are *not* mutated; the version is injected at build time from the git tag.
+2. `git push && git push origin vX.Y.Z` — review then push. The `Deploy versioned docs on tag` GitHub Actions workflow runs `mike deploy --push --update-aliases X.Y.Z latest` automatically.
 
-First-time setup: after the first `docs-deploy`, run `just docs-set-default latest` once so the bare site root redirects to `/latest/`.
+For a manual deploy (e.g. backfilling a tag), `just docs-deploy X.Y.Z` runs the same `mike deploy` locally.
+
+First-time setup: after the first deploy, run `just docs-set-default latest` once so the bare site root redirects to `/latest/`.
 
 Hosting: mike pushes to `gh-pages`. The hosting platform (Cloudflare Pages, GitHub Pages, etc.) must be configured to serve from `gh-pages`, not `main`. Without this, `mike deploy` runs successfully but the site doesn't pick up versioned URLs in production.
 

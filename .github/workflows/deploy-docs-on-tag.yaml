@@ -1,0 +1,71 @@
+---
+name: Deploy versioned docs on tag
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (without leading v), e.g. 0.0.9"
+        required: true
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        pyversion: ["3.13"]
+
+    permissions:
+      contents: write  # to let mike push to gh-pages
+
+    steps:
+      # https://github.com/actions/checkout
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # mike needs full history to update gh-pages
+
+      # https://github.com/astral-sh/setup-uv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          python-version: ${{ matrix.pyversion }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      # https://github.com/actions/setup-python
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: ${{ matrix.pyversion }}
+
+      - name: Install just
+        run: uv tool install rust-just
+
+      - name: Install dependencies
+        run: uv sync --group dev --group docs --no-progress
+
+      - name: Configure git for the bot
+        run: |
+          git config user.name  github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ -n "${{ inputs.version }}" ]]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy versioned docs to gh-pages
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: just docs-deploy "${{ steps.version.outputs.version }}" latest

@@ -64,6 +64,10 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+          # Fetch full history + tags so `_stage-versioned` can resolve
+          # the latest tag and inject the matching version.
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
@@ -90,14 +94,12 @@ jobs:
 
       - name: Check for uncommitted changes
         run: |
-          # Ignore lines that change on every regeneration (timestamps, version from git tags)
+          # docs/schema artifacts are git-ignored and regenerated on every docs build,
+          # so they are intentionally excluded here. The `Generation date` line
+          # changes on every regen and is similarly ignored.
           if ! git diff --exit-code \
             -I 'Generation date:' \
-            -I 'generation_date' \
-            -I 'source_file_date' \
-            -I '^version' \
-            -I '"version"' \
-            -- src/astra/datamodel/ docs/schema/; then
-            echo "::error::Generated files are out of date. Run 'just gen-python' and 'just gen-doc' and commit the results."
+            -- src/astra/datamodel/; then
+            echo "::error::Generated datamodels are out of date. Run 'just gen-python' and commit the results."
             exit 1
           fi
