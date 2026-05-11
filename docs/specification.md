@@ -539,6 +539,8 @@ Internal narrative links use Markdown anchors:
 
 References are interpreted relative to the analysis that contains the prose. Use `../` to link to a parent scope, for example `#../decisions.model`.
 
+Narrative links may appear in any narrative section. Coverage is resolved across the whole narrative for the analysis node, not section by section. During validation, broken internal anchors are errors, while declared findings, decisions, outputs, or sub-analyses that are not cited anywhere in the node's narrative are reported as coverage warnings.
+
 ### Input
 
 An input declares something the analysis consumes, or aliases an upstream artifact with `from`.
@@ -605,6 +607,12 @@ Recipe placeholders:
 | `{output}` | Path where the runner should write the produced artifact. |
 | `{{` and `}}` | Literal braces. |
 
+The command string is a typed template. Every `{inputs.<id>}` placeholder must name an input or sibling output listed in the parent `Output.inputs`; every `{decisions.<id>}` placeholder must name a decision listed in the parent `Output.decisions`. Validators reject unresolved or undeclared placeholders.
+
+Placeholders always use local IDs in the surrounding analysis scope. If an input or decision is aliased from another scope with `from`, the recipe still names the local alias. Recipes do not use `../` path syntax; cross-scope wiring is declared once on the `Input`, `Output`, or `Decision`.
+
+Decision placeholders resolve to the selected option ID in the current universe. If a script needs a numeric value, such as a seed, either map the option ID inside the script or choose option IDs that are usable directly.
+
 Resources:
 
 | Field | Type | Meaning |
@@ -614,6 +622,19 @@ Resources:
 | `time_limit` | `string` | Wall-time duration, e.g. `"30m"` or `"2h"`. |
 | `disk` | `string` | Disk with units. |
 | `gpus` | `integer` | Number of GPUs. |
+
+A node-level `container` on `Analysis` sets the default for recipes in that node. A recipe-level `container` overrides it. Image names such as `python:3.12-slim` or `ghcr.io/org/image:latest` are interpreted as pre-built images; paths such as `Containerfile` or `containers/Dockerfile` are interpreted as build contexts by runners that support them.
+
+Example rendered command after a runner materializes paths and selects a universe:
+
+```bash
+python src/classify.py \
+  --train /work/u_baseline/training_data.parquet \
+  --features /work/u_baseline/features.parquet \
+  --classifier svm \
+  --seed seed_42 \
+  --out /work/u_baseline/predictions.parquet
+```
 
 ### Decision
 
@@ -654,28 +675,47 @@ Constraint references use `decision_id.option_id` and are scoped within the same
 
 | Field | Type | Required | Meaning |
 |---|---|---:|---|
+| `id` | `string` | Yes | Unique insight identifier. |
 | `claim` | `string` | Yes | The scientific claim. |
 | `label` | `string` | No | Short display name. |
 | `created_at` | `datetime` | Yes | Creation timestamp. |
 | `evidence` | `Evidence[]` | Yes | Sources or artifacts supporting the claim. |
 | `derived` | `boolean` | No | Whether the claim was produced by this analysis. |
+| `scope` | `string` | No | Applicability conditions for the claim. |
 | `tags` | `string[]` | No | Categorization tags. |
 | `notes` | `string` | No | Additional prose. |
 
+Each evidence item references either literature with `doi` or an analysis artifact with `artifact`. Exactly one of those source fields must be set. Literature evidence should include a text quote for verifiability.
+
 Evidence fields:
 
-| Field | Type | Meaning |
-|---|---|---|
-| `id` | `string` | Local evidence identifier. |
-| `doi` | `string` | DOI for a cited paper or source. |
-| `artifact` | `string` | ASTRA artifact ID, often an output. |
-| `version` | `integer` | Source paper version, especially for arXiv papers. |
-| `snapshot` | `string` | Path to an immutable copy of an artifact. |
-| `source_commit` | `string` | Commit that produced an artifact. |
-| `quote` | `TextQuoteSelector` | Exact text quote and optional prefix/suffix. |
-| `location` | `FragmentSelector` | Source location hint such as a PDF page. |
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `id` | `string` | Yes | Local evidence identifier. |
+| `doi` | `string` | Exactly one of `doi` or `artifact` | DOI for a cited paper or source. |
+| `artifact` | `string` | Exactly one of `doi` or `artifact` | ASTRA artifact ID, often an output. |
+| `version` | `integer` | No | Source paper version, especially for arXiv papers. |
+| `snapshot` | `string` | No | Path to an immutable copy of an artifact. |
+| `source_commit` | `string` | No | Commit that produced an artifact. |
+| `quote` | `TextQuoteSelector` | No | Exact text quote and optional prefix/suffix. |
+| `location` | `FragmentSelector` | No | Source location hint such as a PDF page. |
 
 ASTRA follows the spirit of W3C selectors: evidence should identify not just a source, but the specific location or text that supports the claim.
+
+`TextQuoteSelector` fields:
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `exact` | `string` | Yes | Exact quoted text. |
+| `prefix` | `string` | No | Text before the quote, used for disambiguation. |
+| `suffix` | `string` | No | Text after the quote, used for disambiguation. |
+
+`FragmentSelector` fields:
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `value` | `string` | No | Fragment value, such as `page=6`. |
+| `page` | `integer` | No | One-indexed page number. |
 
 ### Universe
 
@@ -708,6 +748,43 @@ Option constraints use the same `decision_id.option_id` reference form:
 | `requires` | The referenced option must also be selected. |
 | `incompatible_with` | The referenced option must not be selected. |
 
+For example, an SVM option can require standard scaling:
+
+```yaml
+decisions:
+  model:
+    options:
+      svm:
+        label: Support vector machine
+        requires:
+          - scaling.standard
+```
+
+An option can also rule out another option:
+
+```yaml
+decisions:
+  scaling:
+    options:
+      minmax:
+        label: Min-max scaling
+        incompatible_with:
+          - model.svm
+```
+
+Negated conditions use the same `~decision.option` form:
+
+```yaml
+decisions:
+  fallback_method:
+    label: Fallback method
+    when:
+      - ~model.neural_net
+    options:
+      interpolation:
+        label: Linear interpolation
+```
+
 ### Bridges and path grammar
 
 `from` aliases elements across analysis scopes. The grammar is shared by inputs, outputs, and decisions, but each slot restricts which directions are legal.
@@ -727,6 +804,54 @@ Legal directions:
 | `Input.from` | `../id`, `../../id`, `../scope.out_id` | Alias an ancestor input or sibling sub-analysis output. |
 | `Output.from` | `child.out_id`, `child.sub.out_id` | Re-export a child output. |
 | `Decision.from` | `../id`, `../../id` | Inherit an ancestor decision. |
+
+`from` is the only primitive for crossing analysis scopes. Recipe templates, `Output.inputs`, and `Output.decisions` continue to use local IDs in their surrounding scope. When `from` is set, the node is a pure alias: only `id`, `from`, and, where applicable, `when` may be declared locally. Content fields such as `type`, `description`, `label`, `source`, `options`, `default`, and `recipe` are inherited from the source.
+
+Inputs and outputs can reach into subordinate scopes for artifacts, which can flow upward by re-export or laterally between sibling sub-analyses. Decisions only flow downward from ancestors into descendants. To share a decision between siblings, declare it on their common ancestor and alias it with `from` inside each child.
+
+Sibling output alias:
+
+```yaml
+analyses:
+  preprocessing:
+    outputs:
+      - id: cleaned_catalog
+        type: data
+
+  fitting:
+    inputs:
+      - id: catalog
+        from: ../preprocessing.cleaned_catalog
+```
+
+Child output re-export:
+
+```yaml
+outputs:
+  - id: fit_parameters
+    from: fitting.fit_parameters
+```
+
+Ancestor decision alias:
+
+```yaml
+analyses:
+  fitting:
+    decisions:
+      magnitude:
+        from: ../magnitude
+```
+
+External analysis dependencies are separate from `from`. Use `type: analysis` with `ref` when the dependency is a different ASTRA analysis rather than an element inside the current analysis tree:
+
+```yaml
+inputs:
+  - id: prior_fit
+    type: analysis
+    ref: analyses/lmc_pl_baseline
+    ref_version: "1.2"
+    use_outputs: [fit_parameters, residual_plot]
+```
 
 ### ID conventions
 
@@ -751,10 +876,19 @@ The reserved names prevent ambiguity in narrative anchors and path references.
 
 ASTRA is defined in LinkML. The source schema files live in `src/astra/schema/` and generate datamodels and validation artifacts for multiple ecosystems.
 
+Generated artifacts:
+
+| Artifact | Purpose |
+|---|---|
+| [LinkML YAML](schema/astra.yaml) | Merged source schema definition. |
+| [JSON Schema](schema/astra.schema.json) | YAML/JSON validation artifact. |
+| [JSON-LD Context](schema/astra.context.jsonld) | Linked-data context. |
+| Python datamodels | Generated classes distributed with the package. |
+
 | File | Defines |
 |---|---|
 | `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `Recipe`, `Resources`, narrative structure, and cross-scope aliases. |
-| `universe.yaml` | `Universe`, `UniverseNode`, and decision selections. |
-| `insight.yaml` | `Insight`, `Evidence`, quote selectors, fragment selectors, and insight collections. |
+| `universe.yaml` | `Universe`, `UniverseNode`, `DecisionSelection`, and decision selections. |
+| `insight.yaml` | `Insight`, `Evidence`, `InsightCollection`, quote selectors, and fragment selectors. |
 
 Generated Python datamodels are distributed with the package. The documentation site also includes the [auto-generated schema reference](elements/index.md) for exact class and slot details.
