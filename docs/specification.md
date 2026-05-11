@@ -1,539 +1,277 @@
-# ASTRA Format Specification
+# The ASTRA Specification Explained
 
-> **Version**: draft \
-> **Status**: Active Development
+> **Version**: draft  
+> **Status**: active development
 
-## Abstract
+The formal ASTRA schema is the source of truth, but a schema is not the easiest place to learn the format. This page is a soft landing for readers who want to understand what an `astra.yaml` file means before looking at the generated LinkML reference. It introduces the main building blocks, shows a minimal document, grows that document piece by piece, and ends with a compact field reference.
 
-**ASTRA** (Agentic Schema for Transparent Research Analysis) is a declarative YAML format for specifying scientific analyses. An ASTRA file describes *what* an analysis needs (inputs), *what* it should produce (outputs), and *what* choices are involved (decisions) — without prescribing *how* to execute the computation.
+ASTRA documents are written for two audiences at the same time. Humans should be able to inspect the file and understand the scientific design of the analysis. Tools and AI agents should be able to parse the same file and know which inputs, outputs, decisions, options, constraints, and evidence links they are allowed to rely on.
 
-AI agents read the specification and generate implementations. The format captures the full decision space (the **multiverse**) so that every analytical choice is transparent, traceable, and reproducible.
+## What an ASTRA document describes
 
+An ASTRA document describes a scientific analysis, not merely a program. A program says what to execute. An ASTRA analysis says what the computation is meant to establish, which artifacts matter, which choices shape those artifacts, and how a reader can trace claims back to evidence.
+
+The central object is an **Analysis**. A typical analysis is stored in `astra.yaml` and declares:
+
+| Section | Question it answers |
+|---|---|
+| `narrative` | How should a scientist understand the purpose, methods, inputs, outputs, and findings? |
+| `inputs` | What data or prior analyses does this analysis consume? |
+| `outputs` | What metrics, figures, tables, data products, or reports does it produce? |
+| `decisions` | Which methodological choice points shape the outputs? |
+| `prior_insights` | Which existing claims or sources inform the analysis? |
+| `findings` | What claims does this analysis make after its outputs are produced? |
+| `analyses` | Which nested sub-analyses make up a larger analysis tree? |
+
+The point of the structure is to make the analysis reviewable. A reader can start at a figure or metric, follow it to the decisions that parameterized it, inspect the options that were available, and then descend to the recipe or evidence when more detail is needed.
+
+## Syntax
+
+ASTRA analyses are written in YAML. The entry document is conventionally named `astra.yaml`.
+
+YAML represents mappings, lists, strings, numbers, booleans, and nested objects. Indentation matters. Field names are case-sensitive, so `decisions` and `Decisions` are different fields. Comments begin with `#` and are ignored by parsers.
+
+```yaml
+# A mapping from field names to values
+name: Example Analysis
+version: "1.0"
+
+# A list of objects
+inputs:
+  - id: raw_data
+    type: data
+    source: data/raw.csv
 ```
-Analysis (YAML)  ─────▶  Agent  ─────▶  Implementation  ─────▶  Results
-  inputs                                   scripts/               metrics
-  outputs                                  pipelines/             figures
-  decisions                                                       tables
-      ▲                                                              │
-      └──────────────── previous analyses (as inputs) ───────────────┘
 
-Universe (decision selections)  ─────▶  Execution Parameters
-```
+Most examples in this guide use ellipses (`...`) to indicate omitted content. Ellipses are not part of the ASTRA format.
 
-## Design principles
+## Minimal ASTRA document
 
-| | |
-|--|--|
-| **Declarative** | The spec says *what*, not *how*. Execution is the agent's job. |
-| **Self-similar** | Every node has the same shape; a sub-analysis is a valid analysis. |
-| **Transparent** | All decisions and alternatives are documented, including rejected options. |
-| **Evidence-linked** | Decisions cite supporting evidence from papers or artifacts. |
-| **Composable** | Outputs of one analysis become inputs of another. |
-| **Reproducible** | Precise provenance with W3C-compliant source references. |
-
-## Non-Goals
-
-- **Workflow execution** — ASTRA does not define execution order, scheduling, or runtime behavior. That is the domain of agents.
-- **Code generation** — The specification does not contain or generate implementation code.
-- **Data storage** — ASTRA references data sources but does not store data.
-- **Visualization** — Rendering and display are handled by separate tools.
-
-## Terminology
-
-| Term | Definition |
-|------|-----------|
-| **Analysis** | A self-similar node with inputs, outputs, decisions, prior insights, findings, and optional sub-analyses |
-| **Decision** | A choice point with multiple options (e.g., "which scaling method?") |
-| **Option** | One possible choice for a decision |
-| **Universe** | One complete set of decisions — one option selected per decision point |
-| **Multiverse** | The space of all valid decision combinations |
-| **Prior Insight** | A scientific claim backed by verifiable evidence from literature that informs decisions |
-| **Finding** | A conclusion derived from the analysis outputs, framed in terms of the analysis aims |
-| **Evidence** | A reference to a specific quote or location in a paper or analysis artifact |
-| **Recipe** | An inline build rule on an output declaring how to produce it |
-| **Constraint** | A rule between options: `incompatible_with` or `requires` |
-
----
-
-## Core Specification
-
-### File Format
-
-ASTRA analyses are written in YAML. The top-level file is typically named `astra.yaml`.
-
-The schema is defined in [LinkML](https://linkml.io) and generates bindings for Python, TypeScript, JSON Schema, JSON-LD, and more. See [Schema Artifacts](#schema-artifacts) for available formats.
-
-### Minimal Example
+A minimal useful ASTRA document names the analysis, declares at least one input, declares at least one output, and declares the decisions that affect that output.
 
 ```yaml
 version: "1.0"
 name: Iris Classification
 
+narrative:
+  summary: |
+    Train a classifier for the Iris dataset.
+  methods: |
+    The [model](#decisions.model) decision selects the classifier.
+  inputs: |
+    The [iris_data](#inputs.iris_data) input provides the dataset.
+  outputs: |
+    The [accuracy](#outputs.accuracy) output reports held-out performance.
+
 inputs:
   - id: iris_data
     type: data
     source: sklearn.datasets.load_iris
+    description: Fisher's classic 150-sample, 3-class dataset.
 
 outputs:
   - id: accuracy
     type: metric
+    description: Classification accuracy on a held-out test set.
+    inputs: [iris_data]
+    decisions: [model]
+    recipe:
+      command: >-
+        python src/evaluate.py
+        --data {inputs.iris_data}
+        --model {decisions.model}
+        --out {output}
 
 decisions:
-  scaling:
-    label: Feature Scaling
-    default: standard
+  model:
+    label: Classification model
+    rationale: The algorithm determines the hypothesis class being tested.
+    default: random_forest
     options:
-      none:
-        label: No Scaling
-      standard:
-        label: StandardScaler
+      random_forest:
+        label: Random forest
+      svm:
+        label: Support vector machine
 ```
 
-### Full Example
+This example is small, but it already shows the ASTRA contract. The `accuracy` output is not just a name. It declares that it depends on `iris_data`, that it is parameterized by `model`, and that the recipe may only refer to the declared input and declared decision. The validator can therefore reject a command that silently uses an undeclared decision.
+
+## Reading the example from top to bottom
+
+### Metadata
 
 ```yaml
 version: "1.0"
-name: Iris Classification Study
+name: Iris Classification
+```
+
+The `version` field records the ASTRA schema version the document expects. The `name` field gives the analysis a human-readable title. Real projects usually also include `id`, `authors`, `tags`, and sometimes a node-level `container` used as the default execution environment for recipes.
+
+### Narrative
+
+```yaml
 narrative:
   summary: |
-    A demonstration analysis that builds a classifier for the classic
-    Iris dataset, exploring different preprocessing and model choices.
+    Train a classifier for the Iris dataset.
   methods: |
-    Compare StandardScaler, MinMaxScaler, and no scaling across
-    SVM, random forest, and logistic regression. See the
-    [scaling decision](#decisions.scaling) and the
-    [model decision](#decisions.model).
-authors:
-  - ASTRA Examples
-tags:
-  - classification
-  - sklearn
+    The [model](#decisions.model) decision selects the classifier.
+  inputs: |
+    The [iris_data](#inputs.iris_data) input provides the dataset.
+  outputs: |
+    The [accuracy](#outputs.accuracy) output reports held-out performance.
+```
 
+The `narrative` block is prose with stable anchors. It gives the analysis-level explanation that a paper, report, or review tool can render. The structured fields below it provide the machine-readable record. The two should agree: the prose tells the story, and the structured objects give tools something precise to validate.
+
+ASTRA defines five narrative sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. They are optional in the raw schema, but `astra validate` conditionally requires prose when the corresponding structured data exists. If an analysis declares `inputs`, it should explain them in `narrative.inputs`; if it declares `outputs`, it should explain them in `narrative.outputs`; if it declares `decisions` or nested `analyses`, it should explain them in `narrative.methods`; if it declares structured `findings`, it should explain them in `narrative.findings`.
+
+### Inputs
+
+```yaml
 inputs:
   - id: iris_data
     type: data
     source: sklearn.datasets.load_iris
-    description: "Fisher's classic 150-sample, 3-class dataset"
-
-  - id: preprocessing_study
-    type: analysis
-    ref: analyses/scaling_comparison_2024
-    description: Our previous study on scaling methods
-
-outputs:
-  - id: trained_output
-    type: data
-    description: Best performing classifier
-    decisions: [scaling, model]
-    recipe:
-      command: python src/train.py
-
-  - id: accuracy
-    type: metric
-    description: Classification accuracy on held-out test set
-    inputs: [trained_output]
-    decisions: [scaling, model]
-    recipe:
-      command: python src/evaluate.py
-
-  - id: confusion_matrix
-    type: figure
-    description: Confusion matrix heatmap
-    inputs: [trained_output]
-    decisions: [scaling, model]
-    recipe:
-      command: python src/evaluate.py
-
-decisions:
-  scaling:
-    label: Feature Scaling
-    rationale: Scaling affects distance-based algorithms like SVM
-    default: standard
-    options:
-      none:
-        label: No Scaling
-        description: Use raw feature values
-      standard:
-        label: StandardScaler
-        description: Z-score normalization (mean=0, std=1)
-      minmax:
-        label: MinMaxScaler
-        description: Scale to [0, 1] range
-        incompatible_with:
-          - model.svm
-
-  model:
-    label: Classification Model
-    rationale: Core algorithmic choice affecting accuracy and interpretability
-    default: random_forest
-    options:
-      svm:
-        label: Support Vector Machine
-        description: Maximum margin classifier
-        requires:
-          - scaling.standard
-      random_forest:
-        label: Random Forest
-        description: Ensemble of decision trees
-      logistic:
-        label: Logistic Regression
-        description: Linear classifier with probabilistic output
+    description: Fisher's classic 150-sample, 3-class dataset.
 ```
 
----
+An input is something the analysis consumes. It can be a dataset, a file, an external resource, or the outputs of another ASTRA analysis. The `id` is the local name used by outputs and recipes. The `type` says whether the input is raw `data` or an external `analysis`. The `source` field usually points to a path, URI, loader name, or other data locator.
 
-## Analysis Schema
-
-The `Analysis` is the root type. Every field marked *optional* can be omitted.
-
-### Document Metadata
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | No | Analysis identifier (used as key when nested as sub-analysis) |
-| `version` | `string` | No | ASTRA spec version (semver: `"1.0"`, `"1.0.0"`) |
-| `name` | `string` | No | Human-readable name |
-| `narrative` | `Narrative` | No | Structured prose split into five sections (see [Narrative](#narrative)) |
-| `authors` | `string[]` | No | List of authors |
-| `tags` | `string[]` | No | Tags for categorization |
-
-**Version format**: `^\d+\.\d+(\.\d+)?$`
-
-### Narrative
-
-`narrative` is a structured prose field organized into five Markdown sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. The sections give renderers reliable anchors to build navigation around (a card strip per section, a table of contents, breadcrumbs) without the schema committing to any single document shape — slide decks, memos, and agent prompts render the same five sections differently.
-
-All sections are schema-optional, but `astra validate` applies a **conditional requirement**: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.
-
-- `findings` required when `Analysis.findings` has entries.
-- `methods` required when `Analysis.decisions` or `Analysis.analyses` has entries.
-- `inputs` required when `Analysis.inputs` has entries.
-- `outputs` required when `Analysis.outputs` has entries.
-- `summary` is always optional (no structured counterpart).
-
-Authors narrate what they declare; stub analyses with only a `summary` stay clean.
-
-```yaml
-narrative:
-  summary: |
-    One-paragraph overview of the analysis.
-  findings: |
-    Prose that frames the structured findings (see Analysis.findings).
-  methods: |
-    Methodology write-up. References decisions and sub-analyses.
-  inputs: |
-    Prose that frames the structured inputs.
-  outputs: |
-    Prose that frames the expected outputs.
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `summary` | `string` | No | High-level overview — question, scope, orientation. |
-| `findings` | `string` | No | Prose framing `Analysis.findings` (structured `Insight`s). |
-| `methods` | `string` | No | Methodology, decisions, sub-analyses. |
-| `inputs` | `string` | No | Prose framing `Analysis.inputs`. |
-| `outputs` | `string` | No | Prose framing `Analysis.outputs`. |
-
-Per-element prose (what each `Input`, `Output`, `Decision`, `Option`, or `Insight` is and why it matters) lives on those elements' own `description` / `rationale` / `notes` fields. `narrative` is for the analysis-level story that weaves those pieces together.
-
-**Internal anchor references.** Inside any section you can link to other elements of the analysis with standard Markdown link syntax and a `#` target. References may appear in any section — coverage is resolved across the whole narrative, not per-section:
-
-```markdown
-See the [scaling decision](#decisions.scaling) for rationale.
-The [best_model finding](#findings.best_model) summarizes our
-recommendation.
-```
-
-The anchor grammar is **tree-path-first**, matching ASTRA's [`from:` path grammar](#bridges) — `../` to escape upward, `name.subname` to descend. Sub-analyses are traversed before the category:
-
-| Target | Anchor |
-|--------|--------|
-| Input | `#inputs.<id>` |
-| Output | `#outputs.<id>` |
-| Decision | `#decisions.<id>` |
-| Option within a decision | `#decisions.<id>.options.<id>` |
-| Finding | `#findings.<id>` |
-| Prior insight | `#prior_insights.<id>` |
-| Sub-analysis (whole node) | `#analyses.<sub>` |
-| Element inside sub-analysis | `#<sub>.<category>.<id>` (e.g. `#preprocessing.decisions.scaling`) |
-
-References are interpreted **relative to the hosting analysis**. Prefix with `../` to escape to a parent scope (one or more levels), matching the `from:` path grammar:
-
-```markdown
-See [parent scaling](#../decisions.scaling).
-```
-
-Anchor resolution is a renderer concern at render time, but the ASTRA tooling validates anchors during `astra validate`: broken references are errors, and missing coverage (a declared finding, decision, output, or sub-analysis not cited anywhere in the tree's narrative) is a warning.
-
-
-
-### Inputs
-
-Each input declares a data source, a reference to another analysis, or — inside a sub-analysis — an alias for an upstream artifact via `from`.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | **Yes** | Unique identifier |
-| `label` | `string` | No | Short human-readable name for compact rendering |
-| `type` | `"data"` \| `"analysis"` | **Yes** when `from` unset | Kind of input |
-| `description` | `string` | No | What this input is |
-| `source` | `string` | No | URI or path (for `type: data`) |
-| `ref` | `string` | No | Reference to another ASTRA analysis (for `type: analysis`) |
-| `ref_version` | `string` | No | Version of referenced analysis |
-| `use_outputs` | `string[]` | No | Specific outputs to use from referenced analysis |
-| `from` | `string` | No | Path-aliased upstream artifact — see [Bridges](#bridges) |
-
-**ID pattern**: `^[a-z][a-z0-9_]*$` (lowercase, underscores, starts with letter), with reserved category names excluded — see [Reserved IDs](#reserved-ids).
-
-**Aliasing with `from`**: When `from` is set, the Input is a pure pointer — only `id` and `from` may be declared; `type`, `description`, `source`, etc. are inherited from the source. See [Bridges](#bridges) for the path grammar.
-
-### Reserved IDs
-
-The following names cannot be used as identifiers for any analysis entity (sub-analyses, decisions, options, inputs, outputs, findings, prior insights, evidence, insights):
-
-```
-inputs   outputs   decisions   findings   prior_insights
-analyses options   content     narrative
-```
-
-These collide with reserved keywords in the narrative anchor grammar. For example, naming a sub-analysis `decisions` would make `[link](#decisions.foo)` ambiguous — it could mean "root decision `foo`" or "decision `foo` inside the sub-analysis named `decisions`" — so the spec rejects them up front.
+Inputs are intentionally descriptive rather than prescriptive. ASTRA does not store the data. It records enough information for humans and tools to know what the analysis claims to consume.
 
 ### Outputs
 
-Each output is either produced locally (with `inputs`, `decisions`, `recipe`) or re-exported from a sub-analysis via `from`.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | **Yes** | Unique identifier |
-| `label` | `string` | No | Short human-readable name for compact rendering |
-| `type` | `"metric"` \| `"figure"` \| `"table"` \| `"data"` \| `"report"` | **Yes** when `from` unset | Kind of output |
-| `description` | `string` | No | What this output is |
-| `from` | `string` | No | Path-aliased sub-analysis output — see [Bridges](#bridges) |
-| `when` | `string[]` | No | Conditions for when this output is active (see [Conditional Elements](#conditional-elements)) |
-| `inputs` | `string[]` | No | Upstream artifact IDs this output depends on (Inputs or sibling Outputs) |
-| `decisions` | `string[]` | No | Decision IDs (in scope) that parameterize this output — declares the provenance contract |
-| `recipe` | `Recipe` | No | Inline build rule (pure *how*; dependencies live on the Output) |
-
-**Aliasing with `from`**: When `from` is set, the Output is a pure re-export — only `id`, `from`, and `when` may be declared; `type`, `description`, `inputs`, `decisions`, and `recipe` are inherited from the source. See [Bridges](#bridges).
-
-**Output types**:
-
-| Type | Purpose | Example |
-|------|---------|---------|
-| `metric` | Numeric or categorical value | Accuracy, p-value, AUC |
-| `figure` | Visualization | Confusion matrix, ROC curve |
-| `table` | Structured tabular data | Feature importances |
-| `data` | Processed data files | Predictions, models |
-| `report` | Text/document output | Summary, conclusion |
-
-### Recipes
-
-A `Recipe` is an inline build rule on an Output. ASTRA is asset-centric: the *Output* declares what it depends on (`inputs`, `decisions`) and when it's active (`when`). The recipe is pure *how* — a POSIX shell command plus the execution context. It does not redeclare provenance.
-
-Runners materialize the upstream inputs, surface the resolved input map and active decision values to the recipe (`{inputs.<id>}` template substitution, env vars, sidecar JSON — runner's choice), and invoke the command.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `command` | `string` | **Yes** | POSIX shell command (e.g., `python src/train.py`, `Rscript analysis.R`) |
-| `resources` | `Resources` | No | Compute requirements |
-| `container` | `string` | No | Container image name or path to a Containerfile |
-
-**Resources** (cloud-native conventions):
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `cpus` | `number` | CPU cores (fractional values allowed for runners that support shares) |
-| `memory` | `string` | Memory with units (e.g., `"16Gi"`, `"512Mi"`, `"8GB"`) |
-| `time_limit` | `string` | Wall-time duration (e.g., `"2h"`, `"30m"`, `"1h30m"`) |
-| `disk` | `string` | Disk with units (e.g., `"10Gi"`) |
-| `gpus` | `integer` | Number of GPUs (min: 1) |
-
-#### Command template substitution
-
-The `command:` string is a template. Runners substitute `{...}` placeholders before invoking it. The substitution surface is *typed* by the Output's declarations: every `{inputs.<id>}` and `{decisions.<id>}` placeholder must name something the parent Output has declared in `Output.inputs` or `Output.decisions`. The implicit `{output}` and the bare `{inputs}` are always available.
-
-| Placeholder | Resolves to | Source |
-|---|---|---|
-| `{inputs.<id>}` | Path to the named upstream input | `Output.inputs` |
-| `{inputs}` | Space-separated paths to all declared inputs (declaration order) | — |
-| `{decisions.<id>}` | Active option ID for the named decision in the current universe | `Output.decisions` |
-| `{output}` | Path the artifact will be written to | — |
-| `{{` / `}}` | Literal `{` / `}` | — |
-
-Validators reject unresolved or undeclared references. Runners choose the on-disk path convention (e.g., per-universe directory layouts) and the delivery channel for non-string forms.
-
-Placeholders always use **local IDs** in the surrounding scope. When an input or decision is aliased from another scope (via [`from:`](#bridges)), the recipe template still names it by its local id; the runner walks the `from:` chain to resolve the source. Recipes never use `../` syntax — bridging is declared once at the `Input`/`Decision`, not in the template.
-
-Static constants (e.g., a fixed `--max-iter 1000`) belong inline in the command string. There is no separate `params` channel because varying values are decisions and constants are just command text.
-
-**Example:**
-
 ```yaml
-- id: predictions
-  type: data
-  inputs: [training_data, features]
-  decisions: [classifier, seed]
-  recipe:
-    command: >-
-      python src/classify.py
-      --train {inputs.training_data}
-      --features {inputs.features}
-      --classifier {decisions.classifier}
-      --seed {decisions.seed}
-      --max-iter 1000
-      --out {output}
-    container: ghcr.io/lightcone/sklearn:latest
-    resources:
-      cpus: 4
-      memory: "8Gi"
-      time_limit: "30m"
+outputs:
+  - id: accuracy
+    type: metric
+    description: Classification accuracy on a held-out test set.
+    inputs: [iris_data]
+    decisions: [model]
+    recipe:
+      command: >-
+        python src/evaluate.py
+        --data {inputs.iris_data}
+        --model {decisions.model}
+        --out {output}
 ```
 
-A runner materializes `training_data` and `features` (giving each a concrete on-disk path), picks an output path, expands the template, and invokes the command. With `classifier=svm` and `seed=seed_42` selected and paths chosen by the runner, the rendered command might be:
+An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. The important design choice is that provenance lives on the output. `inputs` names the upstream artifacts required to produce it. `decisions` names the methodological choices that parameterize it. `recipe` gives a command a runner can invoke, but the recipe is not allowed to invent hidden dependencies.
 
-```
-python src/classify.py \
-  --train /work/u_baseline/training_data.parquet \
-  --features /work/u_baseline/features.parquet \
-  --classifier svm \
-  --seed seed_42 \
-  --max-iter 1000 \
-  --out /work/u_baseline/predictions.parquet
-```
-
-Decision placeholders resolve to the **option ID** (constrained by the [ID pattern](#id-conventions) — lowercase, starts with a letter). If a script needs a numeric seed, the recipe author either maps `seed_42 → 42` inside the script or picks option IDs that are usable verbatim. On-disk path conventions and the delivery channel for non-string forms are entirely the runner's choice.
-
-A node-level `container` field on the Analysis sets the default container for all recipes in that node. Individual recipes can override it. Image names (e.g., `python:3.9`, `ghcr.io/org/img:latest`) are pulled as pre-built images; file paths (e.g., `Containerfile`, `containers/Dockerfile`) are built from source.
+This makes the output a reviewable unit. A reader can ask, “What would have to change for this number to change?” and the ASTRA file points to the input data and decision values that matter.
 
 ### Decisions
 
-Decisions are the core of the multiverse. Each decision is a named choice point with multiple options, or — inside a sub-analysis — a pure alias for an ancestor decision via `from`.
+```yaml
+decisions:
+  model:
+    label: Classification model
+    rationale: The algorithm determines the hypothesis class being tested.
+    default: random_forest
+    options:
+      random_forest:
+        label: Random forest
+      svm:
+        label: Support vector machine
+```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `label` | `string` | **Yes** when `from` unset | Human-readable name |
-| `rationale` | `string` | No | Why this decision exists |
-| `tags` | `string[]` | No | Grouping/categorization tags |
-| `when` | `string[]` | No | Conditions for when this decision is active (see [Conditional Elements](#conditional-elements)) |
-| `default` | `string` | No | Default option ID for baseline universes |
-| `options` | `map[string, Option]` | **Yes** when `from` unset | Available choices |
-| `from` | `string` | No | Path-aliased ancestor decision — see [Bridges](#bridges) |
+A decision is a named methodological choice point. Each decision contains options. The decision says what has to be chosen; the options say what could be chosen.
 
-When `from` is set, the Decision is a pure reference — only `id`, `from`, and `when` may be declared; `label`, `options`, `default`, `rationale`, and `tags` are inherited from the ancestor.
+Decisions are the core of ASTRA because scientific analyses are rarely defined by code alone. They are defined by defensible choices: which sample cut, which model, which prior, which coordinate transform, which null hypothesis, which feature engineering step. ASTRA gives those choices first-class names so they can be reviewed, constrained, varied, and attached to outputs.
+
+## Building up the specification
+
+The minimal document above is enough to explain the basic shape. The rest of the specification adds structure that becomes important in real analyses: multiple choices, constraints between options, conditional outputs, evidence-backed claims, and nested sub-analyses.
 
 ### Options
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `label` | `string` | **Yes** | Human-readable name |
-| `description` | `string` | No | Detailed description |
-| `insights` | `string[]` | No | Insight IDs supporting this choice |
-| `incompatible_with` | `string[]` | No | Options that conflict (format: `"decision.option"`) |
-| `requires` | `string[]` | No | Options that must coexist (format: `"decision.option"`) |
-| `excluded` | `boolean` | No | Whether this option was considered and rejected (default: `false`) |
-| `excluded_reason` | `string` | No | Why this option was excluded |
-
-**Constraint reference format**: `"decision_id.option_id"` — constraints are scoped within the same analysis node.
-
-### Sub-Analyses
-
-The `analyses` field contains a map of sub-analysis IDs to nested `Analysis` objects. Each sub-analysis has the exact same structure as the root — the format is fully self-similar.
+Options live inside decisions. An option can have a label, description, notes, constraints, linked insights, and exclusion metadata.
 
 ```yaml
-analyses:
-  feature_extraction:
-    description: Learn a compact representation of the raw features
-    inputs:
-      - id: raw_features
-        from: ../iris_data                 # Parent input (aliased)
-    outputs:
-      - id: features
-        type: data
-        decisions: [method, seed]
-        recipe:
-          command: python src/extract_features.py
-    decisions:
-      seed:
-        from: ../random_seed               # Parent decision (aliased)
-
-      method:
-        label: Extraction Method
-        default: pca
-        options:
-          pca:
-            label: PCA
-          mlp_encoder:
-            label: MLP Encoder
-
-  classification:
-    description: Train a classifier on extracted features
-    inputs:
-      - id: features
-        from: ../feature_extraction.features  # Sibling sub's output (aliased)
-    outputs:
-      - id: accuracy
-        type: metric
-        decisions: [classifier]
-        recipe:
-          command: python src/evaluate.py
-          resources:
-            cpus: 4
-            memory: "32Gi"
-            time_limit: "1h"
-            gpus: 1
-    decisions:
-      classifier:
-        label: Classifier
-        default: logistic
-        options:
-          logistic:
-            label: Logistic Regression
-          svm:
-            label: SVM (RBF)
+decisions:
+  scaling:
+    label: Feature scaling
+    rationale: Scaling affects distance-based algorithms.
+    default: standard
+    options:
+      none:
+        label: No scaling
+        description: Use raw feature values.
+      standard:
+        label: StandardScaler
+        description: Z-score normalize each feature.
+      minmax:
+        label: MinMaxScaler
+        description: Scale each feature to [0, 1].
 ```
 
----
+The `default` option is the baseline selection used by tools that generate a default universe. Defaults should be boring and defensible, not necessarily optimal.
 
-## Universe Schema
+### Constraints between options
 
-A **universe** is one complete set of decisions — one option selected per decision point. It mirrors the analysis tree structure, using a compact dict format where each key is a decision ID and each value is the selected option ID.
+Some option combinations are invalid. ASTRA supports two local constraint types: `requires` and `incompatible_with`. Constraint references use `decision_id.option_id`.
 
-### Fields
+```yaml
+decisions:
+  scaling:
+    label: Feature scaling
+    default: standard
+    options:
+      none:
+        label: No scaling
+      standard:
+        label: StandardScaler
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | **Yes** | Unique identifier |
-| `description` | `string` | No | What this universe represents |
-| `decisions` | `map[string, string]` | No | Decision ID → selected option ID (root level) |
-| `analyses` | `map[string, UniverseNode]` | No | Sub-analysis selections |
+  model:
+    label: Classification model
+    default: random_forest
+    options:
+      random_forest:
+        label: Random forest
+      svm:
+        label: Support vector machine
+        requires:
+          - scaling.standard
+```
 
-**Universe ID pattern**: `^[a-z][a-z0-9_-]*$` (also allows hyphens)
+Here, selecting `model.svm` requires `scaling.standard`. A universe that selects `model: svm` and `scaling: none` is invalid. This matters because the multiverse of possible analyses is not the raw Cartesian product of every option. It is the set of combinations that survive the declared constraints.
 
-A `UniverseNode` has the same shape: `decisions` and `analyses`, recursively mirroring the analysis tree.
+### Excluded options
 
-### Flat Universe
+A rejected option can still be scientifically important. ASTRA lets authors keep it in the record while marking it as unavailable for valid universes.
+
+```yaml
+options:
+  knn:
+    label: k-nearest neighbors
+    excluded: true
+    excluded_reason: Poor performance on high-dimensional pilot data.
+```
+
+This is useful during review. A reader can see not only what was chosen, but what was considered and why it was rejected.
+
+### Universes
+
+A universe is one complete selection of decision options. If the analysis defines `scaling` and `model`, then a universe chooses one option for `scaling` and one option for `model`.
 
 ```yaml
 id: baseline
-description: Default configuration using standard practices
+description: Default configuration
 
 decisions:
   scaling: standard
   model: random_forest
-  test_size: small
-  random_seed: seed_42
 ```
 
-### Nested Universe
+One analysis can have many universes. A baseline universe might use conventional defaults. A robustness universe might select a different estimator. A stress-test universe might use a more restrictive data cut. Each universe yields one set of outputs under one declared choice configuration.
+
+For nested analyses, the universe mirrors the analysis tree:
 
 ```yaml
 id: baseline
-description: PCA with logistic regression — the simplest sensible pipeline
 
 decisions:
   test_split: twenty_pct
-  random_seed: seed_42
 
 analyses:
   feature_extraction:
@@ -545,227 +283,157 @@ analyses:
       classifier: logistic
 ```
 
----
+### Recipes and command templates
 
-## Prior Insights and Findings
-
-ASTRA distinguishes two kinds of knowledge, both using the same `Insight` model:
-
-- **Prior insights** (`prior_insights:`) — knowledge from literature or prior artifacts that informs decisions.
-- **Findings** (`findings:`) — conclusions derived from running the analysis, backed by output artifacts.
-
-Both use `evidence` to ground the claim. The placement determines direction; the model is the same.
-
-### Insight (shared model)
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | **Yes** | Unique identifier |
-| `label` | `string` | No | Short human-readable name for compact rendering |
-| `claim` | `string` | **Yes** | What we learned (1-2 sentences) |
-| `created_at` | `datetime` | **Yes** | ISO 8601 timestamp |
-| `evidence` | `Evidence[]` | **Yes** | Supporting evidence (at least one) |
-| `derived` | `boolean` | No | Whether synthesized/inferred (default: `false`) |
-| `scope` | `string` | No | Applicability conditions |
-| `tags` | `string[]` | No | Categorization tags |
-| `notes` | `string` | No | Reasoning notes |
-
-### Evidence
-
-Each evidence item references either a paper (by DOI) or an analysis output artifact (by output ID). Exactly one source type must be set. Literature evidence requires a text quote for verifiability.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `string` | **Yes** | Evidence ID |
-| `doi` | `string` | **Exactly one of `doi` or `artifact`** | DOI of source paper |
-| `artifact` | `string` | **Exactly one of `doi` or `artifact`** | Output ID of a declared analysis output |
-| `version` | `integer` | No | Paper version (arXiv; literature only) |
-| `snapshot` | `string` | No | Path to immutable artifact copy (artifact only) |
-| `source_commit` | `string` | No | Git commit that produced artifact (artifact only) |
-| `quote` | `TextQuoteSelector` | No | Text quote anchor |
-| `location` | `FragmentSelector` | No | Location hint (page number) |
-
-**DOI pattern**: `^10\.\d{4,}/.*$`
-
-### W3C Selectors
-
-Evidence uses [W3C Web Annotation](https://www.w3.org/TR/annotation-model/) compliant selectors for precise references.
-
-**TextQuoteSelector** — Locates a text passage in a document:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `exact` | `string` | **Yes** | Exact quoted text (1-3 sentences) |
-| `prefix` | `string` | No | ~20-100 chars before the quote |
-| `suffix` | `string` | No | ~20-100 chars after the quote |
-
-**FragmentSelector** — PDF location hint:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `value` | `string` | No | Fragment (e.g., `"page=6"`) |
-| `page` | `integer` | No | 1-indexed page number |
-
-### Example
+A recipe is an inline build rule attached to an output. It describes how to produce that output once a runner has materialized inputs and selected decision values.
 
 ```yaml
-prior_insights:
-  compute_scaling:
-    id: compute_scaling
-    claim: >-
-      Neural networks achieve state-of-the-art photo-z performance
-      on LSST-like photometry.
-    created_at: "2025-06-15T10:30:00Z"
-    evidence:
-      - id: ev_nn_paper
-        doi: "10.48550/arXiv.2301.12345"
-        version: 2
-        quote:
-          exact: >-
-            FlexZBoost achieves a normalized median absolute deviation
-            of 0.018 on the test set.
-          prefix: "Results section."
-        location:
-          value: page=8
-          page: 8
-    scope: "LSST-like photometry with neural networks"
-    tags: [machine-learning]
-
-findings:
-  pipeline_result:
-    id: pipeline_result
-    claim: The pipeline achieves target bias with the neural network method.
-    created_at: "2025-08-20T16:45:00Z"
-    evidence:
-      - id: ev_bias_artifact
-        artifact: bias_metric
-        quote:
-          exact: "bias = 0.0021 +/- 0.0003"
-    derived: true
-
-decisions:
-  method:
-    label: Redshift estimation method
-    options:
-      neural_net:
-        label: Neural network
-        insights:
-          - compute_scaling        # Links decision to prior insight
+outputs:
+  - id: predictions
+    type: data
+    inputs: [training_data, features]
+    decisions: [classifier, seed]
+    recipe:
+      command: >-
+        python src/classify.py
+        --train {inputs.training_data}
+        --features {inputs.features}
+        --classifier {decisions.classifier}
+        --seed {decisions.seed}
+        --out {output}
+      container: ghcr.io/lightcone/sklearn:latest
+      resources:
+        cpus: 4
+        memory: "8Gi"
+        time_limit: "30m"
 ```
 
-The chain **decision option** → **prior insight** → **evidence** → **paper (DOI)** provides end-to-end traceability from analytical choice to published literature. The chain **finding** → **evidence** → **output artifact** captures what was learned from running the analysis.
+The key rule is that every placeholder must be declared on the parent output. `{inputs.training_data}` is legal only because `training_data` appears in `Output.inputs`. `{decisions.classifier}` is legal only because `classifier` appears in `Output.decisions`. The validator rejects undeclared template references.
 
----
+Recipes are intentionally thin. ASTRA does not define scheduling, caching, retries, cluster submission, or path layout. Those are runner responsibilities. ASTRA defines the provenance contract that a runner must respect.
 
-## Constraints
+### Conditional elements
 
-Options can declare two kinds of constraints, scoped within the same analysis node:
-
-### `incompatible_with`
-
-Options that cannot coexist in the same universe:
-
-```yaml
-decisions:
-  scaling:
-    options:
-      minmax:
-        label: MinMaxScaler
-        incompatible_with:
-          - model.svm          # MinMax and SVM cannot be selected together
-```
-
-### `requires`
-
-Options that must coexist in the same universe:
+The `when` field makes an output or decision active only under certain selections. Conditions use `decision.option`; prefix with `~` for negation. Multiple conditions are ANDed together.
 
 ```yaml
 decisions:
   model:
+    label: Model
+    default: neural_net
     options:
-      svm:
-        label: SVM
-        requires:
-          - scaling.standard   # SVM requires standard scaling
+      neural_net: { label: Neural network }
+      svm: { label: Support vector machine }
+
+  optimizer:
+    label: Optimizer
+    when:
+      - model.neural_net
+    default: adam
+    options:
+      adam: { label: Adam }
+      sgd: { label: SGD }
+
+outputs:
+  - id: training_curve
+    type: figure
+    when:
+      - model.neural_net
+    recipe:
+      command: python src/plot_training_curve.py --out {output}
 ```
 
-Constraint references use the format `decision_id.option_id`. Universe validation rejects any selection that violates these constraints.
+Conditional structure keeps the record honest when some parts of an analysis only exist for particular methods. A neural-network optimizer should not be forced into an SVM universe.
 
----
+### Prior insights, findings, and evidence
 
-## Bridges
+ASTRA separates two kinds of scientific claims. A `prior_insight` is a claim imported from previous literature or earlier work and used to justify choices. A `finding` is a claim produced by the current analysis. Both use the shared `Insight` model and can point to evidence.
 
-Each scope (an `Analysis` or sub-analysis) declares its own inputs, outputs, and decisions. Cross-scope linkage happens *only* through the `from:` field on `Input`, `Output`, and `Decision`. Recipe templates and `Output.inputs` / `Output.decisions` always use **local IDs** within the surrounding scope; `from` is the one primitive that crosses a boundary.
+```yaml
+prior_insights:
+  scaling_matters:
+    claim: Distance-based classifiers are sensitive to feature scale.
+    created_at: "2026-05-11T00:00:00Z"
+    evidence:
+      - id: ev_scaling_reference
+        doi: "10.48550/arXiv.1706.03762"
+        quote:
+          exact: "Distance-based classifiers are sensitive to feature scale."
 
-### `from` is a pure alias
+decisions:
+  scaling:
+    label: Feature scaling
+    rationale: Scaling affects distance-based algorithms.
+    options:
+      standard:
+        label: StandardScaler
+        insights: [scaling_matters]
 
-When `from` is set on any node, the node is a pointer. Only `id` and (where applicable) `when` may be declared alongside it. All content fields — `type`, `description`, `label`, `source`, `options`, `default`, `recipe`, etc. — are inherited from the source. Renaming, retyping, or redocumenting an artifact happens at exactly one place: its canonical declaration.
+findings:
+  svm_result:
+    claim: The SVM universe achieved the highest held-out accuracy.
+    created_at: "2026-05-11T00:00:00Z"
+    evidence:
+      - id: ev_accuracy_table
+        artifact: accuracy
+        quote:
+          exact: "svm accuracy = 0.97"
+    derived: true
+```
 
-### Path grammar
+Evidence may point to text in a paper, a fragment of a source document, or an artifact produced by the analysis. The intended chain is inspectable: decision option → insight → evidence → source, or finding → evidence → output artifact. With evidence verification enabled, tools can check whether quoted text actually appears in the cited source.
 
-The grammar is uniform across `Input`, `Output`, and `Decision`:
+### Sub-analyses
 
-| Form | Meaning |
-|------|---------|
-| `../id` | escape one scope upward, then `id` |
-| `../../id` | escape two scopes upward, then `id` |
-| `../scope.id` | escape upward, then descend into named child `scope` |
-| `scope.id` | descend from current scope into named child `scope` |
-| `scope.sub.id` | descend through nested children |
-
-`../` always means "up"; bare descent (`name.subname`) always means "into a named subordinate scope." Multiple levels are allowed in either direction.
-
-### Per-slot directions
-
-Each class restricts the legal directions to those that make semantic sense:
-
-| Slot | Legal forms | Meaning |
-|------|-------------|---------|
-| `Input.from` | `../id`, `../../id`, `../scope.out_id` | parent or further-ancestor Input; sibling sub's Output |
-| `Output.from` | `child.out_id`, `child.sub.out_id` | own child sub's Output (re-export); deeper descents allowed |
-| `Decision.from` | `../id`, `../../id` | parent or further-ancestor Decision |
-
-Inputs and Outputs reach into named subordinate scopes for *artifacts* (which can flow up via re-export or laterally between siblings). Decisions only flow downward — to share a decision between siblings, lift it to the common ancestor and have each sub `from:` it.
-
-### Examples
+Large analyses are naturally hierarchical. A simulation may feed a calibration stage, which feeds a summary plot. A data-cleaning stage may be reused by several model comparisons. ASTRA represents this with nested `analyses`.
 
 ```yaml
 analyses:
-  stage_a:
+  feature_extraction:
+    id: feature_extraction
     inputs:
-      - id: raw
-        from: ../survey_catalog            # parent Input
+      - id: raw_features
+        from: ../iris_data
     outputs:
-      - id: processed
+      - id: features
         type: data
+        decisions: [method]
         recipe:
-          command: python src/process.py
-
-  stage_b:
-    inputs:
-      - id: data
-        from: ../stage_a.processed         # sibling sub's Output
-    outputs:
-      - id: result
-        type: metric
-        decisions: [seed]
-        recipe:
-          command: python src/eval.py
+          command: python src/extract_features.py --out {output}
     decisions:
-      seed:
-        from: ../random_seed               # parent Decision
+      method:
+        label: Extraction method
+        default: pca
+        options:
+          pca: { label: PCA }
+          mlp_encoder: { label: MLP encoder }
 ```
+
+A sub-analysis is itself an Analysis. It can have its own narrative, inputs, outputs, decisions, findings, and nested children. This self-similar structure lets authors describe a project at multiple levels of detail without switching formats.
+
+### Bridges with `from`
+
+Each analysis scope has its own local IDs. Cross-scope linkage happens through `from`. A node with `from` is a pure alias: it points to another element and inherits its content.
 
 ```yaml
-# Parent re-exports a sub-analysis output to its own outer scope:
+inputs:
+  - id: raw_features
+    from: ../iris_data
+
 outputs:
   - id: accuracy
-    from: classification.accuracy          # own child's Output
+    from: classification.accuracy
+
+decisions:
+  seed:
+    from: ../random_seed
 ```
 
-### Cross-analysis references (separate from `from`)
+The path grammar is tree-shaped. `../` moves up one scope. Bare names descend into a named child scope. Inputs may point upward or to sibling outputs; outputs may re-export child outputs; decisions flow downward from ancestors into descendants. Recipes still use local IDs. The bridge is declared once in the ASTRA structure rather than repeatedly inside commands.
 
-The `from:` mechanism wires elements *within* a single analysis tree. To consume the outputs of an external analysis as a whole-cloth dependency, declare an Input of `type: analysis`:
+### External analyses
+
+To consume a separate ASTRA analysis as a dependency, declare an input with `type: analysis` and `ref`.
 
 ```yaml
 inputs:
@@ -776,166 +444,317 @@ inputs:
     use_outputs: [best_method, performance_table]
 ```
 
-This is a different operation: `ref` points to an external ASTRA analysis by reference, while `from` aliases an element within the current analysis tree.
+This is different from `from`. `ref` points to an external analysis record. `from` aliases an element inside the current analysis tree.
 
----
+### External sub-analysis files
 
-## Conditional Elements
-
-The `when` field makes decisions or outputs conditional. It accepts a list of conditions in the format `decision_id.option_id` or `~decision_id.option_id` (negated). Multiple conditions are AND'd together.
-
-### Conditional Decisions
-
-A decision that only exists when a specific option is selected elsewhere:
-
-```yaml
-decisions:
-  model:
-    label: Model
-    options:
-      neural_net:
-        label: Neural Network
-      svm:
-        label: SVM
-
-  optimizer:
-    label: Optimizer
-    when:
-      - model.neural_net      # Only exists when neural_net is selected
-    options:
-      adam:
-        label: Adam
-      sgd:
-        label: SGD
-```
-
-### Conditional Outputs
-
-An output that is only produced under certain decision selections:
-
-```yaml
-outputs:
-  - id: scatter_plot
-    type: figure
-    description: Photo-z scatter plot
-    when:
-      - method.neural_net     # Only produced for neural net runs
-    recipe:
-      command: python src/plot_scatter.py
-```
-
-### Negation
-
-Prefix a condition with `~` to negate it:
-
-```yaml
-decisions:
-  fallback_method:
-    label: Fallback Method
-    when:
-      - ~model.neural_net     # Only active when neural_net is NOT selected
-    options:
-      interpolation:
-        label: Linear Interpolation
-```
-
----
-
-## External Sub-Analyses
-
-A sub-analysis can be defined externally by specifying a `path` to a directory containing its own `astra.yaml`:
+A sub-analysis can also live in another directory with its own `astra.yaml`.
 
 ```yaml
 analyses:
   preprocessing:
-    path: stages/preprocessing    # Directory with its own astra.yaml
+    path: stages/preprocessing
 ```
 
-The `path` field is mutually exclusive with inline content fields (`inputs`, `outputs`, `decisions`, etc.). This allows large analyses to be split across multiple files while remaining composable.
+When `path` is set, inline content fields such as `inputs`, `outputs`, and `decisions` are mutually exclusive with it. This allows large projects to keep one conceptual analysis tree while splitting the files into manageable pieces.
 
----
+## Validation model
 
-## Excluded Options
+ASTRA validation is designed to catch both syntax errors and scientific-record errors.
 
-Options can be marked as considered-and-rejected, preserving the decision history:
+| Stage | What it checks |
+|---|---|
+| Schema validation | YAML shape, field types, required fields, enum values, version and DOI patterns. |
+| Semantic validation | Duplicate IDs, default options, constraint references, `from` paths, output dependencies, recipe placeholders, universe selections, and constraint satisfaction. |
+| Narrative validation | Internal Markdown anchors, required narrative sections, and coverage warnings for declared elements not mentioned in prose. |
+| Evidence verification | Optional quote matching against cited PDFs or artifacts. |
 
-```yaml
-options:
-  knn:
-    label: K-nearest Neighbors
-    excluded: true
-    excluded_reason: Poor performance on high-dimensional data
+Run validation with:
+
+```bash
+astra validate astra.yaml
 ```
 
-Excluded options are kept in the specification for transparency but are not valid selections in any universe.
-
----
-
-## Validation
-
-ASTRA provides two-stage validation:
-
-### Stage 1: Schema Validation
-
-Checks that the YAML file conforms to the JSON schema — correct structure, types, required fields, and format patterns.
-
-### Stage 2: Semantic Validation
-
-Checks logical correctness:
-
-- No duplicate IDs within a node
-- Default options exist in their decision's option map
-- Constraint references (`incompatible_with`, `requires`) resolve to valid `decision.option` pairs
-- `from:` paths conform to per-slot direction rules (see [Bridges](#bridges)) and resolve to existing nodes
-- A node with `from:` set has no other content fields (type, description, options, recipe, …)
-- `Output.inputs` references resolve to a declared `Input` or sibling `Output` in the surrounding scope
-- `Output.decisions` references resolve to a declared `Decision` in the surrounding scope
-- Recipe `command` template placeholders (`{inputs.<id>}`, `{decisions.<id>}`) resolve to declarations on the parent Output
-- Universe selections match analysis decisions
-- Universe selections respect all constraints
-
-### Evidence Verification
-
-Optionally, evidence quotes can be verified against source PDFs:
+Evidence verification is opt-in:
 
 ```bash
 astra validate astra.yaml --verify-evidence
 ```
 
-This downloads papers by DOI, extracts text from PDFs, and uses fuzzy matching to locate quoted text. Fabricated quotes fail verification.
+A valid ASTRA file is not a guarantee that the science is correct. It is a guarantee that the record is structured enough for the science to be inspected.
 
 ---
 
-## ID Conventions
+## Field reference
+
+The rest of this page is a compact reference. For generated class-level documentation, see the [schema reference](elements/index.md).
+
+### Analysis
+
+The `Analysis` object is the root of `astra.yaml` and the type used for every sub-analysis.
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `id` | `string` | No | Identifier for this analysis, especially when nested. |
+| `version` | `string` | No | ASTRA schema version, e.g. `"1.0"` or `"1.0.0"`. |
+| `name` | `string` | No | Human-readable analysis name. |
+| `narrative` | `Narrative` | No | Structured prose sections. |
+| `authors` | `string[]` | No | Authors or maintainers of the analysis. |
+| `tags` | `string[]` | No | Free-form categorization tags. |
+| `container` | `string` | No | Default container for recipes in this analysis node. |
+| `inputs` | `Input[]` | No | Data or prior analyses consumed by this analysis. |
+| `outputs` | `Output[]` | No | Artifacts produced or re-exported by this analysis. |
+| `decisions` | map of `Decision` | No | Methodological choice points. |
+| `prior_insights` | map of `Insight` | No | Existing claims used to motivate choices. |
+| `findings` | map of `Insight` | No | Claims produced by this analysis. |
+| `analyses` | map of `Analysis` | No | Nested sub-analyses. |
+| `path` | `string` | No | External directory containing a sub-analysis ASTRA file. |
+
+`path` is for nested analyses only. It is mutually exclusive with inline content fields on that sub-analysis.
+
+### Narrative
+
+`narrative` contains Markdown prose. It lets renderers and review tools present the analysis in a stable order.
+
+| Field | Required by validator when... | Meaning |
+|---|---|---|
+| `summary` | Never required | High-level orientation: question, scope, and purpose. |
+| `findings` | `Analysis.findings` has entries | Prose framing the structured findings. |
+| `methods` | `Analysis.decisions` or `Analysis.analyses` has entries | Methodology, decision space, and sub-analysis structure. |
+| `inputs` | `Analysis.inputs` has entries | Prose framing the declared inputs. |
+| `outputs` | `Analysis.outputs` has entries | Prose framing the declared outputs. |
+
+Internal narrative links use Markdown anchors:
+
+| Target | Anchor form |
+|---|---|
+| Input | `#inputs.<id>` |
+| Output | `#outputs.<id>` |
+| Decision | `#decisions.<id>` |
+| Option | `#decisions.<id>.options.<id>` |
+| Finding | `#findings.<id>` |
+| Prior insight | `#prior_insights.<id>` |
+| Sub-analysis | `#analyses.<sub>` |
+| Element inside a sub-analysis | `#<sub>.<category>.<id>` |
+
+References are interpreted relative to the analysis that contains the prose. Use `../` to link to a parent scope, for example `#../decisions.model`.
+
+### Input
+
+An input declares something the analysis consumes, or aliases an upstream artifact with `from`.
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `id` | `string` | Yes | Local identifier. |
+| `label` | `string` | No | Short display name. |
+| `type` | `data` or `analysis` | Yes when `from` is absent | Kind of input. |
+| `description` | `string` | No | Human-readable explanation. |
+| `source` | `string` | No | URI, path, loader, or other data locator for `type: data`. |
+| `ref` | `string` | No | Reference to another ASTRA analysis for `type: analysis`. |
+| `ref_version` | `string` | No | Version of the referenced analysis. |
+| `use_outputs` | `string[]` | No | Outputs to consume from a referenced analysis. |
+| `from` | `string` | No | Path alias to an upstream input or sibling output. |
+
+When `from` is present, the input is a pure alias. Only `id` and `from` may be declared; content is inherited from the source.
+
+### Output
+
+An output is an artifact produced locally or re-exported from a child sub-analysis.
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `id` | `string` | Yes | Local identifier. |
+| `label` | `string` | No | Short display name. |
+| `type` | `metric`, `figure`, `table`, `data`, or `report` | Yes when `from` is absent | Artifact kind. |
+| `description` | `string` | No | What the output represents. |
+| `from` | `string` | No | Path alias to a child output. |
+| `when` | `string[]` | No | Conditions under which the output is active. |
+| `inputs` | `string[]` | No | Local input or sibling output IDs this output depends on. |
+| `decisions` | `string[]` | No | Local decision IDs that parameterize the output. |
+| `recipe` | `Recipe` | No | Command and execution context for producing the output. |
+
+Output types:
+
+| Type | Use for |
+|---|---|
+| `metric` | A scalar or categorical measurement such as accuracy, p-value, likelihood, or score. |
+| `figure` | A visual artifact such as a plot, map, diagnostic, or image. |
+| `table` | Structured tabular output. |
+| `data` | A processed dataset, model file, catalog, or intermediate artifact. |
+| `report` | Textual or document output. |
+
+When `from` is present, the output is a pure re-export. Only `id`, `from`, and `when` may be declared locally.
+
+### Recipe
+
+A recipe is a command plus optional execution context.
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `command` | `string` | Yes | POSIX shell command template. |
+| `resources` | `Resources` | No | Compute requirements. |
+| `container` | `string` | No | Container image or path to a Containerfile. |
+
+Recipe placeholders:
+
+| Placeholder | Meaning |
+|---|---|
+| `{inputs.<id>}` | Path to a named input declared in the parent output's `inputs`. |
+| `{inputs}` | Space-separated paths to all parent output inputs in declaration order. |
+| `{decisions.<id>}` | Active option ID for a decision declared in the parent output's `decisions`. |
+| `{output}` | Path where the runner should write the produced artifact. |
+| `{{` and `}}` | Literal braces. |
+
+Resources:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `cpus` | `number` | Requested CPU cores. Fractional values are allowed. |
+| `memory` | `string` | Memory with units, e.g. `"16Gi"` or `"8GB"`. |
+| `time_limit` | `string` | Wall-time duration, e.g. `"30m"` or `"2h"`. |
+| `disk` | `string` | Disk with units. |
+| `gpus` | `integer` | Number of GPUs. |
+
+### Decision
+
+A decision is a methodological choice point.
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `label` | `string` | Yes when `from` is absent | Human-readable name. |
+| `rationale` | `string` | No | Why this choice matters scientifically. |
+| `tags` | `string[]` | No | Grouping labels. |
+| `when` | `string[]` | No | Conditions under which this decision is active. |
+| `from` | `string` | No | Alias to an ancestor decision. |
+| `default` | `string` | No | Default option ID. |
+| `options` | map of `Option` | Yes when `from` is absent | Available choices. |
+
+When `from` is present, the decision is a pure alias to an ancestor decision. Only `from` and, where needed, `when` may be declared locally.
+
+### Option
+
+An option is one possible selection for a decision.
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `label` | `string` | Yes | Human-readable name. |
+| `description` | `string` | No | Explanation of what the option does. |
+| `notes` | `string` | No | Additional author notes. |
+| `insights` | `string[]` | No | Prior insight IDs supporting the option. |
+| `requires` | `string[]` | No | Other options that must be selected with this one. |
+| `incompatible_with` | `string[]` | No | Other options that cannot be selected with this one. |
+| `excluded` | `boolean` | No | Marks an option as considered but unavailable. |
+| `excluded_reason` | `string` | No | Why the option was excluded. |
+
+Constraint references use `decision_id.option_id` and are scoped within the same analysis node.
+
+### Insight and Evidence
+
+`Insight` is used for both `prior_insights` and `findings`.
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `claim` | `string` | Yes | The scientific claim. |
+| `label` | `string` | No | Short display name. |
+| `created_at` | `datetime` | Yes | Creation timestamp. |
+| `evidence` | `Evidence[]` | Yes | Sources or artifacts supporting the claim. |
+| `derived` | `boolean` | No | Whether the claim was produced by this analysis. |
+| `tags` | `string[]` | No | Categorization tags. |
+| `notes` | `string` | No | Additional prose. |
+
+Evidence fields:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `id` | `string` | Local evidence identifier. |
+| `doi` | `string` | DOI for a cited paper or source. |
+| `artifact` | `string` | ASTRA artifact ID, often an output. |
+| `version` | `integer` | Source paper version, especially for arXiv papers. |
+| `snapshot` | `string` | Path to an immutable copy of an artifact. |
+| `source_commit` | `string` | Commit that produced an artifact. |
+| `quote` | `TextQuoteSelector` | Exact text quote and optional prefix/suffix. |
+| `location` | `FragmentSelector` | Source location hint such as a PDF page. |
+
+ASTRA follows the spirit of W3C selectors: evidence should identify not just a source, but the specific location or text that supports the claim.
+
+### Universe
+
+A universe selects one option for every active decision.
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `id` | `string` | Yes | Universe identifier. |
+| `description` | `string` | No | Human-readable explanation. |
+| `decisions` | map of `decision_id: option_id` | No | Selections at the current analysis scope. |
+| `analyses` | map of `UniverseNode` | No | Nested selections mirroring sub-analyses. |
+
+Universe IDs may use lowercase letters, numbers, underscores, and hyphens. Decision and option IDs use lowercase snake_case.
+
+### Conditions and constraints
+
+`when` conditions use:
+
+```text
+decision_id.option_id
+~decision_id.option_id
+```
+
+The first form means “active when this option is selected.” The second means “active when this option is not selected.” Multiple entries are ANDed.
+
+Option constraints use the same `decision_id.option_id` reference form:
+
+| Field | Meaning |
+|---|---|
+| `requires` | The referenced option must also be selected. |
+| `incompatible_with` | The referenced option must not be selected. |
+
+### Bridges and path grammar
+
+`from` aliases elements across analysis scopes. The grammar is shared by inputs, outputs, and decisions, but each slot restricts which directions are legal.
+
+| Form | Meaning |
+|---|---|
+| `../id` | Move up one scope and reference `id`. |
+| `../../id` | Move up two scopes and reference `id`. |
+| `../scope.id` | Move up, then descend into a named child scope. |
+| `scope.id` | Descend into a named child scope. |
+| `scope.sub.id` | Descend through nested child scopes. |
+
+Legal directions:
+
+| Slot | Legal forms | Purpose |
+|---|---|---|
+| `Input.from` | `../id`, `../../id`, `../scope.out_id` | Alias an ancestor input or sibling sub-analysis output. |
+| `Output.from` | `child.out_id`, `child.sub.out_id` | Re-export a child output. |
+| `Decision.from` | `../id`, `../../id` | Inherit an ancestor decision. |
+
+### ID conventions
 
 | Context | Pattern | Example |
-|---------|---------|---------|
-| Input, output, decision, sub-analysis IDs | `^[a-z][a-z0-9_]*$` | `iris_data`, `scaling` |
+|---|---|---|
+| Input, output, decision, option, sub-analysis, insight, evidence IDs | `^[a-z][a-z0-9_]*$` | `iris_data`, `scaling` |
 | Universe IDs | `^[a-z][a-z0-9_-]*$` | `baseline`, `svm-focused` |
 | Constraint references | `decision_id.option_id` | `scaling.standard` |
-| `from:` path (upward) | `(\.\./)+id(\.scope.id)*` | `../random_seed`, `../../iris_data`, `../stage_a.processed` |
-| `from:` path (downward) | `scope.id(\.scope.id)*` | `classification.accuracy`, `feature_extraction.feature_plot` |
 | Version | `^\d+\.\d+(\.\d+)?$` | `"1.0"`, `"1.0.0"` |
 | DOI | `^10\.\d{4,}/.*$` | `"10.48550/arXiv.1706.03762"` |
 
----
+These category names are reserved and cannot be used as entity IDs:
 
-## Schema Artifacts
+```text
+inputs   outputs   decisions   findings   prior_insights
+analyses options   content     narrative
+```
 
-ASTRA is defined in [LinkML](https://linkml.io). The source schema files live in `src/astra/schema/` and generate bindings for multiple formats:
+The reserved names prevent ambiguity in narrative anchors and path references.
 
-| Format | Description |
-|--------|-------------|
-| [LinkML YAML](schema/astra.yaml) | Source schema definition |
-| [JSON Schema](schema/astra.schema.json) | For YAML validation |
-| [JSON-LD Context](schema/astra.context.jsonld) | For linked data interoperability |
+### Schema artifacts
 
-Python datamodels are generated from the LinkML schema and are available via `pip install astra-spec`. See the [auto-generated schema reference](elements/index.md) for detailed class and field documentation.
+ASTRA is defined in LinkML. The source schema files live in `src/astra/schema/` and generate datamodels and validation artifacts for multiple ecosystems.
 
-### Source Schema Files
+| File | Defines |
+|---|---|
+| `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `Recipe`, `Resources`, narrative structure, and cross-scope aliases. |
+| `universe.yaml` | `Universe`, `UniverseNode`, and decision selections. |
+| `insight.yaml` | `Insight`, `Evidence`, quote selectors, fragment selectors, and insight collections. |
 
-| File | Exports | Description |
-|------|---------|-------------|
-| `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `Recipe`, `Resources` | Core analysis specification |
-| `universe.yaml` | `Universe`, `UniverseNode`, `DecisionSelection` | Universe (decision selections) |
-| `insight.yaml` | `Insight`, `Evidence`, `InsightCollection`, `TextQuoteSelector`, `FragmentSelector` | Insights, evidence, and W3C selectors |
+Generated Python datamodels are distributed with the package. The documentation site also includes the [auto-generated schema reference](elements/index.md) for exact class and slot details.

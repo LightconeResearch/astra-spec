@@ -1,86 +1,110 @@
 # ASTRA
 
-**Agentic Schema for Transparent Research Analysis** — a declarative YAML format for scientific analyses that separates *what* you want to learn from *how* to compute it.
+**Agentic Schema for Transparent Research Analysis** is an open YAML specification for describing the scientific structure of an analysis: the inputs it consumes, the outputs it claims to produce, the methodological decisions that shape those outputs, and the evidence that supports the choices being made.
 
-You declare inputs, outputs, and the decisions that shape the analysis. An agent or workflow engine reads the spec and produces results. Every analytical choice is documented, every alternative is recorded, and every decision can be backed by traceable evidence.
-
-ASTRA is intentionally agnostic to any execution engine: agents, workflow runners, or humans can all consume an ASTRA spec.
+ASTRA exists because AI-assisted science needs a record that is both machine-readable and scientifically legible. Code is executable but often hides intent. Papers are readable but usually compress away the decision trail. An `astra.yaml` file sits between them: it gives humans and agents a shared map of what the analysis is supposed to establish, which choices matter, and how each result can be traced back to data, code, and decisions.
 
 [:lucide-rocket: **Get started**](getting-started.md){ .md-button .md-button--primary }
-[:lucide-book-open: Read the specification](specification.md){ .md-button }
+[:lucide-book-open: Specification explained](specification.md){ .md-button }
 
 !!! warning "Alpha development"
-    ASTRA is in **early alpha**. The schema, CLI, and tooling are all still moving — expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports, design challenges, and use cases that the spec doesn't yet cover are exactly what we want to hear at this stage; please open an issue on the [GitHub repo](https://github.com/LightconeResearch/astra-spec/issues) or join the [Community](community.md) tab.
+    ASTRA is in **early alpha**. The schema, CLI, and tooling are still moving, so expect breaking changes between minor versions and pin the schema version in your analyses. Bug reports, design challenges, and examples the current schema does not yet cover are especially useful at this stage; please open an issue on the [GitHub repo](https://github.com/LightconeResearch/astra-spec/issues) or join the [Community](community.md) tab.
 
 ## Why ASTRA?
 
-Scientific analyses are built on a cascade of methodological choices — which algorithm, how to split the data, what priors to assume. These decisions are rarely documented systematically, and the alternatives considered are almost never recorded. That makes results hard to reproduce, hard to audit, and hard to revisit.
+Scientific results rest on chains of choices: which dataset to include, which preprocessing step to apply, which model to fit, which prior to adopt, which diagnostic to trust, and which alternatives were considered but rejected. Those choices are often scattered across code, notebooks, comments, commit history, lab notes, and the final paper. That is tolerable when analyses move slowly and reviewers can reconstruct the missing context by hand. It becomes fragile when AI systems can generate plausible-looking results faster than people can inspect them.
 
-ASTRA gives every analytical choice an explicit place in the spec. Decisions name the options that were considered, link to evidence, and feed into a *universe* — one complete selection that yields one set of results. The collection of valid selections is the *multiverse*.
+ASTRA makes the decision structure explicit. It does not replace code, papers, notebooks, workflow engines, or git. Instead, it records the scientific contract that those artifacts should satisfy. A reader should be able to open `astra.yaml` and answer: What is being analyzed? What goes in? What comes out? Which choices control each output? Which alternatives were considered? Which results depend on which choices? What evidence backs the claims?
 
-## At a glance
+This gives ASTRA three jobs:
 
-Three pieces fit together: an **analysis** declares the design space, a **universe** picks one option per decision, and the **CLI** validates and inspects.
+1. **Provenance certification.** Every plot, number, table, and claim can be tied back to the inputs, recipes, and decisions that produced it.
+2. **Observability.** Consequential assumptions are declared where reviewers, collaborators, and agents can inspect them.
+3. **Scientific legibility.** The record is organized around the concepts scientists actually argue about: inputs, outputs, decisions, options, constraints, evidence, and findings.
 
-=== "Analysis (`astra.yaml`)"
+## The mental model
 
-    ```yaml
-    version: "1.0"
-    name: Iris Classification
+An ASTRA project starts with one analysis document, usually called `astra.yaml`. Read it as a structured research design:
 
-    inputs:                          # data and prior analyses this one consumes
-      - id: iris_data
-        type: data
-        source: sklearn.datasets.load_iris
+```yaml
+version: "1.0"
+name: Iris Classification Study
 
-    outputs:                         # what to produce; recipe says how
-      - id: accuracy
-        type: metric
-        decisions: [scaling, model]  # decisions that parameterize this output
-        recipe:
-          command: python src/evaluate.py
+narrative:
+  summary: |
+    Train and evaluate a classifier for the Iris dataset.
+  methods: |
+    The analysis compares feature [scaling](#decisions.scaling)
+    choices and [model](#decisions.model) choices.
+  inputs: |
+    The [iris_data](#inputs.iris_data) input provides the measurements.
+  outputs: |
+    The [accuracy](#outputs.accuracy) metric reports held-out performance.
 
-    decisions:                       # the choice points
-      scaling:
-        label: Feature Scaling
-        default: standard
-        options:
-          none: { label: No Scaling }
-          standard: { label: StandardScaler }
+inputs:
+  - id: iris_data
+    type: data
+    source: sklearn.datasets.load_iris
+    description: Fisher's classic 150-sample, 3-class dataset.
 
-      model:
-        label: Classification Model
-        default: random_forest
-        options:
-          random_forest: { label: Random Forest }
-          svm:
-            label: SVM
-            requires: [scaling.standard]   # SVM is only valid with standard scaling
-    ```
+outputs:
+  - id: accuracy
+    type: metric
+    description: Classification accuracy on a held-out test set.
+    inputs: [iris_data]
+    decisions: [scaling, model]
+    recipe:
+      command: >-
+        python src/evaluate.py
+        --data {inputs.iris_data}
+        --scaling {decisions.scaling}
+        --model {decisions.model}
+        --out {output}
 
-=== "Universe (`universes/baseline.yaml`)"
+decisions:
+  scaling:
+    label: Feature scaling
+    rationale: Scaling changes the geometry seen by distance-based models.
+    default: standard
+    options:
+      none: { label: No scaling }
+      standard: { label: StandardScaler }
 
-    ```yaml
-    # One option per decision; the same analysis can have many universes.
-    id: baseline
-    description: Default configuration
+  model:
+    label: Classification model
+    rationale: The algorithm determines the hypothesis class being tested.
+    default: random_forest
+    options:
+      random_forest: { label: Random forest }
+      svm:
+        label: Support vector machine
+        requires: [scaling.standard]
+```
 
-    decisions:
-      scaling: standard
-      model: random_forest
-    ```
+The point of the file is not that it contains the whole analysis. The point is that it names the parts of the analysis that must remain stable enough for humans and tools to reason about them. The Python script still does the computation. A runner still chooses how to execute it. The paper still explains the result. ASTRA supplies the ledger that keeps the scientific intent, decision space, and provenance links visible.
 
-=== "Run it"
+## How to read the documentation
 
-    ```bash
-    uv tool install astra-tools
+The pages in this documentation are ordered from practical to formal:
 
-    astra validate astra.yaml
-    astra info
-    astra viz
-    ```
+- [Getting started](getting-started.md) walks through installing the CLI, scaffolding a project, validating `astra.yaml`, and defining universes.
+- [Specification explained](specification.md) introduces the file format one concept at a time, then gives a compact reference for each field.
+- [CLI reference](cli.md) describes the commands available today.
+- [Schema reference](elements/index.md) is the generated LinkML reference for readers who need the exact datamodel.
 
----
+A useful first pass is to read the [minimal ASTRA document](specification.md#minimal-astra-document), then the sections on [inputs](specification.md#inputs), [outputs](specification.md#outputs), and [decisions](specification.md#decisions). Those three objects are the core of the format.
 
-[:simple-github: GitHub](https://github.com/LightconeResearch/astra-spec){ .md-button }
-[:lucide-package: PyPI (`astra-tools`)](https://pypi.org/project/astra-tools/){ .md-button }
+## What ASTRA is, and is not
+
+ASTRA is a specification layer. It is intentionally narrow. It records scientific structure; it does not try to become the runtime, repository, manuscript, or platform.
+
+| ASTRA records | ASTRA does not replace |
+|---|---|
+| Scientific intent and narrative | Papers and long-form explanation |
+| Inputs and outputs | Data stores or artifact registries |
+| Decisions, options, constraints, and excluded alternatives | Git history or issue trackers |
+| Recipes attached to outputs | Workflow engines and schedulers |
+| Evidence-backed findings | Peer review or scientific judgement |
+| Validation rules for the record | Re-running every computation |
+
+That boundary is deliberate. The specification should remain stable while agents, runners, execution platforms, and review tools evolve around it.
