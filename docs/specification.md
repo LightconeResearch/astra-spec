@@ -3,19 +3,19 @@
 > **Version**: draft  
 > **Status**: active development
 
-The formal ASTRA schema is the source of truth, but a schema is not the easiest place to learn the format. This page is a soft landing for readers who want to understand what an `astra.yaml` file means before looking at the generated LinkML reference. It introduces the main building blocks, shows a minimal document, grows that document piece by piece, and ends with a compact field reference.
+As AI systems make it easier to generate analyses quickly, the bottleneck shifts from producing results to inspecting whether each result should be trusted. An `astra.yaml` file is a scientific record that chains together inputs, outputs, methodological choices, evidence, and claims. With an `astra.yaml`, an experiment can be quickly checked and expanded upon.
 
-ASTRA documents are written for two audiences at the same time. Humans should be able to inspect the file and understand the scientific design of the analysis. Tools and AI agents should be able to parse the same file and know which inputs, outputs, decisions, options, constraints, and evidence links they are allowed to rely on.
+This page teaches the format by building one analysis piece by piece. Notably, `astra.yaml` is meant to be written and read by agents.
 
 ## What an ASTRA document describes
 
 An ASTRA document describes a scientific analysis, not merely a program. A program says what to execute. An ASTRA analysis says what the computation is meant to establish, which artifacts matter, which choices shape those artifacts, and how a reader can trace claims back to evidence.
 
-The central object is an **Analysis**. A typical analysis is stored in `astra.yaml` and declares:
+The central object is the `astra.yaml` file, which contains an `Analysis` that declares:
 
 | Section | Question it answers |
 |---|---|
-| `narrative` | How should a scientist understand the purpose, methods, inputs, outputs, and findings? |
+| `narrative` | In plain-text, how should a scientist understand this analysis? |
 | `inputs` | What data or prior analyses does this analysis consume? |
 | `outputs` | What metrics, figures, tables, data products, or reports does it produce? |
 | `decisions` | Which methodological choice points shape the outputs? |
@@ -23,78 +23,56 @@ The central object is an **Analysis**. A typical analysis is stored in `astra.ya
 | `findings` | What claims does this analysis make after its outputs are produced? |
 | `analyses` | Which nested sub-analyses make up a larger analysis tree? |
 
-The point of the structure is to make the analysis reviewable. A reader can start at a figure or metric, follow it to the decisions that parameterized it, inspect the options that were available, and then descend to the recipe or evidence when more detail is needed.
-
-## Syntax
-
-ASTRA analyses are written in YAML. The entry document is conventionally named `astra.yaml`.
-
-YAML represents mappings, lists, strings, numbers, booleans, and nested objects. Indentation matters. Field names are case-sensitive, so `decisions` and `Decisions` are different fields. Comments begin with `#` and are ignored by parsers.
-
-```yaml
-# A mapping from field names to values
-name: Example Analysis
-version: "1.0"
-
-# A list of objects
-inputs:
-  - id: raw_data
-    type: data
-    source: data/raw.csv
-```
-
-Most examples in this guide use ellipses (`...`) to indicate omitted content. Ellipses are not part of the ASTRA format.
-
 ## Minimal ASTRA document
 
-A minimal useful ASTRA document names the analysis, declares at least one input, declares at least one output, and declares the decisions that affect that output.
+A minimal useful ASTRA document names the analysis, declares at least one input, declares at least one output, and declares the decisions that affect that output. In the example below, the analysis consumes the `catalog_data` input, produces the `fit_params` output, and exposes one methodological choice, `fit_method`.
 
 ```yaml
 version: "1.0"
-name: Iris Classification
+name: Period-Luminosity Fit
 
 narrative:
   summary: |
-    Train a classifier for the Iris dataset.
+    Fit a period-luminosity relation from a measurement catalog.
   methods: |
-    The [model](#decisions.model) decision selects the classifier.
+    The [fit_method](#decisions.fit_method) decision selects how the line is fit.
   inputs: |
-    The [iris_data](#inputs.iris_data) input provides the dataset.
+    The [catalog_data](#inputs.catalog_data) input provides the measurement catalog.
   outputs: |
-    The [accuracy](#outputs.accuracy) output reports held-out performance.
+    The [fit_params](#outputs.fit_params) output reports the fitted relation parameters.
 
 inputs:
-  - id: iris_data
+  - id: catalog_data
     type: data
-    source: sklearn.datasets.load_iris
-    description: Fisher's classic 150-sample, 3-class dataset.
+    source: data/catalog_data.csv
+    description: Periods and mean apparent magnitudes.
 
 outputs:
-  - id: accuracy
-    type: metric
-    description: Classification accuracy on a held-out test set.
-    inputs: [iris_data]
-    decisions: [model]
+  - id: fit_params
+    type: table
+    description: Slope, intercept, and scatter for the period-luminosity relation.
+    inputs: [catalog_data]
+    decisions: [fit_method]
     recipe:
       command: >-
-        python src/evaluate.py
-        --data {inputs.iris_data}
-        --model {decisions.model}
+        python src/fit_period_luminosity.py
+        --catalog {inputs.catalog_data}
+        --method {decisions.fit_method}
         --out {output}
 
 decisions:
-  model:
-    label: Classification model
-    rationale: The algorithm determines the hypothesis class being tested.
-    default: random_forest
+  fit_method:
+    label: Fitting method
+    rationale: The fitting method determines how outliers influence the inferred relation.
+    default: ordinary_least_squares
     options:
-      random_forest:
-        label: Random forest
-      svm:
-        label: Support vector machine
+      ordinary_least_squares:
+        label: Ordinary least squares
+      robust_linear:
+        label: Robust linear fit
 ```
 
-This example is small, but it already shows the ASTRA contract. The `accuracy` output is not just a name. It declares that it depends on `iris_data`, that it is parameterized by `model`, and that the recipe may only refer to the declared input and declared decision. The validator can therefore reject a command that silently uses an undeclared decision.
+Now let's walk through those pieces in the same order.
 
 ## Reading the example from top to bottom
 
@@ -102,7 +80,7 @@ This example is small, but it already shows the ASTRA contract. The `accuracy` o
 
 ```yaml
 version: "1.0"
-name: Iris Classification
+name: Period-Luminosity Fit
 ```
 
 The `version` field records the ASTRA schema version the document expects. The `name` field gives the analysis a human-readable title. Real projects usually also include `id`, `authors`, `tags`, and sometimes a node-level `container` used as the default execution environment for recipes.
@@ -112,129 +90,231 @@ The `version` field records the ASTRA schema version the document expects. The `
 ```yaml
 narrative:
   summary: |
-    Train a classifier for the Iris dataset.
+    Fit a period-luminosity relation from a measurement catalog.
   methods: |
-    The [model](#decisions.model) decision selects the classifier.
+    The [fit_method](#decisions.fit_method) decision selects how the line is fit.
   inputs: |
-    The [iris_data](#inputs.iris_data) input provides the dataset.
+    The [catalog_data](#inputs.catalog_data) input provides the measurement catalog.
   outputs: |
-    The [accuracy](#outputs.accuracy) output reports held-out performance.
+    The [fit_params](#outputs.fit_params) output reports the fitted relation parameters.
 ```
 
-The `narrative` block is prose with stable anchors. It gives the analysis-level explanation that a paper, report, or review tool can render. The structured fields below it provide the machine-readable record. The two should agree: the prose tells the story, and the structured objects give tools something precise to validate.
+The `narrative` block is prose with stable anchors. It gives the analysis-level explanation that a paper, report, or review tool can render. The narrative and rest of the YAML should agree, with the prose telling the story and the structured objects giving tools something precise to validate.
 
-ASTRA defines five narrative sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. They are optional in the raw schema, but `astra validate` conditionally requires prose when the corresponding structured data exists. If an analysis declares `inputs`, it should explain them in `narrative.inputs`; if it declares `outputs`, it should explain them in `narrative.outputs`; if it declares `decisions` or nested `analyses`, it should explain them in `narrative.methods`; if it declares structured `findings`, it should explain them in `narrative.findings`.
+ASTRA defines five narrative sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. These sections are conditionally required by `astra validate` when the corresponding structured data exists, e.g. an analysis with `decisions` should explain them in `narrative.methods`.
 
 ### Inputs
 
 ```yaml
 inputs:
-  - id: iris_data
+  - id: catalog_data
     type: data
-    source: sklearn.datasets.load_iris
-    description: Fisher's classic 150-sample, 3-class dataset.
+    source: data/catalog_data.csv
+    description: Periods and mean apparent magnitudes.
 ```
 
-An input is something the analysis consumes. It can be a dataset, a file, an external resource, or the outputs of another ASTRA analysis. The `id` is the local name used by outputs and recipes. The `type` says whether the input is raw `data` or an external `analysis`. The `source` field usually points to a path, URI, loader name, or other data locator.
-
-Inputs are intentionally descriptive rather than prescriptive. ASTRA does not store the data. It records enough information for humans and tools to know what the analysis claims to consume.
+An input is something the analysis consumes. It can be a dataset, a file, an external resource, or the outputs of another ASTRA analysis. The `id` is the local name used by outputs and recipes. The `type` says whether the input is `data` or an external `analysis`. Notably, the `source` is usually a path or URI, a loader name, or another data locator, and it is *descriptive* rather than prescriptive because it records enough information for agents to know what the analysis claims to consume.
 
 ### Outputs
 
 ```yaml
 outputs:
-  - id: accuracy
-    type: metric
-    description: Classification accuracy on a held-out test set.
-    inputs: [iris_data]
-    decisions: [model]
+  - id: fit_params
+    type: table
+    description: Slope, intercept, and scatter for the period-luminosity relation.
+    inputs: [catalog_data]
+    decisions: [fit_method]
     recipe:
       command: >-
-        python src/evaluate.py
-        --data {inputs.iris_data}
-        --model {decisions.model}
+        python src/fit_period_luminosity.py
+        --catalog {inputs.catalog_data}
+        --method {decisions.fit_method}
         --out {output}
 ```
 
-An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. The important design choice is that provenance lives on the output. `inputs` names the upstream artifacts required to produce it. `decisions` names the methodological choices that parameterize it. `recipe` gives a command a runner can invoke, but the recipe is not allowed to invent hidden dependencies.
+An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `recipe` gives the python command the runner invokes.
 
-This makes the output a reviewable unit. A reader can ask, “What would have to change for this number to change?” and the ASTRA file points to the input data and decision values that matter.
+The recipe is not allowed to invent hidden dependencies, which makes the output a reviewable unit.
 
 ### Decisions
 
+Imagine a reviewer asking you: "What if you used fitting method B instead of method A?" In ASTRA, you can codify this decision and track how it changes the outputs.
+
 ```yaml
 decisions:
-  model:
-    label: Classification model
-    rationale: The algorithm determines the hypothesis class being tested.
-    default: random_forest
+  fit_method:
+    label: Fitting method
+    rationale: The fitting method determines how outliers influence the inferred relation.
+    default: ordinary_least_squares
     options:
-      random_forest:
-        label: Random forest
-      svm:
-        label: Support vector machine
+      ordinary_least_squares:
+        label: Ordinary least squares
+      robust_linear:
+        label: Robust linear fit
 ```
 
-A decision is a named methodological choice point. Each decision contains options. The decision says what has to be chosen; the options say what could be chosen.
+The `fit_method` decision gives the review question a name. `default` records the baseline choice used by the analysis, and `options` records the alternatives.
 
-Decisions are the core of ASTRA because scientific analyses are rarely defined by code alone. They are defined by defensible choices: which sample cut, which model, which prior, which coordinate transform, which null hypothesis, which feature engineering step. ASTRA gives those choices first-class names so they can be reviewed, constrained, varied, and attached to outputs.
+Use a decision when changing a methodological choice could change an output. Give the choice an `id`, record the baseline with `default`, and list the allowed `options`. Then attach the decision to each affected output. In this example, `fit_params.decisions: [fit_method]` tells the reader that the fitted parameters depend on the selected fitting method.
 
 ## Building up the specification
 
-The minimal document above is enough to explain the basic shape. The rest of the specification adds structure that becomes important in real analyses: multiple choices, constraints between options, conditional outputs, evidence-backed claims, and nested sub-analyses.
+The minimal document above is enough to explain the basic shape. The rest of the specification adds structure that becomes important in real analyses: constraints between options, conditional outputs, evidence-backed claims, and nested sub-analyses.
 
 ### Options
 
-Options live inside decisions. An option can have a label, description, notes, constraints, linked insights, and exclusion metadata.
+Usually, a methodological question has a small set of plausible answers. ASTRA records those answers as `options` inside a decision. In the example below, the `photometric_band` decision asks which measurement band should be used in the fit, and the options are `g_band`, `i_band`, and `w1_band`.
 
 ```yaml
 decisions:
-  scaling:
-    label: Feature scaling
-    rationale: Scaling affects distance-based algorithms.
-    default: standard
+  photometric_band:
+    label: Photometric band
+    rationale: The chosen band changes the fitted relation and its scatter.
+    default: g_band
     options:
-      none:
-        label: No scaling
-        description: Use raw feature values.
-      standard:
-        label: StandardScaler
-        description: Z-score normalize each feature.
-      minmax:
-        label: MinMaxScaler
-        description: Scale each feature to [0, 1].
+      g_band:
+        label: G band
+        description: Use mean G-band magnitudes.
+      i_band:
+        label: I band
+        description: Use mean I-band magnitudes.
+      w1_band:
+        label: W1 band
+        description: Use near-infrared W1 magnitudes.
 ```
-
-The `default` option is the baseline selection used by tools that generate a default universe. Defaults should be boring and defensible, not necessarily optimal.
 
 ### Constraints between options
 
-Some option combinations are invalid. ASTRA supports two local constraint types: `requires` and `incompatible_with`. Constraint references use `decision_id.option_id`.
+Sometimes, methodological choices are linked: one choice may require another, or two choices may not make sense together. ASTRA records these relationships with `requires` and `incompatible_with`. Constraint references use `decision_id.option_id`, so each rule points to a specific option inside a specific decision.
 
 ```yaml
 decisions:
-  scaling:
-    label: Feature scaling
-    default: standard
+  fit_method:
+    label: Line fitting method
+    default: ordinary_least_squares
     options:
-      none:
-        label: No scaling
-      standard:
-        label: StandardScaler
+      ordinary_least_squares:
+        label: Ordinary least squares
+      robust_linear:
+        label: Robust linear fit
 
-  model:
-    label: Classification model
-    default: random_forest
+  outlier_handling:
+    label: Outlier handling
+    default: keep_all
     options:
-      random_forest:
-        label: Random forest
-      svm:
-        label: Support vector machine
-        requires:
-          - scaling.standard
+      keep_all:
+        label: Keep all points
+      sigma_clip:
+        label: Remove extreme outliers
+        incompatible_with:
+          - fit_method.robust_linear
 ```
 
-Here, selecting `model.svm` requires `scaling.standard`. A universe that selects `model: svm` and `scaling: none` is invalid. This matters because the multiverse of possible analyses is not the raw Cartesian product of every option. It is the set of combinations that survive the declared constraints.
+Here, `outlier_handling.sigma_clip` is incompatible with `fit_method.robust_linear`. Both choices reduce the influence of points far from the fitted trend: `sigma_clip` removes extreme points before fitting, while `robust_linear` keeps them but downweights them. A universe that selects both is invalid, so ASTRA makes that methodological boundary explicit.
+
+### Universes
+
+A universe is one complete selection of decision options. If the analysis defines `fit_method` and `outlier_handling`, then a universe chooses one option for each.
+
+```yaml
+id: baseline
+description: Fit the relation with ordinary least squares and keep all points.
+
+decisions:
+  fit_method: ordinary_least_squares
+  outlier_handling: keep_all
+```
+
+One analysis can have many universes. A baseline universe might keep all points and use ordinary least squares. A robustness universe might switch to `fit_method: robust_linear`; a cleaned-data universe might use `outlier_handling: sigma_clip`. Each universe yields its own outputs under one declared choice configuration. For example, the plot from the baseline universe might be written to `results/baseline/`, while the cleaned-data universe plot might be written to `results/clean/`.
+
+### Recipes and command templates
+
+After an output has declared what it depends on, the recipe says how a runner should produce it. In this example, the recipe passes the declared catalog and selected fitting method to a Python script, then writes the fitted parameters to `{output}`.
+
+```yaml
+outputs:
+  - id: fit_params
+    type: table
+    inputs: [catalog_data]
+    decisions: [fit_method]
+    recipe:
+      command: >-
+        python src/fit_period_luminosity.py
+        --catalog {inputs.catalog_data}
+        --method {decisions.fit_method}
+        --out {output}
+```
+
+The command is the only required part of a recipe. You can add optional `container` and `resources` elements when the runner needs execution context, for example a Docker image for the software environment, or CPU, memory, and wall-time requests for compute.
+
+### Conditional elements
+
+Use `when` when a choice creates a branch of the analysis. For example, one choice may require an extra assumption, diagnostic, or output that should not appear in every universe. Conditions use `decision.option`; prefix with `~` for negation. Multiple conditions are ANDed together.
+
+```yaml
+decisions:
+  correction_mode:
+    label: Correction mode
+    default: none
+    options:
+      none: { label: No correction }
+      calibrated: { label: Apply calibration }
+
+  calibration_prior:
+    label: Calibration prior
+    when:
+      - correction_mode.calibrated
+    default: weak
+    options:
+      weak: { label: Weak prior }
+      informative: { label: Informative prior }
+
+outputs:
+  - id: calibrated_table
+    type: table
+    when:
+      - correction_mode.calibrated
+    recipe:
+      command: python src/apply_calibration.py --out {output}
+```
+
+In the example, `calibration_prior` and `calibrated_table` exist only for the calibrated branch. A baseline universe that selects `correction_mode.none` stays simpler: it does not carry a prior or output that it never uses.
+
+### Prior insights, findings, and evidence
+
+Scientific review is not only about checking the final result; it is also about checking why the analysis was set up the way it was. ASTRA separates claims that motivate the analysis from claims produced by the analysis. A `prior_insight` records an imported claim used to justify a choice, while a `finding` records a claim made by the current analysis. Both use the shared `Insight` model and can point to evidence.
+
+```yaml
+prior_insights:
+  calibration_reference:
+    claim: External calibration information can shift the fitted relation.
+    created_at: "2026-05-11T00:00:00Z"
+    evidence:
+      - id: ev_calibration_reference
+        doi: "10.1051/0004-6361/202244775"
+
+decisions:
+  correction_mode:
+    label: Correction mode
+    rationale: Calibration choices can shift the fitted intercept.
+    options:
+      calibrated:
+        label: Apply calibration
+        insights: [calibration_reference]
+
+findings:
+  cleaned_fit:
+    claim: The cleaned-data universe reduced the fit scatter.
+    created_at: "2026-05-11T00:00:00Z"
+    evidence:
+      - id: ev_fit_params
+        artifact: fit_params
+        quote:
+          exact: "scatter = 0.18 mag"
+    derived: true
+```
+
+Evidence is what lets a reader check a claim instead of simply accepting it. It can cite a paper, identify a passage in a source document, or point to an artifact produced by the analysis. The same structure works for prior insights and findings: a decision can say which insight supports it, and each insight can say exactly which source or output supports the claim. With evidence verification enabled, tools can check whether quoted text actually appears in the cited source.
 
 ### Excluded options
 
@@ -242,221 +322,78 @@ A rejected option can still be scientifically important. ASTRA lets authors keep
 
 ```yaml
 options:
-  knn:
-    label: k-nearest neighbors
+  quadratic_fit:
+    label: Quadratic relation
     excluded: true
-    excluded_reason: Poor performance on high-dimensional pilot data.
+    excluded_reason: Pilot residuals did not justify adding curvature.
 ```
 
-This is useful during review. A reader can see not only what was chosen, but what was considered and why it was rejected.
-
-### Universes
-
-A universe is one complete selection of decision options. If the analysis defines `scaling` and `model`, then a universe chooses one option for `scaling` and one option for `model`.
-
-```yaml
-id: baseline
-description: Default configuration
-
-decisions:
-  scaling: standard
-  model: random_forest
-```
-
-One analysis can have many universes. A baseline universe might use conventional defaults. A robustness universe might select a different estimator. A stress-test universe might use a more restrictive data cut. Each universe yields one set of outputs under one declared choice configuration.
-
-For nested analyses, the universe mirrors the analysis tree:
-
-```yaml
-id: baseline
-
-decisions:
-  test_split: twenty_pct
-
-analyses:
-  feature_extraction:
-    decisions:
-      method: pca
-      n_components: two
-  classification:
-    decisions:
-      classifier: logistic
-```
-
-### Recipes and command templates
-
-A recipe is an inline build rule attached to an output. It describes how to produce that output once a runner has materialized inputs and selected decision values.
-
-```yaml
-outputs:
-  - id: predictions
-    type: data
-    inputs: [training_data, features]
-    decisions: [classifier, seed]
-    recipe:
-      command: >-
-        python src/classify.py
-        --train {inputs.training_data}
-        --features {inputs.features}
-        --classifier {decisions.classifier}
-        --seed {decisions.seed}
-        --out {output}
-      container: ghcr.io/lightcone/sklearn:latest
-      resources:
-        cpus: 4
-        memory: "8Gi"
-        time_limit: "30m"
-```
-
-The key rule is that every placeholder must be declared on the parent output. `{inputs.training_data}` is legal only because `training_data` appears in `Output.inputs`. `{decisions.classifier}` is legal only because `classifier` appears in `Output.decisions`. The validator rejects undeclared template references.
-
-Recipes are intentionally thin. ASTRA does not define scheduling, caching, retries, cluster submission, or path layout. Those are runner responsibilities. ASTRA defines the provenance contract that a runner must respect.
-
-### Conditional elements
-
-The `when` field makes an output or decision active only under certain selections. Conditions use `decision.option`; prefix with `~` for negation. Multiple conditions are ANDed together.
-
-```yaml
-decisions:
-  model:
-    label: Model
-    default: neural_net
-    options:
-      neural_net: { label: Neural network }
-      svm: { label: Support vector machine }
-
-  optimizer:
-    label: Optimizer
-    when:
-      - model.neural_net
-    default: adam
-    options:
-      adam: { label: Adam }
-      sgd: { label: SGD }
-
-outputs:
-  - id: training_curve
-    type: figure
-    when:
-      - model.neural_net
-    recipe:
-      command: python src/plot_training_curve.py --out {output}
-```
-
-Conditional structure keeps the record honest when some parts of an analysis only exist for particular methods. A neural-network optimizer should not be forced into an SVM universe.
-
-### Prior insights, findings, and evidence
-
-ASTRA separates two kinds of scientific claims. A `prior_insight` is a claim imported from previous literature or earlier work and used to justify choices. A `finding` is a claim produced by the current analysis. Both use the shared `Insight` model and can point to evidence.
-
-```yaml
-prior_insights:
-  scaling_matters:
-    claim: Distance-based classifiers are sensitive to feature scale.
-    created_at: "2026-05-11T00:00:00Z"
-    evidence:
-      - id: ev_scaling_reference
-        doi: "10.48550/arXiv.1706.03762"
-        quote:
-          exact: "Distance-based classifiers are sensitive to feature scale."
-
-decisions:
-  scaling:
-    label: Feature scaling
-    rationale: Scaling affects distance-based algorithms.
-    options:
-      standard:
-        label: StandardScaler
-        insights: [scaling_matters]
-
-findings:
-  svm_result:
-    claim: The SVM universe achieved the highest held-out accuracy.
-    created_at: "2026-05-11T00:00:00Z"
-    evidence:
-      - id: ev_accuracy_table
-        artifact: accuracy
-        quote:
-          exact: "svm accuracy = 0.97"
-    derived: true
-```
-
-Evidence may point to text in a paper, a fragment of a source document, or an artifact produced by the analysis. The intended chain is inspectable: decision option → insight → evidence → source, or finding → evidence → output artifact. With evidence verification enabled, tools can check whether quoted text actually appears in the cited source.
+In this way, a reviewer can see not only what was chosen, but what was considered and why it was rejected.
 
 ### Sub-analyses
 
-Large analyses are naturally hierarchical. A simulation may feed a calibration stage, which feeds a summary plot. A data-cleaning stage may be reused by several model comparisons. ASTRA represents this with nested `analyses`.
+Experiments are usually made of smaller analyses. In ASTRA, you can build them up as nested `analyses`: a cleaning stage can feed a fitting stage, which feeds a summary plot.
 
 ```yaml
 analyses:
-  feature_extraction:
-    id: feature_extraction
+  catalog_cleaning:
+    id: catalog_cleaning
     inputs:
-      - id: raw_features
-        from: ../iris_data
+      - id: raw_catalog
+        from: ../source_catalog
     outputs:
-      - id: features
+      - id: cleaned_catalog
         type: data
-        decisions: [method]
+        decisions: [outlier_handling]
         recipe:
-          command: python src/extract_features.py --out {output}
+          command: python src/clean_catalog.py --out {output}
     decisions:
-      method:
-        label: Extraction method
-        default: pca
+      outlier_handling:
+        label: Outlier handling
+        default: keep_all
         options:
-          pca: { label: PCA }
-          mlp_encoder: { label: MLP encoder }
+          keep_all: { label: Keep all points }
+          sigma_clip: { label: Remove extreme outliers }
 ```
 
 A sub-analysis is itself an Analysis. It can have its own narrative, inputs, outputs, decisions, findings, and nested children. This self-similar structure lets authors describe a project at multiple levels of detail without switching formats.
 
-### Bridges with `from`
-
-Each analysis scope has its own local IDs. Cross-scope linkage happens through `from`. A node with `from` is a pure alias: it points to another element and inherits its content.
-
-```yaml
-inputs:
-  - id: raw_features
-    from: ../iris_data
-
-outputs:
-  - id: accuracy
-    from: classification.accuracy
-
-decisions:
-  seed:
-    from: ../random_seed
-```
-
-The path grammar is tree-shaped. `../` moves up one scope. Bare names descend into a named child scope. Inputs may point upward or to sibling outputs; outputs may re-export child outputs; decisions flow downward from ancestors into descendants. Recipes still use local IDs. The bridge is declared once in the ASTRA structure rather than repeatedly inside commands.
-
-### External analyses
-
-To consume a separate ASTRA analysis as a dependency, declare an input with `type: analysis` and `ref`.
-
-```yaml
-inputs:
-  - id: prior_study
-    type: analysis
-    ref: analyses/preprocessing_comparison
-    ref_version: "v1.2"
-    use_outputs: [best_method, performance_table]
-```
-
-This is different from `from`. `ref` points to an external analysis record. `from` aliases an element inside the current analysis tree.
-
-### External sub-analysis files
-
-A sub-analysis can also live in another directory with its own `astra.yaml`.
+Sub-analyses can be written inline, as above, or split into their own directories when a project becomes large. If `path` is set, that child analysis is read from another `astra.yaml`, while still belonging to the same conceptual analysis tree.
 
 ```yaml
 analyses:
-  preprocessing:
-    path: stages/preprocessing
+  catalog_cleaning:
+    path: stages/catalog_cleaning
 ```
 
-When `path` is set, inline content fields such as `inputs`, `outputs`, and `decisions` are mutually exclusive with it. This allows large projects to keep one conceptual analysis tree while splitting the files into manageable pieces.
+If the dependency is a separate ASTRA record rather than a child of the current analysis, declare it as an input with `type: analysis` and `ref`.
+
+```yaml
+inputs:
+  - id: prior_fit
+    type: analysis
+    ref: analyses/baseline_fit
+    ref_version: "v1.2"
+    use_outputs: [fit_params, residual_plot]
+```
+
+### Bridges with `from`
+
+Once an analysis is split into stages, the same object often needs a short local name in the stage that uses it. `from` creates that local name without copying the object. In the example below, a child analysis receives an upstream catalog, the parent re-exports fitted parameters, and the child inherits the fitting method from its parent.
+
+```yaml
+inputs:
+  - id: catalog
+    from: ../cleaned_catalog
+
+outputs:
+  - id: fit_params
+    from: fitting.fit_params
+
+decisions:
+  fit_method:
+    from: ../fit_method
+```
 
 ## Validation model
 
@@ -481,7 +418,11 @@ Evidence verification is opt-in:
 astra validate astra.yaml --verify-evidence
 ```
 
-A valid ASTRA file is not a guarantee that the science is correct. It is a guarantee that the record is structured enough for the science to be inspected.
+Remember, validation does not prove that the science is correct; it proves that the record is structured enough to inspect.
+
+## Conclusion
+
+An `astra.yaml` file turns an analysis into something a reader or agent can follow, question, validate, and extend.
 
 ---
 
@@ -537,7 +478,7 @@ Internal narrative links use Markdown anchors:
 | Sub-analysis | `#analyses.<sub>` |
 | Element inside a sub-analysis | `#<sub>.<category>.<id>` |
 
-References are interpreted relative to the analysis that contains the prose. Use `../` to link to a parent scope, for example `#../decisions.model`.
+References are interpreted relative to the analysis that contains the prose. Use `../` to link to a parent scope, for example `#../decisions.fit_method`.
 
 Narrative links may appear in any narrative section. Coverage is resolved across the whole narrative for the analysis node, not section by section. During validation, broken internal anchors are errors, while declared findings, decisions, outputs, or sub-analyses that are not cited anywhere in the node's narrative are reported as coverage warnings.
 
@@ -579,10 +520,10 @@ Output types:
 
 | Type | Use for |
 |---|---|
-| `metric` | A scalar or categorical measurement such as accuracy, p-value, likelihood, or score. |
+| `metric` | A scalar or categorical measurement such as fit scatter, p-value, likelihood, or score. |
 | `figure` | A visual artifact such as a plot, map, diagnostic, or image. |
 | `table` | Structured tabular output. |
-| `data` | A processed dataset, model file, catalog, or intermediate artifact. |
+| `data` | A processed dataset, catalog, calibration table, or intermediate artifact. |
 | `report` | Textual or document output. |
 
 When `from` is present, the output is a pure re-export. Only `id`, `from`, and `when` may be declared locally.
@@ -628,12 +569,10 @@ A node-level `container` on `Analysis` sets the default for recipes in that node
 Example rendered command after a runner materializes paths and selects a universe:
 
 ```bash
-python src/classify.py \
-  --train /work/u_baseline/training_data.parquet \
-  --features /work/u_baseline/features.parquet \
-  --classifier svm \
-  --seed seed_42 \
-  --out /work/u_baseline/predictions.parquet
+python src/fit_period_luminosity.py \
+  --catalog /work/baseline/catalog.csv \
+  --method ordinary_least_squares \
+  --out /work/baseline/fit_params.csv
 ```
 
 ### Decision
@@ -748,41 +687,41 @@ Option constraints use the same `decision_id.option_id` reference form:
 | `requires` | The referenced option must also be selected. |
 | `incompatible_with` | The referenced option must not be selected. |
 
-For example, an SVM option can require standard scaling:
+For example, using a calibrated input can require a selected correction method:
 
 ```yaml
 decisions:
-  model:
+  data_version:
     options:
-      svm:
-        label: Support vector machine
+      calibrated:
+        label: Calibrated input
         requires:
-          - scaling.standard
+          - correction_mode.calibrated
 ```
 
 An option can also rule out another option:
 
 ```yaml
 decisions:
-  scaling:
+  outlier_handling:
     options:
-      minmax:
-        label: Min-max scaling
+      sigma_clip:
+        label: Remove extreme outliers
         incompatible_with:
-          - model.svm
+          - fit_method.robust_linear
 ```
 
 Negated conditions use the same `~decision.option` form:
 
 ```yaml
 decisions:
-  fallback_method:
-    label: Fallback method
+  residual_summary:
+    label: Residual summary
     when:
-      - ~model.neural_net
+      - ~outlier_handling.sigma_clip
     options:
-      interpolation:
-        label: Linear interpolation
+      all_points:
+        label: Use all residuals
 ```
 
 ### Bridges and path grammar
@@ -848,7 +787,7 @@ External analysis dependencies are separate from `from`. Use `type: analysis` wi
 inputs:
   - id: prior_fit
     type: analysis
-    ref: analyses/lmc_pl_baseline
+    ref: analyses/baseline_fit
     ref_version: "1.2"
     use_outputs: [fit_parameters, residual_plot]
 ```
@@ -857,9 +796,9 @@ inputs:
 
 | Context | Pattern | Example |
 |---|---|---|
-| Input, output, decision, option, sub-analysis, insight, evidence IDs | `^[a-z][a-z0-9_]*$` | `iris_data`, `scaling` |
-| Universe IDs | `^[a-z][a-z0-9_-]*$` | `baseline`, `svm-focused` |
-| Constraint references | `decision_id.option_id` | `scaling.standard` |
+| Input, output, decision, option, sub-analysis, insight, evidence IDs | `^[a-z][a-z0-9_]*$` | `catalog_data`, `fit_method` |
+| Universe IDs | `^[a-z][a-z0-9_-]*$` | `baseline`, `cleaned-data` |
+| Constraint references | `decision_id.option_id` | `fit_method.robust_linear` |
 | Version | `^\d+\.\d+(\.\d+)?$` | `"1.0"`, `"1.0.0"` |
 | DOI | `^10\.\d{4,}/.*$` | `"10.48550/arXiv.1706.03762"` |
 
