@@ -1,12 +1,12 @@
 # The ASTRA Specification Explained
 
-As AI systems make it easier to generate analyses quickly, the bottleneck shifts from producing results to inspecting whether each result should be trusted. An `astra.yaml` file is a scientific record that chains together inputs, outputs, methodological choices, evidence, and claims. With an `astra.yaml`, an experiment can be quickly checked and expanded upon. `astra.yaml` is meant to be written and read by agents as readily as by people.
+As agents make it easier to generate analyses, the bottleneck shifts from producing results to inspecting whether each result should be trusted. An `astra.yaml` file is a scientific record that chains together inputs, outputs, methodological choices, evidence, and claims. It allows an experiment to be quickly checked and expanded upon. `astra.yaml` is meant to be written and read by agents as readily as by people.
 
-This page teaches the format by building up the analysis piece by piece.
+Here, we explain each part of the format piece by piece.
 
 ## What an ASTRA document describes
 
-An ASTRA document describes a scientific analysis, not merely a program. A program says what to execute. An ASTRA analysis says what the computation is meant to establish, which artifacts matter, which choices shape those artifacts, and how a reader can trace claims back to evidence.
+An ASTRA document describes the purpose of an experiment, which artifacts matter, which choices shape those artifacts, and how a reader can trace claims back to evidence.
 
 An `astra.yaml` file contains an `Analysis`, which declares:
 
@@ -22,7 +22,7 @@ An `astra.yaml` file contains an `Analysis`, which declares:
 
 ## Minimal ASTRA document
 
-A minimal useful ASTRA document names the analysis, declares at least one input, declares at least one output, and declares the decisions that affect that output. In the example below, the analysis consumes the `catalog_data` input, produces the `fit_params` output, and exposes one methodological choice, `fit_method`.
+A minimal useful ASTRA document names the analysis, declares an input, an output, and the decisions that affect that output. In the example below, the analysis consumes the `catalog_data` input, produces the `fit_params` output, and exposes a methodological choice, `fit_method`.
 
 ```yaml
 version: "1.0"
@@ -71,8 +71,6 @@ decisions:
 
 ## Reading the example from top to bottom
 
-### Metadata
-
 ```yaml
 version: "1.0"
 name: Period-Luminosity Fit
@@ -94,9 +92,9 @@ narrative:
     The [fit_params](#outputs.fit_params) output reports the fitted relation parameters.
 ```
 
-The `narrative` block is prose with stable anchors. It gives the analysis-level explanation that a paper, report, or review tool can render. The narrative and rest of the YAML should agree, with the prose telling the story and the structured objects giving tools something precise to validate.
+The `narrative` block is written in prose to give readers an explanation of the analysis that can be rendered into a report. The narrative and rest of the YAML should agree, with the prose telling the story and the structured objects giving tools something precise to validate.
 
-ASTRA defines five narrative sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. These sections are conditionally required by `astra validate` when the corresponding structured data exists, e.g. an analysis with `decisions` should explain them in `narrative.methods`.
+ASTRA defines five narrative sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. These sections are conditionally required when the corresponding structured data exists, e.g. an analysis with `decisions` should explain them in `narrative.methods`.
 
 ### Inputs
 
@@ -108,7 +106,7 @@ inputs:
     description: Periods and mean apparent magnitudes.
 ```
 
-An input is something the analysis consumes. It can be a dataset, a file, an external resource, or the outputs of another ASTRA analysis. The `id` is the local name used by outputs and recipes. The `type` says whether the input is `data` or an external `analysis`. Notably, the `source` is usually a path or URI, a loader name, or another data locator, and it is *descriptive* rather than prescriptive because it records enough information for agents to know what the analysis claims to consume.
+An input is something the analysis consumes. It can be a dataset, a file, an external resource, or the outputs of another ASTRA analysis. The `id` is the local name used by outputs and recipes. The `type` says whether the input is `data` or an external `analysis`. Notably, the `source` is usually a path or URI, a loader name, or another data locator, and it is *descriptive* rather than prescriptive because it records enough information for agents to know where the input is sourced.
 
 ### Outputs
 
@@ -133,7 +131,7 @@ The recipe is not allowed to invent hidden dependencies, which makes the output 
 
 ### Decisions
 
-Imagine a reviewer asking you: "What if you used fitting method B instead of method A?" In ASTRA, you can codify this decision and track how it changes the outputs.
+A reviewer might ask: "What if you used fitting method B instead of method A?" In ASTRA, you can codify this decision and track how it changes the outputs.
 
 ```yaml
 decisions:
@@ -148,7 +146,7 @@ decisions:
         label: Robust linear fit
 ```
 
-The `fit_method` decision gives the review question a name. `default` records the baseline choice used by the analysis, and `options` records the alternatives.
+The `fit_method` decision captures the fitting-method choice. `default` records the baseline choice used by the analysis, and `options` records the alternatives.
 
 Use a decision when changing a methodological choice could change an output. Give the choice an `id`, record the baseline with `default`, and list the allowed `options`. Then attach the decision to each affected output. In this example, `fit_params.decisions: [fit_method]` tells the reader that the fitted parameters depend on the selected fitting method.
 
@@ -209,9 +207,10 @@ Here, `outlier_handling.sigma_clip` is incompatible with `fit_method.robust_line
 
 ### Universes
 
-A universe is one complete selection of decision options. If the analysis defines `fit_method` and `outlier_handling`, then a universe chooses one option for each.
+A universe is one complete selection of decision options, stored separately from `astra.yaml`. A project usually keeps one YAML file per universe in a `universes/` directory, such as `universes/baseline.yaml` or `universes/cleaned-data.yaml`. If the analysis defines `fit_method` and `outlier_handling`, then each universe file chooses one option for each decision.
 
 ```yaml
+# universes/baseline.yaml
 id: baseline
 description: Fit the relation with ordinary least squares and keep all points.
 
@@ -220,7 +219,7 @@ decisions:
   outlier_handling: keep_all
 ```
 
-One analysis can have many universes. A baseline universe might keep all points and use ordinary least squares. A robustness universe might switch to `fit_method: robust_linear`. A cleaned-data universe might use `outlier_handling: sigma_clip`. Each universe yields its own outputs under one declared choice configuration. For example, the plot from the baseline universe might be written to `results/baseline/`, while the cleaned-data universe plot might be written to `results/clean/`.
+One analysis can have many universes. A baseline universe might keep all points and use ordinary least squares. A robustness universe might switch to `fit_method: robust_linear`. A cleaned-data universe might use `outlier_handling: sigma_clip`. Each universe produces its own outputs under one declared choice configuration. For example, the plot from the baseline universe might be written to `results/baseline/`, while the cleaned-data universe plot might be written to `results/clean/`.
 
 ### Recipes and command templates
 
@@ -241,39 +240,6 @@ outputs:
 ```
 
 The command is the only required part of a recipe. You can add optional `container` and `resources` elements when the runner needs execution context, for example a Docker image for the software environment, or CPU, memory, and wall-time requests for compute.
-
-### Conditional elements
-
-Use `when` when a choice creates a branch of the analysis. For example, one choice may require an extra assumption, diagnostic, or output that should not appear in every universe. Conditions use `decision.option`, with a `~` prefix for negation. Multiple conditions are ANDed together.
-
-```yaml
-decisions:
-  correction_mode:
-    label: Correction mode
-    default: none
-    options:
-      none: { label: No correction }
-      calibrated: { label: Apply calibration }
-
-  calibration_prior:
-    label: Calibration prior
-    when:
-      - correction_mode.calibrated
-    default: weak
-    options:
-      weak: { label: Weak prior }
-      informative: { label: Informative prior }
-
-outputs:
-  - id: calibrated_table
-    type: table
-    when:
-      - correction_mode.calibrated
-    recipe:
-      command: python src/apply_calibration.py --out {output}
-```
-
-In the example, `calibration_prior` and `calibrated_table` exist only for the calibrated branch. A baseline universe that selects `correction_mode.none` stays simpler: it does not carry a prior or output that it never uses.
 
 ### Prior insights, findings, and evidence
 
@@ -371,6 +337,39 @@ inputs:
     ref_version: "v1.2"
     use_outputs: [fit_params, residual_plot]
 ```
+
+### Conditional elements
+
+Use `when` when a choice creates a branch of the analysis. For example, one choice may require an extra assumption, diagnostic, or output that should not appear in every universe. Conditions use `decision.option`, with a `~` prefix for negation. Multiple conditions are ANDed together.
+
+```yaml
+decisions:
+  correction_mode:
+    label: Correction mode
+    default: none
+    options:
+      none: { label: No correction }
+      calibrated: { label: Apply calibration }
+
+  calibration_prior:
+    label: Calibration prior
+    when:
+      - correction_mode.calibrated
+    default: weak
+    options:
+      weak: { label: Weak prior }
+      informative: { label: Informative prior }
+
+outputs:
+  - id: calibrated_table
+    type: table
+    when:
+      - correction_mode.calibrated
+    recipe:
+      command: python src/apply_calibration.py --out {output}
+```
+
+In the example, `calibration_prior` and `calibrated_table` exist only for the calibrated branch. A baseline universe that selects `correction_mode.none` stays simpler: it does not carry a prior or output that it never uses.
 
 ## Validation model
 
