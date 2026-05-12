@@ -3,19 +3,19 @@
 > **Version**: draft  
 > **Status**: active development
 
-As AI systems make it easier to generate analyses quickly, the bottleneck shifts from producing results to inspecting whether each result should be trusted. An `astra.yaml` file is a scientific record that chains together inputs, outputs, methodological choices, evidence, and claims. With an `astra.yaml`, an experiment can be quickly checked and expanded upon.
+As AI systems make it easier to generate analyses quickly, the bottleneck shifts from producing results to inspecting whether each result should be trusted. An `astra.yaml` file is a scientific record that chains together inputs, outputs, methodological choices, evidence, and claims. With an `astra.yaml`, an experiment can be quickly checked and expanded upon. `astra.yaml` is meant to be written and read by agents as readily as by people.
 
-This page teaches the format by building one analysis piece by piece. Notably, `astra.yaml` is meant to be written and read by agents.
+This page teaches the format by building up the analysis piece by piece.
 
 ## What an ASTRA document describes
 
 An ASTRA document describes a scientific analysis, not merely a program. A program says what to execute. An ASTRA analysis says what the computation is meant to establish, which artifacts matter, which choices shape those artifacts, and how a reader can trace claims back to evidence.
 
-The central object is the `astra.yaml` file, which contains an `Analysis` that declares:
+An `astra.yaml` file contains an `Analysis`, which declares:
 
 | Section | Question it answers |
 |---|---|
-| `narrative` | In plain-text, how should a scientist understand this analysis? |
+| `narrative` | How is this analysis explained in prose? |
 | `inputs` | What data or prior analyses does this analysis consume? |
 | `outputs` | What metrics, figures, tables, data products, or reports does it produce? |
 | `decisions` | Which methodological choice points shape the outputs? |
@@ -71,8 +71,6 @@ decisions:
       robust_linear:
         label: Robust linear fit
 ```
-
-Now let's walk through those pieces in the same order.
 
 ## Reading the example from top to bottom
 
@@ -132,7 +130,7 @@ outputs:
         --out {output}
 ```
 
-An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `recipe` gives the python command the runner invokes.
+An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `recipe` gives the Python command the runner invokes.
 
 The recipe is not allowed to invent hidden dependencies, which makes the output a reviewable unit.
 
@@ -225,7 +223,7 @@ decisions:
   outlier_handling: keep_all
 ```
 
-One analysis can have many universes. A baseline universe might keep all points and use ordinary least squares. A robustness universe might switch to `fit_method: robust_linear`; a cleaned-data universe might use `outlier_handling: sigma_clip`. Each universe yields its own outputs under one declared choice configuration. For example, the plot from the baseline universe might be written to `results/baseline/`, while the cleaned-data universe plot might be written to `results/clean/`.
+One analysis can have many universes. A baseline universe might keep all points and use ordinary least squares. A robustness universe might switch to `fit_method: robust_linear`. A cleaned-data universe might use `outlier_handling: sigma_clip`. Each universe yields its own outputs under one declared choice configuration. For example, the plot from the baseline universe might be written to `results/baseline/`, while the cleaned-data universe plot might be written to `results/clean/`.
 
 ### Recipes and command templates
 
@@ -249,7 +247,7 @@ The command is the only required part of a recipe. You can add optional `contain
 
 ### Conditional elements
 
-Use `when` when a choice creates a branch of the analysis. For example, one choice may require an extra assumption, diagnostic, or output that should not appear in every universe. Conditions use `decision.option`; prefix with `~` for negation. Multiple conditions are ANDed together.
+Use `when` when a choice creates a branch of the analysis. For example, one choice may require an extra assumption, diagnostic, or output that should not appear in every universe. Conditions use `decision.option`, with a `~` prefix for negation. Multiple conditions are ANDed together.
 
 ```yaml
 decisions:
@@ -282,7 +280,7 @@ In the example, `calibration_prior` and `calibrated_table` exist only for the ca
 
 ### Prior insights, findings, and evidence
 
-Scientific review is not only about checking the final result; it is also about checking why the analysis was set up the way it was. ASTRA separates claims that motivate the analysis from claims produced by the analysis. A `prior_insight` records an imported claim used to justify a choice, while a `finding` records a claim made by the current analysis. Both use the shared `Insight` model and can point to evidence.
+Scientific review is not only about checking the final result. It is also about checking why the analysis was set up the way it was and what the analysis claimed afterward. ASTRA separates claims that motivate the analysis from claims produced by the analysis. A `prior_insight` records an imported claim used to justify a choice, while a `finding` records a claim made by the current analysis. Both use the shared `Insight` model and can point to evidence.
 
 ```yaml
 prior_insights:
@@ -332,7 +330,7 @@ In this way, a reviewer can see not only what was chosen, but what was considere
 
 ### Sub-analyses
 
-Experiments are usually made of smaller analyses. In ASTRA, you can build them up as nested `analyses`: a cleaning stage can feed a fitting stage, which feeds a summary plot.
+Experiments are usually made of smaller analyses. In ASTRA, you can build them up as nested `analyses`: a cleaning stage can feed a fitting stage, which can feed a summary plot.
 
 ```yaml
 analyses:
@@ -377,34 +375,16 @@ inputs:
     use_outputs: [fit_params, residual_plot]
 ```
 
-### Bridges with `from`
-
-Once an analysis is split into stages, the same object often needs a short local name in the stage that uses it. `from` creates that local name without copying the object. In the example below, a child analysis receives an upstream catalog, the parent re-exports fitted parameters, and the child inherits the fitting method from its parent.
-
-```yaml
-inputs:
-  - id: catalog
-    from: ../cleaned_catalog
-
-outputs:
-  - id: fit_params
-    from: fitting.fit_params
-
-decisions:
-  fit_method:
-    from: ../fit_method
-```
-
 ## Validation model
 
 ASTRA validation is designed to catch both syntax errors and scientific-record errors.
 
 | Stage | What it checks |
 |---|---|
-| Schema validation | YAML shape, field types, required fields, enum values, version and DOI patterns. |
-| Semantic validation | Duplicate IDs, default options, constraint references, `from` paths, output dependencies, recipe placeholders, universe selections, and constraint satisfaction. |
-| Narrative validation | Internal Markdown anchors, required narrative sections, and coverage warnings for declared elements not mentioned in prose. |
-| Evidence verification | Optional quote matching against cited PDFs or artifacts. |
+| Schema validation | YAML shape, types, enums, version and DOI patterns. |
+| Semantic validation | Duplicate IDs, references, `from` paths, recipe placeholders, and constraint satisfaction. |
+| Narrative validation | Anchors, required narrative sections, and coverage warnings. |
+| Evidence verification | Optional quote matching against cited sources. |
 
 Run validation with:
 
@@ -418,17 +398,17 @@ Evidence verification is opt-in:
 astra validate astra.yaml --verify-evidence
 ```
 
-Remember, validation does not prove that the science is correct; it proves that the record is structured enough to inspect.
+Remember, validation does not prove that the science is correct, obviously! It proves that the record is structured enough to inspect.
 
 ## Conclusion
 
-An `astra.yaml` file turns an analysis into something a reader or agent can follow, question, validate, and extend.
+That covers the ASTRA format. If you're curious, try asking your agent to turn a piece of your own research into an `astra.yaml` and see what comes back. The rest of this page is a field reference for the individual schema elements.
 
 ---
 
 ## Field reference
 
-The rest of this page is a compact reference. For generated class-level documentation, see the [schema reference](elements/index.md).
+For generated class-level documentation, see the [schema reference](elements/index.md).
 
 ### Analysis
 
@@ -498,7 +478,7 @@ An input declares something the analysis consumes, or aliases an upstream artifa
 | `use_outputs` | `string[]` | No | Outputs to consume from a referenced analysis. |
 | `from` | `string` | No | Path alias to an upstream input or sibling output. |
 
-When `from` is present, the input is a pure alias. Only `id` and `from` may be declared; content is inherited from the source.
+When `from` is present, the input is a pure alias. Only `id` and `from` may be declared, and content is inherited from the source.
 
 ### Output
 
@@ -548,9 +528,9 @@ Recipe placeholders:
 | `{output}` | Path where the runner should write the produced artifact. |
 | `{{` and `}}` | Literal braces. |
 
-The command string is a typed template. Every `{inputs.<id>}` placeholder must name an input or sibling output listed in the parent `Output.inputs`; every `{decisions.<id>}` placeholder must name a decision listed in the parent `Output.decisions`. Validators reject unresolved or undeclared placeholders.
+The command string is a typed template. Every `{inputs.<id>}` placeholder must name an input or sibling output listed in the parent `Output.inputs`. Every `{decisions.<id>}` placeholder must name a decision listed in the parent `Output.decisions`. Validators reject unresolved or undeclared placeholders.
 
-Placeholders always use local IDs in the surrounding analysis scope. If an input or decision is aliased from another scope with `from`, the recipe still names the local alias. Recipes do not use `../` path syntax; cross-scope wiring is declared once on the `Input`, `Output`, or `Decision`.
+Placeholders always use local IDs in the surrounding analysis scope. If an input or decision is aliased from another scope with `from`, the recipe still names the local alias. Recipes do not use `../` path syntax. Cross-scope wiring is declared once on the `Input`, `Output`, or `Decision`.
 
 Decision placeholders resolve to the selected option ID in the current universe. If a script needs a numeric value, such as a seed, either map the option ID inside the script or choose option IDs that are usable directly.
 
@@ -564,7 +544,7 @@ Resources:
 | `disk` | `string` | Disk with units. |
 | `gpus` | `integer` | Number of GPUs. |
 
-A node-level `container` on `Analysis` sets the default for recipes in that node. A recipe-level `container` overrides it. Image names such as `python:3.12-slim` or `ghcr.io/org/image:latest` are interpreted as pre-built images; paths such as `Containerfile` or `containers/Dockerfile` are interpreted as build contexts by runners that support them.
+A node-level `container` on `Analysis` sets the default for recipes in that node. A recipe-level `container` overrides it. Image names such as `python:3.12-slim` or `ghcr.io/org/image:latest` are interpreted as pre-built images. Paths such as `Containerfile` or `containers/Dockerfile` are interpreted as build contexts by runners that support them.
 
 Example rendered command after a runner materializes paths and selects a universe:
 
