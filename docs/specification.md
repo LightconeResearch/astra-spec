@@ -1,8 +1,5 @@
 # The ASTRA Specification Explained
 
-> **Version**: draft  
-> **Status**: active development
-
 As AI systems make it easier to generate analyses quickly, the bottleneck shifts from producing results to inspecting whether each result should be trusted. An `astra.yaml` file is a scientific record that chains together inputs, outputs, methodological choices, evidence, and claims. With an `astra.yaml`, an experiment can be quickly checked and expanded upon. `astra.yaml` is meant to be written and read by agents as readily as by people.
 
 This page teaches the format by building up the analysis piece by piece.
