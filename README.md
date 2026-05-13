@@ -8,7 +8,7 @@
 [![Code license: BSD 3-Clause](https://img.shields.io/badge/code-BSD_3--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause)
 
 > [!WARNING]
-> ASTRA is in **early alpha**. Expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports from real-analysis attempts and design challenges are exactly what the project needs at this stage — please open an [issue](https://github.com/LightconeResearch/astra-spec/issues) or join the [Community](https://astra-spec.org/community/).
+> ASTRA is in **early alpha**. Expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports from real-analysis attempts and design challenges are exactly what the project needs at this stage — please open an [issue](https://github.com/LightconeResearch/astra-spec/issues).
 
 ---
 
