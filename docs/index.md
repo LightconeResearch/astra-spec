@@ -6,6 +6,11 @@ You declare inputs, outputs, and the decisions that shape the analysis. An agent
 
 ASTRA is intentionally agnostic to any execution engine: agents, workflow runners, or humans can all consume an ASTRA spec.
 
+<video autoplay muted loop playsinline preload="metadata" width="100%">
+  <source src="assets/astraspecdemo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 [:lucide-rocket: **Get started**](getting-started.md){ .md-button .md-button--primary }
 [:lucide-book-open: Read the specification](specification.md){ .md-button }
 
