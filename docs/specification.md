@@ -277,6 +277,8 @@ findings:
 
 Evidence is what lets a reader check a claim instead of simply accepting it. It can cite a paper, identify a passage in a source document, or point to an artifact produced by the analysis. The same structure works for prior insights and findings: a decision can say which insight supports it, and each insight can say exactly which source or output supports the claim. With evidence verification enabled, tools can check whether quoted text actually appears in the cited source.
 
+An option's `insights:` list may cite either a `prior_insight` (external evidence motivating the choice) or a `finding` (a claim produced by this analysis that in turn justifies a downstream choice). Both kinds of `Insight` are equally valid evidence — the distinction is which side of the analysis the claim originated on.
+
 ### Excluded options
 
 A rejected option can still be scientifically important. ASTRA lets authors keep it in the record while marking it as unavailable for valid universes.
