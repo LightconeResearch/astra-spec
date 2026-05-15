@@ -15,7 +15,7 @@ ASTRA is intentionally agnostic to the execution harness so that agents, workflo
 [:lucide-book-open: Read the specification](specification.md){ .md-button }
 
 !!! warning "Alpha development"
-    ASTRA is in **early alpha**. The schema, CLI, and tooling are all still moving — expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports, design challenges, and use cases that the spec doesn't yet cover are exactly what we want to hear at this stage; please open an issue on the [GitHub repo](https://github.com/LightconeResearch/astra-spec/issues), join the [Community](community.md) tab, or come help define the schema at the [Developer Summit](https://lightconeresearch.org/developer-summit).
+    ASTRA is in **early alpha**. The schema, CLI, and tooling are all still moving — expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports, design challenges, and use cases that the spec doesn't yet cover are exactly what we want to hear at this stage; please open an issue on the [GitHub repo](https://github.com/LightconeResearch/astra-spec/issues), join the [Community](community.md) tab, or come help define the schema at the [Agentic AI 4 Science Developer Summit](https://lightconeresearch.org/developer-summit).
     
 ## Why ASTRA?
 
