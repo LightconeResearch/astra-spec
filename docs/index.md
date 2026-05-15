@@ -1,10 +1,8 @@
 # ASTRA
 
-**Agentic Schema for Transparent Research Analysis** — a declarative YAML format for scientific analyses that separates *what* you want to learn from *how* to compute it.
+**Agentic Schema for Transparent Research Analysis** is a YAML specification for scientific analyses. Beyond code alone, `astra.yaml` records the narrative, inputs, outputs, methodological choices, and evidence behind an experiment, making the work easier to reproduce and extend.
 
-You declare inputs, outputs, and the decisions that shape the analysis. An agent or workflow engine reads the spec and produces results. Every analytical choice is documented, every alternative is recorded, and every decision can be backed by traceable evidence.
-
-ASTRA is intentionally agnostic to any execution engine: agents, workflow runners, or humans can all consume an ASTRA spec.
+Agents are expanding the scale and speed of science, which shifts the bottleneck from producing results to trusting them. Luckily, agents also help with writing the `astra.yaml`, which gives each experiment a structured record and keeps the agents in check.
 
 <video autoplay muted loop playsinline preload="metadata" width="100%">
   <source src="assets/astraspecdemo.mp4" type="video/mp4">
@@ -19,71 +17,73 @@ ASTRA is intentionally agnostic to any execution engine: agents, workflow runner
 
 ## Why ASTRA?
 
-Scientific analyses are built on a cascade of methodological choices — which algorithm, how to split the data, what priors to assume. These decisions are rarely documented systematically, and the alternatives considered are almost never recorded. That makes results hard to reproduce, hard to audit, and hard to revisit.
+Scientific results depend on methodological choices: which data to include, how to handle outliers, which prior to assume, and so on. In ordinary research code, those choices are often scattered across notebooks, scripts, comments, and memory. This makes results hard to reproduce, audit, and expand.
 
-ASTRA gives every analytical choice an explicit place in the spec. Decisions name the options that were considered, link to evidence, and feed into a *universe* — one complete selection that yields one set of results. The collection of valid selections is the *multiverse*.
+ASTRA gives every methodological choice an explicit place in the spec. In ASTRA, decisions name the options that were considered, link to evidence, and feed into a *universe*, which records the results for a given set of choices.
 
 ## At a glance
 
-Three pieces fit together: an **analysis** declares the design space, a **universe** picks one option per decision, and the **CLI** validates and inspects.
+In ASTRA, an analysis declares the design space, a universe picks one option per decision, and the CLI allows for validation and inspection. Below is an example of an `astra.yaml`. For a detailed walkthrough of the spec, see our [specification explained](specification.md).
 
 === "Analysis (`astra.yaml`)"
 
-    ```yaml
-    version: "1.0"
-    name: Iris Classification
+```yaml
+version: "1.0"
+name: Period-Luminosity Fit
 
-    inputs:                          # data and prior analyses this one consumes
-      - id: iris_data
-        type: data
-        source: sklearn.datasets.load_iris
+inputs:
+  - id: catalog_data
+    type: data
+    source: data/catalog_data.csv
+    description: Periods and mean apparent magnitudes.
 
-    outputs:                         # what to produce; recipe says how
-      - id: accuracy
-        type: metric
-        decisions: [scaling, model]  # decisions that parameterize this output
-        recipe:
-          command: python src/evaluate.py
+outputs:
+  - id: fit_params
+    type: table
+    description: Slope, intercept, and scatter for the fitted relation.
+    inputs: [catalog_data]
+    decisions: [fit_method]
+    recipe:
+      command: >-
+        python src/fit_period_luminosity.py
+        --catalog {inputs.catalog_data}
+        --method {decisions.fit_method}
+        --out {output}
 
-    decisions:                       # the choice points
-      scaling:
-        label: Feature Scaling
-        default: standard
-        options:
-          none: { label: No Scaling }
-          standard: { label: StandardScaler }
-
-      model:
-        label: Classification Model
-        default: random_forest
-        options:
-          random_forest: { label: Random Forest }
-          svm:
-            label: SVM
-            requires: [scaling.standard]   # SVM is only valid with standard scaling
-    ```
+decisions:
+  fit_method:
+    label: Fitting method
+    rationale: The fitting method determines how outliers influence the inferred relation.
+    default: ordinary_least_squares
+    options:
+      ordinary_least_squares:
+        label: Ordinary least squares
+      robust_linear:
+        label: Robust linear fit
+```
 
 === "Universe (`universes/baseline.yaml`)"
 
-    ```yaml
-    # One option per decision; the same analysis can have many universes.
-    id: baseline
-    description: Default configuration
+```yaml
+# universes/baseline.yaml
+id: baseline
+description: Default configuration for the period-luminosity fit.
 
-    decisions:
-      scaling: standard
-      model: random_forest
-    ```
+decisions:
+  fit_method: ordinary_least_squares
+```
 
 === "Run it"
 
-    ```bash
-    uv tool install astra-tools
+````
+```bash
+uv tool install astra-tools
 
-    astra validate astra.yaml
-    astra info
-    astra viz
-    ```
+astra validate astra.yaml
+astra info
+astra viz
+```
+````
 
 ---
 
