@@ -1,8 +1,10 @@
 # ASTRA
 
-**Agentic Schema for Transparent Research Analysis** is a YAML specification for scientific analyses. Beyond code alone, `astra.yaml` records the narrative, inputs, outputs, methodological choices, and evidence behind an experiment, making the work easier to reproduce and extend.
+**Agentic Schema for Transparent Research Analysis** is a YAML specification for scientific analyses. Code captures execution, but not the full structure of an analysis: `astra.yaml` records the narrative, inputs, outputs, methodological choices, and evidence behind an experiment, making the work easier to reproduce and extend.
 
-Agents are expanding the scale and speed of science, which shifts the bottleneck from producing results to trusting them. Luckily, agents also help with writing the `astra.yaml`, which gives each experiment a structured record and keeps the agents in check.
+Agents are expanding the scale and speed of science, which shifts the bottleneck from producing results to trusting them. `astra.yaml` gives each experiment a structured record for agents to follow, keeping assumptions, choices, and evidence explicit.
+
+ASTRA is intentionally agnostic to the execution harness so that agents, workflow runners, and humans can all read and act on the same spec.
 
 <video autoplay muted loop playsinline preload="metadata" width="100%">
   <source src="assets/astraspecdemo.mp4" type="video/mp4">
@@ -13,8 +15,8 @@ Agents are expanding the scale and speed of science, which shifts the bottleneck
 [:lucide-book-open: Read the specification](specification.md){ .md-button }
 
 !!! warning "Alpha development"
-    ASTRA is in **early alpha**. The schema, CLI, and tooling are all still moving — expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports, design challenges, and use cases that the spec doesn't yet cover are exactly what we want to hear at this stage; please open an issue on the [GitHub repo](https://github.com/LightconeResearch/astra-spec/issues) or join the [Community](community.md) tab.
-
+    ASTRA is in **early alpha**. The schema, CLI, and tooling are all still moving — expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports, design challenges, and use cases that the spec doesn't yet cover are exactly what we want to hear at this stage; please open an issue on the [GitHub repo](https://github.com/LightconeResearch/astra-spec/issues), join the [Community](community.md) tab, or come help define the schema at the [Developer Summit](https://lightconeresearch.org/developer-summit).
+    
 ## Why ASTRA?
 
 Scientific results depend on methodological choices: which data to include, how to handle outliers, which prior to assume, and so on. In ordinary research code, those choices are often scattered across notebooks, scripts, comments, and memory. This makes results hard to reproduce, audit, and expand.
