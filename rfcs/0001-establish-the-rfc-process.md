@@ -47,7 +47,7 @@ In summary:
   are merged, preserving the rationale — fitting for a project whose whole thesis
   is a durable, reproducible record.
 - **Template fields:** Context · Proposal · Examples · Implementation
-  implications · Questions or Objections.
+  implications & migration · Questions or objections · References.
 - **Interim governance:** until ASTRA reaches **v0.1**, the project is in alpha
   and decisions rest with the Lightcone Research core team, with all discussion
   in public issues and pull requests. The formal review window and
@@ -66,7 +66,7 @@ This RFC is its own first example: it was proposed as a pull request adding the
 `rfcs/` directory, the template, and the two governance documents, and merged
 under the very rules it defines.
 
-## Implementation implications
+## Implementation implications & migration
 
 - Adds `rfcs/` (template, index, this RFC).
 - Adds `docs/rfc-process.md` and `docs/governance.md`, wired into the site nav.
@@ -76,7 +76,7 @@ under the very rules it defines.
   organization-level [Contributor Covenant 3.0](https://github.com/LightconeResearch/.github/blob/master/CODE_OF_CONDUCT.md).
 - No schema or generated-artifact changes; no migration required.
 
-## Questions or Objections
+## Questions or objections
 
 - **Is a single-maintainer "council" really governance?** For alpha, yes — it is
   honest about where decisions currently sit while publishing the full process
@@ -84,3 +84,11 @@ under the very rules it defines.
   makes the trajectory explicit rather than implied.
 - **Why number RFCs with four digits?** Matches the sibling MEP convention
   and leaves room without renumbering.
+
+## References
+
+- [MyST Enhancement Proposals (MEP)](https://mep.mystmd.org) — the process and
+  template this RFC is modeled on.
+- [PEP 1](https://peps.python.org/pep-0001/) and
+  [PEP 13](https://peps.python.org/pep-0013/) — the Python Enhancement Proposal
+  workflow and steering-council governance behind the MEP lineage.

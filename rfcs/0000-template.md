@@ -30,8 +30,7 @@ cite existing formats, standards, or conventions where they apply.
 <!--
 Describe your proposed change in concrete terms. Be specific about what changes
 in the schema, tooling, or process. Include a plain-language summary for readers
-without deep context. List alternatives you considered and why you set them
-aside — this is where "what else could we do?" lives.
+without deep context.
 -->
 
 ## Examples
@@ -42,7 +41,7 @@ CLI output, before/after diffs. Concrete examples are the best way to surface
 disagreement early. Reference real analyses where possible.
 -->
 
-## Implementation implications
+## Implementation implications & migration
 
 <!--
 Describe how this lands. What needs to change in src/astra/schema/, the
@@ -51,10 +50,18 @@ and any migration steps for existing analyses, and whether the change is a
 minor or major bump under the versioning policy.
 -->
 
-## Questions or Objections
+## Questions or objections
 
 <!--
 As discussion happens, record open questions and objections here together with
-their responses. An accepted RFC should leave this section as a resolved record,
-not an empty one — it is part of the durable rationale.
+their responses, and link to where the conversation took place. An accepted RFC
+should leave this section as a resolved record, not an empty one — it is part of
+the durable rationale.
+-->
+
+## References
+
+<!--
+Reference other examples, formats, or prior art you drew on for inspiration, or
+that help others understand the proposal.
 -->

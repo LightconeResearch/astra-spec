@@ -55,8 +55,8 @@ record of where it ended up.
 2. **Open a draft pull request.** Add `rfcs/NNNN-short-slug.md`, copied from
    [`0000-template.md`](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0000-template.md),
    with `status: Draft`, and open the PR as a **GitHub draft**. The template's
-   sections are **Context · Proposal · Examples · Implementation implications ·
-   Questions or Objections**.
+   sections are **Context · Proposal · Examples · Implementation implications &
+   migration · Questions or objections · References**.
 3. **Discuss and iterate.** While the PR is a draft, invite discussion, incorporate
    feedback, and record objections and their responses in the RFC. Treat revisions
    as success, not failure.
@@ -106,8 +106,8 @@ stay in sync.
 
 ## Relationship to versioning
 
-When an accepted RFC changes the schema, its **Implementation implications**
-section should state whether the change is a minor or major bump under ASTRA's
+When an accepted RFC changes the schema, its **Implementation implications &
+migration** section should state whether the change is a minor or major bump under ASTRA's
 [versioning policy](about.md) and what migration (if any) existing analyses
 need. The mechanics of versioned schema hosting — per-version docs and
 machine-fetchable schemas at stable URLs — are already in place; see the
