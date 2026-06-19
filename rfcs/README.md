@@ -18,8 +18,8 @@ the site:
 - **[Governance](https://astra-spec.org/governance/)** — who decides, and how that evolves toward v0.1.
 
 > **ASTRA is in alpha.** The process below is published as a *full-featured
-> draft*. Until ASTRA reaches **v0.1**, decisions rest with the maintainer
-> (François Lanusse) with discussion in issues and pull requests; the formal
+> draft*. Until ASTRA reaches **v0.1**, decisions rest with the Lightcone
+> Research core team, with discussion in issues and pull requests; the formal
 > review window and multi-approver acceptance bar become binding at v0.1.
 
 ## How to propose an RFC

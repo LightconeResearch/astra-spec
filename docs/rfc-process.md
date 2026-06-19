@@ -8,17 +8,14 @@ the same values ASTRA asks of the analyses it describes.
 
 !!! warning "Draft process — alpha"
     ASTRA is in **alpha**, and this process is published as a *full-featured
-    draft*. Until ASTRA reaches **v0.1**, decisions rest with the maintainer
-    (François Lanusse), with all discussion in public issues and pull requests.
+    draft*. Until ASTRA reaches **v0.1**, decisions rest with the **Lightcone
+    Research core team**, with all discussion in public issues and pull requests.
     The time-boxed review window and multi-approver acceptance bar described
     below become **binding at v0.1**, when the [Steering Council](governance.md)
-    expands beyond a single maintainer. See [Governance](governance.md).
+    expands beyond the core team. See [Governance](governance.md).
 
 The process is modeled on [MyST Enhancement Proposals](https://mep.mystmd.org),
-the [Open Exchange Architecture RFC process](https://oxa.dev/rfc-process), and
-the PEP/Jupyter lineage behind them. Its guiding principle: **consensus is built
-through use, not unanimity** — proposals are validated by implementations and
-real analyses, not discussion alone.
+and the PEP/Jupyter lineage behind it.
 
 ## When you need an RFC
 
@@ -55,8 +52,7 @@ directory of the `astra-spec` repository, as numbered Markdown files.
    [`0000-template.md`](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0000-template.md),
    with status `Draft`. The template's sections are **Context · Proposal ·
    Examples · Implementation implications · Questions or Objections**.
-3. **Discuss and iterate.** Invite discussion in the pull request and in
-   [GitHub Discussions](https://github.com/LightconeResearch/astra-spec/discussions).
+3. **Discuss and iterate.** Invite discussion in the pull request.
    Incorporate feedback; record objections and their responses in the RFC.
    Treat revisions as success, not failure.
 4. **Activate the decision.** When the proposal has stabilized and the author
@@ -82,8 +78,8 @@ directory of the `astra-spec` repository, as numbered Markdown files.
 ## Acceptance criteria
 
 !!! note "Becomes binding at v0.1"
-    During alpha, the maintainer accepts or rejects an RFC after open
-    discussion; there is no fixed quorum. From **v0.1**, an RFC may be accepted
+    During alpha, the Lightcone Research core team accepts or rejects an RFC
+    after open discussion; there is no fixed quorum. From **v0.1**, an RFC may be accepted
     when **all** of the following hold:
 
     - it has been **Active** for a minimum open review window (proposed: at

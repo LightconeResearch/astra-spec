@@ -24,11 +24,8 @@ schema. Subsequent RFCs introduce and evolve specific schema concepts; this one
 sets expectations for how we work together first.
 
 The design borrows directly from processes that already work in this ecosystem:
-[MyST Enhancement Proposals (MEP)](https://mep.mystmd.org), the
-[Open Exchange Architecture RFC process](https://oxa.dev/rfc-process), and the
-PEP/Jupyter lineage behind them. The guiding principle from that lineage applies
-here too: **consensus is built through use, not unanimity** — proposals are
-validated by implementations and real analyses, not discussion alone.
+[MyST Enhancement Proposals (MEP)](https://mep.mystmd.org) and the
+PEP/Jupyter lineage behind it.
 
 ## Proposal
 
@@ -49,17 +46,16 @@ In summary:
 - **Template fields:** Context · Proposal · Examples · Implementation
   implications · Questions or Objections.
 - **Interim governance:** until ASTRA reaches **v0.1**, the project is in alpha
-  and decisions rest with the maintainer (François Lanusse), with all discussion
+  and decisions rest with the Lightcone Research core team, with all discussion
   in public issues and pull requests. The formal review window and
   multi-approver acceptance bar described in the process document become binding
-  at v0.1, when the Steering Council expands beyond a single maintainer.
+  at v0.1, when the Steering Council expands beyond the core team.
 
-**Alternatives considered.** A separate `astra-rfcs` repository (as OXA uses)
-was set aside: ASTRA is a single-spec repository, and an in-repo directory keeps
-an RFC next to the schema change it motivates. A GitHub-Discussions-only process
-was set aside because it produces no durable, numbered, citable record and no
-PR-based review gate — both of which matter for a reproducibility-focused
-standard.
+**Alternatives considered.** A separate `astra-rfcs` repository was set aside:
+ASTRA is a single-spec repository, and an in-repo directory keeps an RFC next to
+the schema change it motivates. A GitHub-Discussions-only process was set aside
+because it produces no durable, numbered, citable record and no PR-based review
+gate — both of which matter for a reproducibility-focused standard.
 
 ## Examples
 
@@ -83,5 +79,5 @@ under the very rules it defines.
   honest about where decisions currently sit while publishing the full process
   the project commits to at v0.1. The draft status of the governance document
   makes the trajectory explicit rather than implied.
-- **Why number RFCs with four digits?** Matches the sibling OXA/MEP convention
+- **Why number RFCs with four digits?** Matches the sibling MEP convention
   and leaves room without renumbering.

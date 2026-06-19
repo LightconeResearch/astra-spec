@@ -1,6 +1,6 @@
 # Governance
 
-ASTRA is developed in the open and is intended to become a community-owned
+ASTRA is developed in the open and is intended to evolve towards a community-owned
 standard. This page documents who makes decisions today, how those decisions are
 made, and how that structure is expected to evolve. It is the companion to the
 [RFC process](rfc-process.md), which is the mechanism through which most
@@ -10,16 +10,15 @@ decisions are actually made and recorded.
     ASTRA is in **alpha**. This page describes the governance model as a
     *full-featured draft*: the structure below is what the project commits to at
     **v0.1**. Until then, ASTRA is stewarded by **Lightcone Research**, and
-    decisions rest with the maintainer (**François Lanusse**), with all
-    discussion in public issues and pull requests. There is no formal voting
-    process during alpha — the [RFC acceptance bar](rfc-process.md#acceptance-criteria)
-    becomes binding at v0.1.
+    decisions rest with the **Lightcone Research core team**, with all discussion
+    in public issues and pull requests. There is no formal voting process during
+    alpha — the [RFC acceptance bar](rfc-process.md#acceptance-criteria) becomes
+    binding at v0.1.
 
 ## Stewardship
 
 ASTRA is currently stewarded by [**Lightcone Research**](https://github.com/LightconeResearch),
-which writes most of the code and documentation today. As the
-[About page](about.md) states, this stewardship is a *starting point, not the
+which writes most of the code and documentation today. This stewardship is a *starting point, not the
 long-term home*: as ASTRA stabilizes beyond alpha, the project will move into a
 community-governed structure.
 
@@ -27,16 +26,15 @@ community-governed structure.
 
 **Steering Council.** Provides high-level technical and strategic direction,
 safeguards the project's principles, oversees the RFC process, and acts as final
-approver for RFCs. Council members serve **as individuals, not as
-representatives of their organizations**. During alpha the council is a single
-maintainer (François Lanusse); it is expected to **expand at v0.1** as outside
-contributors join, drawing on the models used by the Python Software Foundation
-and Project Jupyter.
+approver for RFCs. During alpha this role is held by the **Lightcone Research
+core team**; it is expected to **expand at v0.1** into a dedicated council as
+outside contributors join, drawing on the models used by the Python Software
+Foundation and Project Jupyter.
 
-**Maintainers / Core contributors.** Actively design, implement, and maintain
-the schema, tooling, and documentation; review and approve pull requests. Core
-membership emerges through sustained contribution rather than appointment, and
-may span organizations and tool ecosystems.
+**Maintainers.** Actively design, implement, and maintain the schema, tooling,
+and documentation; review and approve pull requests. Maintainer status emerges
+through sustained contribution rather than appointment, and may span
+organizations and tool ecosystems.
 
 **Contributors and community.** Anyone may open an issue, propose an RFC, or
 submit code and documentation, provided they follow the
@@ -47,18 +45,8 @@ and downstream tooling experiments; see the [Community](community.md) page.
 
 ## How decisions are made
 
-Significant or contested changes go through the [RFC process](rfc-process.md).
-The norms that guide decisions:
-
-- **Validate through implementations and real analyses**, not discussion alone.
-- **Look outward before inventing inward** — prefer existing names, patterns,
-  and standards (LinkML, MyST, schema.org, DOIs) where they fit.
-- **Expect early drafts to be incomplete**, and treat revision as success.
-- **Consensus is built through use, not unanimity.**
-
-Decisions and their rationale are recorded durably as accepted (and rejected)
-RFCs, so the project's evolution stays auditable — the same standard ASTRA holds
-the analyses it describes to.
+Significant or contested changes go through the [RFC process](rfc-process.md). Decisions and their rationale 
+are recorded durably as accepted (and rejected) RFCs, so the project's evolution stays auditable.
 
 ## Code of Conduct
 
