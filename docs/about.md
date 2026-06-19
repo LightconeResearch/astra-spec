@@ -12,7 +12,7 @@ The position paper that motivated ASTRA argues that the substrate for agentic-er
 
 - **Open licenses.** The schema is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and the code under [BSD 3-Clause](https://github.com/LightconeResearch/astra-spec/blob/main/LICENSE). Both permit unrestricted commercial and academic use.
 - **Open development.** All work happens on public GitHub repositories — issues, discussions, and pull requests are visible from the first commit onward. There is no parallel private fork.
-- **Open governance, eventually.** As ASTRA stabilises beyond alpha, we will move it into a community-governed structure (steering group, public RFC process, version-decision protocol). The current Lightcone Research stewardship is a starting point, not the long-term home.
+- **Open governance, eventually.** As ASTRA stabilises beyond alpha, we will move it into a community-governed structure (steering group, public RFC process, version-decision protocol). The current Lightcone Research stewardship is a starting point, not the long-term home — see [Governance](governance.md) and the [RFC process](rfc-process.md) for the model we are growing into.
 
 If you would like to help shape that trajectory — through code, schema review, downstream tooling, or simply by trying ASTRA on a real analysis — see the [Community](community.md) page.
 

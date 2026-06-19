@@ -13,6 +13,7 @@ in a pull request.
 * [Guidelines for Contributions and Requests](#contributions)
   * [Reporting issues and making requests](#reporting-issues)
   * [Questions and Discussion](#questions-and-discussion)
+  * [Proposing significant changes (RFCs)](#rfcs)
   * [Adding new elements yourself](#adding-elements)
 * [Best Practices](#best-practices)
   * [How to write a great issue](#great-issues)
@@ -24,7 +25,8 @@ in a pull request.
 
 The ASTRA team strives to create a
 welcoming environment for editors, users and other contributors.
-Please carefully read our [Code of Conduct](CODE_OF_CONDUCT.md).
+Please carefully read our organization-wide
+[Code of Conduct](https://github.com/LightconeResearch/.github/blob/master/CODE_OF_CONDUCT.md).
 
 <a id="contributions"></a>
 
@@ -38,6 +40,18 @@ Please use our [Issue Tracker][issues] for any of the following:
 
 - Reporting problems
 - Requesting new schema elements
+
+<a id="rfcs"></a>
+
+### Proposing significant changes (RFCs)
+
+Significant or contested changes — new schema concepts, breaking changes,
+versioning and compatibility rules, publishing or metadata conventions, or
+changes to the process itself — go through the
+[RFC process](https://astra-spec.org/rfc-process/). Start by opening an issue
+with the *RFC proposal* template, then add a draft under
+[`rfcs/`](rfcs/) using [`rfcs/0000-template.md`](rfcs/0000-template.md). Small,
+low-risk changes do not need an RFC; open an issue or pull request directly.
 
 <a id="adding-elements"></a>
 

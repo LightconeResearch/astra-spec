@@ -1,0 +1,54 @@
+name: RFC proposal
+description: Propose a significant change to the ASTRA spec, conventions, or governance (Step 1 of the RFC process).
+labels: ['rfc']
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      This is **Step 1** of the [RFC process](https://astra-spec.org/rfc-process/):
+      a lightweight issue to test the scope and motivation of an idea before you
+      invest in a full draft.
+
+
+      Small, low-risk changes (typos, doc fixes, an obviously-missing enum value)
+      do **not** need an RFC — open a regular issue or pull request instead.
+- type: textarea
+  attributes:
+    label: What problem or opportunity does this address?
+    description: >-
+      Describe the problem, who it affects, and any relevant prior art. Look
+      outward before inventing inward — point at existing formats or conventions
+      where they apply.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Rough proposal
+    description: >-
+      A first sketch of the change. It does not need to be complete — the draft
+      RFC is where it gets refined. Include a concrete example if you can.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Schema or tooling impact, if known
+    description: >-
+      Would this touch the schema (src/astra/schema/), the generated datamodels,
+      the validator, or just documentation? Any compatibility or migration
+      implications you already foresee?
+  validations:
+    required: false
+- type: checkboxes
+  attributes:
+    label: Scope check
+    options:
+      - label: This is a significant or contested change that warrants an RFC (not a small fix that could go straight to a PR).
+        required: true
+- type: markdown
+  attributes:
+    value: >
+      If there's alignment here, the next step is a pull request adding
+      `rfcs/NNNN-short-slug.md` from the
+      [template](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0000-template.md).
+      Thanks for contributing 🎉!

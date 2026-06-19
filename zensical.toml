@@ -20,7 +20,11 @@ nav = [
       { "Format reference" = "specification.md" },
       { "Schema reference" = "elements/index.md" },
   ] },
-  { "Community" = "community.md" },
+  { "Community" = [
+      { "Overview" = "community.md" },
+      { "RFC process" = "rfc-process.md" },
+      { "Governance" = "governance.md" },
+  ] },
 ]
 
 # Versioning is handled by mike (https://github.com/squidfunk/mike).
