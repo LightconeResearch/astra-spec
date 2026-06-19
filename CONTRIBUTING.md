@@ -46,8 +46,7 @@ Please use our [Issue Tracker][issues] for any of the following:
 ### Proposing significant changes (RFCs)
 
 Significant or contested changes — new schema concepts, breaking changes,
-versioning and compatibility rules, publishing or metadata conventions, or
-changes to the process itself — go through the
+versioning and compatibility rules, or changes to the process itself — go through the
 [RFC process](https://astra-spec.org/rfc-process/). Start by opening an issue
 with the *RFC proposal* template, then add a draft under
 [`rfcs/`](rfcs/) using [`rfcs/0000-template.md`](rfcs/0000-template.md). Small,
