@@ -54,12 +54,6 @@ In summary:
   multi-approver acceptance bar described in the process document become binding
   at v0.1, when the Steering Council expands beyond the core team.
 
-**Alternatives considered.** A separate `astra-rfcs` repository was set aside:
-ASTRA is a single-spec repository, and an in-repo directory keeps an RFC next to
-the schema change it motivates. A GitHub-Discussions-only process was set aside
-because it produces no durable, numbered, citable record and no PR-based review
-gate — both of which matter for a reproducibility-focused standard.
-
 ## Examples
 
 This RFC is its own first example: it was proposed as a pull request adding the
