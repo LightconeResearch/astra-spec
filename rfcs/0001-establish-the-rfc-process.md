@@ -39,10 +39,13 @@ In summary:
 - **RFCs live in-repo** under [`rfcs/`](./), as numbered Markdown files authored
   from [`0000-template.md`](0000-template.md). Keeping them beside the schema
   they motivate matches ASTRA's existing "schema + docs in one PR" workflow.
-- **Lifecycle:** Issue → draft pull request → discuss & iterate → `active`
-  (final review) → `accepted` or `rejected` → implement. Both accepted and
-  rejected RFCs are merged, preserving the rationale — fitting for a project
-  whose whole thesis is a durable, reproducible record.
+- **Lifecycle:** issue → draft PR → discuss & iterate → mark ready for review
+  (opens the decision window) → accepted or rejected → implement. The process
+  uses GitHub's native draft / ready-for-review / merged states rather than
+  status labels (the only label is `rfc`, on the tracking issue); each RFC's
+  `status:` frontmatter is the durable record. Both accepted and rejected RFCs
+  are merged, preserving the rationale — fitting for a project whose whole thesis
+  is a durable, reproducible record.
 - **Template fields:** Context · Proposal · Examples · Implementation
   implications · Questions or Objections.
 - **Interim governance:** until ASTRA reaches **v0.1**, the project is in alpha

@@ -26,22 +26,27 @@ the site:
 
 1. **Open an issue** describing the idea, so others can react before you invest
    in a full draft. Use the *RFC proposal* issue template.
-2. **Open a pull request** that adds `rfcs/NNNN-short-slug.md`, copied from
+2. **Open a draft pull request** that adds `rfcs/NNNN-short-slug.md`, copied from
    [`0000-template.md`](0000-template.md), where `NNNN` is the next free number.
-3. **Discuss and iterate** in the pull request until the proposal stabilizes.
-4. When ready, the proposal moves to **Active** review and is **Accepted** or
-   **Rejected** per the [RFC process](https://astra-spec.org/rfc-process/).
-   Both accepted *and* rejected RFCs are merged, so the record is complete.
+3. **Discuss and iterate** while the PR is a draft, until the proposal stabilizes.
+4. **Mark the PR ready for review** to open the decision window (`status: Active`).
+   It is then **Accepted** or **Rejected** per the
+   [RFC process](https://astra-spec.org/rfc-process/). Both accepted *and*
+   rejected RFCs are merged, so the record is complete.
+
+The process uses GitHub's native draft / ready-for-review / merged states rather
+than status labels; the only label is `rfc`, on the tracking issue, for
+discoverability. Each RFC's `status:` frontmatter field is the durable record.
 
 ## Status legend
 
-| Status | Meaning |
-|---|---|
-| **Draft** | Under active drafting and discussion; not yet up for a decision. |
-| **Active** | Stabilized; in the time-boxed final review window. |
-| **Accepted** | Approved. Implementation may begin (or has begun). |
-| **Rejected** | Declined, but merged for the record with the rationale intact. |
-| **Superseded** | Replaced by a later RFC (see its `superseded-by` field). |
+| `status:` | Meaning | Pull-request state |
+|---|---|---|
+| **Draft** | Under active drafting and discussion; not yet up for a decision. | Draft PR |
+| **Active** | Stabilized; in the open review window. | Ready for review |
+| **Accepted** | Approved. Implementation may begin (or has begun). | Merged |
+| **Rejected** | Declined, but merged for the record with the rationale intact. | Merged |
+| **Superseded** | Replaced by a later RFC (see its `superseded-by` field). | (set later) |
 
 ## Index
 
