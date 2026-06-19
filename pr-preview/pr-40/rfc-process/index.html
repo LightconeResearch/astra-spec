@@ -1019,56 +1019,72 @@ ontology, a guarantee of permanence, or a substitute for implementation. RFCs
 are working agreements that may be revised or superseded as ASTRA matures.</p>
 <h2 id="lifecycle">Lifecycle<a class="headerlink" href="#lifecycle" title="Permanent link">&para;</a></h2>
 <p>RFCs live in the <a href="https://github.com/LightconeResearch/astra-spec/tree/main/rfcs"><code>rfcs/</code></a>
-directory of the <code>astra-spec</code> repository, as numbered Markdown files.</p>
+directory of the <code>astra-spec</code> repository, as numbered Markdown files. The process
+leans on GitHub's native pull-request signals rather than a custom set of labels:
+<strong>a draft PR means the RFC is being worked on; marking it ready for review opens
+the decision window.</strong> Each RFC's own <code>status:</code> frontmatter field is the durable
+record of where it ended up.</p>
 <ol>
-<li><strong>Open an issue.</strong> Describe the idea using the <em>RFC proposal</em> issue template,
-   so others can react and you get an early signal before investing in a full
-   draft.</li>
-<li><strong>Open a pull request.</strong> Add <code>rfcs/NNNN-short-slug.md</code>, copied from
+<li><strong>Open an issue.</strong> Describe the idea using the <em>RFC proposal</em> issue template
+   (which carries the <code>rfc</code> label), so others can react and you get an early
+   signal before investing in a full draft.</li>
+<li><strong>Open a draft pull request.</strong> Add <code>rfcs/NNNN-short-slug.md</code>, copied from
    <a href="https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0000-template.md"><code>0000-template.md</code></a>,
-   with status <code>Draft</code>. The template's sections are <strong>Context · Proposal ·
-   Examples · Implementation implications · Questions or Objections</strong>.</li>
-<li><strong>Discuss and iterate.</strong> Invite discussion in the pull request.
-   Incorporate feedback; record objections and their responses in the RFC.
-   Treat revisions as success, not failure.</li>
-<li><strong>Activate the decision.</strong> When the proposal has stabilized and the author
-   wants to move forward, it is marked <strong>Active</strong> — the final review window
-   opens.</li>
-<li><strong>Decide.</strong> The RFC is <strong>Accepted</strong> or <strong>Rejected</strong>. <em>Both</em> outcomes are
-   merged: an accepted RFC records the agreement, a rejected RFC records the
-   reasoning so the question is not silently re-litigated.</li>
+   with <code>status: Draft</code>, and open the PR as a <strong>GitHub draft</strong>. The template's
+   sections are <strong>Context · Proposal · Examples · Implementation implications ·
+   Questions or Objections</strong>.</li>
+<li><strong>Discuss and iterate.</strong> While the PR is a draft, invite discussion, incorporate
+   feedback, and record objections and their responses in the RFC. Treat revisions
+   as success, not failure.</li>
+<li><strong>Open the decision window.</strong> When the proposal has stabilized and the author
+   wants to move forward, <strong>mark the PR ready for review</strong> and set the RFC to
+   <code>status: Active</code>. The ready-for-review timestamp starts the review clock.</li>
+<li><strong>Decide.</strong> The RFC is <strong>Accepted</strong> or <strong>Rejected</strong>, recorded by setting
+   <code>status:</code> accordingly in the frontmatter. <em>Both</em> outcomes are <strong>merged</strong>: an
+   accepted RFC records the agreement, a rejected RFC records the reasoning so the
+   question is not silently re-litigated. An author may instead <strong>close the PR</strong>
+   to withdraw a proposal.</li>
 <li><strong>Implement.</strong> Accepted RFCs move into implementation following the project's
    normal development practices (schema change + regenerated artifacts + docs in
    one reviewed pull request).</li>
 </ol>
 <h2 id="statuses">Statuses<a class="headerlink" href="#statuses" title="Permanent link">&para;</a></h2>
+<p>A status lives in each RFC's <code>status:</code> frontmatter field; the table below maps it
+to the corresponding pull-request state, so the two never need separate labels to
+stay in sync.</p>
 <table>
 <thead>
 <tr>
-<th>Status</th>
+<th><code>status:</code></th>
 <th>Meaning</th>
+<th>Pull-request state</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Draft</strong></td>
 <td>Under active drafting and discussion; not yet up for a decision.</td>
+<td>Draft PR</td>
 </tr>
 <tr>
 <td><strong>Active</strong></td>
-<td>Stabilized; in the time-boxed final review window.</td>
+<td>Stabilized; in the open review window.</td>
+<td>Ready for review</td>
 </tr>
 <tr>
 <td><strong>Accepted</strong></td>
 <td>Approved. Implementation may begin (or has begun).</td>
+<td>Merged</td>
 </tr>
 <tr>
 <td><strong>Rejected</strong></td>
 <td>Declined, but merged for the record with the rationale intact.</td>
+<td>Merged</td>
 </tr>
 <tr>
 <td><strong>Superseded</strong></td>
 <td>Replaced by a later RFC (recorded in its <code>superseded-by</code> field).</td>
+<td>(set later)</td>
 </tr>
 </tbody>
 </table>
