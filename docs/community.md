@@ -11,6 +11,7 @@ If you find ASTRA useful, awkward, surprising, missing something, or just adjace
 | [`astra-spec` issues](https://github.com/LightconeResearch/astra-spec/issues) | Schema bugs, proposed schema changes, doc issues. |
 | [`ASTRA` (tools) issues](https://github.com/LightconeResearch/ASTRA/issues) | CLI bugs, validator issues, paper-cache problems. |
 | [GitHub Discussions](https://github.com/LightconeResearch/astra-spec/discussions) | Open-ended questions, design conversations, "is this the right approach?" threads. |
+| [RFCs](rfc-process.md) | Significant or contested changes — new schema concepts, breaking changes, versioning rules, conventions. |
 | Pull requests | Code, schema, and documentation changes — for both repositories. |
 
 When in doubt about which repo to file an issue in: schema or specification questions go to `astra-spec`; CLI / validator / paper-tool questions go to [`ASTRA`](https://github.com/LightconeResearch/ASTRA).
@@ -29,7 +30,7 @@ Documentation fixes, typo PRs, and tightening of error messages are also welcome
 
 The full guide is in [`CONTRIBUTING.md`](https://github.com/LightconeResearch/astra-spec/blob/main/CONTRIBUTING.md). The short version:
 
-1. **Open an issue first** for anything non-trivial. It gives reviewers context and avoids parallel work.
+1. **Open an issue first** for anything non-trivial. It gives reviewers context and avoids parallel work. For significant or contested changes, that issue is also the first step of the [RFC process](rfc-process.md).
 2. **Keep changes focused.** A schema change, a doc change, and a tooling change are three separate pull requests.
 3. **Run the project checks** locally before pushing:
 
