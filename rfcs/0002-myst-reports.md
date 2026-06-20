@@ -1,7 +1,7 @@
 ---
 rfc: 0002
 title: Author analysis reports as MyST documents that reference ASTRA content
-status: Draft # Draft | Active | Accepted | Rejected | Superseded
+status: Active # Draft | Active | Accepted | Rejected | Superseded
 authors:
   - Francois Lanusse (@eiffl)
 created: 2026-06-20
