@@ -1,0 +1,2187 @@
+{
+    "$defs": {
+        "Analysis": {
+            "additionalProperties": false,
+            "description": "A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Analysis__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Nested sub-analyses (keyed by analysis ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "authors": {
+                    "description": "List of authors",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "container": {
+                    "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "decisions": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Decision__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Decision points in this analysis (keyed by decision ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "findings": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Findings and conclusions from outputs (keyed by insight ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "inputs": {
+                    "description": "Inputs for this analysis",
+                    "items": {
+                        "$ref": "#/$defs/Input"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "description": "Human-readable name for the analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "narrative": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Narrative"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references."
+                },
+                "outputs": {
+                    "description": "Expected outputs from this analysis",
+                    "items": {
+                        "$ref": "#/$defs/Output"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "path": {
+                    "description": "Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "prior_insights": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Prior insights that inform decisions (keyed by insight ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags for categorization",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "version": {
+                    "description": "ASTRA specification version",
+                    "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Analysis",
+            "type": "object"
+        },
+        "Analysis__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Analysis__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Nested sub-analyses (keyed by analysis ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "authors": {
+                    "description": "List of authors",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "container": {
+                    "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "decisions": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Decision__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Decision points in this analysis (keyed by decision ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "findings": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Findings and conclusions from outputs (keyed by insight ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "inputs": {
+                    "description": "Inputs for this analysis",
+                    "items": {
+                        "$ref": "#/$defs/Input"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "name": {
+                    "description": "Human-readable name for the analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "narrative": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Narrative"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references."
+                },
+                "outputs": {
+                    "description": "Expected outputs from this analysis",
+                    "items": {
+                        "$ref": "#/$defs/Output"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "path": {
+                    "description": "Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "prior_insights": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Prior insights that inform decisions (keyed by insight ID)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags for categorization",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "version": {
+                    "description": "ASTRA specification version",
+                    "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [],
+            "title": "Analysis",
+            "type": "object"
+        },
+        "Decision": {
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "options"
+                            ]
+                        },
+                        "properties": {
+                            "options": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "default"
+                            ]
+                        },
+                        "properties": {
+                            "default": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "rationale"
+                            ]
+                        },
+                        "properties": {
+                            "rationale": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "tags"
+                            ]
+                        },
+                        "properties": {
+                            "tags": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "required": [
+                                "from"
+                            ]
+                        },
+                        "properties": {
+                            "from": {}
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "label": {},
+                            "options": {}
+                        },
+                        "required": [
+                            "label",
+                            "options"
+                        ]
+                    }
+                }
+            ],
+            "description": "A decision point in the analysis. Either locally defined (with label and options) or a pure reference to an ancestor decision via `from`.\nReference grammar:\n\n  from: ../id     -- a parent decision\n  from: ../../id  -- a grandparent decision\n\nDecisions only flow downward through scopes; sibling-sub or child references are not legal. An aliased Decision is a pure pointer: only `id`, `from`, and `when` may be set.",
+            "properties": {
+                "default": {
+                    "description": "Default option ID for baseline universes",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from": {
+                    "description": "Path to an ancestor decision: `../id` for a parent decision, `../../id` for a grandparent, and so on. Reaching laterally (`../sibling.id`) or downward (`child.id`) is not allowed \u2014 if siblings need a shared decision, lift it to the common ancestor and have each sub `from:` it.",
+                    "pattern": "^(\\.\\./)+[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Decision identifier (the key in the decisions map)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Human-readable name for the decision",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "options": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Option__identifier_optional"
+                            },
+                            {
+                                "description": "Human-readable name for the option",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "description": "Map of option IDs to option specifications",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "rationale": {
+                    "description": "Why this decision exists",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags for grouping and categorizing",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "when": {
+                    "description": "Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Decision",
+            "type": "object"
+        },
+        "DecisionSelection": {
+            "additionalProperties": false,
+            "description": "A mapping from a decision ID to the selected option ID",
+            "properties": {
+                "decision_id": {
+                    "description": "ID of the decision",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "option_id": {
+                    "description": "ID of the selected option",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "decision_id",
+                "option_id"
+            ],
+            "title": "DecisionSelection",
+            "type": "object"
+        },
+        "DecisionSelection__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A mapping from a decision ID to the selected option ID",
+            "properties": {
+                "decision_id": {
+                    "description": "ID of the decision",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "option_id": {
+                    "description": "ID of the selected option",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "option_id"
+            ],
+            "title": "DecisionSelection",
+            "type": "object"
+        },
+        "Decision__identifier_optional": {
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "options"
+                            ]
+                        },
+                        "properties": {
+                            "options": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "default"
+                            ]
+                        },
+                        "properties": {
+                            "default": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "rationale"
+                            ]
+                        },
+                        "properties": {
+                            "rationale": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "tags"
+                            ]
+                        },
+                        "properties": {
+                            "tags": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "required": [
+                                "from"
+                            ]
+                        },
+                        "properties": {
+                            "from": {}
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "label": {},
+                            "options": {}
+                        },
+                        "required": [
+                            "label",
+                            "options"
+                        ]
+                    }
+                }
+            ],
+            "description": "A decision point in the analysis. Either locally defined (with label and options) or a pure reference to an ancestor decision via `from`.\nReference grammar:\n\n  from: ../id     -- a parent decision\n  from: ../../id  -- a grandparent decision\n\nDecisions only flow downward through scopes; sibling-sub or child references are not legal. An aliased Decision is a pure pointer: only `id`, `from`, and `when` may be set.",
+            "properties": {
+                "default": {
+                    "description": "Default option ID for baseline universes",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from": {
+                    "description": "Path to an ancestor decision: `../id` for a parent decision, `../../id` for a grandparent, and so on. Reaching laterally (`../sibling.id`) or downward (`child.id`) is not allowed \u2014 if siblings need a shared decision, lift it to the common ancestor and have each sub `from:` it.",
+                    "pattern": "^(\\.\\./)+[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Decision identifier (the key in the decisions map)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Human-readable name for the decision",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "options": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Option__identifier_optional"
+                            },
+                            {
+                                "description": "Human-readable name for the option",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "description": "Map of option IDs to option specifications",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "rationale": {
+                    "description": "Why this decision exists",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags for grouping and categorizing",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "when": {
+                    "description": "Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [],
+            "title": "Decision",
+            "type": "object"
+        },
+        "Evidence": {
+            "additionalProperties": false,
+            "description": "Evidence from a source with W3C-compliant selectors. Can reference literature (by DOI) or analysis artifacts (by output ID). Exactly one of doi or artifact must be set.",
+            "properties": {
+                "artifact": {
+                    "description": "Output ID referencing a declared output in this analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "doi": {
+                    "description": "DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')",
+                    "pattern": "^10\\.\\d{4,}/.*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Evidence identifier",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "location": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/FragmentSelector"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Location hint (page number for PDFs/reports)"
+                },
+                "quote": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/TextQuoteSelector"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Text quote anchor"
+                },
+                "snapshot": {
+                    "description": "Path to immutable copy of the artifact",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "source_commit": {
+                    "description": "Git commit that produced the original artifact",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "version": {
+                    "description": "Paper version for arXiv papers (version matters for reproducibility)",
+                    "minimum": 1,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Evidence",
+            "type": "object"
+        },
+        "FragmentSelector": {
+            "additionalProperties": false,
+            "description": "W3C FragmentSelector for PDF locations. Conforms to RFC 3778/8118 for PDF fragments.",
+            "properties": {
+                "page": {
+                    "description": "1-indexed page number",
+                    "minimum": 1,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "value": {
+                    "description": "Fragment value (e.g., 'page=6')",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "FragmentSelector",
+            "type": "object"
+        },
+        "Input": {
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "type"
+                            ]
+                        },
+                        "properties": {
+                            "type": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "description"
+                            ]
+                        },
+                        "properties": {
+                            "description": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "source"
+                            ]
+                        },
+                        "properties": {
+                            "source": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "ref"
+                            ]
+                        },
+                        "properties": {
+                            "ref": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "ref_version"
+                            ]
+                        },
+                        "properties": {
+                            "ref_version": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "use_outputs"
+                            ]
+                        },
+                        "properties": {
+                            "use_outputs": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "required": [
+                                "from"
+                            ]
+                        },
+                        "properties": {
+                            "from": {}
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "type": {}
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    }
+                }
+            ],
+            "description": "An input to the analysis. Two kinds: data (dataset/file/resource) or analysis (outputs from another ASTRA analysis).\nSub-analysis inputs may alias an upstream artifact via `from`, using the unified path grammar:\n\n  from: ../id              -- a parent input\n  from: ../../id           -- a grandparent input\n  from: ../sibling.out_id  -- a sibling sub-analysis's output\n\nAn aliased Input is a pure pointer: only `id` and `from` are allowed, with all other fields inherited from the source.",
+            "properties": {
+                "description": {
+                    "description": "Description of the input",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from": {
+                    "description": "Path to the source: `../id` (ancestor input), `../../id` (further ancestor), or `../scope.out_id` (sibling sub's output). Reaching down into own children is not allowed \u2014 consume those via Output re-export instead.",
+                    "pattern": "^(\\.\\./)+[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Unique identifier for the input",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "ref": {
+                    "description": "Reference to another ASTRA analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "ref_version": {
+                    "description": "Version of the referenced analysis",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "source": {
+                    "description": "URI or path to the data source",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "type": {
+                    "$ref": "#/$defs/InputType",
+                    "description": "Type of input. Required when `from` is unset; forbidden when `from` is set (inherited from the source)."
+                },
+                "use_outputs": {
+                    "description": "Specific outputs to use from referenced analysis",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Input",
+            "type": "object"
+        },
+        "InputType": {
+            "description": "Type of analysis input",
+            "enum": [
+                "data",
+                "analysis"
+            ],
+            "title": "InputType",
+            "type": "string"
+        },
+        "Insight": {
+            "additionalProperties": false,
+            "description": "A unit of scientific knowledge backed by evidence. Used for both prior_insights (informing decisions) and findings (conclusions from the analysis).",
+            "properties": {
+                "claim": {
+                    "description": "What we learned (1-2 sentences)",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "Creation timestamp (ISO 8601)",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "derived": {
+                    "description": "True if synthesized/inferred from multiple sources",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "evidence": {
+                    "description": "Supporting evidence (papers or analysis artifacts)",
+                    "items": {
+                        "$ref": "#/$defs/Evidence"
+                    },
+                    "type": "array"
+                },
+                "id": {
+                    "description": "Unique identifier",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "notes": {
+                    "description": "Reasoning notes",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "scope": {
+                    "description": "Applicability conditions",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Categorization tags",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "claim",
+                "created_at",
+                "evidence"
+            ],
+            "title": "Insight",
+            "type": "object"
+        },
+        "InsightCollection": {
+            "additionalProperties": false,
+            "description": "Collection of insights, usable standalone or embedded in an analysis",
+            "properties": {
+                "insights": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/Insight__identifier_optional"
+                    },
+                    "description": "Map of insight IDs to insights",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                }
+            },
+            "title": "InsightCollection",
+            "type": "object"
+        },
+        "Insight__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A unit of scientific knowledge backed by evidence. Used for both prior_insights (informing decisions) and findings (conclusions from the analysis).",
+            "properties": {
+                "claim": {
+                    "description": "What we learned (1-2 sentences)",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "Creation timestamp (ISO 8601)",
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "derived": {
+                    "description": "True if synthesized/inferred from multiple sources",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "evidence": {
+                    "description": "Supporting evidence (papers or analysis artifacts)",
+                    "items": {
+                        "$ref": "#/$defs/Evidence"
+                    },
+                    "type": "array"
+                },
+                "id": {
+                    "description": "Unique identifier",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "notes": {
+                    "description": "Reasoning notes",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "scope": {
+                    "description": "Applicability conditions",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "tags": {
+                    "description": "Categorization tags",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "claim",
+                "created_at",
+                "evidence"
+            ],
+            "title": "Insight",
+            "type": "object"
+        },
+        "KeyValuePair": {
+            "additionalProperties": false,
+            "description": "A key-value string pair",
+            "properties": {
+                "key": {
+                    "description": "The key",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "value": {
+                    "description": "The value",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "key",
+                "value"
+            ],
+            "title": "KeyValuePair",
+            "type": "object"
+        },
+        "Narrative": {
+            "additionalProperties": false,
+            "description": "Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are schema-optional, but ``astra validate`` applies a conditional requirement: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.\n- ``findings`` required when Analysis.findings has entries. - ``methods`` required when Analysis.decisions or\n  Analysis.analyses has entries.\n- ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries. - ``summary`` is always optional \u2014 no structured counterpart.\nAuthors narrate what they declare; stub analyses with only a summary stay clean.\nSection content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section \u2014 coverage is resolved across the whole narrative, not per-section \u2014 so an author is free to cite a finding from the summary, or an input from the methods section.\nAnchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (the `from:` path grammar with `../` prefixes for upward escape and `name.subname` for descent). Sub-analyses are traversed before the category:\n\n  [scaling decision](#decisions.scaling)\n  [scaling option](#decisions.scaling.options.standard)\n  [finding](#findings.best_model)\n  [prior insight](#prior_insights.compute_scaling)\n  [input](#inputs.iris_data)\n  [sub-analysis output](#preprocessing.outputs.features)\n  [sub-analysis decision](#preprocessing.decisions.scaling)\n  [sub-analysis](#analyses.preprocessing)\n\nReferences are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision 'from' (e.g. [see parent](#../decisions.method)).",
+            "properties": {
+                "findings": {
+                    "description": "Narrative discussion of the analysis's findings. Individual findings live under Analysis.findings as structured Insight objects; this section is the prose that frames them.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "inputs": {
+                    "description": "Narrative discussion of the analysis's inputs. Individual inputs live under Analysis.inputs as structured objects; this section frames them.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "methods": {
+                    "description": "Narrative discussion of the methodology, including decision points and any sub-analyses. Structured decisions and nested analyses live under Analysis.decisions and Analysis.analyses; this section frames them.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "outputs": {
+                    "description": "Narrative discussion of the expected outputs. Individual outputs live under Analysis.outputs as structured objects; this section frames them.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "summary": {
+                    "description": "High-level overview of the analysis \u2014 its question, scope, and a brief orientation for readers.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Narrative",
+            "type": "object"
+        },
+        "Option": {
+            "additionalProperties": false,
+            "description": "An option for a decision point",
+            "properties": {
+                "description": {
+                    "description": "Detailed description of the option",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "excluded": {
+                    "description": "Whether this option was considered and rejected",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "excluded_reason": {
+                    "description": "Why this option was excluded",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Option identifier (the key in the options map)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "incompatible_with": {
+                    "description": "Decision.option pairs that cannot be selected together",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "insights": {
+                    "description": "Insight IDs supporting this option",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Human-readable name for the option",
+                    "type": "string"
+                },
+                "requires": {
+                    "description": "Decision.option pairs that must also be selected",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "label"
+            ],
+            "title": "Option",
+            "type": "object"
+        },
+        "Option__identifier_optional": {
+            "additionalProperties": false,
+            "description": "An option for a decision point",
+            "properties": {
+                "description": {
+                    "description": "Detailed description of the option",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "excluded": {
+                    "description": "Whether this option was considered and rejected",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "excluded_reason": {
+                    "description": "Why this option was excluded",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Option identifier (the key in the options map)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "incompatible_with": {
+                    "description": "Decision.option pairs that cannot be selected together",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "insights": {
+                    "description": "Insight IDs supporting this option",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Human-readable name for the option",
+                    "type": "string"
+                },
+                "requires": {
+                    "description": "Decision.option pairs that must also be selected",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "label"
+            ],
+            "title": "Option",
+            "type": "object"
+        },
+        "Output": {
+            "additionalProperties": false,
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "type"
+                            ]
+                        },
+                        "properties": {
+                            "type": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "label"
+                            ]
+                        },
+                        "properties": {
+                            "label": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "description"
+                            ]
+                        },
+                        "properties": {
+                            "description": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "inputs"
+                            ]
+                        },
+                        "properties": {
+                            "inputs": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "decisions"
+                            ]
+                        },
+                        "properties": {
+                            "decisions": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
+                                "recipe"
+                            ]
+                        },
+                        "properties": {
+                            "recipe": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "not": {
+                            "required": [
+                                "from"
+                            ]
+                        },
+                        "properties": {
+                            "from": {}
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "type": {}
+                        },
+                        "required": [
+                            "type"
+                        ]
+                    }
+                }
+            ],
+            "description": "An expected output from the analysis. An Output is either produced locally (with `inputs`, `decisions`, `recipe`) or re-exported from a sub-analysis via `from`.\nRe-export grammar:\n\n  from: child.out_id           -- own child sub's output\n  from: child.grandchild.out_id -- descend into nested children\n\nA re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/recipe are inherited.",
+            "properties": {
+                "decisions": {
+                    "description": "Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.\nRunners use this to (a) compute the per-output cache key, (b) determine the minimal universe set needed to materialize the output, and (c) deliver the active option values to the recipe (via flags, env vars, or a sidecar \u2014 runner's choice).\nReferences use plain decision IDs and resolve through any `from:` chain in the surrounding analysis scope.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "Description of the output",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "from": {
+                    "description": "Path to a descendant Output: `child.out_id` for an own child sub-analysis's output, or deeper (`child.grand.out_id`) to descend through nested children. Reaching upward is not allowed \u2014 Outputs flow up only via re-export at each layer.",
+                    "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Unique identifier for the output",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "inputs": {
+                    "description": "IDs of upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON \u2014 runner's choice).\nReferences use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "label": {
+                    "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "recipe": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Recipe"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "How to produce this output (pure *how*; dependencies live on the Output via `inputs`/`decisions`)"
+                },
+                "type": {
+                    "$ref": "#/$defs/OutputType",
+                    "description": "Type of output. Required when `from` is unset; forbidden when `from` is set (inherited from the source)."
+                },
+                "when": {
+                    "description": "Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Output",
+            "type": "object"
+        },
+        "OutputType": {
+            "description": "Type of analysis output",
+            "enum": [
+                "metric",
+                "figure",
+                "table",
+                "data",
+                "report"
+            ],
+            "title": "OutputType",
+            "type": "string"
+        },
+        "Recipe": {
+            "additionalProperties": false,
+            "description": "A build rule that produces an output. A recipe is pure *how*: a `command` to invoke and the execution context (`resources`, `container`).\nRecipes do not declare what the output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization, and activation conditions \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe via `{...}` template substitution (see `command`).",
+            "properties": {
+                "command": {
+                    "description": "POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.\nThe command is a template. Runners substitute these placeholders before invoking it:\n\n  {inputs.<id>}     -- path to the named upstream input\n                       (must be declared in Output.inputs)\n  {inputs}          -- space-separated paths to all declared\n                       inputs, in declaration order\n  {decisions.<id>}  -- active option ID for the named\n                       decision in the current universe\n                       (must be declared in Output.decisions)\n  {output}          -- path the artifact will be written to\n\nUse {{ and }} to emit literal '{' and '}'. Every placeholder must resolve to a declared item; the validator rejects unresolved or undeclared references.\nStatic constants belong inline in the command (e.g., '--max-iter 1000'); there is no separate `params` channel because varying values are decisions and constants are just command text.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "container": {
+                    "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "resources": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Resources"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
+                }
+            },
+            "title": "Recipe",
+            "type": "object"
+        },
+        "Resources": {
+            "additionalProperties": false,
+            "description": "Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.",
+            "properties": {
+                "cpus": {
+                    "description": "CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.",
+                    "minimum": 0,
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "disk": {
+                    "description": "Disk requirement as a string with units (e.g., '10Gi', '500Mi').",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "gpus": {
+                    "description": "Number of GPUs",
+                    "minimum": 1,
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "memory": {
+                    "description": "Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "time_limit": {
+                    "description": "Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Resources",
+            "type": "object"
+        },
+        "TextQuoteSelector": {
+            "additionalProperties": false,
+            "description": "W3C TextQuoteSelector for locating text in a document. The authoritative anchor for verification.",
+            "properties": {
+                "exact": {
+                    "description": "Exact quoted text (1-3 sentences)",
+                    "type": "string"
+                },
+                "prefix": {
+                    "description": "~20-100 chars before for disambiguation",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "suffix": {
+                    "description": "~20-100 chars after for disambiguation",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "exact"
+            ],
+            "title": "TextQuoteSelector",
+            "type": "object"
+        },
+        "Universe": {
+            "additionalProperties": false,
+            "description": "A universe specification - a complete set of decisions across the entire analysis tree.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/UniverseNode__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Sub-analysis universe selections",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "decisions": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/DecisionSelection__identifier_optional"
+                            },
+                            {
+                                "description": "ID of the selected option",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "description": "Root-level decision selections",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "description": {
+                    "description": "What this universe represents",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Unique identifier for the universe",
+                    "pattern": "^[a-z][a-z0-9_-]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Universe",
+            "type": "object"
+        },
+        "UniverseNode": {
+            "additionalProperties": false,
+            "description": "A universe node mirroring the analysis tree structure. Represents decision selections at a specific sub-analysis node.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/UniverseNode__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Sub-analysis universe selections",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "decisions": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/DecisionSelection__identifier_optional"
+                            },
+                            {
+                                "description": "ID of the selected option",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "description": "Decision selections (decision_id to option_id)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Node identifier (the sub-analysis key)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "universe": {
+                    "description": "Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "UniverseNode",
+            "type": "object"
+        },
+        "UniverseNode__identifier_optional": {
+            "additionalProperties": false,
+            "description": "A universe node mirroring the analysis tree structure. Represents decision selections at a specific sub-analysis node.",
+            "properties": {
+                "analyses": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/UniverseNode__identifier_optional"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "description": "Sub-analysis universe selections",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "decisions": {
+                    "additionalProperties": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/DecisionSelection__identifier_optional"
+                            },
+                            {
+                                "description": "ID of the selected option",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "description": "Decision selections (decision_id to option_id)",
+                    "type": [
+                        "object",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "Node identifier (the sub-analysis key)",
+                    "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "universe": {
+                    "description": "Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            },
+            "required": [],
+            "title": "UniverseNode",
+            "type": "object"
+        }
+    },
+    "$id": "https://w3id.org/astra/analysis",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "additionalProperties": true,
+    "description": "A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.",
+    "metamodel_version": "1.7.0",
+    "properties": {
+        "analyses": {
+            "additionalProperties": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/Analysis__identifier_optional"
+                    },
+                    {
+                        "type": "null"
+                    }
+                ]
+            },
+            "description": "Nested sub-analyses (keyed by analysis ID)",
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "authors": {
+            "description": "List of authors",
+            "items": {
+                "type": "string"
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "container": {
+            "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "decisions": {
+            "additionalProperties": {
+                "anyOf": [
+                    {
+                        "$ref": "#/$defs/Decision__identifier_optional"
+                    },
+                    {
+                        "type": "null"
+                    }
+                ]
+            },
+            "description": "Decision points in this analysis (keyed by decision ID)",
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "findings": {
+            "additionalProperties": {
+                "$ref": "#/$defs/Insight__identifier_optional"
+            },
+            "description": "Findings and conclusions from outputs (keyed by insight ID)",
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "id": {
+            "description": "Analysis identifier (used as key when nested as a sub-analysis)",
+            "pattern": "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "inputs": {
+            "description": "Inputs for this analysis",
+            "items": {
+                "$ref": "#/$defs/Input"
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "name": {
+            "description": "Human-readable name for the analysis",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "narrative": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/Narrative"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "description": "Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references."
+        },
+        "outputs": {
+            "description": "Expected outputs from this analysis",
+            "items": {
+                "$ref": "#/$defs/Output"
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "path": {
+            "description": "Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        "prior_insights": {
+            "additionalProperties": {
+                "$ref": "#/$defs/Insight__identifier_optional"
+            },
+            "description": "Prior insights that inform decisions (keyed by insight ID)",
+            "type": [
+                "object",
+                "null"
+            ]
+        },
+        "tags": {
+            "description": "Tags for categorization",
+            "items": {
+                "type": "string"
+            },
+            "type": [
+                "array",
+                "null"
+            ]
+        },
+        "version": {
+            "description": "ASTRA specification version",
+            "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+            "type": [
+                "string",
+                "null"
+            ]
+        }
+    },
+    "required": [
+        "id"
+    ],
+    "title": "analysis",
+    "type": "object",
+    "version": "0.0.10"
+}
+
