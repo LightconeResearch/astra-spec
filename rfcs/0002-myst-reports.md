@@ -59,7 +59,8 @@ In plain language: **an analysis's report stops being a fixed field inside
 `astra.yaml` and becomes an ordinary MyST document in the project that
 references the structured content ASTRA already holds.** The structured graph
 remains the single source of truth; the report is prose over it and renders to a
-real paper.
+real paper. Importantly, ASTRA itself is not prescriptive about how the report is
+built, it will be up to external toolchains to build publications on top of ASTRA.
 
 The proposal has three parts. The first two are the reviewable core of this RFC;
 the third is deliberately left open (see *Questions or objections*).
