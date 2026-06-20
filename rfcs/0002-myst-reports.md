@@ -104,14 +104,77 @@ as the reference implementation — rather than baking a single rendering
 toolchain into the schema. Where exactly to draw that line is the central open
 question below.
 
-### 3. Authoring metadata (authors, keywords, tags)
+### 3. Authoring metadata (authors)
 
-A MyST report carries authors (with affiliation/ORCID), keywords, and license in
-its frontmatter natively. This RFC proposes adopting MyST frontmatter as the
-home for **report** metadata. Its relationship to the analysis node's existing
-`authors`/`tags` (graph-level provenance) — single source vs. precedence rules,
-and whether to add a node-level `keywords` — is left open and may split to a
-sibling RFC if it complicates review.
+An ASTRA analysis stands alone — it may never acquire a report — so it must record
+its own attribution: **who did the analysis**. This cannot be delegated to a
+report medium's frontmatter, because there may be no report. Today
+`Analysis.authors` is a bare list of strings, too thin to carry author identity
+(ORCID), affiliation, or contributor roles.
+
+This RFC enriches `Analysis.authors` into a list of author objects that adopt
+**MyST's `author` frontmatter field names verbatim**. Reusing the exact names
+means the analysis is self-sufficient for attribution *and* — when a MyST report
+is later added — the entries map one-to-one onto the report's author frontmatter
+with no translation layer. The fields mirror MyST's author schema:
+
+- `name` — required; the only mandatory field.
+- `orcid` — the author's ORCID (a persistent identifier).
+- `email`, `corresponding` — contact and corresponding-author flag.
+- `affiliations` — list of affiliations.
+- `roles` — CRediT contributor roles.
+- `equal_contributor`, `deceased`, `note` — standard MyST author flags/notes.
+- `url`, `github`, and the other social-link keys MyST defines (`bluesky`,
+  `mastodon`, `linkedin`, …).
+
+```yaml
+# astra.yaml
+authors:
+  - name: Jane Doe
+    orcid: 0000-0002-1825-0097
+    email: jane@example.org
+    corresponding: true
+    affiliations:
+      - Institute for Cosmic Surveys
+    roles:
+      - Conceptualization
+      - Software
+  - name: DESI Collaboration
+```
+
+These fields are inlined directly at the `authors` level — this RFC does **not**
+introduce a dedicated reusable contributor/agent object. Factoring the same
+fields into such an object (so it can also describe organisations, software
+agents, or run attribution) is a natural later generalisation and is deliberately
+out of scope here.
+
+When a MyST report exists, its frontmatter carries the **document-level** concerns
+the analysis graph does not — byline order on the page, publication keywords,
+document license — while the author entries themselves align field-for-field with
+these analysis authors. ASTRA `tags` remain analysis categorisation; publication
+keywords are a report concern.
+
+**Two levels of authorship, and how they relate.** The analysis authors and the
+paper authors are distinct sets with a deliberate relationship, which falls into
+two cases:
+
+- *Written by the analysis authors (the common case).* The paper byline is a
+  **superset** of the analysis authors — everyone who did the analysis, plus
+  writing-only contributors who shaped the manuscript but touched no part of the
+  analysis (a co-author who wrote the discussion, say). The analysis authors carry
+  over field-for-field; the extra contributors appear only in the report
+  frontmatter, and CRediT `roles` keep the distinction legible
+  (`Software`/`Investigation` on an analysis author vs `Writing – original draft`
+  on a writing-only one).
+- *Reused by a third party (citation, not authorship).* If a *different* author
+  imports a result from someone else's analysis — an `Input` of `type: analysis`
+  referenced via `ref` — the imported analysis's authors are **not** added to the
+  byline. The reused work is **cited**, carrying its own authorship with it.
+
+The boundary is the analysis boundary: you may claim byline credit for the
+analyses you authored, while work you import you cite. In short — **paper authors
+⊇ the authors of the analyses you wrote (plus writing-only contributors); the
+authors of analyses you import are cited, not credited.**
 
 ## Examples
 
@@ -168,6 +231,57 @@ with its record, and the figure is pulled in with its provenance. Edit
 cross-references work alongside the ASTRA ones (`[](#output-bao_fit_plot)`), and
 sub-analysis pages use the scoped prefix (`reconstruction.algorithm`).
 
+**Authors** — the analysis records who did the work; the report byline *extends*
+that set rather than restating identities. The analysis authors (`astra.yaml`):
+
+```yaml
+# astra.yaml
+authors:
+  - name: Jane Doe
+    orcid: 0000-0002-1825-0097
+    roles: [Conceptualization, Software, Investigation]
+  - name: Sam Lee
+    orcid: 0000-0001-5109-3700
+    roles: [Data curation, Formal analysis]
+```
+
+The report byline is a **superset** — the same two analysis authors, carried over
+field-for-field, plus a writing-only contributor who never touched the analysis
+(`index.md`):
+
+```yaml
+# index.md
+authors:
+  - name: Jane Doe          # carried over from astra.yaml
+    orcid: 0000-0002-1825-0097
+    roles: [Conceptualization, Software, Investigation, Writing – original draft]
+  - name: Sam Lee
+    orcid: 0000-0001-5109-3700
+    roles: [Data curation, Formal analysis]
+  - name: Pat Rivera        # writing only — not an author of the analysis
+    orcid: 0000-0003-1419-2405
+    roles: [Writing – review & editing]
+```
+
+By contrast, when a **third party reuses** a published result — importing it as an
+`Input` of `type: analysis` — the imported analysis's authors are *cited*, not
+added to the byline:
+
+```yaml
+# a different author's astra.yaml
+authors:
+  - name: Alex Kim          # the only byline author of *this* work
+    orcid: 0000-0002-9876-5432
+inputs:
+  - id: bao_distances
+    type: analysis
+    ref: desi_dr1_bao       # Jane & Sam's published analysis — a citation
+    use_outputs: [bao_distance_table]
+```
+
+Alex's report bylines Alex; Jane and Sam appear in its **references**, carrying
+their own authorship with the result they produced.
+
 ## Implementation implications & migration
 
 This change is **not confined to the spec repository** — it ripples through the
@@ -178,8 +292,9 @@ changes across the ASTRA repositories:
 
 - `src/astra/schema/analysis.yaml`: remove the `Narrative` class and the
   `narrative` slot; add an optional `description` slot to `Analysis`. Drop the
-  conditional section-coverage rules. Metadata changes (part 3) are deferred
-  pending the open question.
+  conditional section-coverage rules. Enrich `Analysis.authors` from a list of
+  strings into a list of author objects using MyST's author field names (part 3);
+  this is breaking, with a migration that lifts each string into `name`.
 - `src/astra/datamodel/`: regenerated from the schema via `just gen-python`.
 - The published JSON Schema artifact (`astra-spec.org/<version>/schema/…`) shifts
   — both SDKs resolve the schema from there, so this is the propagation point.
@@ -232,23 +347,22 @@ recorded here as open, not decided.
   favour of a single optional `description`, consistent with every other element
   object. Recorded here so the rejected alternative (a bespoke `summary`) is not
   silently re-litigated.
-- **Where is the spec ↔ tooling boundary?** The proposal has ASTRA own the
+- **Where is the spec ↔ tooling boundary? - resolved** The proposal has ASTRA own the
   *addressing* (tree-path identity of elements) and treat the MyST rendering
   vocabulary (`astra:*`, the `{astra:value}` grammar, the materialised-results
-  path convention) as a documented companion convention. Should any of those be
-  normative so the report format is fully tool-independent? The
-  results-path/value-addressing convention in particular overlaps the data
-  reference-semantics decision ([LCR-84](https://linear.app/lightcone-research/issue/LCR-84)).
-- **Authoring metadata precedence.** If authors/keywords/tags can appear both in
-  report frontmatter and on the analysis node, which is authoritative — and are
-  "the analysis's authors" (provenance) even the same set as "the paper's
-  authors" (publication credit)? Should this split into its own RFC?
+  path convention) as a documented companion convention. This grammar is left to particular rendering tools, and is outside of the scope of the astra spec itself. 
+- **Authoring metadata — mostly resolved.** Work-level attribution lives on
+  `Analysis.authors`, using MyST's author field names so a report's frontmatter
+  aligns field-for-field; document-level concerns (byline order, publication
+  keywords, page license) live only in the report. Open: the precise convention
+  by which a report signals byline-only additions or overrides versus simply
+  inheriting the analysis authors — and whether the inlined author fields should
+  later be factored into a reusable contributor object.
 - **Universe scoping.** A rendered report is pinned to a single universe; ASTRA
   analyses are multi-universe. Should the spec state that a report is
   universe-scoped, and can a report compare across universes, or is that out of
-  scope for v0.1?
-- **Artifact boundary.** When an analysis is published/archived (decisions
-  [LCR-72](https://linear.app/lightcone-research/issue/LCR-72) and LCR-84), is
+  scope for v0.1? -> This is out of scope for this PR which does not cover universes.
+- **Artifact boundary.** When an analysis is published/archived, is
   the MyST report inside that artifact boundary or a separate publication layer?
 
 ## References
