@@ -21,4 +21,10 @@
       <url>
         <loc>https://astra-spec.org/0.0.10/community/</loc>
       </url>
+      <url>
+        <loc>https://astra-spec.org/0.0.10/rfc-process/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/0.0.10/governance/</loc>
+      </url>
 </urlset>
