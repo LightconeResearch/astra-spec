@@ -1,6 +1,7 @@
 name: RFC proposal
 description: Propose a significant change to the ASTRA spec, conventions, or governance (Step 1 of the RFC process).
-labels: ['rfc']
+labels: ['RFC']
+type: Feature
 
 body:
 - type: markdown
