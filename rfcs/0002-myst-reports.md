@@ -263,25 +263,6 @@ authors:
     roles: [Writing – review & editing]
 ```
 
-By contrast, when a **third party reuses** a published result — importing it as an
-`Input` of `type: analysis` — the imported analysis's authors are *cited*, not
-added to the byline:
-
-```yaml
-# a different author's astra.yaml
-authors:
-  - name: Alex Kim          # the only byline author of *this* work
-    orcid: 0000-0002-9876-5432
-inputs:
-  - id: bao_distances
-    type: analysis
-    ref: desi_dr1_bao       # Jane & Sam's published analysis — a citation
-    use_outputs: [bao_distance_table]
-```
-
-Alex's report bylines Alex; Jane and Sam appear in its **references**, carrying
-their own authorship with the result they produced.
-
 ## Implementation implications & migration
 
 This change is **not confined to the spec repository** — it ripples through the
