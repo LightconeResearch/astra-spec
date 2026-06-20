@@ -65,13 +65,18 @@ real paper.
 The proposal has three parts. The first two are the reviewable core of this RFC;
 the third is deliberately left open (see *Questions or objections*).
 
-### 1. Retire the rigid narrative, keep an optional summary
+### 1. Transition the narrative field to a plain `description`
 
-Reduce the `Narrative` class to a single optional `summary` (an abstract that
-the analysis graph, a registry, or a dashboard can show without rendering a full
-MyST build), and **remove the `findings` / `methods` / `inputs` / `outputs`
-sections and the conditional coverage validation**. Authors who want only a stub
-summary keep one; everything richer moves to the report.
+**Remove the `Narrative` class entirely** — its five sections (`summary`,
+`findings`, `methods`, `inputs`, `outputs`) and the conditional coverage
+validation — and give `Analysis` a single optional **`description`**, the same
+free-prose field every other content object already carries (`Input`, `Output`,
+`Option`, and `Universe` all use `description`; `Decision` and `Insight` use the
+semantically-specific `rationale` and `claim`/`notes`). This makes "every ASTRA
+object has an optional `description`" a real, teachable rule, and removes a field
+whose five sections merely *duplicated* the structured children they sat beside.
+A short human description stays in the spec; everything richer moves to the MyST
+report.
 
 ### 2. Make ASTRA elements addressable; let MyST reports reference them
 
@@ -111,8 +116,8 @@ sibling RFC if it complicates review.
 
 ## Examples
 
-**Before** — the write-up lives in `astra.yaml`, restating the analysis and
-hand-typing numbers:
+**Before** — the write-up lives in `astra.yaml` as the five-section `narrative`,
+restating the analysis and hand-typing numbers:
 
 ```yaml
 narrative:
@@ -126,14 +131,14 @@ narrative:
   # corresponding structured data exists
 ```
 
-**After** — `astra.yaml` keeps an optional summary; the report is a MyST page
-that references the analysis (excerpt from the prototype's `index.md`):
+**After** — `astra.yaml` keeps a single optional `description` (like every other
+element); the report is a MyST page that references the analysis (excerpt from
+the prototype's `index.md`):
 
 ```yaml
 # astra.yaml
-narrative:
-  summary: |
-    Reproduction of the DESI DR1 configuration-space BAO measurement …
+description: |
+  Reproduction of the DESI DR1 configuration-space BAO measurement …
 ```
 
 ```markdown
@@ -172,10 +177,10 @@ changes across the ASTRA repositories:
 
 **`astra-spec` (this repo) — schema, datamodel, docs:**
 
-- `src/astra/schema/analysis.yaml`: reduce the `Narrative` class to an optional
-  `summary`; remove the `findings` / `methods` / `inputs` / `outputs` sections
-  and the conditional section-coverage rules. Metadata changes (part 3) are
-  deferred pending the open question.
+- `src/astra/schema/analysis.yaml`: remove the `Narrative` class and the
+  `narrative` slot; add an optional `description` slot to `Analysis`. Drop the
+  conditional section-coverage rules. Metadata changes (part 3) are deferred
+  pending the open question.
 - `src/astra/datamodel/`: regenerated from the schema via `just gen-python`.
 - The published JSON Schema artifact (`astra-spec.org/<version>/schema/…`) shifts
   — both SDKs resolve the schema from there, so this is the propagation point.
@@ -197,7 +202,8 @@ changes across the ASTRA repositories:
 **`astra-typescript` (`@astra-spec/sdk`):**
 
 - The TypeScript types and validation mirror the Python schema surface and must
-  be regenerated/updated for the new `Narrative` shape.
+  be regenerated/updated for the removed `Narrative` class and new `description`
+  slot.
 - This is load-bearing for the renderer: MySTRA's data-model types come directly
   from `@astra-spec/sdk`, so the prototype tracks this package — the SDK must be
   updated before (or with) the renderer.
@@ -209,26 +215,24 @@ spec-vs-tooling open question.
 
 **Compatibility / versioning:**
 
-- Making `narrative` optional and relaxing validation is backward-compatible —
-  existing analyses still validate. Removing four sections is a **breaking**
-  change to the `Narrative` shape. Under the [versioning policy](https://astra-spec.org/about/)
-  this is a **major** bump for the `Narrative` class; the surrounding change is
-  otherwise additive.
-- **Migration:** existing analyses keep validating with the relaxed schema; a
-  documented path (and ideally a small helper) maps the five sections into a
-  starter MyST page so no prose is lost.
+- Removing the `narrative` field is a **breaking** change — existing analyses
+  that declare a `narrative` will no longer validate. Under the
+  [versioning policy](https://astra-spec.org/about/) this is a **major** bump.
+  Adding the optional `description` slot is itself additive.
+- **Migration:** a documented path (and ideally a small helper) maps an existing
+  five-section `narrative` into (a) a one-paragraph `description` and (b) a
+  starter MyST report page, so no prose is lost.
 
 ## Questions or objections
 
 These are the forks this draft intends to resolve through discussion; they are
 recorded here as open, not decided.
 
-- **Fate of the narrative field — optional `summary` vs. full removal.** This
-  draft proposes keeping `summary` so the analysis graph retains a
-  machine-readable abstract without a MyST build (useful for a registry or
-  dashboard). The alternative is removing `narrative` entirely and treating the
-  report as the sole human layer. Is an in-spec summary worth the redundancy
-  with the report's abstract?
+- **Fate of the narrative field — resolved.** Earlier drafts weighed keeping a
+  reduced `summary` section; the proposal now removes `Narrative` entirely in
+  favour of a single optional `description`, consistent with every other element
+  object. Recorded here so the rejected alternative (a bespoke `summary`) is not
+  silently re-litigated.
 - **Where is the spec ↔ tooling boundary?** The proposal has ASTRA own the
   *addressing* (tree-path identity of elements) and treat the MyST rendering
   vocabulary (`astra:*`, the `{astra:value}` grammar, the materialised-results
