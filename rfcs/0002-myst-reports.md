@@ -44,8 +44,7 @@ affiliation/ORCID, keywords, license), cross-references, citations and
 bibliographies, figures and tables, and export to PDF/JATS. ASTRA's narrative
 reinvents a thin, rigid slice of this *inward*; it even already carries an
 anchor cross-reference grammar (`[text](#decisions.scaling)`) that gestures at
-MyST-style referencing. This RFC's lineage also matches [RFC-0001](0001-establish-the-rfc-process.md),
-which modelled ASTRA's process on the MyST/MEP ecosystem.
+MyST-style referencing.
 
 **Working prototype.** The mechanism proposed here is already demonstrated
 end-to-end by [**MySTRA**](https://github.com/LightconeResearch/MySTRA) — a MyST
@@ -98,7 +97,7 @@ MyST output — figures/tables with provenance, finding/decision cards, and live
 numbers interpolated from result products, so nothing is hand-typed.
 
 This RFC proposes that ASTRA **normatively owns the addressing** (what is
-referenceable, and by what path) and **documents the MyST authoring vocabulary
+referenceable, and by what path) and leaves **the MyST authoring vocabulary
 as a companion convention** (the `astra:*` directives/roles, the live-value
 addressing grammar, and the materialised-results path convention), with MySTRA
 as the reference implementation — rather than baking a single rendering
