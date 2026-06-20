@@ -344,7 +344,7 @@ recorded here as open, not decided.
   universe-scoped, and can a report compare across universes, or is that out of
   scope for v0.1? -> This is out of scope for this PR which does not cover universes.
 - **Artifact boundary.** When an analysis is published/archived, is
-  the MyST report inside that artifact boundary or a separate publication layer?
+  the MyST report inside that artifact boundary or a separate publication layer? -> Probably the myst report is not part of the research object on its own.
 
 ## References
 
