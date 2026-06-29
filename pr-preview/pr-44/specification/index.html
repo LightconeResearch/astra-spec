@@ -826,17 +826,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#references-and-addressing" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        References and addressing
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#input" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1417,17 +1406,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#references-and-addressing" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        References and addressing
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#input" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1668,7 +1646,7 @@
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="no">Fit a period-luminosity relation from a measurement catalog.</span>
 </span></code></pre></div>
-<p><code>description</code> is a single optional free-prose field — the same field every other content object carries (<code>Input</code>, <code>Output</code>, <code>Option</code>, <code>Universe</code>). It gives readers a short orientation to the analysis. ASTRA deliberately keeps this lightweight: a richer write-up — with figures, citations, live numbers, and multi-page structure — is authored <em>outside</em> <code>astra.yaml</code> as a report that <strong>references</strong> the analysis's elements by tree-path rather than restating them. ASTRA owns that addressing (see <a href="#references-and-addressing">References and addressing</a>); the authoring framework is left open. See <a href="https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md">RFC-0002</a> for the rationale.</p>
+<p><code>description</code> is a single optional free-prose field — the same field every other content object carries (<code>Input</code>, <code>Output</code>, <code>Option</code>, <code>Universe</code>). It gives readers a short orientation to the analysis. ASTRA deliberately keeps this lightweight: a richer write-up — with figures, citations, live numbers, and multi-page structure — is authored <em>outside</em> <code>astra.yaml</code> as a report that <strong>references</strong> the analysis's elements rather than restating them. ASTRA is not prescriptive about the authoring framework; <a href="https://github.com/LightconeResearch/MySTRA">MySTRA</a> is one example — a MyST plugin that renders ASTRA components straight from <code>astra.yaml</code>. See <a href="https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md">RFC-0002</a> for the rationale.</p>
 <h3 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h3>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">inputs</span><span class="p">:</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">catalog_data</span>
@@ -2011,40 +1989,6 @@
 </tbody>
 </table>
 <p><code>path</code> is for nested analyses only. It is mutually exclusive with inline content fields on that sub-analysis.</p>
-<h3 id="references-and-addressing">References and addressing<a class="headerlink" href="#references-and-addressing" title="Permanent link">&para;</a></h3>
-<p>Every analysis element has a stable <strong>tree-path</strong> address. This identity is the load-bearing commitment ASTRA owns: an external report — authored in MyST or any comparable framework — references structured content by these paths instead of restating it, and the <code>from:</code> aliases use the same grammar. ASTRA does not prescribe the report tooling, only the addressing.</p>
-<p>Element IDs share <strong>one namespace per analysis node</strong>: an ID is unique across inputs, outputs, decisions, findings, prior insights, and sub-analyses within a node, so a bare ID is unambiguous. Categories are not path segments.</p>
-<table>
-<thead>
-<tr>
-<th>Target</th>
-<th>Path</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>An element in this analysis</td>
-<td><code>&lt;id&gt;</code></td>
-</tr>
-<tr>
-<td>An element in a sub-analysis</td>
-<td><code>&lt;sub&gt;.&lt;id&gt;</code></td>
-</tr>
-<tr>
-<td>A nested sub-analysis element</td>
-<td><code>&lt;sub&gt;.&lt;subsub&gt;.&lt;id&gt;</code></td>
-</tr>
-<tr>
-<td>An option of a decision</td>
-<td><code>&lt;decision_id&gt;.&lt;option_id&gt;</code></td>
-</tr>
-<tr>
-<td>An element in a parent scope</td>
-<td><code>../&lt;id&gt;</code></td>
-</tr>
-</tbody>
-</table>
-<p>Paths are interpreted relative to the analysis they appear in. Use <code>../</code> to escape one scope upward (as with decision <code>from</code>), for example <code>../fit_method</code>. The <code>&lt;decision&gt;.&lt;option&gt;</code> form is the same one already used by <code>when</code>, <code>requires</code>, and <code>incompatible_with</code> (e.g. <code>model.svm</code>). Reserved category names (<code>inputs</code>, <code>outputs</code>, <code>decisions</code>, …) cannot be used as IDs, keeping every path unambiguous.</p>
 <h3 id="input">Input<a class="headerlink" href="#input" title="Permanent link">&para;</a></h3>
 <p>An input declares something the analysis consumes, or aliases an upstream artifact with <code>from</code>.</p>
 <table>

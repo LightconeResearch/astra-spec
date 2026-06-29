@@ -2033,21 +2033,9 @@ classes:
   Analysis:
     name: Analysis
     definition_uri: https://w3id.org/astra/Analysis
-    description: "A self-similar analysis specification. Every level has the same\
-      \ structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses.\
-      \ A sub-analysis extracted to its own file is a valid Analysis on its own.\n\
-      Element addressing. Every analysis element \u2014 input, output, decision, option,\
-      \ finding, prior insight, and sub-analysis \u2014 is addressable by a stable\
-      \ tree-path. This identity is what lets an external report (in any authoring\
-      \ framework) reference structured content instead of restating it; ASTRA owns\
-      \ the addressing, not the rendering. The grammar matches the `from:` slot:\n\
-      \n  <id>                  -- element in this analysis\n  <sub>.<id>        \
-      \    -- element in a sub-analysis\n  <sub>.<subsub>.<id>   -- nested sub-analysis\
-      \ element\n  ../<id>               -- escape one scope upward (parent)\n\nElement\
-      \ IDs share one namespace per analysis node (categories are not path segments),\
-      \ so an ID is unique across inputs, outputs, decisions, findings, prior_insights,\
-      \ and sub-analyses within a node. Reserved category names (see the slots note\
-      \ above) may not be used as IDs, keeping paths unambiguous."
+    description: 'A self-similar analysis specification. Every level has the same
+      structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses.
+      A sub-analysis extracted to its own file is a valid Analysis on its own.'
     from_schema: https://w3id.org/astra/analysis
     slots:
     - analysis__id
@@ -2388,7 +2376,7 @@ classes:
     class_uri: astra:Universe
 metamodel_version: 1.7.0
 source_file: analysis.yaml
-source_file_date: '2026-06-29T17:13:34'
-source_file_size: 24263
-generation_date: '2026-06-29T17:13:38'
+source_file_date: '2026-06-29T17:30:27'
+source_file_size: 23182
+generation_date: '2026-06-29T17:30:30'
 
