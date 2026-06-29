@@ -303,7 +303,7 @@ class Universe(ConfiguredBaseModel):
                        'Option',
                        'Decision',
                        'Analysis']} })
-    description: Optional[str] = Field(default=None, description="""What this universe represents""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
+    description: Optional[str] = Field(default=None, description="""Free-prose description of this universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Root-level decision selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
@@ -444,7 +444,7 @@ class Input(ConfiguredBaseModel):
                        'Analysis']} })
     label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: Optional[InputType] = Field(default=None, description="""Type of input. Required when `from` is unset; forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
-    description: Optional[str] = Field(default=None, description="""Description of the input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
+    description: Optional[str] = Field(default=None, description="""Free-prose description of this input.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     source: Optional[str] = Field(default=None, description="""URI or path to the data source""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
     ref: Optional[str] = Field(default=None, description="""Reference to another ASTRA analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
     ref_version: Optional[str] = Field(default=None, description="""Version of the referenced analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
@@ -547,7 +547,7 @@ class Output(ConfiguredBaseModel):
                        'Analysis']} })
     label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: Optional[OutputType] = Field(default=None, description="""Type of output. Required when `from` is unset; forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
-    description: Optional[str] = Field(default=None, description="""Description of the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
+    description: Optional[str] = Field(default=None, description="""Free-prose description of this output.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     inputs: Optional[list[str]] = Field(default=None, description="""IDs of upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
 References use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
     decisions: Optional[list[str]] = Field(default=None, description="""Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.
@@ -598,7 +598,7 @@ class Option(ConfiguredBaseModel):
                        'Decision',
                        'Analysis']} })
     label: str = Field(default=..., description="""Human-readable name for the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
-    description: Optional[str] = Field(default=None, description="""Detailed description of the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
+    description: Optional[str] = Field(default=None, description="""Free-prose description of this option.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     insights: Optional[list[str]] = Field(default=None, description="""Insight IDs supporting this option""", json_schema_extra = { "linkml_meta": {'domain_of': ['InsightCollection', 'Option']} })
     incompatible_with: Optional[list[str]] = Field(default=None, description="""Decision.option pairs that cannot be selected together""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })
     requires: Optional[list[str]] = Field(default=None, description="""Decision.option pairs that must also be selected""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })

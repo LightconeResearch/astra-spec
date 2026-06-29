@@ -69,7 +69,7 @@ classes:
         pattern: "^[a-z][a-z0-9_-]*$"
         description: Unique identifier for the universe
       description:
-        description: What this universe represents
+        description: Free-prose description of this universe.
       decisions:
         range: DecisionSelection
         multivalued: true
