@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-05-08T13:11:12
+# Generation date: 2026-06-29T19:29:41
 # Schema: analysis
 #
 # id: https://w3id.org/astra/analysis
@@ -143,68 +143,6 @@ class KeyValuePair(YAMLRoot):
             self.MissingRequiredField("value")
         if not isinstance(self.value, str):
             self.value = str(self.value)
-
-        super().__post_init__(**kwargs)
-
-
-@dataclass(repr=False)
-class Narrative(YAMLRoot):
-    """
-    Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and
-    outputs. All sections are schema-optional, but ``astra validate`` applies a conditional requirement: a section
-    must hold non-empty prose when the corresponding structured data exists on the Analysis node.
-    - ``findings`` required when Analysis.findings has entries. - ``methods`` required when Analysis.decisions or
-    Analysis.analyses has entries.
-    - ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries.
-    - ``summary`` is always optional — no structured counterpart.
-    Authors narrate what they declare; stub analyses with only a summary stay clean.
-    Section content is Markdown. Internal references to other elements of the analysis use anchor links of the form
-    ``[text](#path.to.element)``. References may appear in any section — coverage is resolved across the whole
-    narrative, not per-section — so an author is free to cite a finding from the summary, or an input from the methods
-    section.
-    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (the `from:` path grammar with
-    `../` prefixes for upward escape and `name.subname` for descent). Sub-analyses are traversed before the category:
-
-    [scaling decision](#decisions.scaling)
-    [scaling option](#decisions.scaling.options.standard)
-    [finding](#findings.best_model)
-    [prior insight](#prior_insights.compute_scaling)
-    [input](#inputs.iris_data)
-    [sub-analysis output](#preprocessing.outputs.features)
-    [sub-analysis decision](#preprocessing.decisions.scaling)
-    [sub-analysis](#analyses.preprocessing)
-
-    References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with
-    decision 'from' (e.g. [see parent](#../decisions.method)).
-    """
-    _inherited_slots: ClassVar[list[str]] = []
-
-    class_class_uri: ClassVar[URIRef] = ASTRA["Narrative"]
-    class_class_curie: ClassVar[str] = "astra:Narrative"
-    class_name: ClassVar[str] = "Narrative"
-    class_model_uri: ClassVar[URIRef] = ASTRA.Narrative
-
-    summary: Optional[str] = None
-    findings: Optional[str] = None
-    methods: Optional[str] = None
-    inputs: Optional[str] = None
-    outputs: Optional[str] = None
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self.summary is not None and not isinstance(self.summary, str):
-            self.summary = str(self.summary)
-
-        if self.findings is not None and not isinstance(self.findings, str):
-            self.findings = str(self.findings)
-
-        if self.methods is not None and not isinstance(self.methods, str):
-            self.methods = str(self.methods)
-
-        if self.inputs is not None and not isinstance(self.inputs, str):
-            self.inputs = str(self.inputs)
-
-        if self.outputs is not None and not isinstance(self.outputs, str):
-            self.outputs = str(self.outputs)
 
         super().__post_init__(**kwargs)
 
@@ -543,8 +481,7 @@ class Analysis(YAMLRoot):
     id: Union[str, AnalysisId] = None
     version: Optional[str] = None
     name: Optional[str] = None
-    narrative: Optional[Union[dict, Narrative]] = None
-    authors: Optional[Union[str, list[str]]] = empty_list()
+    description: Optional[str] = None
     tags: Optional[Union[str, list[str]]] = empty_list()
     inputs: Optional[Union[dict[Union[str, InputId], Union[dict, Input]], list[Union[dict, Input]]]] = empty_dict()
     outputs: Optional[Union[dict[Union[str, OutputId], Union[dict, Output]], list[Union[dict, Output]]]] = empty_dict()
@@ -567,12 +504,8 @@ class Analysis(YAMLRoot):
         if self.name is not None and not isinstance(self.name, str):
             self.name = str(self.name)
 
-        if self.narrative is not None and not isinstance(self.narrative, Narrative):
-            self.narrative = Narrative(**as_dict(self.narrative))
-
-        if not isinstance(self.authors, list):
-            self.authors = [self.authors] if self.authors is not None else []
-        self.authors = [v if isinstance(v, str) else str(v) for v in self.authors]
+        if self.description is not None and not isinstance(self.description, str):
+            self.description = str(self.description)
 
         if not isinstance(self.tags, list):
             self.tags = [self.tags] if self.tags is not None else []
@@ -943,21 +876,6 @@ slots.keyValuePair__key = Slot(uri=ASTRA.key, name="keyValuePair__key", curie=AS
 slots.keyValuePair__value = Slot(uri=ASTRA.value, name="keyValuePair__value", curie=ASTRA.curie('value'),
                    model_uri=ASTRA.keyValuePair__value, domain=None, range=str)
 
-slots.narrative__summary = Slot(uri=ASTRA.summary, name="narrative__summary", curie=ASTRA.curie('summary'),
-                   model_uri=ASTRA.narrative__summary, domain=None, range=Optional[str])
-
-slots.narrative__findings = Slot(uri=ASTRA.findings, name="narrative__findings", curie=ASTRA.curie('findings'),
-                   model_uri=ASTRA.narrative__findings, domain=None, range=Optional[str])
-
-slots.narrative__methods = Slot(uri=ASTRA.methods, name="narrative__methods", curie=ASTRA.curie('methods'),
-                   model_uri=ASTRA.narrative__methods, domain=None, range=Optional[str])
-
-slots.narrative__inputs = Slot(uri=ASTRA.inputs, name="narrative__inputs", curie=ASTRA.curie('inputs'),
-                   model_uri=ASTRA.narrative__inputs, domain=None, range=Optional[str])
-
-slots.narrative__outputs = Slot(uri=ASTRA.outputs, name="narrative__outputs", curie=ASTRA.curie('outputs'),
-                   model_uri=ASTRA.narrative__outputs, domain=None, range=Optional[str])
-
 slots.resources__cpus = Slot(uri=ASTRA.cpus, name="resources__cpus", curie=ASTRA.curie('cpus'),
                    model_uri=ASTRA.resources__cpus, domain=None, range=Optional[float])
 
@@ -984,7 +902,7 @@ slots.recipe__container = Slot(uri=ASTRA.container, name="recipe__container", cu
 
 slots.input__id = Slot(uri=ASTRA.id, name="input__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.input__id, domain=None, range=URIRef,
-                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.input__label = Slot(uri=ASTRA.label, name="input__label", curie=ASTRA.curie('label'),
                    model_uri=ASTRA.input__label, domain=None, range=Optional[str])
@@ -1009,7 +927,7 @@ slots.input__use_outputs = Slot(uri=ASTRA.use_outputs, name="input__use_outputs"
 
 slots.output__id = Slot(uri=ASTRA.id, name="output__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.output__id, domain=None, range=URIRef,
-                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.output__label = Slot(uri=ASTRA.label, name="output__label", curie=ASTRA.curie('label'),
                    model_uri=ASTRA.output__label, domain=None, range=Optional[str])
@@ -1031,7 +949,7 @@ slots.output__recipe = Slot(uri=ASTRA.recipe, name="output__recipe", curie=ASTRA
 
 slots.option__id = Slot(uri=ASTRA.id, name="option__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.option__id, domain=None, range=URIRef,
-                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.option__label = Slot(uri=ASTRA.label, name="option__label", curie=ASTRA.curie('label'),
                    model_uri=ASTRA.option__label, domain=None, range=str)
@@ -1056,7 +974,7 @@ slots.option__excluded_reason = Slot(uri=ASTRA.excluded_reason, name="option__ex
 
 slots.decision__id = Slot(uri=ASTRA.id, name="decision__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.decision__id, domain=None, range=URIRef,
-                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.decision__label = Slot(uri=ASTRA.label, name="decision__label", curie=ASTRA.curie('label'),
                    model_uri=ASTRA.decision__label, domain=None, range=Optional[str])
@@ -1075,7 +993,7 @@ slots.decision__options = Slot(uri=ASTRA.options, name="decision__options", curi
 
 slots.analysis__id = Slot(uri=ASTRA.id, name="analysis__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.analysis__id, domain=None, range=URIRef,
-                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.analysis__version = Slot(uri=ASTRA.version, name="analysis__version", curie=ASTRA.curie('version'),
                    model_uri=ASTRA.analysis__version, domain=None, range=Optional[str],
@@ -1084,11 +1002,8 @@ slots.analysis__version = Slot(uri=ASTRA.version, name="analysis__version", curi
 slots.analysis__name = Slot(uri=ASTRA.name, name="analysis__name", curie=ASTRA.curie('name'),
                    model_uri=ASTRA.analysis__name, domain=None, range=Optional[str])
 
-slots.analysis__narrative = Slot(uri=ASTRA.narrative, name="analysis__narrative", curie=ASTRA.curie('narrative'),
-                   model_uri=ASTRA.analysis__narrative, domain=None, range=Optional[Union[dict, Narrative]])
-
-slots.analysis__authors = Slot(uri=ASTRA.authors, name="analysis__authors", curie=ASTRA.curie('authors'),
-                   model_uri=ASTRA.analysis__authors, domain=None, range=Optional[Union[str, list[str]]])
+slots.analysis__description = Slot(uri=ASTRA.description, name="analysis__description", curie=ASTRA.curie('description'),
+                   model_uri=ASTRA.analysis__description, domain=None, range=Optional[str])
 
 slots.analysis__tags = Slot(uri=ASTRA.tags, name="analysis__tags", curie=ASTRA.curie('tags'),
                    model_uri=ASTRA.analysis__tags, domain=None, range=Optional[Union[str, list[str]]])
@@ -1134,7 +1049,7 @@ slots.fragmentSelector__page = Slot(uri=ASTRA.page, name="fragmentSelector__page
 
 slots.evidence__id = Slot(uri=ASTRA.id, name="evidence__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.evidence__id, domain=None, range=URIRef,
-                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.evidence__doi = Slot(uri=ASTRA.doi, name="evidence__doi", curie=ASTRA.curie('doi'),
                    model_uri=ASTRA.evidence__doi, domain=None, range=Optional[str],
@@ -1160,7 +1075,7 @@ slots.evidence__location = Slot(uri=ASTRA.location, name="evidence__location", c
 
 slots.insight__id = Slot(uri=ASTRA.id, name="insight__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.insight__id, domain=None, range=URIRef,
-                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.insight__label = Slot(uri=ASTRA.label, name="insight__label", curie=ASTRA.curie('label'),
                    model_uri=ASTRA.insight__label, domain=None, range=Optional[str])
@@ -1197,7 +1112,7 @@ slots.decisionSelection__option_id = Slot(uri=ASTRA.option_id, name="decisionSel
 
 slots.universeNode__id = Slot(uri=ASTRA.id, name="universeNode__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.universeNode__id, domain=None, range=URIRef,
-                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$'))
+                   pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.universeNode__universe = Slot(uri=ASTRA.universe, name="universeNode__universe", curie=ASTRA.curie('universe'),
                    model_uri=ASTRA.universeNode__universe, domain=None, range=Optional[str])

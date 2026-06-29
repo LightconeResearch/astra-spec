@@ -55,25 +55,22 @@ my-analysis/
     └── baseline.yaml       # Default decision selection
 ```
 
-The scaffolded `astra.yaml` is a complete, valid analysis with `TODO:` markers in the prose. It includes a `narrative` block, a `container:` default (`python:3.12-slim`), one example decision (`example_method` with options `option_a` and `option_b`), and two outputs (`main_result` chained into a `conclusion` report). It compiles as-is — you can edit incrementally rather than rewriting from scratch.
+The scaffolded `astra.yaml` is a complete, valid analysis with `TODO:` markers in the prose. It includes a `description`, a `container:` default (`python:3.12-slim`), one example decision (`example_method` with options `option_a` and `option_b`), and two outputs (`main_result` chained into a `conclusion` report). It compiles as-is — you can edit incrementally rather than rewriting from scratch.
 
 !!! tip "Skip git initialisation"
     By default `astra init` runs `git init` in the new directory and makes an initial commit. Pass `--no-git` to skip both.
 
 ## Edit the analysis
 
-The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis declares three top-level sections — **`inputs:`**, **`outputs:`**, **`decisions:`** — plus optional metadata (`name`, `version`, `narrative`, `tags`, `authors`, `container`).
+The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis declares three top-level sections — **`inputs:`**, **`outputs:`**, **`decisions:`** — plus optional metadata (`name`, `version`, `description`, `tags`, `container`).
 
 ```yaml
 version: "1.0"
 name: My Analysis
 container: python:3.12-slim       # default for all recipes; per-output override allowed
 
-narrative:                        # structured prose; sections are anchorable
-  summary: |
-    One paragraph describing the analysis.
-  methods: |
-    Reference decisions inline: the [example method](#decisions.example_method).
+description: |                    # short free-prose orientation
+  One paragraph describing the analysis.
 
 inputs:
   - id: primary_data
@@ -101,7 +98,7 @@ A few things worth noting:
 
 - **Decisions parameterize outputs.** `Output.decisions` declares the contract — only the listed decisions resolve inside `recipe.command`. The validator rejects `{decisions.foo}` if `foo` isn't in the list.
 - **Recipe placeholders.** Four forms are legal: `{inputs}` (all declared inputs, space-separated), `{inputs.<id>}` (one declared input), `{decisions.<id>}` (one declared decision), and `{output}` (where to write). `{{` and `}}` are literal braces.
-- **The narrative is structured.** Five sections — `summary`, `findings`, `methods`, `inputs`, `outputs` — exist so renderers can navigate them reliably. The validator makes a section *required* when its structured counterpart exists: declare `decisions:` and you owe `methods:` prose; declare `outputs:` and you owe `outputs:` prose. See [Narrative](specification.md#narrative).
+- **Rich reports live alongside `astra.yaml`.** The spec keeps a single optional `description`; a fuller write-up — figures, citations, multi-page structure — is built next to the analysis and references its elements rather than restating them. [MySTRA](https://github.com/LightconeResearch/MySTRA) is one framework that does this.
 - **Constraints between options.** `requires:` and `incompatible_with:` (format: `decision.option`) gate which option combinations are valid. They are checked when you validate a universe.
 
 ## Validate
@@ -112,12 +109,11 @@ Run [`astra validate`](cli.md#astra-validate) to check the file:
 astra validate astra.yaml
 ```
 
-Validation runs in four stages, each gating the next:
+Validation runs in three stages, each gating the next:
 
 1. **Schema validation** — Pydantic models (generated from the LinkML schema) check types, required fields, and format patterns (ID pattern, version pattern, DOI pattern, …).
-2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths resolve and respect direction rules, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve.
-3. **Narrative validation** — Markdown anchors (`[text](#decisions.foo)`) point at real elements; the conditionally-required sections are present; coverage warnings flag declared elements that nothing in the narrative mentions.
-4. **Evidence verification** (opt-in, `--verify-evidence`) — quoted text in `prior_insights` and `findings` actually appears in the cached source PDFs.
+2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve and respect direction rules, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve.
+3. **Evidence verification** (opt-in, `--verify-evidence`) — quoted text in `prior_insights` and `findings` actually appears in the cached source PDFs.
 
 A clean run prints:
 
@@ -125,9 +121,6 @@ A clean run prints:
 Validating astra.yaml...
 ✓ Schema validation passed
 ✓ Semantic validation passed
-✓ Narrative anchors resolved
-✓ Narrative sections present
-✓ Narrative coverage complete
 
 Validation successful!
 ```
@@ -143,11 +136,11 @@ Semantic validation errors:
     Duplicate output ID: main_result
 ```
 
-Coverage warnings (e.g. "Decision 'foo' is declared but not mentioned in any narrative section") are non-blocking; the validator returns success but flags them in yellow so authors can round-trip the prose.
+Non-blocking warnings print in yellow: the validator still returns success but surfaces them so authors can clean the record up.
 
 ## Inspect
 
-[`astra info`](cli.md#astra-info) prints a Rich-rendered summary: the analysis name, version, each populated narrative section as a labelled paragraph, and tables for inputs, outputs, and decisions. By default everything renders; pass `--decisions`, `--inputs`, or `--outputs` to focus.
+[`astra info`](cli.md#astra-info) prints a Rich-rendered summary: the analysis name, version, description, and tables for inputs, outputs, and decisions. By default everything renders; pass `--decisions`, `--inputs`, or `--outputs` to focus.
 
 ```bash
 astra info
