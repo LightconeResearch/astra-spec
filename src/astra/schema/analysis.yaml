@@ -29,11 +29,14 @@ imports:
 
 #
 # Identifier pattern: lowercase snake_case, with reserved category
-# names excluded so that narrative anchor references like
-# `#decisions.<id>` cannot be silently shadowed by an entity named
-# after a category. Reserved set:
+# names excluded so that tree-path references like `decisions.<id>`
+# (and sub-analysis-scoped paths like `<sub>.<id>`) cannot be
+# silently shadowed by an entity named after a category. Every
+# analysis element is addressable by a stable tree-path — the same
+# grammar the `from:` slot uses; see the Analysis class for the
+# addressing model. Reserved set:
 #   inputs, outputs, decisions, findings, prior_insights, analyses,
-#   options, content, narrative
+#   options, content
 # Applied to every entity ID: Input, Output, Option, Decision,
 # Analysis, Insight, Evidence.
 #
@@ -113,80 +116,6 @@ classes:
       value:
         required: true
         description: The value
-
-  # --- Narrative ---
-
-  Narrative:
-    description: >-
-      Structured prose describing an analysis, organized into five
-      sections: summary, findings, methods, inputs, and outputs.
-      All sections are schema-optional, but ``astra validate``
-      applies a conditional requirement: a section must hold
-      non-empty prose when the corresponding structured data exists
-      on the Analysis node.
-
-      - ``findings`` required when Analysis.findings has entries.
-      - ``methods`` required when Analysis.decisions or
-        Analysis.analyses has entries.
-      - ``inputs`` required when Analysis.inputs has entries.
-      - ``outputs`` required when Analysis.outputs has entries.
-      - ``summary`` is always optional — no structured counterpart.
-
-      Authors narrate what they declare; stub analyses with only a
-      summary stay clean.
-
-      Section content is Markdown. Internal references to other
-      elements of the analysis use anchor links of the form
-      ``[text](#path.to.element)``. References may appear in any
-      section — coverage is resolved across the whole narrative,
-      not per-section — so an author is free to cite a finding from
-      the summary, or an input from the methods section.
-
-      Anchor grammar is tree-path-first, matching the rest of
-      ASTRA's reference syntax (the `from:` path grammar with `../`
-      prefixes for upward escape and `name.subname` for descent).
-      Sub-analyses are traversed before the category:
-
-        [scaling decision](#decisions.scaling)
-        [scaling option](#decisions.scaling.options.standard)
-        [finding](#findings.best_model)
-        [prior insight](#prior_insights.compute_scaling)
-        [input](#inputs.iris_data)
-        [sub-analysis output](#preprocessing.outputs.features)
-        [sub-analysis decision](#preprocessing.decisions.scaling)
-        [sub-analysis](#analyses.preprocessing)
-
-      References are interpreted relative to the hosting analysis.
-      Use '../' prefix to escape to parent scope, as with decision
-      'from' (e.g. [see parent](#../decisions.method)).
-    attributes:
-      summary:
-        description: >-
-          High-level overview of the analysis — its question, scope,
-          and a brief orientation for readers.
-      findings:
-        description: >-
-          Narrative discussion of the analysis's findings.
-          Individual findings live under Analysis.findings as
-          structured Insight objects; this section is the prose
-          that frames them.
-      methods:
-        description: >-
-          Narrative discussion of the methodology, including
-          decision points and any sub-analyses. Structured
-          decisions and nested analyses live under
-          Analysis.decisions and Analysis.analyses; this section
-          frames them.
-      inputs:
-        description: >-
-          Narrative discussion of the analysis's inputs.
-          Individual inputs live under Analysis.inputs as
-          structured objects; this section frames them.
-      outputs:
-        description: >-
-          Narrative discussion of the expected outputs.
-          Individual outputs live under Analysis.outputs as
-          structured objects; this section frames them.
 
   # --- Execution ---
   #
@@ -304,7 +233,7 @@ classes:
     attributes:
       id:
         identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$"
+        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
         description: Unique identifier for the input
       label:
         description: >-
@@ -393,7 +322,7 @@ classes:
     attributes:
       id:
         identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$"
+        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
         description: Unique identifier for the output
       label:
         description: >-
@@ -482,7 +411,7 @@ classes:
     attributes:
       id:
         identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$"
+        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
         description: Option identifier (the key in the options map)
       label:
         required: true
@@ -533,7 +462,7 @@ classes:
     attributes:
       id:
         identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$"
+        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
         description: Decision identifier (the key in the decisions map)
       label:
         description: Human-readable name for the decision
@@ -590,28 +519,42 @@ classes:
       structure: metadata, inputs, outputs, decisions, insights, and
       optional sub-analyses. A sub-analysis extracted to its own file
       is a valid Analysis on its own.
+
+      Element addressing. Every analysis element — input, output,
+      decision, option, finding, prior insight, and sub-analysis — is
+      addressable by a stable tree-path. This identity is what lets an
+      external report (in any authoring framework) reference structured
+      content instead of restating it; ASTRA owns the addressing, not
+      the rendering. The grammar matches the `from:` slot:
+
+        <id>                  -- element in this analysis
+        <sub>.<id>            -- element in a sub-analysis
+        <sub>.<subsub>.<id>   -- nested sub-analysis element
+        ../<id>               -- escape one scope upward (parent)
+
+      Element IDs share one namespace per analysis node (categories are
+      not path segments), so an ID is unique across inputs, outputs,
+      decisions, findings, prior_insights, and sub-analyses within a
+      node. Reserved category names (see the slots note above) may not
+      be used as IDs, keeping paths unambiguous.
     attributes:
       id:
         identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$"
+        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
         description: Analysis identifier (used as key when nested as a sub-analysis)
       version:
         pattern: "^\\d+\\.\\d+(\\.\\d+)?$"
         description: ASTRA specification version
       name:
         description: Human-readable name for the analysis
-      narrative:
-        range: Narrative
-        inlined: true
+      description:
         description: >-
-          Structured prose describing this analysis, split into
-          five sections (summary, findings, methods, inputs,
-          outputs). See the Narrative class for section semantics
-          and the tree-path anchor grammar used for internal
-          cross-references.
-      authors:
-        multivalued: true
-        description: List of authors
+          Free-prose description of this analysis — the same optional
+          field every other content object carries (Input, Output,
+          Option, Universe). A short human orientation lives here;
+          richer write-ups (figures, citations, multi-page reports)
+          are authored externally and reference analysis elements by
+          tree-path rather than restating them.
       tags:
         multivalued: true
         description: Tags for categorization

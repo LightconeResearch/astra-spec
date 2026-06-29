@@ -1,5 +1,5 @@
-# Invalid: decision named 'options' clashes with the path keyword used
-# in #decisions.<id>.options.<id> anchors.
+# Invalid: decision named 'options' clashes with a reserved category
+# name used in tree-path references (e.g. decisions.<id>.options.<id>).
 id: bad_reserved_decision
 name: Reserved decision name test
 inputs:

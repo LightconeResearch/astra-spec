@@ -173,7 +173,7 @@ class Evidence(ConfiguredBaseModel):
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -224,7 +224,7 @@ class Insight(ConfiguredBaseModel):
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -276,7 +276,7 @@ class UniverseNode(ConfiguredBaseModel):
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -303,7 +303,7 @@ class Universe(ConfiguredBaseModel):
                        'Option',
                        'Decision',
                        'Analysis']} })
-    description: Optional[str] = Field(default=None, description="""What this universe represents""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
+    description: Optional[str] = Field(default=None, description="""What this universe represents""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Root-level decision selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
@@ -329,36 +329,6 @@ class KeyValuePair(ConfiguredBaseModel):
 
     key: str = Field(default=..., description="""The key""", json_schema_extra = { "linkml_meta": {'domain_of': ['KeyValuePair']} })
     value: str = Field(default=..., description="""The value""", json_schema_extra = { "linkml_meta": {'domain_of': ['FragmentSelector', 'KeyValuePair']} })
-
-
-class Narrative(ConfiguredBaseModel):
-    """
-    Structured prose describing an analysis, organized into five sections: summary, findings, methods, inputs, and outputs. All sections are schema-optional, but ``astra validate`` applies a conditional requirement: a section must hold non-empty prose when the corresponding structured data exists on the Analysis node.
-    - ``findings`` required when Analysis.findings has entries. - ``methods`` required when Analysis.decisions or
-      Analysis.analyses has entries.
-    - ``inputs`` required when Analysis.inputs has entries. - ``outputs`` required when Analysis.outputs has entries. - ``summary`` is always optional — no structured counterpart.
-    Authors narrate what they declare; stub analyses with only a summary stay clean.
-    Section content is Markdown. Internal references to other elements of the analysis use anchor links of the form ``[text](#path.to.element)``. References may appear in any section — coverage is resolved across the whole narrative, not per-section — so an author is free to cite a finding from the summary, or an input from the methods section.
-    Anchor grammar is tree-path-first, matching the rest of ASTRA's reference syntax (the `from:` path grammar with `../` prefixes for upward escape and `name.subname` for descent). Sub-analyses are traversed before the category:
-
-      [scaling decision](#decisions.scaling)
-      [scaling option](#decisions.scaling.options.standard)
-      [finding](#findings.best_model)
-      [prior insight](#prior_insights.compute_scaling)
-      [input](#inputs.iris_data)
-      [sub-analysis output](#preprocessing.outputs.features)
-      [sub-analysis decision](#preprocessing.decisions.scaling)
-      [sub-analysis](#analyses.preprocessing)
-
-    References are interpreted relative to the hosting analysis. Use '../' prefix to escape to parent scope, as with decision 'from' (e.g. [see parent](#../decisions.method)).
-    """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis'})
-
-    summary: Optional[str] = Field(default=None, description="""High-level overview of the analysis — its question, scope, and a brief orientation for readers.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative']} })
-    findings: Optional[str] = Field(default=None, description="""Narrative discussion of the analysis's findings. Individual findings live under Analysis.findings as structured Insight objects; this section is the prose that frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
-    methods: Optional[str] = Field(default=None, description="""Narrative discussion of the methodology, including decision points and any sub-analyses. Structured decisions and nested analyses live under Analysis.decisions and Analysis.analyses; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative']} })
-    inputs: Optional[str] = Field(default=None, description="""Narrative discussion of the analysis's inputs. Individual inputs live under Analysis.inputs as structured objects; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Output', 'Analysis']} })
-    outputs: Optional[str] = Field(default=None, description="""Narrative discussion of the expected outputs. Individual outputs live under Analysis.outputs as structured objects; this section frames them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
 
 
 class Resources(ConfiguredBaseModel):
@@ -474,7 +444,7 @@ class Input(ConfiguredBaseModel):
                        'Analysis']} })
     label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: Optional[InputType] = Field(default=None, description="""Type of input. Required when `from` is unset; forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
-    description: Optional[str] = Field(default=None, description="""Description of the input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
+    description: Optional[str] = Field(default=None, description="""Description of the input""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     source: Optional[str] = Field(default=None, description="""URI or path to the data source""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
     ref: Optional[str] = Field(default=None, description="""Reference to another ASTRA analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
     ref_version: Optional[str] = Field(default=None, description="""Version of the referenced analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input']} })
@@ -495,7 +465,7 @@ class Input(ConfiguredBaseModel):
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -577,9 +547,9 @@ class Output(ConfiguredBaseModel):
                        'Analysis']} })
     label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: Optional[OutputType] = Field(default=None, description="""Type of output. Required when `from` is unset; forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
-    description: Optional[str] = Field(default=None, description="""Description of the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
+    description: Optional[str] = Field(default=None, description="""Description of the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     inputs: Optional[list[str]] = Field(default=None, description="""IDs of upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
-References use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Output', 'Analysis']} })
+References use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
     decisions: Optional[list[str]] = Field(default=None, description="""Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.
 Runners use this to (a) compute the per-output cache key, (b) determine the minimal universe set needed to materialize the output, and (c) deliver the active option values to the recipe (via flags, env vars, or a sidecar — runner's choice).
 References use plain decision IDs and resolve through any `from:` chain in the surrounding analysis scope.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
@@ -600,7 +570,7 @@ References use plain decision IDs and resolve through any `from:` chain in the s
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -628,7 +598,7 @@ class Option(ConfiguredBaseModel):
                        'Decision',
                        'Analysis']} })
     label: str = Field(default=..., description="""Human-readable name for the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
-    description: Optional[str] = Field(default=None, description="""Detailed description of the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option']} })
+    description: Optional[str] = Field(default=None, description="""Detailed description of the option""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     insights: Optional[list[str]] = Field(default=None, description="""Insight IDs supporting this option""", json_schema_extra = { "linkml_meta": {'domain_of': ['InsightCollection', 'Option']} })
     incompatible_with: Optional[list[str]] = Field(default=None, description="""Decision.option pairs that cannot be selected together""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })
     requires: Optional[list[str]] = Field(default=None, description="""Decision.option pairs that must also be selected""", json_schema_extra = { "linkml_meta": {'domain_of': ['Option']} })
@@ -637,7 +607,7 @@ class Option(ConfiguredBaseModel):
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -737,7 +707,7 @@ class Decision(ConfiguredBaseModel):
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -752,6 +722,14 @@ class Decision(ConfiguredBaseModel):
 class Analysis(ConfiguredBaseModel):
     """
     A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions, insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.
+    Element addressing. Every analysis element — input, output, decision, option, finding, prior insight, and sub-analysis — is addressable by a stable tree-path. This identity is what lets an external report (in any authoring framework) reference structured content instead of restating it; ASTRA owns the addressing, not the rendering. The grammar matches the `from:` slot:
+
+      <id>                  -- element in this analysis
+      <sub>.<id>            -- element in a sub-analysis
+      <sub>.<subsub>.<id>   -- nested sub-analysis element
+      ../<id>               -- escape one scope upward (parent)
+
+    Element IDs share one namespace per analysis node (categories are not path segments), so an ID is unique across inputs, outputs, decisions, findings, prior_insights, and sub-analyses within a node. Reserved category names (see the slots note above) may not be used as IDs, keeping paths unambiguous.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis', 'tree_root': True})
 
@@ -766,21 +744,20 @@ class Analysis(ConfiguredBaseModel):
                        'Analysis']} })
     version: Optional[str] = Field(default=None, description="""ASTRA specification version""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence', 'Analysis']} })
     name: Optional[str] = Field(default=None, description="""Human-readable name for the analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    narrative: Optional[Narrative] = Field(default=None, description="""Structured prose describing this analysis, split into five sections (summary, findings, methods, inputs, outputs). See the Narrative class for section semantics and the tree-path anchor grammar used for internal cross-references.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    authors: Optional[list[str]] = Field(default=None, description="""List of authors""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
+    description: Optional[str] = Field(default=None, description="""Free-prose description of this analysis — the same optional field every other content object carries (Input, Output, Option, Universe). A short human orientation lives here; richer write-ups (figures, citations, multi-page reports) are authored externally and reference analysis elements by tree-path rather than restating them.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     tags: Optional[list[str]] = Field(default=None, description="""Tags for categorization""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
-    inputs: Optional[list[Input]] = Field(default=None, description="""Inputs for this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Output', 'Analysis']} })
-    outputs: Optional[list[Output]] = Field(default=None, description="""Expected outputs from this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
+    inputs: Optional[list[Input]] = Field(default=None, description="""Inputs for this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
+    outputs: Optional[list[Output]] = Field(default=None, description="""Expected outputs from this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     decisions: Optional[dict[str, Decision]] = Field(default=None, description="""Decision points in this analysis (keyed by decision ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     prior_insights: Optional[dict[str, Insight]] = Field(default=None, description="""Prior insights that inform decisions (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    findings: Optional[dict[str, Insight]] = Field(default=None, description="""Findings and conclusions from outputs (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Narrative', 'Analysis']} })
+    findings: Optional[dict[str, Insight]] = Field(default=None, description="""Findings and conclusions from outputs (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     container: Optional[str] = Field(default=None, description="""Default container for recipes in this node. Image names are pulled; file paths are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     path: Optional[str] = Field(default=None, description="""Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     analyses: Optional[dict[str, Analysis]] = Field(default=None, description="""Nested sub-analyses (keyed by analysis ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
     @field_validator('id')
     def pattern_id(cls, v):
-        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content|narrative)$)[a-z][a-z0-9_]*$")
+        pattern=re.compile(r"^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$")
         if isinstance(v, list):
             for element in v:
                 if isinstance(element, str) and not pattern.match(element):
@@ -816,7 +793,6 @@ DecisionSelection.model_rebuild()
 UniverseNode.model_rebuild()
 Universe.model_rebuild()
 KeyValuePair.model_rebuild()
-Narrative.model_rebuild()
 Resources.model_rebuild()
 Recipe.model_rebuild()
 Input.model_rebuild()

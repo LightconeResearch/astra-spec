@@ -69,8 +69,7 @@ astra validate universes/foo.yaml -a astra.yaml # universe with explicit analysi
 Validation runs in stages:
 
 1. **Schema validation** — structure, types, required fields, format patterns (Pydantic models generated from the LinkML schema).
-2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions, constraints respected, etc.
-3. **Narrative validation** — section presence (conditional on declared structure), anchor reference resolution, and a coverage warning for declared elements that are never cited.
+2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions, constraints respected, etc.
 
 ### Evidence verification
 
@@ -95,7 +94,7 @@ Papers must be cached locally first with [`astra paper add`](#astra-paper-add). 
 
 ## `astra info`
 
-Print a summary of an analysis: name, version, narrative sections, counts, and tables of inputs, outputs, and decisions. The analysis file is auto-discovered by walking up from the current directory if `--file` is not provided.
+Print a summary of an analysis: name, version, description, counts, and tables of inputs, outputs, and decisions. The analysis file is auto-discovered by walking up from the current directory if `--file` is not provided.
 
 ```bash
 astra info                          # full summary

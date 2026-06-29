@@ -1,5 +1,5 @@
 # Invalid: sub-analysis named 'decisions' shadows the reserved category.
-# Anchor refs like #decisions.foo can never address this sub's contents.
+# Tree-path refs like `decisions.foo` would be ambiguous against this sub.
 id: bad_reserved_analysis
 name: Reserved-name shadowing test
 inputs:

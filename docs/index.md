@@ -1,6 +1,6 @@
 # ASTRA
 
-**Agentic Schema for Transparent Research Analysis** is a YAML specification for scientific analyses. Code captures execution, but not the full structure of an analysis: `astra.yaml` records the narrative, inputs, outputs, methodological choices, and evidence behind an experiment, making the work easier to reproduce and extend.
+**Agentic Schema for Transparent Research Analysis** is a YAML specification for scientific analyses. Code captures execution, but not the full structure of an analysis: `astra.yaml` records the inputs, outputs, methodological choices, and evidence behind an experiment, making the work easier to reproduce and extend.
 
 Agents are expanding the scale and speed of science, which shifts the bottleneck from producing results to trusting them. `astra.yaml` gives each experiment a structured record for agents to follow, keeping assumptions, choices, and evidence explicit.
 

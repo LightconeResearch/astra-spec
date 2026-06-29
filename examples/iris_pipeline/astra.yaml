@@ -1,29 +1,13 @@
 id: iris_pipeline
 version: "0.1.0"
 name: Iris Two-Stage Classification
-narrative:
-  summary: |
-    A two-stage pipeline for Iris classification that demonstrates
-    sub-analyses. A feature-extraction stage learns a compact
-    representation of the raw features (PCA or MLP encoder), whose
-    output feeds into a separate classification stage.
-  methods: |
-    The [feature_extraction sub-analysis](#analyses.feature_extraction)
-    produces encoded features, which feed
-    [classification](#analyses.classification) via sibling-output
-    wiring. A [test_split](#decisions.test_split) decision controls
-    the holdout proportion and [random_seed](#decisions.random_seed)
-    fixes reproducibility across both stages.
-  inputs: |
-    The [iris_data](#inputs.iris_data) input is Fisher's 150-sample,
-    4-feature, 3-class dataset loaded from scikit-learn.
-  outputs: |
-    The top level exposes [accuracy](#outputs.accuracy) (from the
-    classifier), a [feature_plot](#outputs.feature_plot) (from the
-    extractor), and a [pipeline_summary](#outputs.pipeline_summary)
-    report that compares methods end-to-end.
-authors:
-  - ASTRA Examples
+description: |
+  A two-stage pipeline for Iris classification that demonstrates
+  sub-analyses. A feature-extraction stage learns a compact
+  representation of the raw features (PCA or MLP encoder), whose
+  output feeds into a separate classification stage. The top level
+  exposes the classifier accuracy, a feature plot, and a
+  pipeline-summary report comparing methods end-to-end.
 tags:
   - classification
   - sub-analyses
@@ -75,23 +59,12 @@ decisions:
 analyses:
   feature_extraction:
     id: feature_extraction
-    narrative:
-      summary: |
-        Learn a low-dimensional representation of the 4 Iris features.
-        PCA provides a linear, deterministic baseline; the MLP encoder
-        trains a small autoencoder (4-8-k-8-4) and keeps the bottleneck
-        layer as the representation.
-      methods: |
-        [method](#decisions.method) selects PCA or the MLP encoder;
-        [n_components](#decisions.n_components) sets the target
-        dimensionality. The [seed](#decisions.seed) decision is
-        inherited from the parent's random_seed.
-      inputs: |
-        [raw_features](#inputs.raw_features) is the 4-dimensional
-        Iris feature matrix inherited from the parent's iris_data.
-      outputs: |
-        Emits the transformed [features](#outputs.features) matrix
-        and a [feature_plot](#outputs.feature_plot) scatter.
+    description: |
+      Learn a low-dimensional representation of the 4 Iris features.
+      PCA provides a linear, deterministic baseline; the MLP encoder
+      trains a small autoencoder (4-8-k-8-4) and keeps the bottleneck
+      layer as the representation. Emits the transformed features
+      matrix and a feature-plot scatter.
 
     inputs:
       - id: raw_features
@@ -145,20 +118,12 @@ analyses:
 
   classification:
     id: classification
-    narrative:
-      summary: |
-        Train a classifier on the extracted features and evaluate
-        accuracy on the held-out test set.
-      methods: |
-        [classifier](#decisions.classifier) selects the algorithm
-        (logistic regression, SVM, or k-NN). The [split](#decisions.split)
-        decision is inherited from the parent's test_split.
-      inputs: |
-        [features](#inputs.features) are the transformed features
-        produced by the feature_extraction stage.
-      outputs: |
-        Emits [predictions](#outputs.predictions) on the test set and
-        an [accuracy](#outputs.accuracy) metric.
+    description: |
+      Train a classifier on the extracted features and evaluate
+      accuracy on the held-out test set. The classifier algorithm
+      (logistic regression, SVM, or k-NN) is selectable; the split is
+      inherited from the parent's test_split. Emits test-set
+      predictions and an accuracy metric.
 
     inputs:
       - id: features

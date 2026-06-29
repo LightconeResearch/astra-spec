@@ -12,7 +12,7 @@ An `astra.yaml` file contains an `Analysis`, which declares:
 
 | Section | Question it answers |
 |---|---|
-| `narrative` | How is this analysis explained in prose? |
+| `description` | How is this analysis explained in prose? |
 | `inputs` | What data or prior analyses does this analysis consume? |
 | `outputs` | What metrics, figures, tables, data products, or reports does it produce? |
 | `decisions` | Which methodological choice points shape the outputs? |
@@ -28,15 +28,8 @@ A minimal useful ASTRA document names the analysis, declares an input, an output
 version: "1.0"
 name: Period-Luminosity Fit
 
-narrative:
-  summary: |
-    Fit a period-luminosity relation from a measurement catalog.
-  methods: |
-    The [fit_method](#decisions.fit_method) decision selects how the line is fit.
-  inputs: |
-    The [catalog_data](#inputs.catalog_data) input provides the measurement catalog.
-  outputs: |
-    The [fit_params](#outputs.fit_params) output reports the fitted relation parameters.
+description: |
+  Fit a period-luminosity relation from a measurement catalog.
 
 inputs:
   - id: catalog_data
@@ -76,25 +69,16 @@ version: "1.0"
 name: Period-Luminosity Fit
 ```
 
-The `version` field records the ASTRA schema version the document expects. The `name` field gives the analysis a human-readable title. Real projects usually also include `id`, `authors`, `tags`, and sometimes a node-level `container` used as the default execution environment for recipes.
+The `version` field records the ASTRA schema version the document expects. The `name` field gives the analysis a human-readable title. Real projects usually also include `id`, `tags`, and sometimes a node-level `container` used as the default execution environment for recipes.
 
-### Narrative
+### Description
 
 ```yaml
-narrative:
-  summary: |
-    Fit a period-luminosity relation from a measurement catalog.
-  methods: |
-    The [fit_method](#decisions.fit_method) decision selects how the line is fit.
-  inputs: |
-    The [catalog_data](#inputs.catalog_data) input provides the measurement catalog.
-  outputs: |
-    The [fit_params](#outputs.fit_params) output reports the fitted relation parameters.
+description: |
+  Fit a period-luminosity relation from a measurement catalog.
 ```
 
-The `narrative` block is written in prose to give readers an explanation of the analysis that can be rendered into a report. The narrative and rest of the YAML should agree, with the prose telling the story and the structured objects giving tools something precise to validate.
-
-ASTRA defines five narrative sections: `summary`, `findings`, `methods`, `inputs`, and `outputs`. These sections are conditionally required when the corresponding structured data exists, e.g. an analysis with `decisions` should explain them in `narrative.methods`.
+`description` is a single optional free-prose field — the same field every other content object carries (`Input`, `Output`, `Option`, `Universe`). It gives readers a short orientation to the analysis. ASTRA deliberately keeps this lightweight: a richer write-up — with figures, citations, live numbers, and multi-page structure — is authored *outside* `astra.yaml` as a report that **references** the analysis's elements by tree-path rather than restating them. ASTRA owns that addressing (see [References and addressing](#references-and-addressing)); the authoring framework is left open. See [RFC-0002](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md) for the rationale.
 
 ### Inputs
 
@@ -317,7 +301,7 @@ analyses:
           sigma_clip: { label: Remove extreme outliers }
 ```
 
-A sub-analysis is itself an Analysis. It can have its own narrative, inputs, outputs, decisions, findings, and nested children. This self-similar structure lets authors describe a project at multiple levels of detail without switching formats.
+A sub-analysis is itself an Analysis. It can have its own description, inputs, outputs, decisions, findings, and nested children. This self-similar structure lets authors describe a project at multiple levels of detail without switching formats.
 
 Sub-analyses can be written inline, as above, or split into their own directories when a project becomes large. If `path` is set, that child analysis is read from another `astra.yaml`, while still belonging to the same conceptual analysis tree.
 
@@ -379,7 +363,6 @@ ASTRA validation is designed to catch both syntax errors and scientific-record e
 |---|---|
 | Schema validation | YAML shape, types, enums, version and DOI patterns. |
 | Semantic validation | Duplicate IDs, references, `from` paths, recipe placeholders, and constraint satisfaction. |
-| Narrative validation | Anchors, required narrative sections, and coverage warnings. |
 | Evidence verification | Optional quote matching against cited sources. |
 
 Run validation with:
@@ -415,8 +398,7 @@ The `Analysis` object is the root of `astra.yaml` and the type used for every su
 | `id` | `string` | No | Identifier for this analysis, especially when nested. |
 | `version` | `string` | No | ASTRA schema version, e.g. `"1.0"` or `"1.0.0"`. |
 | `name` | `string` | No | Human-readable analysis name. |
-| `narrative` | `Narrative` | No | Structured prose sections. |
-| `authors` | `string[]` | No | Authors or maintainers of the analysis. |
+| `description` | `string` | No | Free-prose description of the analysis. |
 | `tags` | `string[]` | No | Free-form categorization tags. |
 | `container` | `string` | No | Default container for recipes in this analysis node. |
 | `inputs` | `Input[]` | No | Data or prior analyses consumed by this analysis. |
@@ -429,34 +411,21 @@ The `Analysis` object is the root of `astra.yaml` and the type used for every su
 
 `path` is for nested analyses only. It is mutually exclusive with inline content fields on that sub-analysis.
 
-### Narrative
+### References and addressing
 
-`narrative` contains Markdown prose. It lets renderers and review tools present the analysis in a stable order.
+Every analysis element has a stable **tree-path** address. This identity is the load-bearing commitment ASTRA owns: an external report — authored in MyST or any comparable framework — references structured content by these paths instead of restating it, and the `from:` aliases use the same grammar. ASTRA does not prescribe the report tooling, only the addressing.
 
-| Field | Required by validator when... | Meaning |
-|---|---|---|
-| `summary` | Never required | High-level orientation: question, scope, and purpose. |
-| `findings` | `Analysis.findings` has entries | Prose framing the structured findings. |
-| `methods` | `Analysis.decisions` or `Analysis.analyses` has entries | Methodology, decision space, and sub-analysis structure. |
-| `inputs` | `Analysis.inputs` has entries | Prose framing the declared inputs. |
-| `outputs` | `Analysis.outputs` has entries | Prose framing the declared outputs. |
+Element IDs share **one namespace per analysis node**: an ID is unique across inputs, outputs, decisions, findings, prior insights, and sub-analyses within a node, so a bare ID is unambiguous. Categories are not path segments.
 
-Internal narrative links use Markdown anchors:
-
-| Target | Anchor form |
+| Target | Path |
 |---|---|
-| Input | `#inputs.<id>` |
-| Output | `#outputs.<id>` |
-| Decision | `#decisions.<id>` |
-| Option | `#decisions.<id>.options.<id>` |
-| Finding | `#findings.<id>` |
-| Prior insight | `#prior_insights.<id>` |
-| Sub-analysis | `#analyses.<sub>` |
-| Element inside a sub-analysis | `#<sub>.<category>.<id>` |
+| An element in this analysis | `<id>` |
+| An element in a sub-analysis | `<sub>.<id>` |
+| A nested sub-analysis element | `<sub>.<subsub>.<id>` |
+| An option of a decision | `<decision_id>.<option_id>` |
+| An element in a parent scope | `../<id>` |
 
-References are interpreted relative to the analysis that contains the prose. Use `../` to link to a parent scope, for example `#../decisions.fit_method`.
-
-Narrative links may appear in any narrative section. Coverage is resolved across the whole narrative for the analysis node, not section by section. During validation, broken internal anchors are errors, while declared findings, decisions, outputs, or sub-analyses that are not cited anywhere in the node's narrative are reported as coverage warnings.
+Paths are interpreted relative to the analysis they appear in. Use `../` to escape one scope upward (as with decision `from`), for example `../fit_method`. The `<decision>.<option>` form is the same one already used by `when`, `requires`, and `incompatible_with` (e.g. `model.svm`). Reserved category names (`inputs`, `outputs`, `decisions`, …) cannot be used as IDs, keeping every path unambiguous.
 
 ### Input
 
@@ -782,10 +751,10 @@ These category names are reserved and cannot be used as entity IDs:
 
 ```text
 inputs   outputs   decisions   findings   prior_insights
-analyses options   content     narrative
+analyses options   content
 ```
 
-The reserved names prevent ambiguity in narrative anchors and path references.
+The reserved names prevent ambiguity in tree-path references and element addressing.
 
 ### Schema artifacts
 
@@ -802,7 +771,7 @@ Generated artifacts:
 
 | File | Defines |
 |---|---|
-| `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `Recipe`, `Resources`, narrative structure, and cross-scope aliases. |
+| `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `Recipe`, `Resources`, and cross-scope aliases. |
 | `universe.yaml` | `Universe`, `UniverseNode`, `DecisionSelection`, and decision selections. |
 | `insight.yaml` | `Insight`, `Evidence`, `InsightCollection`, quote selectors, and fragment selectors. |
 
