@@ -1,7 +1,7 @@
 ---
 rfc: 0002
 title: Decouple analysis reports from astra.yaml
-status: Active # Draft | Active | Accepted | Rejected | Superseded
+status: Accepted # Draft | Active | Accepted | Rejected | Superseded
 authors:
   - Francois Lanusse (@eiffl)
 created: 2026-06-20
