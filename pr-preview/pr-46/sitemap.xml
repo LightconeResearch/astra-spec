@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://astra-spec.org/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/getting-started/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/cli/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/about/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/specification/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/elements/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/community/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/rfc-process/</loc>
+      </url>
+      <url>
+        <loc>https://astra-spec.org/governance/</loc>
+      </url>
+</urlset>
