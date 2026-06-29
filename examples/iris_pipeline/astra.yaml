@@ -1,5 +1,5 @@
 id: iris_pipeline
-version: "0.1.0"
+version: "0.0.11"
 name: Iris Two-Stage Classification
 description: |
   A two-stage pipeline for Iris classification that demonstrates
