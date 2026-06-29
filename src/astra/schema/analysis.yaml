@@ -244,7 +244,7 @@ classes:
           Type of input. Required when `from` is unset; forbidden
           when `from` is set (inherited from the source).
       description:
-        description: Description of the input
+        description: Free-prose description of this input.
       source:
         description: URI or path to the data source
       ref:
@@ -333,7 +333,7 @@ classes:
           Type of output. Required when `from` is unset; forbidden
           when `from` is set (inherited from the source).
       description:
-        description: Description of the output
+        description: Free-prose description of this output.
       inputs:
         multivalued: true
         description: >-
@@ -415,7 +415,7 @@ classes:
         required: true
         description: Human-readable name for the option
       description:
-        description: Detailed description of the option
+        description: Free-prose description of this option.
       insights:
         multivalued: true
         description: Insight IDs supporting this option
