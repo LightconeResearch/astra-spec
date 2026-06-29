@@ -78,7 +78,7 @@ description: |
   Fit a period-luminosity relation from a measurement catalog.
 ```
 
-`description` is a single optional free-prose field — the same field every other content object carries (`Input`, `Output`, `Option`, `Universe`). It gives readers a short orientation to the analysis. ASTRA deliberately keeps this lightweight: a richer write-up — with figures, citations, live numbers, and multi-page structure — is authored *outside* `astra.yaml` as a report that **references** the analysis's elements by tree-path rather than restating them. ASTRA owns that addressing (see [References and addressing](#references-and-addressing)); the authoring framework is left open. See [RFC-0002](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md) for the rationale.
+`description` is a single optional free-prose field — the same field every other content object carries (`Input`, `Output`, `Option`, `Universe`). It gives readers a short orientation to the analysis. ASTRA deliberately keeps this lightweight: a richer write-up — with figures, citations, live numbers, and multi-page structure — is authored *outside* `astra.yaml` as a report that **references** the analysis's elements rather than restating them. ASTRA is not prescriptive about the authoring framework; [MySTRA](https://github.com/LightconeResearch/MySTRA) is one example — a MyST plugin that renders ASTRA components straight from `astra.yaml`. See [RFC-0002](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md) for the rationale.
 
 ### Inputs
 
@@ -410,22 +410,6 @@ The `Analysis` object is the root of `astra.yaml` and the type used for every su
 | `path` | `string` | No | External directory containing a sub-analysis ASTRA file. |
 
 `path` is for nested analyses only. It is mutually exclusive with inline content fields on that sub-analysis.
-
-### References and addressing
-
-Every analysis element has a stable **tree-path** address. This identity is the load-bearing commitment ASTRA owns: an external report — authored in MyST or any comparable framework — references structured content by these paths instead of restating it, and the `from:` aliases use the same grammar. ASTRA does not prescribe the report tooling, only the addressing.
-
-Element IDs share **one namespace per analysis node**: an ID is unique across inputs, outputs, decisions, findings, prior insights, and sub-analyses within a node, so a bare ID is unambiguous. Categories are not path segments.
-
-| Target | Path |
-|---|---|
-| An element in this analysis | `<id>` |
-| An element in a sub-analysis | `<sub>.<id>` |
-| A nested sub-analysis element | `<sub>.<subsub>.<id>` |
-| An option of a decision | `<decision_id>.<option_id>` |
-| An element in a parent scope | `../<id>` |
-
-Paths are interpreted relative to the analysis they appear in. Use `../` to escape one scope upward (as with decision `from`), for example `../fit_method`. The `<decision>.<option>` form is the same one already used by `when`, `requires`, and `incompatible_with` (e.g. `model.svm`). Reserved category names (`inputs`, `outputs`, `decisions`, …) cannot be used as IDs, keeping every path unambiguous.
 
 ### Input
 

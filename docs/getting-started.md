@@ -98,7 +98,7 @@ A few things worth noting:
 
 - **Decisions parameterize outputs.** `Output.decisions` declares the contract — only the listed decisions resolve inside `recipe.command`. The validator rejects `{decisions.foo}` if `foo` isn't in the list.
 - **Recipe placeholders.** Four forms are legal: `{inputs}` (all declared inputs, space-separated), `{inputs.<id>}` (one declared input), `{decisions.<id>}` (one declared decision), and `{output}` (where to write). `{{` and `}}` are literal braces.
-- **The write-up lives outside `astra.yaml`.** The spec keeps a single optional `description`; a richer report — figures, citations, live numbers, multi-page structure — is authored in an external framework (MyST is one example) that **references** analysis elements by tree-path rather than restating them. ASTRA owns that addressing; the report tooling is left open. See [References and addressing](specification.md#references-and-addressing) and [RFC-0002](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md).
+- **Rich reports live alongside `astra.yaml`.** The spec keeps a single optional `description`; a fuller write-up — figures, citations, multi-page structure — is built next to the analysis and references its elements rather than restating them. [MySTRA](https://github.com/LightconeResearch/MySTRA) is one framework that does this.
 - **Constraints between options.** `requires:` and `incompatible_with:` (format: `decision.option`) gate which option combinations are valid. They are checked when you validate a universe.
 
 ## Validate

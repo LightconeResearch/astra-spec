@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-06-29T19:09:01
+# Generation date: 2026-06-29T19:29:41
 # Schema: analysis
 #
 # id: https://w3id.org/astra/analysis
@@ -470,19 +470,6 @@ class Analysis(YAMLRoot):
     """
     A self-similar analysis specification. Every level has the same structure: metadata, inputs, outputs, decisions,
     insights, and optional sub-analyses. A sub-analysis extracted to its own file is a valid Analysis on its own.
-    Element addressing. Every analysis element — input, output, decision, option, finding, prior insight, and
-    sub-analysis — is addressable by a stable tree-path. This identity is what lets an external report (in any
-    authoring framework) reference structured content instead of restating it; ASTRA owns the addressing, not the
-    rendering. The grammar matches the `from:` slot:
-
-    <id>                  -- element in this analysis
-    <sub>.<id>            -- element in a sub-analysis
-    <sub>.<subsub>.<id>   -- nested sub-analysis element
-    ../<id>               -- escape one scope upward (parent)
-
-    Element IDs share one namespace per analysis node (categories are not path segments), so an ID is unique across
-    inputs, outputs, decisions, findings, prior_insights, and sub-analyses within a node. Reserved category names (see
-    the slots note above) may not be used as IDs, keeping paths unambiguous.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
