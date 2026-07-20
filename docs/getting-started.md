@@ -1,9 +1,5 @@
 # Getting started
 
-<!-- This page is consumed verbatim by downstream tools (agent-skills fetches
-     it at the pinned version), so keep it self-contained plain Markdown:
-     no theme tabs or admonitions. -->
-
 A self-contained tour of the ASTRA format: scaffold a project, edit the analysis, validate it, inspect it, define universes, and attach evidence. It assumes the `astra` CLI is already installed — see [installation](installation.md).
 
 If you'd rather see the schema first, jump to the [specification](specification.md).
