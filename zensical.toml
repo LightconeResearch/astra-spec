@@ -13,6 +13,7 @@ nav = [
   { "Documentation" = [
       { "Home" = "index.md" },
       { "Getting started" = "getting-started.md" },
+      { "Walkthrough" = "walkthrough.md" },
       { "CLI reference" = "cli.md" },
       { "About" = "about.md" },
   ] },
