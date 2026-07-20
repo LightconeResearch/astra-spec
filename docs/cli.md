@@ -8,7 +8,7 @@ The `astra` command-line tool authors, validates, and inspects ASTRA analyses. I
 uv tool install astra-tools
 ```
 
-This installs the `astra` executable on your `PATH`, isolated from your project environments. See [Getting started](getting-started.md#install) for `pip` and from-source alternatives. To verify:
+This installs the `astra` executable on your `PATH`, isolated from your project environments. See [Installation](installation.md#install) for `pip` and from-source alternatives. To verify:
 
 ```bash
 astra --version
