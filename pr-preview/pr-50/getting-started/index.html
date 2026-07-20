@@ -1019,10 +1019,10 @@
 
 
 <h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
-<p>A self-contained tour of the ASTRA format: scaffold a project, edit the analysis, validate it, inspect it, define universes, and attach evidence. It assumes the <code>astra</code> CLI is already installed — see <a href="../installation/">installation</a>.</p>
-<p>If you'd rather see the schema first, jump to the <a href="../specification/">specification</a>.</p>
+<p>A self-contained tour of the ASTRA format: scaffold a project, edit the analysis, validate it, inspect it, define universes, and attach evidence. It assumes the <code>astra</code> CLI is already installed — see <a href="https://astra-spec.org/latest/installation/">installation</a>.</p>
+<p>If you'd rather see the schema first, jump to the <a href="https://astra-spec.org/latest/specification/">specification</a>.</p>
 <h2 id="scaffold-a-project">Scaffold a project<a class="headerlink" href="#scaffold-a-project" title="Permanent link">&para;</a></h2>
-<p>Use <a href="../cli/#astra-init"><code>astra init</code></a> to create a minimal project layout:</p>
+<p>Use <a href="https://astra-spec.org/latest/cli/#astra-init"><code>astra init</code></a> to create a minimal project layout:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>astra<span class="w"> </span>init<span class="w"> </span>my-analysis
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>my-analysis
 </span></code></pre></div>
@@ -1076,7 +1076,7 @@
 <li><strong>Constraints between options.</strong> <code>requires:</code> and <code>incompatible_with:</code> (format: <code>decision.option</code>) gate which option combinations are valid. They are checked when you validate a universe.</li>
 </ul>
 <h2 id="validate">Validate<a class="headerlink" href="#validate" title="Permanent link">&para;</a></h2>
-<p>Run <a href="../cli/#astra-validate"><code>astra validate</code></a> to check the file:</p>
+<p>Run <a href="https://astra-spec.org/latest/cli/#astra-validate"><code>astra validate</code></a> to check the file:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>astra.yaml
 </span></code></pre></div>
 <p>Validation runs in three stages, each gating the next:</p>
@@ -1102,11 +1102,11 @@
 </span></code></pre></div>
 <p>Non-blocking warnings print in yellow: the validator still returns success but surfaces them so authors can clean the record up.</p>
 <h2 id="inspect">Inspect<a class="headerlink" href="#inspect" title="Permanent link">&para;</a></h2>
-<p><a href="../cli/#astra-info"><code>astra info</code></a> prints a Rich-rendered summary: the analysis name, version, description, and tables for inputs, outputs, and decisions. By default everything renders; pass <code>--decisions</code>, <code>--inputs</code>, or <code>--outputs</code> to focus.</p>
+<p><a href="https://astra-spec.org/latest/cli/#astra-info"><code>astra info</code></a> prints a Rich-rendered summary: the analysis name, version, description, and tables for inputs, outputs, and decisions. By default everything renders; pass <code>--decisions</code>, <code>--inputs</code>, or <code>--outputs</code> to focus.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>astra<span class="w"> </span>info
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>astra<span class="w"> </span>info<span class="w"> </span>--decisions
 </span></code></pre></div>
-<p><a href="../cli/#astra-viz"><code>astra viz</code></a> draws the decision space. The default ASCII tree groups options under each decision, marks the default with <code>[default]</code>, and renders <code>incompatible_with</code> / <code>requires</code> constraints as glyphs (<code>✗</code> and <code>→</code>):</p>
+<p><a href="https://astra-spec.org/latest/cli/#astra-viz"><code>astra viz</code></a> draws the decision space. The default ASCII tree groups options under each decision, marks the default with <code>[default]</code>, and renders <code>incompatible_with</code> / <code>requires</code> constraints as glyphs (<code>✗</code> and <code>→</code>):</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>└── My Analysis
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    └── example_method
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>        ├── option_a: Option A [default]
@@ -1177,7 +1177,7 @@
 <p>When you re-validate with verification turned on, the validator reads each <code>prior_insights[].evidence[]</code> entry, looks up the cached PDF for that DOI, and fuzzy-matches the <code>quote.exact</code> against the extracted text:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>astra.yaml<span class="w"> </span>--verify-evidence
 </span></code></pre></div>
-<p>Papers are kept in a content-addressed cache under <code>~/.cache/astra/papers/</code>. The cache is populated by the agent or pipeline that authored the citation — they have the paper in hand at write time, so nothing extra is asked of the reader. The CLI exposes lower-level commands (<a href="../cli/#astra-paper"><code>astra paper add</code></a>, <code>list</code>, <code>verify-quote</code>, …) for manual cache management, troubleshooting, and CI integration, but the day-to-day flow doesn't require them.</p>
+<p>Papers are kept in a content-addressed cache under <code>~/.cache/astra/papers/</code>. The cache is populated by the agent or pipeline that authored the citation — they have the paper in hand at write time, so nothing extra is asked of the reader. The CLI exposes lower-level commands (<a href="https://astra-spec.org/latest/cli/#astra-paper"><code>astra paper add</code></a>, <code>list</code>, <code>verify-quote</code>, …) for manual cache management, troubleshooting, and CI integration, but the day-to-day flow doesn't require them.</p>
 <p>Artifact-backed evidence (typical for <code>findings:</code> whose output artifacts haven't been materialised yet) is reported as <code>SKIPPED</code> rather than failing the validation.</p>
 <h2 id="what-astra-doesnt-run">What ASTRA doesn't run<a class="headerlink" href="#what-astra-doesnt-run" title="Permanent link">&para;</a></h2>
 <p>The CLI validates and inspects analyses; it does <strong>not</strong> execute recipes. Each <code>recipe.command</code> is a POSIX shell command that an executor — an agent, a workflow runner, a notebook, or you on the command line — reads and invokes. The executor materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the <code>{inputs.&lt;id&gt;}</code> / <code>{inputs}</code> / <code>{decisions.&lt;id&gt;}</code> / <code>{output}</code> placeholders against the active universe, and runs the resulting command.</p>
