@@ -67,7 +67,7 @@ astra info
 astra viz
 ```
 
-Full walk-through: **[Getting started →](https://astra-spec.org/getting-started/)**
+Full walk-through: **[Getting started →](https://astra-spec.org/latest/getting-started/)**
 
 ## Repository layout
 
@@ -105,7 +105,7 @@ just --list       # Everything else
 
 The release recipe (`just release X.Y.Z`) updates `CITATION.cff` and creates an annotated tag; the version is injected into generated artifacts from the tag at build time. Pushing the tag triggers the `Deploy versioned docs on tag` workflow, which publishes the versioned docs to `gh-pages` via mike.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Community page](https://astra-spec.org/community/) for the full contribution workflow.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Community page](https://astra-spec.org/latest/community/) for the full contribution workflow.
 
 ## License
 
