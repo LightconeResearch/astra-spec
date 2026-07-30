@@ -737,8 +737,9 @@ the same 7-role subset.
 - Sibling researcher identifiers grouped by `ResearcherId` — arXiv author id
   (https://arxiv.org/a), OpenAlex (https://openalex.org), Wikidata (https://www.wikidata.org),
   Google Scholar profiles (https://scholar.google.com/citations)
-- The Attribution Rubric (`attribution_rubric_draft.md`) — non-normative companion
-- Worked example (`demo/astra-proposed-full.yaml`) and the current-schema baseline
-  (`demo/astra.yaml`), a before/after pair on the same Iris analysis
+- The Attribution Rubric (`0004-actor-attribution/attribution-rubric.md`) —
+  non-normative companion, shipped alongside this RFC
+- Worked example — the before/after pair on the same Iris analysis, inline in
+  *Examples* above
 - ASTRA `Option`, `Universe`, and `DecisionSelection` field references
 - TRACE — the decision-capture layer that retains correction/revision history
