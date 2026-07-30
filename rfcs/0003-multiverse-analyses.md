@@ -34,10 +34,6 @@ The consequence is that a whole class of analyses cannot be declared:
 - a robustness comparison between two named configurations (`baseline` vs
   `svm_focused`).
 
-The spec already gestures at the missing machinery: `Output.decisions`
-documentation says runners use it to "determine the minimal universe set needed
-to materialize the output" — but offers no syntax for an output whose inputs
-*span* universes.
 
 **Prior art.** Multiverse analysis (Steegen, Tuerlinckx, Gelman & Vanpaemel
 2016) and specification-curve analysis (Simonsohn, Simmons & Nelson 2020) are
@@ -63,63 +59,134 @@ specification.
 ## Proposal
 
 In plain language: **universes become addressable elements of the analysis
-document, sets of universes get names, and an output's inputs may reference an
-artifact *at* a universe or *across* a set of universes.** A plain reference
-keeps today's meaning — same universe as the consumer — so existing analyses are
-untouched. The proposal has three parts.
+document, declared as diffs against a baseline; sets of universes get names and
+constructors; and an output's inputs may reference an artifact *at* a universe
+or *across* a set of universes.** A plain reference keeps today's meaning —
+same universe as the consumer — so existing analyses are untouched. The
+proposal has three parts.
 
-### 1. Bring `universes` definitions into `astra.yaml`
+### 1. Bring `universes` into `astra.yaml` — as diffs against a baseline
 
-`Analysis` gains an optional **`universes`** slot holding the same `Universe`
-objects that today live as standalone files in the `universes/` directory:
+`Analysis` gains an optional **`universes`** slot holding `Universe` objects,
+and `Universe` gains construction semantics built on two rules:
+
+- **The baseline.** Every decision already carries a `default` option — whose
+  doc-string reads "Default option ID for baseline universes." This RFC makes
+  that normative: the all-defaults selection is the **implicit baseline
+  universe**, addressable under the reserved id **`baseline`** without being
+  declared. Declaring a universe with id `baseline` explicitly shadows the
+  implicit one (to describe it, or to pin a different reference configuration).
+- **Universes are diffs.** `Universe.decisions` may be **partial**: unspecified
+  decisions inherit their selection from the universe's *base*. The base is
+  named by a new optional **`from`** slot — the same inheritance idiom
+  `Input`/`Output` already use — and defaults to `baseline`. `from` chains
+  resolve transitively; cycles are invalid.
 
 ```yaml
+decisions:
+  scaling:     { default: standard, options: { none: …, standard: …, minmax: … } }
+  model:       { default: random_forest, options: { svm: …, random_forest: …, logistic: … } }
+  test_size:   { default: small, options: { small: …, large: … } }
+  random_seed: { default: seed_42, options: { seed_42: …, seed_123: … } }
+
 universes:
-  - id: baseline
-    description: Default configuration using standard practices
-    decisions:
-      scaling: standard
-      model: random_forest
+  # `baseline` needs no declaration: it is the all-defaults selection.
+
   - id: svm_focused
-    description: Configuration optimized for SVM (requires standard scaling)
+    description: Switch the model to SVM; everything else at baseline.
     decisions:
-      scaling: standard
-      model: svm
+      model: svm            # a one-line diff against `baseline`
+
+  - id: svm_large_test
+    from: svm_focused       # diff against another declared universe
+    decisions:
+      test_size: large
 ```
 
-The `Universe` class itself is unchanged; what changes is where universes can
-live. In-file universes are addressable by the reference grammar below (and by
-the RFC-0002 tree-path addressing); the `universes/` directory remains valid for
+A universe's **effective selection** is its base's effective selection with the
+local `decisions` applied on top. The diff form is not just brevity — it is
+record quality: the reader sees exactly what a configuration *deviates from*,
+and adding a new decision later does not invalidate every declared universe
+(each picks up the new default through its base). A universe that spells out
+every decision remains valid, so today's complete `universes/` files carry over
+unchanged.
+
+`Universe` fields after this change:
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `id` | `string` | Yes | Universe identifier. |
+| `description` | `string` | No | Human-readable explanation. |
+| `from` | `string` | No | Base universe whose effective selection is inherited. Defaults to `baseline`. |
+| `decisions` | map of `decision_id: option_id` | No | Overrides relative to the base; may be complete. |
+| `analyses` | map of `UniverseNode` | No | Nested selections mirroring sub-analyses; inheritance applies recursively. |
+
+In-file universes are addressable by the reference grammar below (and by the
+RFC-0002 tree-path addressing); the `universes/` directory remains valid for
 runner-selected configurations (see *Migration*).
 
-### 2. Add `multiverses` — named sets of universes
+### 2. Add `multiverses` — named sets of universes, enumerated or generated
 
 `Analysis` gains an optional **`multiverses`** slot. A `Multiverse` names a set
 of universes so cross-universe steps can reference the set by a stable id and
-readers can see, in one place, which decision space a summary quantifies over:
+readers can see, in one place, which decision space a summary quantifies over.
+Membership takes one of three forms:
+
+- **(a) Enumeration** — `universes:` lists declared universe ids.
+- **(b) Generator** — `vary:` maps each swept decision to `"*"` (all of its
+  options) or to an explicit option list; the members are the Cartesian product
+  of the swept option sets, with every *other* decision held at **`base`** (a
+  universe id, defaulting to `baseline`). Points excluded by `requires` /
+  `incompatible_with` constraints are dropped.
+- **(c) The full space** — `universes: "*"`: every valid point of the decision
+  space. Sugar for a generator that varies *every* decision over all of its
+  options (`base` is then irrelevant).
 
 ```yaml
 multiverses:
   - id: model_robustness
     description: Configurations relevant to the model-choice robustness check.
-    universes: [baseline, svm_focused]
+    universes: [baseline, svm_focused]          # (a) enumeration
+
+  - id: scaling_sweep
+    description: Sensitivity to feature scaling, all else held at baseline.
+    vary:                                       # (b) generator: 3 universes
+      scaling: "*"
+
+  - id: seed_scaling_grid
+    description: Scaling x seed grid around the SVM configuration.
+    base: svm_focused                           # (b) generator: 2 x 2 grid
+    vary:
+      scaling: [standard, minmax]
+      random_seed: "*"
 
   - id: full_multiverse
     description: The valid Cartesian product across all decisions.
-    universes: "*"
+    universes: "*"                              # (c) the whole valid space
 ```
 
-Membership takes one of two forms:
+Exactly one of `universes` or `vary` must be present; `base` is only meaningful
+alongside `vary`.
 
-- **An enumerated list** of universe ids declared under `universes:`.
-- **`"*"`** — every valid point of the decision space: the Cartesian product of
-  all decisions' options, minus combinations excluded by `requires` /
-  `incompatible_with` constraints. These grid-point universes are *implicit*:
-  they need not (and in practice cannot, at 210 of them) be declared
-  individually. Each receives a **derived id**, formed by joining the selected
-  option ids in decision-declaration order with hyphens
-  (e.g. `f5-nmo3-r2-ecl2-ec1`). Option ids are snake_case and may not contain
-  hyphens, so the derivation is unambiguous and reversible.
+**Identity of generated universes.** A generated member is identified by its
+*effective selection* — the grid point itself, not the multiverse that produced
+it. Its **derived id** joins the selected option ids in decision-declaration
+order with hyphens (e.g. `f5-nmo3-r2-ecl2-ec1`; option ids are snake_case and
+may not contain hyphens, so the derivation is unambiguous and reversible). The
+same point reached through different multiverses — or coinciding with a
+declared universe — is *one* universe: realizations and cache keys attach to
+the selection, not to the name. Derived ids are valid pin targets
+(`f1_score@none-svm-small-seed_42`), though declared names read better.
+
+`Multiverse` fields:
+
+| Field | Type | Required | Meaning |
+|---|---|---:|---|
+| `id` | `string` | Yes | Multiverse identifier. |
+| `description` | `string` | No | Human-readable explanation of what the set covers. |
+| `universes` | list of universe ids, or `"*"` | One of `universes`/`vary` | Enumerated members, or the full valid decision space. |
+| `base` | `string` | No | Generator form: universe holding the non-varied decisions. Defaults to `baseline`. |
+| `vary` | map of `decision_id: "*"` \| option list | One of `universes`/`vary` | Generator form: swept decisions and their option sets. |
 
 Note the refinement relative to the tracking issue: there, `"*"` was sketched as
 "all *declared* universes." The prototype clarified that the useful meaning is
@@ -132,10 +199,20 @@ of declared universes is expressed by enumerating them.
 Entries in `Output.inputs` may qualify an artifact reference with a universe or
 multiverse scope:
 
+```
+input-reference ::= artifact-id [ "@" scope-id ]
+scope-id        ::= universe-id | multiverse-id
+universe-id     ::= declared universe id | implicit "baseline" | derived grid-point id
+```
+
+`artifact-id` keeps its existing grammar (an Input or sibling Output id,
+resolving through `from:` chains); `@` cannot appear in element ids today, so
+the extension is unambiguous.
+
 | Reference | Meaning |
 |---|---|
 | `artifact` | Unchanged: the artifact in the *consumer's own* universe. |
-| `artifact@<universe_id>` | The artifact materialized under one declared universe — a **pin**. |
+| `artifact@<universe_id>` | The artifact materialized under one specific universe — a **pin**. |
 | `artifact@<multiverse_id>` | The artifact under *each* universe in the set — a **fan-out**, resolving to a collection. |
 
 Semantics:
@@ -226,8 +303,10 @@ multiverses:
     universes: "*"
 ```
 
-**Named-universe comparison** — the iris example, extended with a robustness
-check pinned to two declared configurations:
+**Baseline, diffs, and a sweep** — the iris example, extended with a pinned
+robustness comparison and a one-decision sensitivity sweep. Note that
+`baseline` is never declared (it is the all-defaults selection), `svm_focused`
+is a one-line diff, and the sweep's domain is a named, described set:
 
 ```yaml
 outputs:
@@ -242,18 +321,30 @@ outputs:
     type: metric
     description: Baseline vs SVM macro-F1 comparison.
     inputs:
-      - f1_score@baseline
+      - f1_score@baseline        # implicit all-defaults universe
       - f1_score@svm_focused
     recipe:
       command: python src/compare.py
 
+  - id: scaling_sensitivity
+    type: metric
+    description: Macro-F1 as a function of feature scaling, all else at baseline.
+    inputs:
+      - f1_score@scaling_sweep   # fan-out: one artifact per scaling option
+    recipe:
+      command: python src/scaling_sensitivity.py
+
 universes:
-  - id: baseline
-    decisions: { scaling: standard, model: random_forest,
-                 test_size: small, random_seed: seed_42 }
   - id: svm_focused
-    decisions: { scaling: standard, model: svm,
-                 test_size: small, random_seed: seed_42 }
+    description: Switch the model to SVM; everything else at baseline.
+    decisions:
+      model: svm
+
+multiverses:
+  - id: scaling_sweep
+    description: Sensitivity to feature scaling, all else held at baseline.
+    vary:
+      scaling: "*"
 ```
 
 ## Implementation implications & migration
@@ -263,11 +354,14 @@ universes:
 - `src/astra/schema/analysis.yaml`: add optional `universes` and `multiverses`
   slots to `Analysis` (the `universe` schema is already imported); extend the
   `Output.inputs` documentation and validation pattern to admit the `@`
-  qualifier.
-- `src/astra/schema/universe.yaml`: add a `Multiverse` class (`id`,
-  `description`, `universes: list | "*"`). Revisit the `UniverseNode.universe`
-  doc-string, which currently hard-codes the "sub-analysis's `universes/`
-  directory."
+  qualifier; update the `Decision.default` doc-string to its normative role as
+  the baseline selection.
+- `src/astra/schema/universe.yaml`: add the `from` slot to `Universe` and
+  document `decisions` as overrides relative to the base; add a `Multiverse`
+  class (`id`, `description`, `universes`, `base`, `vary`) with a rule making
+  `universes` and `vary` mutually exclusive. Revisit the
+  `UniverseNode.universe` doc-string, which currently hard-codes the
+  "sub-analysis's `universes/` directory."
 - Generated artifacts: `just gen-python`, `just gen-doc`; the published JSON
   Schema at `astra-spec.org/<version>/schema/…` shifts, which is the propagation
   point for both SDKs.
@@ -279,10 +373,13 @@ universes:
 
 **`astra-tools` (Python CLI + SDK):**
 
-- `astra validate` gains checks: every `@` target resolves to a declared
-  universe or multiverse id; declared universes select valid options and honor
-  `requires` / `incompatible_with`; enumerated multiverse members exist; a
-  pinned reference targets an output that is active in the pinned universe.
+- `astra validate` gains checks: every `@` target resolves to a universe
+  (declared, `baseline`, or derived) or multiverse id; `from` chains resolve
+  and are acyclic; a universe relying on baseline completion errors if some
+  decision lacks a `default`; effective selections select valid options and
+  honor `requires` / `incompatible_with`; `vary` names existing decisions and
+  options; enumerated multiverse members exist; a pinned reference targets an
+  output that is active in the pinned universe.
 - Runner semantics: cross-universe edges change scheduling — one output can now
   demand materialization of an upstream artifact under many universes — and the
   derived-id scheme for `"*"` grid points must match the spec so artifact paths
@@ -296,7 +393,9 @@ SDK parses `Output.inputs`.
 
 - Plain references keep their exact current meaning, and both new slots are
   optional, so existing analyses validate unchanged: the schema change is
-  **additive — a minor bump** under the versioning policy.
+  **additive — a minor bump** under the versioning policy. Allowing partial
+  `Universe.decisions` is a loosening: complete universe files stay valid as-is
+  (an empty diff), and partial ones only become *newly* valid.
 - The `universes/` directory remains supported as a place for runner-selected
   configurations; in-file `universes` are required only when a universe must be
   *referenced* from within the document. Whether the directory is eventually
@@ -329,6 +428,18 @@ the draft PR resolves them.
   ids to declaration order and can get long for wide decision spaces. Is
   declaration-order dependence acceptable, or should the id embed decision ids
   (`fertility_assessment=f5,...`) at the cost of length?
+- **Is reserving `baseline` acceptable? — open.** The implicit baseline makes
+  the common case free but claims an id and silently changes meaning if a
+  project declares its own `baseline` with non-default selections. Alternatives:
+  require an explicit declaration to enable `@baseline`, or a distinct spelling
+  (`@~` or `@default`) for the all-defaults universe. The proposal leans on the
+  reserved id because `Decision.default`'s own doc-string already promises it.
+- **Are diffs too implicit? — open.** With `from:` chains, a universe's full
+  selection is no longer visible at its declaration site. The record arguably
+  *improves* (deviation-from-baseline is the scientifically meaningful datum,
+  and new decisions propagate through defaults instead of invalidating every
+  universe), but tooling should make the effective selection one command away
+  (e.g. `astra universe show <id>`).
 - **Sub-analysis scoping — open.** The prototype is a flat analysis. How does
   the `@` grammar compose with sub-analyses — can a parent fan out over a
   child's decision space, and how do `UniverseNode` selections participate in
@@ -337,11 +448,11 @@ the draft PR resolves them.
 - **Combinatorial guardrails — open.** `"*"` can be astronomically large.
   Should validators warn (or runners require confirmation) above a universe
   count threshold, or is that purely a tooling concern outside the spec?
-- **Intensional multiverses — deferred.** Defining a multiverse by constraint
-  or sweep (e.g. vary one decision, hold the rest at a named universe) was part
-  of the original sketch and remains attractive for sensitivity analyses, but
-  enumerated-plus-`"*"` covers the motivating cases; a constraint language can
-  be layered on later without breaking this design.
+- **Intensional multiverses — partially resolved.** The `base`/`vary` generator
+  covers the sweep and grid cases from the original sketch (vary some decisions,
+  hold the rest at a named universe). A general *constraint* language — "all
+  valid universes where `scaling` is not `none`" — is still deferred; it can be
+  layered on later (e.g. a `where:` clause) without breaking this design.
 - **Report scoping (RFC-0002 tie-in) — noted.** RFC-0002 left "can a report
   compare across universes?" out of scope. Universe-invariant outputs give
   reports a natural way to present multiverse-level results without resolving
