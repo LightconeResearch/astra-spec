@@ -165,10 +165,9 @@ live in the rubric. The vocabulary is a single **closed enum** (resolved — see
 under *Questions or objections* below), and the two lists above are **not** two enums:
 they are views on one per-role allow-table, because a slot's legal range cannot depend
 on another object's `type`. The enum lives in the schema; the table is enforced by
-`astra-tools`. A prototype implementation of both lives on the `Fosowl` forks, branch
-`feature/attributed-exclusion-timing-and-rationale`: the enum in `astra-spec`
-(`src/astra/schema/actor.yaml`), the table in `astra-tools`
-(`src/astra/validation/semantic.py`).
+`astra-tools`. A prototype implementation of both lives on `main` of the `Fosowl`
+forks: the enum in `astra-spec` (`src/astra/schema/actor.yaml`), the table in
+`astra-tools` (`src/astra/validation/semantic.py`).
 
 **Corrections need no new structure.** A mistake that was caught and replaced is
 recorded the way ASTRA already records a discarded option: the mistaken option carries
@@ -357,8 +356,7 @@ proposed_by: {actor: assistant, role: executor}            # OK — executor is 
   - A **prototype implementation** of the role vocabulary — a closed `Role` enum, a
     single `ROLE_ALLOWED_TYPES` table as the one source of truth (both per-type lists
     and every exclusion are *derived* from it), and consistency guardrails as
-    tests — lives on the `Fosowl` forks, branch
-    `feature/attributed-exclusion-timing-and-rationale`
+    tests — lives on `main` of the `Fosowl` forks
     (`astra-tools`, `src/astra/validation/semantic.py`). It is the normative
     shape for the astra-tools side: deriving the two per-type lists from one table,
     rather than hand-maintaining them, is what stops them from drifting apart.
@@ -652,8 +650,8 @@ fixed by the compatibility argument, not chosen by taste.
   *(Resolved — **closed enum**. Validation rejects any role outside the referenced
   actor-type's list. A prototype implementation — closed `Role` enum,
   a single `ROLE_ALLOWED_TYPES` table from which both per-type lists and all
-  exclusions are derived, and consistency guardrails as tests — lives on the
-  `Fosowl` forks, branch `feature/attributed-exclusion-timing-and-rationale`.)*
+  exclusions are derived, and consistency guardrails as tests — lives on `main` of
+  the `Fosowl` forks.)*
 - **`ResearcherId`: named slots or a scheme/value list?** Named slots (`orcid`,
   `arxiv`, `openalex`, `wikidata`, `google_scholar`) are self-documenting and let each id carry its own
   validation `pattern`, but adding a new scheme means a schema edit. A generic
