@@ -104,9 +104,11 @@ unchanged.
 | `decisions` | map of `decision_id: option_id` | No | Overrides relative to `from`; must be complete when `from` is absent. |
 | `analyses` | map of `UniverseNode` | No | Nested selections mirroring sub-analyses; inheritance applies recursively. |
 
-In-file universes are addressable by the reference grammar below (and by the
-RFC-0002 tree-path addressing); the `universes/` directory remains valid for
-runner-selected configurations (see *Migration*).
+Only in-file universes are addressable: `from`, `base`, multiverse
+enumerations, and `@` scopes resolve against the document's `universes` (plus
+derived grid-point ids, below) — never against `universes/` directory files,
+which remain valid for runner-selected configurations (see *Migration*). In-file
+universes also join the RFC-0002 tree-path addressing.
 
 ### 2. Add `multiverses` — named sets of universes, enumerated or generated
 
@@ -115,7 +117,8 @@ of universes so cross-universe steps can reference the set by a stable id and
 readers can see, in one place, which decision space a summary quantifies over.
 Membership takes one of three forms:
 
-- **(a) Enumeration** — `universes:` lists declared universe ids.
+- **(a) Enumeration** — `universes:` lists universe ids (declared, or derived
+  grid-point ids).
 - **(b) Generator** — `vary:` maps each swept decision to `"*"` (all of its
   options) or to an explicit option list; the members are the Cartesian product
   of the swept option sets. Any decision *not* listed in `vary` is held at
@@ -163,13 +166,30 @@ declared universe — is *one* universe: realizations and cache keys attach to
 the selection, not to the name. Derived ids are valid pin targets
 (`f1_score@none-svm-small-seed_42`), though declared names read better.
 
+Three resolution rules keep this well-defined:
+
+- **Multiverses are sets.** Members with identical effective selections
+  collapse to one — whether listed twice in an enumeration or reached twice by
+  a generator.
+- **The decision space is a tree, not a grid.** A `when` condition can
+  deactivate a decision under some selections; enumeration recurses over
+  *active* decisions only, and an inactive decision is omitted from the
+  effective selection and the derived id. Points that differ only in inactive
+  decisions are the same universe.
+- **One namespace, no ambiguity.** Universe and multiverse ids share a
+  namespace, so a `scope-id` resolves without guessing; a collision between
+  them is invalid. A declared universe id that spells the derived id of a
+  *different* selection is likewise invalid (checkable: parse the id as an
+  option join and compare) — a declared id may only coincide with the derived
+  id of its own selection, where the two readings agree.
+
 `Multiverse` fields:
 
 | Field | Type | Required | Meaning |
 |---|---|---:|---|
 | `id` | `string` | Yes | Multiverse identifier. |
 | `description` | `string` | No | Human-readable explanation of what the set covers. |
-| `universes` | list of universe ids, or `"*"` | One of `universes`/`vary` | Enumerated members, or the full valid decision space. |
+| `universes` | list of universe ids, or `"*"` | One of `universes`/`vary` | Enumerated members (declared or derived ids), or the full valid decision space. |
 | `base` | `string` | With partial `vary` | Generator form: declared universe holding the non-varied decisions. |
 | `vary` | map of `decision_id: "*"` \| option list | One of `universes`/`vary` | Generator form: swept decisions and their option sets. |
 
@@ -192,7 +212,9 @@ universe-id     ::= declared universe id | derived grid-point id
 
 `artifact-id` keeps its existing grammar (an Input or sibling Output id,
 resolving through `from:` chains); `@` cannot appear in element ids today, so
-the extension is unambiguous.
+the extension is unambiguous. The qualifier is only valid on references that
+resolve to an *Output*: an external `Input` does not vary by universe, so
+qualifying it is an error.
 
 | Reference | Meaning |
 |---|---|
@@ -207,12 +229,16 @@ Semantics:
   *active* — universes excluded by the output's `when` conditions contribute
   nothing. (In the prototype, `religiosity_study1_p@full_multiverse` yields 120
   artifacts while its siblings yield 210.)
-- **Universe-invariant consumers.** An output whose inputs are all pinned or
-  fanned-out does not itself vary with the current universe: it is materialized
-  once per project, not once per universe — the right identity for a
-  multiverse-level summary or figure. An output that mixes plain and qualified
-  references remains universe-scoped and additionally pulls in the referenced
-  cross-universe artifacts.
+- **Universe scoping is inferred, and `@` cuts it.** An output is
+  *universe-scoped* if it declares `decisions`, or if any unqualified input
+  reference resolves to a universe-scoped artifact. Qualified references never
+  propagate scope — the qualifier fixes the universe(s) — and external
+  `Input`s carry none. An output that comes out universe-invariant is
+  materialized once per project, not once per universe: the right identity for
+  a multiverse-level summary or figure. Its recipe consequently has no
+  "current universe," so `{decisions.<id>}` placeholders are invalid there;
+  and since qualifying a reference to a universe-invariant artifact selects
+  nothing, validators should flag it as redundant.
 - **Recipe surface.** In recipe templates, `{inputs.<id>}` for a fan-out
   reference expands to the collection of materialized artifact paths; how the
   collection is surfaced (space-separated paths, a manifest file, a sidecar)
@@ -366,13 +392,17 @@ multiverses:
 
 **`astra-tools` (Python CLI + SDK):**
 
-- `astra validate` gains checks: every `@` target resolves to a universe
-  (declared or derived) or multiverse id; `from` chains resolve and are
-  acyclic; a universe without `from` selects an option for every decision;
-  effective selections select valid options and honor `requires` /
-  `incompatible_with`; `vary` names existing decisions and options, and `base`
-  is present whenever `vary` is partial; enumerated multiverse members exist;
-  a pinned reference targets an output that is active in the pinned universe.
+- `astra validate` gains checks: universe and multiverse ids are unique in
+  their shared namespace, and no declared id spells the derived id of a
+  different selection; every `@` target resolves (declared or derived
+  universe, or multiverse) and qualifies a reference to an Output; `from`
+  chains resolve and are acyclic; a universe without `from` selects an option
+  for every *active* decision; effective selections select valid options and
+  honor `requires` / `incompatible_with`; `vary` names existing decisions and
+  options, `base` is present whenever `vary` is partial, and a generator with
+  no valid members is an error; enumerated multiverse members exist; a pinned
+  reference targets an output that is active in the pinned universe; a
+  universe-invariant output's recipe uses no `{decisions.<id>}` placeholders.
 - Runner semantics: cross-universe edges change scheduling — one output can now
   demand materialization of an upstream artifact under many universes — and the
   derived-id scheme for `"*"` grid points must match the spec so artifact paths
