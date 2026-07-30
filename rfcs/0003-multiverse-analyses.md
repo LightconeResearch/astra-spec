@@ -193,11 +193,8 @@ Three resolution rules keep this well-defined:
 | `base` | `string` | With partial `vary` | Generator form: declared universe holding the non-varied decisions. |
 | `vary` | map of `decision_id: "*"` \| option list | One of `universes`/`vary` | Generator form: swept decisions and their option sets. |
 
-Note the refinement relative to the tracking issue: there, `"*"` was sketched as
-"all *declared* universes." The prototype clarified that the useful meaning is
-the **full valid decision space** — multiverse analyses quantify over the
-choices themselves, not over whichever configurations happen to be named. A set
-of declared universes is expressed by enumerating them.
+(`"*"` deliberately means the full valid decision space, not "all declared
+universes" as sketched in the tracking issue — see *Questions* for the record.)
 
 ### 3. Extend the artifact reference grammar with `@`
 
