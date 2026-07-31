@@ -305,7 +305,7 @@ classes:
         from: child.grandchild.out_id -- descend into nested children
 
       A re-exported Output is a pure pointer: only `id`, `from`, and
-      `when` are allowed; type/description/recipe are inherited.
+      `when` are allowed; type/description/target/recipe are inherited.
     slots:
       - from
       - when
@@ -334,6 +334,14 @@ classes:
           when `from` is set (inherited from the source).
       description:
         description: Free-prose description of this output.
+      target:
+        description: >-
+          URI or path where this output is materialized. A relative
+          path is resolved from the directory containing this
+          analysis's `astra.yaml` and must remain within the workspace.
+          A URI denotes a non-workspace destination. Re-exported
+          outputs inherit the target from their source and cannot
+          override it.
       inputs:
         multivalued: true
         description: >-
@@ -381,6 +389,9 @@ classes:
       - title: from_alias_forbids_description
         preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
         postconditions: {slot_conditions: {description: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_target
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {target: {value_presence: ABSENT}}}
       - title: from_alias_forbids_inputs
         preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
         postconditions: {slot_conditions: {inputs: {value_presence: ABSENT}}}

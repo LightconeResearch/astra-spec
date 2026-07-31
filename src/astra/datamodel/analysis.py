@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-07-29T17:25:03
+# Generation date: 2026-07-30T20:49:30
 # Schema: analysis
 #
 # id: https://w3id.org/astra/analysis
@@ -293,8 +293,8 @@ class Output(YAMLRoot):
     from_: child.out_id           -- own child sub's output
     from_: child.grandchild.out_id -- descend into nested children
 
-    A re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/recipe are
-    inherited.
+    A re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/target/recipe
+    are inherited.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -309,6 +309,7 @@ class Output(YAMLRoot):
     label: Optional[str] = None
     type: Optional[Union[str, "OutputType"]] = None
     description: Optional[str] = None
+    target: Optional[str] = None
     inputs: Optional[Union[str, list[str]]] = empty_list()
     decisions: Optional[Union[str, list[str]]] = empty_list()
     recipe: Optional[Union[dict, Recipe]] = None
@@ -334,6 +335,9 @@ class Output(YAMLRoot):
 
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
+
+        if self.target is not None and not isinstance(self.target, str):
+            self.target = str(self.target)
 
         if not isinstance(self.inputs, list):
             self.inputs = [self.inputs] if self.inputs is not None else []
@@ -937,6 +941,9 @@ slots.output__type = Slot(uri=ASTRA.type, name="output__type", curie=ASTRA.curie
 
 slots.output__description = Slot(uri=ASTRA.description, name="output__description", curie=ASTRA.curie('description'),
                    model_uri=ASTRA.output__description, domain=None, range=Optional[str])
+
+slots.output__target = Slot(uri=ASTRA.target, name="output__target", curie=ASTRA.curie('target'),
+                   model_uri=ASTRA.output__target, domain=None, range=Optional[str])
 
 slots.output__inputs = Slot(uri=ASTRA.inputs, name="output__inputs", curie=ASTRA.curie('inputs'),
                    model_uri=ASTRA.output__inputs, domain=None, range=Optional[Union[str, list[str]]])

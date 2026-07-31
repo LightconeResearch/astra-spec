@@ -1,0 +1,16 @@
+# Invalid: aliased Output (re-export) redeclares 'target'.
+# A re-export inherits its target from the source output and cannot
+# redirect the artifact to a different materialization.
+id: bad_reexport_with_target
+name: Re-exported Output redeclares target
+outputs:
+  - id: result
+    from: child.result
+    target: outputs/redirected.csv
+analyses:
+  child:
+    id: child
+    outputs:
+      - id: result
+        type: data
+        target: outputs/result.csv

@@ -30,6 +30,7 @@ outputs:
       command: python src/evaluate.py --metric bias
   - id: redshift_estimates
     type: data
+    target: outputs/redshift_estimates.fits
     description: Redshift point estimates and PDFs
     decisions:
       - method
