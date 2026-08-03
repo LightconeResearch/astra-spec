@@ -1,0 +1,20 @@
+# Invalid: an Output declares both 'workflow_target' and 'recipe'.
+# An output says how it is built exactly once. Naming a workflow_target
+# hands the build to the engine, which owns the command, the software
+# environment, and the resource request alike; a recipe alongside it is
+# a second answer that can only drift from the workflow definition.
+id: bad_target_and_recipe
+name: Output declares both a workflow target and a recipe
+workflow_engine: snakemake
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    type: metric
+    inputs:
+      - data
+    workflow_target: evaluate
+    recipe:
+      command: python src/evaluate.py

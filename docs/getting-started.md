@@ -24,18 +24,18 @@ my-analysis/
     └── baseline.yaml       # Default decision selection
 ```
 
-The scaffolded `astra.yaml` is a complete, valid analysis with `TODO:` markers in the prose. It includes a `description`, a `container:` default (`python:3.12-slim`), one example decision (`example_method` with options `option_a` and `option_b`), and two outputs (`main_result` chained into a `conclusion` report). It compiles as-is — you can edit incrementally rather than rewriting from scratch.
+The scaffolded `astra.yaml` is a complete, valid analysis with `TODO:` markers in the prose. It includes a `description`, one example decision (`example_method` with options `option_a` and `option_b`), and two outputs (`main_result` chained into a `conclusion` report). It compiles as-is — you can edit incrementally rather than rewriting from scratch.
 
 > **Tip:** By default `astra init` runs `git init` in the new directory and makes an initial commit. Pass `--no-git` to skip both.
 
 ## Edit the analysis
 
-The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis declares three top-level sections — **`inputs:`**, **`outputs:`**, **`decisions:`** — plus optional metadata (`name`, `version`, `description`, `tags`, `container`).
+The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis declares three top-level sections — **`inputs:`**, **`outputs:`**, **`decisions:`** — plus optional metadata (`name`, `version`, `description`, `tags`, `workflow_engine`).
 
 ```yaml
 version: "1.0"
 name: My Analysis
-container: python:3.12-slim       # default for all recipes; per-output override allowed
+workflow_engine: snakemake        # builds the outputs; inherited by sub-analyses
 
 description: |                    # short free-prose orientation
   One paragraph describing the analysis.
@@ -49,9 +49,8 @@ outputs:
   - id: main_result
     type: metric                  # metric | figure | table | data | report
     description: "Primary output"
-    decisions: [example_method]   # contract: only these decisions are visible to the recipe
-    recipe:
-      command: python src/main.py --method {decisions.example_method} --out {output}
+    decisions: [example_method]   # contract: choices that parameterize this output
+    workflow_target: main_result   # the rule in the Snakefile that builds it
 
 decisions:
   example_method:
@@ -64,8 +63,9 @@ decisions:
 
 A few things worth noting:
 
-- **Decisions parameterize outputs.** `Output.decisions` declares the contract — only the listed decisions resolve inside `recipe.command`. The validator rejects `{decisions.foo}` if `foo` isn't in the list.
-- **Recipe placeholders.** Four forms are legal: `{inputs}` (all declared inputs, space-separated), `{inputs.<id>}` (one declared input), `{decisions.<id>}` (one declared decision), and `{output}` (where to write). `{{` and `}}` are literal braces.
+- **A workflow engine builds the outputs.** `workflow_engine` names the tool (`calkit`, `cwl`, `dvc`, `make`, `nextflow`, `snakemake`, `targets`, `wdl`, or `other`); each output's `workflow_target` names the rule or stage inside that engine's own definition file. The command, the software environment, and the staleness rule live there, not in `astra.yaml`.
+- **Decisions parameterize outputs.** `Output.decisions` declares the provenance contract: re-running with a different option for any listed decision must be expected to change the output. It is what a reviewer reads to know which choices this artifact depends on.
+- **`recipe.command` is deprecated.** Older analyses put a bare shell command on each output. That records the invocation but not the environment it needs, and nothing at all about whether the artifact on disk is still current — so it reproduces by accident rather than by construction. Existing documents stay valid; see [migrating a recipe](https://astra-spec.org/latest/specification/#migrating-a-recipe-to-a-workflow-target).
 - **Rich reports live alongside `astra.yaml`.** The spec keeps a single optional `description`; a fuller write-up — figures, citations, multi-page structure — is built next to the analysis and references its elements rather than restating them. [MySTRA](https://github.com/LightconeResearch/MySTRA) is one framework that does this.
 - **Constraints between options.** `requires:` and `incompatible_with:` (format: `decision.option`) gate which option combinations are valid. They are checked when you validate a universe.
 
@@ -80,7 +80,7 @@ astra validate astra.yaml
 Validation runs in three stages, each gating the next:
 
 1. **Schema validation** — Pydantic models (generated from the LinkML schema) check types, required fields, and format patterns (ID pattern, version pattern, DOI pattern, …).
-2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve and respect direction rules, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve.
+2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve and respect direction rules, every `workflow_target` has a `workflow_engine` in scope, deprecated recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve.
 3. **Evidence verification** (opt-in, `--verify-evidence`) — quoted text in `prior_insights` and `findings` actually appears in the cached source PDFs.
 
 A clean run prints:
@@ -224,6 +224,8 @@ Artifact-backed evidence (typical for `findings:` whose output artifacts haven't
 
 ## What ASTRA doesn't run
 
-The CLI validates and inspects analyses; it does **not** execute recipes. Each `recipe.command` is a POSIX shell command that an executor — an agent, a workflow runner, a notebook, or you on the command line — reads and invokes. The executor materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the `{inputs.<id>}` / `{inputs}` / `{decisions.<id>}` / `{output}` placeholders against the active universe, and runs the resulting command.
+The CLI validates and inspects analyses; it does **not** build outputs. That is the workflow engine's job. `astra.yaml` names the engine and, per output, the target within it; the engine reads its own definition file, resolves dependencies, decides which artifacts are stale, and runs what needs running.
 
-This separation is intentional: the spec stays stable as the agent and execution layer evolves. ASTRA's job is to make every analytical choice explicit, traceable, and verifiable; the choice of *runner* is yours.
+This separation is intentional, and it is why `recipe.command` is deprecated. A bare command in `astra.yaml` would be a second, weaker copy of something the engine already does properly — and one that silently omits the environment and never tracks staleness. ASTRA's job is to make every analytical choice explicit, traceable, and verifiable; building the artifacts is the engine's.
+
+(Analyses written before this change may still carry a deprecated `recipe.command`, which an executor expands and invokes directly. Those remain valid.)

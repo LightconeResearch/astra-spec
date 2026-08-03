@@ -32,6 +32,7 @@ In ASTRA, an analysis declares the design space, a universe picks one option per
 ```yaml
 version: "1.0"
 name: Period-Luminosity Fit
+workflow_engine: snakemake
 
 inputs:
   - id: catalog_data
@@ -45,12 +46,7 @@ outputs:
     description: Slope, intercept, and scatter for the fitted relation.
     inputs: [catalog_data]
     decisions: [fit_method]
-    recipe:
-      command: >-
-        python src/fit_period_luminosity.py
-        --catalog {inputs.catalog_data}
-        --method {decisions.fit_method}
-        --out {output}
+    workflow_target: fit_period_luminosity
 
 decisions:
   fit_method:

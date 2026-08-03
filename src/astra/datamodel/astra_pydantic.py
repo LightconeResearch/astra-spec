@@ -30,7 +30,7 @@ from pydantic import (
 
 
 metamodel_version = "1.7.0"
-version = "0.0.12"
+version = "0.0.0"
 
 
 class ConfiguredBaseModel(BaseModel):
@@ -121,6 +121,51 @@ class OutputType(str, Enum):
     report = "report"
     """
     A report or document
+    """
+
+
+class WorkflowEngine(str, Enum):
+    """
+    Workflow engine responsible for building an analysis's outputs.
+ASTRA names the engine but does not restate its workflow definition. A reader — human or agent — resolves an output's `workflow_target` by reading the engine's own file (`Snakefile`, `dvc.yaml`, `calkit.yaml`, `Makefile`, …), which is where the command, the software environment, and the resource request are declared.
+Only engines that track output staleness belong here: an engine must be able to decide, from declared dependencies, whether an existing artifact still reflects its inputs. A bare command runner or task launcher (`just`, `make`-as-alias-book, a shell script) does not qualify.
+Values are listed alphabetically; the ordering carries no recommendation.
+    """
+    calkit = "calkit"
+    """
+    Calkit — DVC-backed project pipelines (`calkit.yaml`).
+    """
+    cwl = "cwl"
+    """
+    Common Workflow Language, run by cwltool, Toil, or similar.
+    """
+    dvc = "dvc"
+    """
+    DVC — data version control with a `dvc.yaml` pipeline.
+    """
+    make = "make"
+    """
+    Make — timestamp-based build tool (`Makefile`). Reproducible only insofar as the Makefile pins its environment.
+    """
+    nextflow = "nextflow"
+    """
+    Nextflow — dataflow engine for portable pipelines.
+    """
+    snakemake = "snakemake"
+    """
+    Snakemake — Python-based rule engine (`Snakefile`).
+    """
+    targets = "targets"
+    """
+    The R `targets` package — content-addressed R pipelines.
+    """
+    wdl = "wdl"
+    """
+    Workflow Description Language, run by Cromwell, miniwdl, or similar.
+    """
+    other = "other"
+    """
+    An engine outside this vocabulary. Use sparingly, and name it in the analysis `description` so readers can find its workflow definition. Open an issue to have a widely-used engine added to the vocabulary.
     """
 
 
@@ -333,9 +378,14 @@ class KeyValuePair(ConfiguredBaseModel):
 
 class Resources(ConfiguredBaseModel):
     """
+    DEPRECATED — declare resources in the workflow definition instead.
     Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'deprecated': 'Deprecated along with `Recipe`. A resource request is '
+                       'implementation, not desired state: it belongs in the workflow '
+                       'definition, where the engine that schedules the work can act '
+                       'on it. See `Analysis.workflow_engine`.',
+         'from_schema': 'https://w3id.org/astra/analysis'})
 
     cpus: Optional[float] = Field(default=None, description="""CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.""", ge=0, json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
     memory: Optional[str] = Field(default=None, description="""Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').""", json_schema_extra = { "linkml_meta": {'domain_of': ['Resources']} })
@@ -346,12 +396,23 @@ class Resources(ConfiguredBaseModel):
 
 class Recipe(ConfiguredBaseModel):
     """
+    DEPRECATED — declare a `workflow_engine` on the analysis and a `workflow_target` on each output instead.
     A build rule that produces an output. A recipe is pure *how*: a `command` to invoke and the execution context (`resources`, `container`).
     Recipes do not declare what the output depends on. Provenance — upstream inputs, decision-driven parameterization, and activation conditions — is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe via `{...}` template substitution (see `command`).
     """
-    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis'})
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'deprecated': 'Deprecated in favour of `Analysis.workflow_engine` plus '
+                       '`Output.workflow_target`. Every field a Recipe carries — the '
+                       'command, the container, the resource request — is '
+                       'implementation, and implementation belongs to the workflow '
+                       'engine. Recording it here produces a second copy that drifts '
+                       'from the workflow definition, and does so while still omitting '
+                       'what a bare command can never express: whether the artifact on '
+                       'disk is stale. Existing documents remain valid; `Recipe` may '
+                       'be removed in a future major version.',
+         'from_schema': 'https://w3id.org/astra/analysis'})
 
     command: Optional[str] = Field(default=None, description="""POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.
+DEPRECATED — use `Analysis.workflow_engine` and `Output.workflow_target` instead. Mutually exclusive with `workflow_target` on the same output.
 The command is a template. Runners substitute these placeholders before invoking it:
 
   {inputs.<id>}     -- path to the named upstream input
@@ -364,9 +425,24 @@ The command is a template. Runners substitute these placeholders before invoking
   {output}          -- path the artifact will be written to
 
 Use {{ and }} to emit literal '{' and '}'. Every placeholder must resolve to a declared item; the validator rejects unresolved or undeclared references.
-Static constants belong inline in the command (e.g., '--max-iter 1000'); there is no separate `params` channel because varying values are decisions and constants are just command text.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    resources: Optional[Resources] = Field(default=None, description="""Compute resource requirements (cpus, memory, time_limit, …)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe']} })
-    container: Optional[str] = Field(default=None, description="""Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
+Static constants belong inline in the command (e.g., '--max-iter 1000'); there is no separate `params` channel because varying values are decisions and constants are just command text.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated in favour of `Analysis.workflow_engine` plus '
+                       '`Output.workflow_target`. A bare command captures only the '
+                       'invocation, leaving the software environment implicit and the '
+                       "artifact's staleness untracked, so it is reproducible only by "
+                       'accident. A workflow engine owns all three: the command, the '
+                       'environment it runs in, and the decision about whether an '
+                       'existing artifact is still current. Existing documents remain '
+                       'valid; `command` may be removed in a future major version.',
+         'domain_of': ['Recipe']} })
+    resources: Optional[Resources] = Field(default=None, description="""DEPRECATED — Compute resource requirements (cpus, memory, time_limit, …)""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated along with `Recipe`. Declare resource requests in '
+                       'the workflow definition instead.',
+         'domain_of': ['Recipe']} })
+    container: Optional[str] = Field(default=None, description="""DEPRECATED — declare the environment in the workflow definition instead.
+Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated along with `Recipe`. The software environment is '
+                       'implementation: it belongs in the workflow definition, '
+                       'declared next to the command it applies to, where the engine '
+                       'can build or pull it. See `Analysis.workflow_engine`.',
+         'domain_of': ['Recipe', 'Analysis']} })
 
 
 class Input(ConfiguredBaseModel):
@@ -518,6 +594,23 @@ class Output(ConfiguredBaseModel):
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
                                                                    'value_presence': 'PRESENT'}}},
                     'title': 'from_alias_forbids_recipe'},
+                   {'postconditions': {'slot_conditions': {'workflow_target': {'name': 'workflow_target',
+                                                                               'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_workflow_target'},
+                   {'description': 'An output declares how it is built exactly once. '
+                                   'Naming a `workflow_target` hands the build to the '
+                                   'workflow engine, which owns the command, the '
+                                   'software environment, and the resource request '
+                                   'alike; a `recipe` alongside it is a second, '
+                                   'contradictory answer that can only drift from the '
+                                   'workflow definition.',
+                    'postconditions': {'slot_conditions': {'recipe': {'name': 'recipe',
+                                                                      'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'workflow_target': {'name': 'workflow_target',
+                                                                              'value_presence': 'PRESENT'}}},
+                    'title': 'workflow_target_forbids_recipe'},
                    {'description': 'A non-aliased Output must declare its type.',
                     'postconditions': {'slot_conditions': {'type': {'name': 'type',
                                                                     'required': True}}},
@@ -553,7 +646,10 @@ References use plain artifact IDs and resolve through any `from:` chain in the s
     decisions: Optional[list[str]] = Field(default=None, description="""Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.
 Runners use this to (a) compute the per-output cache key, (b) determine the minimal universe set needed to materialize the output, and (c) deliver the active option values to the recipe (via flags, env vars, or a sidecar — runner's choice).
 References use plain decision IDs and resolve through any `from:` chain in the surrounding analysis scope.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
-    recipe: Optional[Recipe] = Field(default=None, description="""How to produce this output (pure *how*; dependencies live on the Output via `inputs`/`decisions`)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output']} })
+    workflow_target: Optional[str] = Field(default=None, description="""Name of the rule, stage, or target in the workflow engine's own definition that builds this output — a Snakemake rule, a DVC or Calkit stage, a Make target, a Nextflow process, and so on. The engine named by the nearest enclosing `Analysis.workflow_engine` resolves it.
+This is the preferred way to say how an output is produced. ASTRA deliberately stops at the name: the command, the software environment, the resource request, and the staleness rule all live in the workflow definition, where the engine can act on them. Restating them here would only invite drift.
+Mutually exclusive with the deprecated `recipe.command`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output']} })
+    recipe: Optional[Recipe] = Field(default=None, description="""How to produce this output (pure *how*; dependencies live on the Output via `inputs`/`decisions`). Prefer `workflow_target`; `recipe.command` is deprecated.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output']} })
 
     @field_validator('from_')
     def pattern_from_(cls, v):
@@ -743,7 +839,15 @@ class Analysis(ConfiguredBaseModel):
     decisions: Optional[dict[str, Decision]] = Field(default=None, description="""Decision points in this analysis (keyed by decision ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     prior_insights: Optional[dict[str, Insight]] = Field(default=None, description="""Prior insights that inform decisions (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     findings: Optional[dict[str, Insight]] = Field(default=None, description="""Findings and conclusions from outputs (keyed by insight ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
-    container: Optional[str] = Field(default=None, description="""Default container for recipes in this node. Image names are pulled; file paths are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
+    workflow_engine: Optional[WorkflowEngine] = Field(default=None, description="""Workflow engine that builds this node's outputs. Outputs name their build rule with `workflow_target`, which this engine resolves against its own workflow definition.
+Declared once at the root and inherited by every descendant analysis. A sub-analysis may override it — most usefully one extracted to its own directory via `path`, which carries its own workflow definition. An output that names a `workflow_target` must have a `workflow_engine` in scope at its own node or an ancestor.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
+    container: Optional[str] = Field(default=None, description="""DEPRECATED — declare the environment in the workflow definition instead.
+Default container for recipes in this node. Image names are pulled; file paths are built from source.""", json_schema_extra = { "linkml_meta": {'deprecated': 'Deprecated along with `Recipe`. Defining the software '
+                       "environment is the workflow engine's job, not the spec's: "
+                       'ASTRA declares desired state, the engine implements it. Set '
+                       'the environment in the workflow definition, where it sits next '
+                       'to the command it applies to. See `workflow_engine`.',
+         'domain_of': ['Recipe', 'Analysis']} })
     path: Optional[str] = Field(default=None, description="""Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     analyses: Optional[dict[str, Analysis]] = Field(default=None, description="""Nested sub-analyses (keyed by analysis ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 

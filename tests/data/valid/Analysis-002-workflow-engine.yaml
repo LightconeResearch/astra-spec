@@ -1,0 +1,68 @@
+# Valid: outputs built by a workflow engine rather than by bare commands.
+# Exercises `workflow_engine` at the root, inheritance into a sub-analysis,
+# a sub-analysis override, and `workflow_target` on locally-produced
+# outputs. Re-exported outputs (`from`) declare neither.
+id: catalog_crossmatch
+version: "0.1.0"
+name: Catalog Crossmatch
+description: >-
+  Crossmatch two source catalogs and report the matched fraction.
+  Stage definitions — command, environment, and dependencies — live in
+  the Snakefile; the engine decides when an artifact has gone stale.
+workflow_engine: snakemake
+inputs:
+  - id: survey_catalog
+    type: data
+    description: Primary survey catalog
+    source: data/survey.parquet
+  - id: reference_catalog
+    type: data
+    description: External reference catalog
+    source: data/reference.parquet
+outputs:
+  - id: matched_pairs
+    type: data
+    description: Crossmatched source pairs
+    inputs:
+      - survey_catalog
+      - reference_catalog
+    decisions:
+      - match_radius
+    workflow_target: crossmatch
+  - id: matched_fraction
+    type: metric
+    description: Fraction of survey sources with a reference counterpart
+    inputs:
+      - matched_pairs
+    workflow_target: summarize_matches
+  - id: purity_curve
+    from: validation.purity_curve
+decisions:
+  match_radius:
+    label: Match radius
+    rationale: Wider radii recover more counterparts at the cost of false matches.
+    default: one_arcsec
+    options:
+      one_arcsec:
+        label: 1 arcsec
+      three_arcsec:
+        label: 3 arcsec
+analyses:
+  validation:
+    id: validation
+    name: Match validation
+    description: >-
+      Validate the crossmatch against an injected-source truth table.
+      Maintained as a standalone project with its own DVC pipeline, so
+      it overrides the inherited engine.
+    workflow_engine: dvc
+    inputs:
+      - id: pairs
+        from: ../matched_pairs
+    outputs:
+      - id: purity_curve
+        type: figure
+        description: Purity as a function of match radius
+        inputs:
+          - pairs
+        workflow_target: purity_curve

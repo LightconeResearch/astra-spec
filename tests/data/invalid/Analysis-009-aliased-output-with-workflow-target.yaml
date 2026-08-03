@@ -1,0 +1,26 @@
+# Invalid: aliased Output (re-export) declares 'workflow_target'.
+# When 'from' is set on an Output, it is a pure pointer to a
+# sub-analysis output. Naming a build target alongside is a
+# contradiction: the source's target produces the artifact, the
+# re-export only renames it.
+id: bad_reexport_with_workflow_target
+name: Re-exported Output declares a workflow target
+workflow_engine: snakemake
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    from: child.metric
+    workflow_target: regenerate
+analyses:
+  child:
+    id: child
+    inputs:
+      - id: data
+        from: ../data
+    outputs:
+      - id: metric
+        type: metric
+        workflow_target: evaluate

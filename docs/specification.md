@@ -19,6 +19,7 @@ An `astra.yaml` file contains an `Analysis`, which declares:
 | `prior_insights` | Which existing claims or sources inform the analysis? |
 | `findings` | What claims does this analysis make after its outputs are produced? |
 | `analyses` | Which nested sub-analyses make up a larger analysis tree? |
+| `workflow_engine` | Which workflow engine builds the outputs? |
 
 ## Minimal ASTRA document
 
@@ -27,6 +28,7 @@ A minimal useful ASTRA document names the analysis, declares an input, an output
 ```yaml
 version: "1.0"
 name: Period-Luminosity Fit
+workflow_engine: snakemake
 
 description: |
   Fit a period-luminosity relation from a measurement catalog.
@@ -43,12 +45,7 @@ outputs:
     description: Slope, intercept, and scatter for the period-luminosity relation.
     inputs: [catalog_data]
     decisions: [fit_method]
-    recipe:
-      command: >-
-        python src/fit_period_luminosity.py
-        --catalog {inputs.catalog_data}
-        --method {decisions.fit_method}
-        --out {output}
+    workflow_target: fit_period_luminosity
 
 decisions:
   fit_method:
@@ -67,9 +64,10 @@ decisions:
 ```yaml
 version: "1.0"
 name: Period-Luminosity Fit
+workflow_engine: snakemake
 ```
 
-The `version` field records the ASTRA schema version the document expects. The `name` field gives the analysis a human-readable title. Real projects usually also include `id`, `tags`, and sometimes a node-level `container` used as the default execution environment for recipes.
+The `version` field records the ASTRA schema version the document expects. The `name` field gives the analysis a human-readable title. The `workflow_engine` field names the tool that actually builds the outputs — here, Snakemake. Real projects usually also include `id` and `tags`.
 
 ### Description
 
@@ -90,7 +88,7 @@ inputs:
     description: Periods and mean apparent magnitudes.
 ```
 
-An input is something the analysis consumes. It can be a dataset, a file, an external resource, or the outputs of another ASTRA analysis. The `id` is the local name used by outputs and recipes. The `type` says whether the input is `data` or an external `analysis`. Notably, the `source` is usually a path or URI, a loader name, or another data locator, and it is *descriptive* rather than prescriptive because it records enough information for agents to know where the input is sourced.
+An input is something the analysis consumes. It can be a dataset, a file, an external resource, or the outputs of another ASTRA analysis. The `id` is the local name used by outputs. The `type` says whether the input is `data` or an external `analysis`. Notably, the `source` is usually a path or URI, a loader name, or another data locator, and it is *descriptive* rather than prescriptive because it records enough information for agents to know where the input is sourced.
 
 ### Outputs
 
@@ -101,17 +99,12 @@ outputs:
     description: Slope, intercept, and scatter for the period-luminosity relation.
     inputs: [catalog_data]
     decisions: [fit_method]
-    recipe:
-      command: >-
-        python src/fit_period_luminosity.py
-        --catalog {inputs.catalog_data}
-        --method {decisions.fit_method}
-        --out {output}
+    workflow_target: fit_period_luminosity
 ```
 
-An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `recipe` gives the Python command the runner invokes.
+An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `workflow_target` names the rule in the workflow definition that builds it.
 
-The recipe is not allowed to invent hidden dependencies, which makes the output a reviewable unit.
+The output is not allowed to invent hidden dependencies, which makes it a reviewable unit.
 
 ### Decisions
 
@@ -205,25 +198,60 @@ decisions:
 
 One analysis can have many universes. A baseline universe might keep all points and use ordinary least squares. A robustness universe might switch to `fit_method: robust_linear`. A cleaned-data universe might use `outlier_handling: sigma_clip`. Each universe produces its own outputs under one declared choice configuration. For example, the plot from the baseline universe might be written to `results/baseline/`, while the cleaned-data universe plot might be written to `results/clean/`.
 
-### Recipes and command templates
+### Workflow engines and build targets
 
-After an output has declared what it depends on, the recipe says how a runner should produce it. In this example, the recipe passes the declared catalog and selected fitting method to a Python script, then writes the fitted parameters to `{output}`.
+After an output has declared what it depends on, two fields say how it gets built. The analysis names a `workflow_engine`; each output names the `workflow_target` — the rule, stage, or target inside that engine's own definition file — that produces it.
 
 ```yaml
+workflow_engine: snakemake
+
 outputs:
   - id: fit_params
     type: table
     inputs: [catalog_data]
     decisions: [fit_method]
-    recipe:
-      command: >-
-        python src/fit_period_luminosity.py
-        --catalog {inputs.catalog_data}
-        --method {decisions.fit_method}
-        --out {output}
+    workflow_target: fit_period_luminosity
 ```
 
-The command is the only required part of a recipe. You can add optional `container` and `resources` elements when the runner needs execution context, for example a Docker image for the software environment, or CPU, memory, and wall-time requests for compute.
+ASTRA stops at the name. The command, the software environment, the resource request, and the rule for deciding whether an artifact is stale all live in the workflow definition — the `Snakefile`, `dvc.yaml`, `calkit.yaml`, or `Makefile` sitting next to `astra.yaml`. A reader who wants the invocation reads it there.
+
+**ASTRA declares desired state; the workflow engine implements it.** The barrier between the two is deliberate and total. An `astra.yaml` says what artifacts should exist, what they depend on, which choices shape them, and what claims rest on them. It does not say how they get built — not the command, not the container, not the resource request. Those are implementation, and implementation lives on the other side of the line.
+
+This is why the whole [`recipe` block is deprecated](#recipe-deprecated), not just its command. A bare shell command records only the invocation: nothing about the interpreter version, the installed packages, or the environment the command expects, so it reproduces only on a machine that already happens to be set up correctly. And nothing about whether the artifact on disk is still current — a command always runs, and a command never notices that its input changed. Bolting a `container:` onto the spec to patch the first gap does not close the second, and it buys the first at the cost of a second copy of the environment that will drift from the one the engine actually uses. A workflow engine already owns all three concerns, coherently and in one place. Naming the engine is the whole of ASTRA's job here.
+
+Because `workflow_target` is a plain name, resolving it requires an engine. An output that declares one must have a `workflow_engine` in scope — on its own analysis node or on an ancestor.
+
+The vocabulary is closed, and covers engines that track output staleness. It is listed alphabetically; the ordering carries no recommendation.
+
+| Value | Engine | Workflow definition |
+|---|---|---|
+| `calkit` | [Calkit](https://github.com/calkit/calkit) | `calkit.yaml` |
+| `cwl` | [Common Workflow Language](https://www.commonwl.org) | `*.cwl` |
+| `dvc` | [DVC](https://dvc.org) | `dvc.yaml` |
+| `make` | Make | `Makefile` |
+| `nextflow` | [Nextflow](https://www.nextflow.io) | `main.nf` |
+| `snakemake` | [Snakemake](https://snakemake.github.io) | `Snakefile` |
+| `targets` | The R [`targets`](https://books.ropensci.org/targets/) package | `_targets.R` |
+| `wdl` | [Workflow Description Language](https://openwdl.org) | `*.wdl` |
+| `other` | An engine outside this list | name it in the analysis `description` |
+
+A bare command runner or task launcher does not belong here. If a tool cannot decide, from declared dependencies, whether an existing artifact still reflects its inputs, it is not doing the job this field describes. `other` is the escape hatch for a genuine engine the vocabulary has not caught up with; if it is in wide use, [open an issue](https://github.com/LightconeResearch/astra-spec/issues) to have it added.
+
+#### Inheriting and overriding the engine
+
+`workflow_engine` is normally declared once at the root and inherited by every sub-analysis. A sub-analysis may override it — most usefully one extracted to its own directory via `path`, which carries its own workflow definition and may well have been authored by someone else.
+
+```yaml
+workflow_engine: snakemake        # inherited by every descendant
+
+analyses:
+  validation:
+    workflow_engine: dvc          # this subtree builds with DVC instead
+    outputs:
+      - id: purity_curve
+        type: figure
+        workflow_target: purity_curve
+```
 
 ### Prior insights, findings, and evidence
 
@@ -290,8 +318,7 @@ analyses:
       - id: cleaned_catalog
         type: data
         decisions: [outlier_handling]
-        recipe:
-          command: python src/clean_catalog.py --out {output}
+        workflow_target: clean_catalog
     decisions:
       outlier_handling:
         label: Outlier handling
@@ -349,8 +376,7 @@ outputs:
     type: table
     when:
       - correction_mode.calibrated
-    recipe:
-      command: python src/apply_calibration.py --out {output}
+    workflow_target: apply_calibration
 ```
 
 In the example, `calibration_prior` and `calibrated_table` exist only for the calibrated branch. A baseline universe that selects `correction_mode.none` stays simpler: it does not carry a prior or output that it never uses.
@@ -362,7 +388,7 @@ ASTRA validation is designed to catch both syntax errors and scientific-record e
 | Stage | What it checks |
 |---|---|
 | Schema validation | YAML shape, types, enums, version and DOI patterns. |
-| Semantic validation | Duplicate IDs, references, `from` paths, recipe placeholders, and constraint satisfaction. |
+| Semantic validation | Duplicate IDs, references, `from` paths, reachability of a `workflow_engine` for each `workflow_target`, recipe placeholders, and constraint satisfaction. |
 | Evidence verification | Optional quote matching against cited sources. |
 
 Run validation with:
@@ -400,7 +426,8 @@ The `Analysis` object is the root of `astra.yaml` and the type used for every su
 | `name` | `string` | No | Human-readable analysis name. |
 | `description` | `string` | No | Free-prose description of the analysis. |
 | `tags` | `string[]` | No | Free-form categorization tags. |
-| `container` | `string` | No | Default container for recipes in this analysis node. |
+| `workflow_engine` | enum | No | Workflow engine that builds this node's outputs. Inherited by descendants. |
+| `container` | `string` | No | **Deprecated.** Default container for recipes in this analysis node. |
 | `inputs` | `Input[]` | No | Data or prior analyses consumed by this analysis. |
 | `outputs` | `Output[]` | No | Artifacts produced or re-exported by this analysis. |
 | `decisions` | map of `Decision` | No | Methodological choice points. |
@@ -410,6 +437,8 @@ The `Analysis` object is the root of `astra.yaml` and the type used for every su
 | `path` | `string` | No | External directory containing a sub-analysis ASTRA file. |
 
 `path` is for nested analyses only. It is mutually exclusive with inline content fields on that sub-analysis.
+
+`workflow_engine` is one of `calkit`, `cwl`, `dvc`, `make`, `nextflow`, `snakemake`, `targets`, `wdl`, or `other`. It is declared at the root and inherited by every descendant analysis, which may override it. See [Workflow engines and build targets](#workflow-engines-and-build-targets).
 
 ### Input
 
@@ -443,7 +472,8 @@ An output is an artifact produced locally or re-exported from a child sub-analys
 | `when` | `string[]` | No | Conditions under which the output is active. |
 | `inputs` | `string[]` | No | Local input or sibling output IDs this output depends on. |
 | `decisions` | `string[]` | No | Local decision IDs that parameterize the output. |
-| `recipe` | `Recipe` | No | Command and execution context for producing the output. |
+| `workflow_target` | `string` | No | Name of the workflow rule, stage, or target that builds this output. |
+| `recipe` | `Recipe` | No | **Deprecated.** Command and execution context for producing the output. |
 
 Output types:
 
@@ -455,17 +485,34 @@ Output types:
 | `data` | A processed dataset, catalog, calibration table, or intermediate artifact. |
 | `report` | Textual or document output. |
 
-When `from` is present, the output is a pure re-export. Only `id`, `from`, and `when` may be declared locally.
+When `from` is present, the output is a pure re-export. Only `id`, `from`, and `when` may be declared locally — neither `workflow_target` nor `recipe` may appear, because the source output already declares how the artifact is built.
 
-### Recipe
+`workflow_target` and `recipe` are mutually exclusive on the same output: an output declares how it is built exactly once. Naming a `workflow_target` hands the build to the engine, which owns the command, the environment, and the resource request alike.
+
+### Recipe (deprecated)
+
+!!! warning "Deprecated"
+    The entire `recipe` block — `command`, `container`, and `resources` — is
+    deprecated in favour of [`workflow_engine` +
+    `workflow_target`](#workflow-engines-and-build-targets), as is the
+    node-level `Analysis.container`. Existing documents remain valid and
+    validators still accept them; `Recipe` may be removed in a future major
+    version. New analyses should declare a workflow engine.
+
+    All three fields are implementation. A command captures the invocation and
+    nothing else — not the interpreter, not the installed packages, not whether
+    the artifact on disk is still current. A container and a resource request
+    are the engine's to define, and stating them here creates a second copy that
+    drifts from the one the engine actually uses. ASTRA declares desired state;
+    the engine implements it.
 
 A recipe is a command plus optional execution context.
 
 | Field | Type | Required | Meaning |
 |---|---|---:|---|
-| `command` | `string` | Yes | POSIX shell command template. |
-| `resources` | `Resources` | No | Compute requirements. |
-| `container` | `string` | No | Container image or path to a Containerfile. |
+| `command` | `string` | Yes | **Deprecated.** POSIX shell command template. |
+| `resources` | `Resources` | No | **Deprecated.** Compute requirements. |
+| `container` | `string` | No | **Deprecated.** Container image or path to a Containerfile. |
 
 Recipe placeholders:
 
@@ -493,7 +540,7 @@ Resources:
 | `disk` | `string` | Disk with units. |
 | `gpus` | `integer` | Number of GPUs. |
 
-A node-level `container` on `Analysis` sets the default for recipes in that node. A recipe-level `container` overrides it. Image names such as `python:3.12-slim` or `ghcr.io/org/image:latest` are interpreted as pre-built images. Paths such as `Containerfile` or `containers/Dockerfile` are interpreted as build contexts by runners that support them.
+A node-level `container` on `Analysis` sets the default for recipes in that node — also deprecated, for the same reason. A recipe-level `container` overrides it. Image names such as `python:3.12-slim` or `ghcr.io/org/image:latest` are interpreted as pre-built images. Paths such as `Containerfile` or `containers/Dockerfile` are interpreted as build contexts by runners that support them.
 
 Example rendered command after a runner materializes paths and selects a universe:
 
@@ -503,6 +550,57 @@ python src/fit_period_luminosity.py \
   --method ordinary_least_squares \
   --out /work/baseline/fit_params.csv
 ```
+
+#### Migrating a recipe to a workflow target
+
+Move the command into the workflow definition, name the rule, and point the output at it. The `inputs` and `decisions` declarations on the output do not change — they were always the provenance contract, and they still are.
+
+=== "Before (deprecated)"
+
+    ```yaml
+    outputs:
+      - id: fit_params
+        type: table
+        inputs: [catalog_data]
+        decisions: [fit_method]
+        recipe:
+          command: >-
+            python src/fit_period_luminosity.py
+            --catalog {inputs.catalog_data}
+            --method {decisions.fit_method}
+            --out {output}
+          container: python:3.12-slim
+          resources:
+            cpus: 4
+            memory: "8Gi"
+    ```
+
+=== "After"
+
+    ```yaml
+    workflow_engine: snakemake
+
+    outputs:
+      - id: fit_params
+        type: table
+        inputs: [catalog_data]
+        decisions: [fit_method]
+        workflow_target: fit_period_luminosity
+    ```
+
+    ```python
+    # Snakefile — the command, environment, and resources move here,
+    # where the engine can act on them and track staleness.
+    rule fit_period_luminosity:
+        input: "data/catalog.csv"
+        output: "results/{universe}/fit_params.csv"
+        container: "docker://python:3.12-slim"
+        resources: cpus=4, mem_mb=8192
+        shell: "python src/fit_period_luminosity.py "
+               "--catalog {input} --method {wildcards.fit_method} --out {output}"
+    ```
+
+Note that `container` and `resources` move too — along with any node-level `Analysis.container`. `workflow_target` and `recipe` are mutually exclusive, so there is no half-migrated state where the engine builds the artifact but ASTRA still declares its environment. That is the point of the constraint rather than an incidental effect of it: a spec that declares a container is a spec that has started implementing.
 
 ### Decision
 
@@ -673,7 +771,7 @@ Legal directions:
 | `Output.from` | `child.out_id`, `child.sub.out_id` | Re-export a child output. |
 | `Decision.from` | `../id`, `../../id` | Inherit an ancestor decision. |
 
-`from` is the only primitive for crossing analysis scopes. Recipe templates, `Output.inputs`, and `Output.decisions` continue to use local IDs in their surrounding scope. When `from` is set, the node is a pure alias: only `id`, `from`, and, where applicable, `when` may be declared locally. Content fields such as `type`, `description`, `label`, `source`, `options`, `default`, and `recipe` are inherited from the source.
+`from` is the only primitive for crossing analysis scopes. `Output.inputs`, `Output.decisions`, and deprecated recipe templates continue to use local IDs in their surrounding scope. When `from` is set, the node is a pure alias: only `id`, `from`, and, where applicable, `when` may be declared locally. Content fields such as `type`, `description`, `label`, `source`, `options`, `default`, `workflow_target`, and `recipe` are inherited from the source.
 
 Inputs and outputs can reach into subordinate scopes for artifacts, which can flow upward by re-export or laterally between sibling sub-analyses. Decisions only flow downward from ancestors into descendants. To share a decision between siblings, declare it on their common ancestor and alias it with `from` inside each child.
 
@@ -755,7 +853,7 @@ Generated artifacts:
 
 | File | Defines |
 |---|---|
-| `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `Recipe`, `Resources`, and cross-scope aliases. |
+| `analysis.yaml` | `Analysis`, `Input`, `Output`, `Decision`, `Option`, `WorkflowEngine`, `Recipe`, `Resources`, and cross-scope aliases. |
 | `universe.yaml` | `Universe`, `UniverseNode`, `DecisionSelection`, and decision selections. |
 | `insight.yaml` | `Insight`, `Evidence`, `InsightCollection`, quote selectors, and fragment selectors. |
 

@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-07-29T17:25:03
+# Generation date: 2026-08-03T10:22:42
 # Schema: analysis
 #
 # id: https://w3id.org/astra/analysis
@@ -62,7 +62,7 @@ from linkml_runtime.linkml_model.types import Boolean, Datetime, Float, Integer,
 from linkml_runtime.utils.metamodelcore import Bool, XSDDateTime
 
 metamodel_version = "1.7.0"
-version = "0.0.12"
+version = "0.0.0"
 
 # Namespaces
 ASTRA = CurieNamespace('astra', 'https://w3id.org/astra/')
@@ -150,6 +150,7 @@ class KeyValuePair(YAMLRoot):
 @dataclass(repr=False)
 class Resources(YAMLRoot):
     """
+    DEPRECATED — declare resources in the workflow definition instead.
     Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized
     quantities) so cluster executors can consume them directly.
     """
@@ -188,6 +189,7 @@ class Resources(YAMLRoot):
 @dataclass(repr=False)
 class Recipe(YAMLRoot):
     """
+    DEPRECATED — declare a `workflow_engine` on the analysis and a `workflow_target` on each output instead.
     A build rule that produces an output. A recipe is pure *how*: a `command` to invoke and the execution context
     (`resources`, `container`).
     Recipes do not declare what the output depends on. Provenance — upstream inputs, decision-driven parameterization,
@@ -311,6 +313,7 @@ class Output(YAMLRoot):
     description: Optional[str] = None
     inputs: Optional[Union[str, list[str]]] = empty_list()
     decisions: Optional[Union[str, list[str]]] = empty_list()
+    workflow_target: Optional[str] = None
     recipe: Optional[Union[dict, Recipe]] = None
 
     def __post_init__(self, *_: str, **kwargs: Any):
@@ -342,6 +345,9 @@ class Output(YAMLRoot):
         if not isinstance(self.decisions, list):
             self.decisions = [self.decisions] if self.decisions is not None else []
         self.decisions = [v if isinstance(v, str) else str(v) for v in self.decisions]
+
+        if self.workflow_target is not None and not isinstance(self.workflow_target, str):
+            self.workflow_target = str(self.workflow_target)
 
         if self.recipe is not None and not isinstance(self.recipe, Recipe):
             self.recipe = Recipe(**as_dict(self.recipe))
@@ -488,6 +494,7 @@ class Analysis(YAMLRoot):
     decisions: Optional[Union[dict[Union[str, DecisionId], Union[dict, Decision]], list[Union[dict, Decision]]]] = empty_dict()
     prior_insights: Optional[Union[dict[Union[str, InsightId], Union[dict, "Insight"]], list[Union[dict, "Insight"]]]] = empty_dict()
     findings: Optional[Union[dict[Union[str, InsightId], Union[dict, "Insight"]], list[Union[dict, "Insight"]]]] = empty_dict()
+    workflow_engine: Optional[Union[str, "WorkflowEngine"]] = None
     container: Optional[str] = None
     path: Optional[str] = None
     analyses: Optional[Union[dict[Union[str, AnalysisId], Union[dict, "Analysis"]], list[Union[dict, "Analysis"]]]] = empty_dict()
@@ -520,6 +527,9 @@ class Analysis(YAMLRoot):
         self._normalize_inlined_as_dict(slot_name="prior_insights", slot_type=Insight, key_name="id", keyed=True)
 
         self._normalize_inlined_as_dict(slot_name="findings", slot_type=Insight, key_name="id", keyed=True)
+
+        if self.workflow_engine is not None and not isinstance(self.workflow_engine, WorkflowEngine):
+            self.workflow_engine = WorkflowEngine(self.workflow_engine)
 
         if self.container is not None and not isinstance(self.container, str):
             self.container = str(self.container)
@@ -860,6 +870,53 @@ class OutputType(EnumDefinitionImpl):
         description="Type of analysis output",
     )
 
+class WorkflowEngine(EnumDefinitionImpl):
+    """
+    Workflow engine responsible for building an analysis's outputs.
+    ASTRA names the engine but does not restate its workflow definition. A reader — human or agent — resolves an
+    output's `workflow_target` by reading the engine's own file (`Snakefile`, `dvc.yaml`, `calkit.yaml`, `Makefile`,
+    …), which is where the command, the software environment, and the resource request are declared.
+    Only engines that track output staleness belong here: an engine must be able to decide, from declared
+    dependencies, whether an existing artifact still reflects its inputs. A bare command runner or task launcher
+    (`just`, `make`-as-alias-book, a shell script) does not qualify.
+    Values are listed alphabetically; the ordering carries no recommendation.
+    """
+    calkit = PermissibleValue(
+        text="calkit",
+        description="Calkit — DVC-backed project pipelines (`calkit.yaml`).")
+    cwl = PermissibleValue(
+        text="cwl",
+        description="Common Workflow Language, run by cwltool, Toil, or similar.")
+    dvc = PermissibleValue(
+        text="dvc",
+        description="DVC — data version control with a `dvc.yaml` pipeline.")
+    make = PermissibleValue(
+        text="make",
+        description="""Make — timestamp-based build tool (`Makefile`). Reproducible only insofar as the Makefile pins its environment.""")
+    nextflow = PermissibleValue(
+        text="nextflow",
+        description="Nextflow — dataflow engine for portable pipelines.")
+    snakemake = PermissibleValue(
+        text="snakemake",
+        description="Snakemake — Python-based rule engine (`Snakefile`).")
+    targets = PermissibleValue(
+        text="targets",
+        description="The R `targets` package — content-addressed R pipelines.")
+    wdl = PermissibleValue(
+        text="wdl",
+        description="Workflow Description Language, run by Cromwell, miniwdl, or similar.")
+    other = PermissibleValue(
+        text="other",
+        description="""An engine outside this vocabulary. Use sparingly, and name it in the analysis `description` so readers can find its workflow definition. Open an issue to have a widely-used engine added to the vocabulary.""")
+
+    _defn = EnumDefinition(
+        name="WorkflowEngine",
+        description="""Workflow engine responsible for building an analysis's outputs.
+ASTRA names the engine but does not restate its workflow definition. A reader — human or agent — resolves an output's `workflow_target` by reading the engine's own file (`Snakefile`, `dvc.yaml`, `calkit.yaml`, `Makefile`, …), which is where the command, the software environment, and the resource request are declared.
+Only engines that track output staleness belong here: an engine must be able to decide, from declared dependencies, whether an existing artifact still reflects its inputs. A bare command runner or task launcher (`just`, `make`-as-alias-book, a shell script) does not qualify.
+Values are listed alphabetically; the ordering carries no recommendation.""",
+    )
+
 # Slots
 class slots:
     pass
@@ -944,6 +1001,9 @@ slots.output__inputs = Slot(uri=ASTRA.inputs, name="output__inputs", curie=ASTRA
 slots.output__decisions = Slot(uri=ASTRA.decisions, name="output__decisions", curie=ASTRA.curie('decisions'),
                    model_uri=ASTRA.output__decisions, domain=None, range=Optional[Union[str, list[str]]])
 
+slots.output__workflow_target = Slot(uri=ASTRA.workflow_target, name="output__workflow_target", curie=ASTRA.curie('workflow_target'),
+                   model_uri=ASTRA.output__workflow_target, domain=None, range=Optional[str])
+
 slots.output__recipe = Slot(uri=ASTRA.recipe, name="output__recipe", curie=ASTRA.curie('recipe'),
                    model_uri=ASTRA.output__recipe, domain=None, range=Optional[Union[dict, Recipe]])
 
@@ -1022,6 +1082,9 @@ slots.analysis__prior_insights = Slot(uri=ASTRA.prior_insights, name="analysis__
 
 slots.analysis__findings = Slot(uri=ASTRA.findings, name="analysis__findings", curie=ASTRA.curie('findings'),
                    model_uri=ASTRA.analysis__findings, domain=None, range=Optional[Union[dict[Union[str, InsightId], Union[dict, Insight]], list[Union[dict, Insight]]]])
+
+slots.analysis__workflow_engine = Slot(uri=ASTRA.workflow_engine, name="analysis__workflow_engine", curie=ASTRA.curie('workflow_engine'),
+                   model_uri=ASTRA.analysis__workflow_engine, domain=None, range=Optional[Union[str, "WorkflowEngine"]])
 
 slots.analysis__container = Slot(uri=ASTRA.container, name="analysis__container", curie=ASTRA.curie('container'),
                    model_uri=ASTRA.analysis__container, domain=None, range=Optional[str])
