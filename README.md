@@ -14,7 +14,7 @@
 
 ## What is ASTRA?
 
-ASTRA is a structured format that captures every consequential choice in a scientific analysis — its inputs, outputs, decisions, and the evidence behind them — so the result is **reproducible**, **auditable**, and **composable**. An agent, a workflow runner, a notebook, or a human reads the spec and produces the results; ASTRA itself stays out of execution.
+ASTRA is a structured format that captures every consequential choice in a scientific analysis — its inputs, outputs, decisions, and the evidence behind them — so the result is **reproducible**, **auditable**, and **composable**. ASTRA itself stays out of execution: an analysis names a `workflow_engine` (Snakemake, DVC, Calkit, Nextflow, Make, …) and each output names the `workflow_target` within it, so the engine that already knows how to pin an environment and track staleness is the one that builds the artifacts.
 
 For the longer argument that motivates the project — per-result trust in the agentic-AI era and why an open substrate matters — see the [Lightcone Research position paper](https://github.com/LightconeResearch/astra-paper).
 
@@ -24,6 +24,7 @@ For the longer argument that motivates the project — per-result trust in the a
 # astra.yaml
 version: "1.0"
 name: Iris Classification
+workflow_engine: snakemake
 
 inputs:
   - id: iris_data
@@ -34,8 +35,7 @@ outputs:
   - id: accuracy
     type: metric
     decisions: [scaling, model]
-    recipe:
-      command: python src/evaluate.py
+    workflow_target: evaluate
 
 decisions:
   scaling:

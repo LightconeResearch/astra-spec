@@ -69,7 +69,7 @@ astra validate universes/foo.yaml -a astra.yaml # universe with explicit analysi
 Validation runs in stages:
 
 1. **Schema validation** — structure, types, required fields, format patterns (Pydantic models generated from the LinkML schema).
-2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions, constraints respected, etc.
+2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve, every `workflow_target` has a `workflow_engine` in scope, deprecated recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions, constraints respected, etc.
 
 ### Evidence verification
 

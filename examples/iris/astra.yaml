@@ -12,6 +12,11 @@ tags:
   - sklearn
   - example
 
+# Outputs are built by a workflow engine, not by bare commands. Rule
+# definitions — command, environment, dependencies — live in the
+# Snakefile, which is also what decides when an output has gone stale.
+workflow_engine: snakemake
+
 inputs:
   - id: iris_data
     type: data
@@ -28,47 +33,41 @@ outputs:
     type: data
     description: Best performing classifier
     decisions: [scaling, model, test_size, random_seed]
-    recipe:
-      command: python src/train.py
+    workflow_target: train
 
   - id: accuracy
     type: metric
     description: Classification accuracy on held-out test set
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
-    recipe:
-      command: python src/evaluate.py
+    workflow_target: evaluate
 
   - id: f1_score
     type: metric
     description: Macro-averaged F1 score
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
-    recipe:
-      command: python src/evaluate.py
+    workflow_target: evaluate
 
   - id: confusion_matrix
     type: figure
     description: Confusion matrix heatmap
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
-    recipe:
-      command: python src/evaluate.py
+    workflow_target: evaluate
 
   - id: model_comparison
     type: table
     description: Accuracy by model and preprocessing combination
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
-    recipe:
-      command: python src/evaluate.py
+    workflow_target: evaluate
 
   - id: conclusion
     type: report
     description: Summary of classifier performance and suitability for the application
     inputs: [trained_output]
-    recipe:
-      command: python src/evaluate.py
+    workflow_target: evaluate
 
 decisions:
   scaling:

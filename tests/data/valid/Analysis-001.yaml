@@ -1,3 +1,9 @@
+# Valid: exercises the deprecated execution path deliberately, as
+# back-compatibility coverage — `recipe.command`, `recipe.container`,
+# `recipe.resources`, and the node-level `Analysis.container`. All of
+# these are implementation and now belong to the workflow engine. New
+# analyses declare `workflow_engine` + `workflow_target` instead — see
+# Analysis-002-workflow-engine.yaml.
 id: photoz_pipeline
 version: "0.1.0"
 name: Photometric Redshift Pipeline

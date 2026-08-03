@@ -14,6 +14,10 @@ tags:
   - sklearn
   - example
 
+# Declared once at the root and inherited by both sub-analyses: every
+# workflow_target below resolves against the same Snakefile.
+workflow_engine: snakemake
+
 inputs:
   - id: iris_data
     type: data
@@ -30,8 +34,7 @@ outputs:
   - id: pipeline_summary
     type: report
     description: End-to-end comparison of feature extraction methods
-    recipe:
-      command: python src/summarize.py
+    workflow_target: summarize
 
 decisions:
   test_split:
@@ -75,16 +78,14 @@ analyses:
         type: data
         description: Transformed feature matrix (n_samples x n_components)
         decisions: [method, n_components, seed]
-        recipe:
-          command: python src/extract_features.py
+        workflow_target: extract_features
 
       - id: feature_plot
         type: figure
         description: Scatter plot of extracted features
         inputs: [features]
         decisions: [method, n_components]
-        recipe:
-          command: python src/plot_features.py
+        workflow_target: plot_features
 
     decisions:
       seed:
@@ -134,16 +135,14 @@ analyses:
         type: data
         description: Predicted class labels for the test set
         decisions: [classifier, split]
-        recipe:
-          command: python src/classify.py
+        workflow_target: classify
 
       - id: accuracy
         type: metric
         description: Classification accuracy on held-out test set
         inputs: [predictions]
         decisions: [classifier, split]
-        recipe:
-          command: python src/evaluate.py
+        workflow_target: evaluate
 
     decisions:
       split:

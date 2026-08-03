@@ -1,0 +1,18 @@
+# Invalid: 'workflow_engine' is outside the controlled vocabulary.
+# The vocabulary is deliberately closed to engines that track output
+# staleness. An engine that is genuinely absent from the list is
+# declared as 'other' (and named in the description) rather than
+# invented inline.
+id: bad_unknown_engine
+name: Analysis names an engine outside the vocabulary
+workflow_engine: run_my_scripts_dot_sh
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    type: metric
+    inputs:
+      - data
+    workflow_target: evaluate
