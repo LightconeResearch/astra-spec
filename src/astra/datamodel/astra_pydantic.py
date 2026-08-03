@@ -485,7 +485,7 @@ class Output(ConfiguredBaseModel):
       from: child.out_id           -- own child sub's output
       from: child.grandchild.out_id -- descend into nested children
 
-    A re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/recipe are inherited.
+    A re-exported Output is a pure pointer: only `id`, `from`, and `when` are allowed; type/description/target/recipe are inherited.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/analysis',
          'rules': [{'postconditions': {'slot_conditions': {'type': {'name': 'type',
@@ -503,6 +503,11 @@ class Output(ConfiguredBaseModel):
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
                                                                    'value_presence': 'PRESENT'}}},
                     'title': 'from_alias_forbids_description'},
+                   {'postconditions': {'slot_conditions': {'target': {'name': 'target',
+                                                                      'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_target'},
                    {'postconditions': {'slot_conditions': {'inputs': {'name': 'inputs',
                                                                       'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
@@ -548,6 +553,7 @@ class Output(ConfiguredBaseModel):
     label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: Optional[OutputType] = Field(default=None, description="""Type of output. Required when `from` is unset; forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
     description: Optional[str] = Field(default=None, description="""Free-prose description of this output.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
+    target: Optional[str] = Field(default=None, description="""URI or path where this output is materialized. A relative path is resolved from the directory containing this analysis's `astra.yaml` and must remain within the workspace. A URI denotes a non-workspace destination. Re-exported outputs inherit the target from their source and cannot override it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output']} })
     inputs: Optional[list[str]] = Field(default=None, description="""IDs of upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
 References use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
     decisions: Optional[list[str]] = Field(default=None, description="""Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.

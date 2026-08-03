@@ -33,6 +33,7 @@ inputs:
 outputs:
   - id: accuracy
     type: metric
+    target: outputs/accuracy.json
     decisions: [scaling, model]
     recipe:
       command: python src/evaluate.py

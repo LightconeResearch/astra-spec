@@ -40,6 +40,7 @@ inputs:
 outputs:
   - id: fit_params
     type: table
+    target: outputs/fit_params.csv
     description: Slope, intercept, and scatter for the period-luminosity relation.
     inputs: [catalog_data]
     decisions: [fit_method]
@@ -98,6 +99,7 @@ An input is something the analysis consumes. It can be a dataset, a file, an ext
 outputs:
   - id: fit_params
     type: table
+    target: outputs/fit_params.csv
     description: Slope, intercept, and scatter for the period-luminosity relation.
     inputs: [catalog_data]
     decisions: [fit_method]
@@ -109,7 +111,7 @@ outputs:
         --out {output}
 ```
 
-An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `recipe` gives the Python command the runner invokes.
+An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. The optional `target` maps that logical artifact to the path or URI where it is materialized. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `recipe` gives the Python command the runner invokes.
 
 The recipe is not allowed to invent hidden dependencies, which makes the output a reviewable unit.
 
@@ -439,6 +441,7 @@ An output is an artifact produced locally or re-exported from a child sub-analys
 | `label` | `string` | No | Short display name. |
 | `type` | `metric`, `figure`, `table`, `data`, or `report` | Yes when `from` is absent | Artifact kind. |
 | `description` | `string` | No | What the output represents. |
+| `target` | `string` | No | URI or path where the output is materialized. |
 | `from` | `string` | No | Path alias to a child output. |
 | `when` | `string[]` | No | Conditions under which the output is active. |
 | `inputs` | `string[]` | No | Local input or sibling output IDs this output depends on. |
@@ -455,7 +458,9 @@ Output types:
 | `data` | A processed dataset, catalog, calibration table, or intermediate artifact. |
 | `report` | Textual or document output. |
 
-When `from` is present, the output is a pure re-export. Only `id`, `from`, and `when` may be declared locally.
+`target` complements `Input.source`: an input's source says where it is obtained, while an output's target says where it is materialized. A relative target is resolved from the directory containing the output's `astra.yaml` and must remain inside the workspace. A URI denotes a non-workspace destination. The target belongs to the output rather than its recipe because it identifies the artifact's materialization; the recipe remains purely how the artifact is produced.
+
+When `from` is present, the output is a pure re-export. Only `id`, `from`, and `when` may be declared locally. Its target, like its other content fields, is inherited from the source output and cannot be overridden.
 
 ### Recipe
 
@@ -673,7 +678,7 @@ Legal directions:
 | `Output.from` | `child.out_id`, `child.sub.out_id` | Re-export a child output. |
 | `Decision.from` | `../id`, `../../id` | Inherit an ancestor decision. |
 
-`from` is the only primitive for crossing analysis scopes. Recipe templates, `Output.inputs`, and `Output.decisions` continue to use local IDs in their surrounding scope. When `from` is set, the node is a pure alias: only `id`, `from`, and, where applicable, `when` may be declared locally. Content fields such as `type`, `description`, `label`, `source`, `options`, `default`, and `recipe` are inherited from the source.
+`from` is the only primitive for crossing analysis scopes. Recipe templates, `Output.inputs`, and `Output.decisions` continue to use local IDs in their surrounding scope. When `from` is set, the node is a pure alias: only `id`, `from`, and, where applicable, `when` may be declared locally. Content fields such as `type`, `description`, `label`, `source`, `target`, `options`, `default`, and `recipe` are inherited from the source.
 
 Inputs and outputs can reach into subordinate scopes for artifacts, which can flow upward by re-export or laterally between sibling sub-analyses. Decisions only flow downward from ancestors into descendants. To share a decision between siblings, declare it on their common ancestor and alias it with `from` inside each child.
 

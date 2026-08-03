@@ -42,6 +42,7 @@ inputs:
 outputs:
   - id: fit_params
     type: table
+    target: outputs/fit_params.csv
     description: Slope, intercept, and scatter for the fitted relation.
     inputs: [catalog_data]
     decisions: [fit_method]
