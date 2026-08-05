@@ -219,9 +219,20 @@ qualifying it is an error.
 
 | Reference | Meaning |
 |---|---|
-| `artifact` | Unchanged: the artifact in the *consumer's own* universe. |
-| `artifact@<universe_id>` | The artifact materialized under one declared universe — a **pin**. |
+| `artifact` | Unchanged: the artifact realized under the *same universe as the consumer* (late-bound; see below). |
+| `artifact@<universe_id>` | The artifact realized under one declared universe — a **pin**. |
 | `artifact@<multiverse_id>` | The artifact under *each* universe in the set — a **fan-out**, resolving to a collection. |
+
+**Evaluation model.** No output ever names its own universe — the document
+stays generic, exactly as today. A universe-scoped output denotes a *family*
+of realizations indexed by universe; the index is bound at run time by
+whatever demands the artifact (a runner materializing a chosen universe, or a
+pin/fan-out demanding specific members). A plain reference is a *bound
+variable*: "whatever universe this realization is being built under, consume
+the upstream artifact under the same one." A qualifier replaces that bound
+variable with a constant (pin) or quantifies it over a set (fan-out). A
+universe-invariant output has no index to bind, which is exactly why all of
+its references must be qualified or universe-invariant themselves.
 
 Semantics:
 
