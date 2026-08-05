@@ -4,6 +4,8 @@ title: Multiverse analyses — in-file universes and cross-universe artifact ref
 status: Draft # Draft | Active | Accepted | Rejected | Superseded
 authors:
   - Francois Lanusse (@eiffl)
+  - Anthony Ozerov (@anthonyozerov)
+  - Jacopo Teneggi (@JacopoTeneggi)
 created: 2026-07-30
 tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/52
 superseded-by:
@@ -59,12 +61,15 @@ editors; it plays no role in universe construction.)
 and `Universe` gains one construction rule:
 
 - **Universes may be declared as diffs.** `Universe.decisions` may be
-  **partial** when a new optional **`from`** slot — the same inheritance idiom
-  `Input`/`Output` already use — names another declared universe: unspecified
-  decisions inherit their selection from that base. Without `from`, `decisions`
-  must be complete, exactly as today. `from` chains resolve transitively;
-  cycles are invalid. `from` expresses a *relationship between two declared
-  universes*, chosen by the author — it does not anoint the base as special.
+  **partial** when a new optional **`base`** slot names another declared
+  universe: unspecified decisions inherit their selection from the base.
+  Without `base`, `decisions` must be complete, exactly as today. `base` chains
+  resolve transitively; cycles are invalid. `base` expresses a *relationship
+  between two declared universes*, chosen by the author — it does not anoint
+  the base as special. (The existing `from` idiom is deliberately *not* reused:
+  on `Input`/`Output`, `from` is a pure re-export alias that forbids local
+  overrides, whereas `base` is inherit-*and*-override — a different operation
+  deserving a different word.)
 
 ```yaml
 universes:
@@ -77,12 +82,12 @@ universes:
       random_seed: seed_42
 
   - id: svm_standard
-    from: rf_standard       # same specification, one decision changed
+    base: rf_standard       # same specification, one decision changed
     decisions:
       model: svm
 
   - id: svm_large_test
-    from: svm_standard      # diffs chain
+    base: svm_standard      # diffs chain
     decisions:
       test_size: large
 ```
@@ -100,12 +105,12 @@ unchanged.
 |---|---|---:|---|
 | `id` | `string` | Yes | Universe identifier. |
 | `description` | `string` | No | Human-readable explanation. |
-| `from` | `string` | No | Declared universe whose effective selection is inherited. |
-| `decisions` | map of `decision_id: option_id` | No | Overrides relative to `from`; must be complete when `from` is absent. |
+| `base` | `string` | No | Declared universe whose effective selection is inherited. |
+| `decisions` | map of `decision_id: option_id` | No | Overrides relative to `base`; must be complete when `base` is absent. |
 | `analyses` | map of `UniverseNode` | No | Nested selections mirroring sub-analyses; inheritance applies recursively. |
 
-Only in-file universes are addressable: `from`, `base`, multiverse
-enumerations, and `@` scopes resolve against the document's `universes` (plus
+Only in-file universes are addressable: `base` (on universes and on multiverse
+generators), enumerations, and `@` scopes resolve against the document's `universes` (plus
 derived grid-point ids, below) — never against `universes/` directory files,
 which remain valid for runner-selected configurations (see *Migration*). In-file
 universes also join the RFC-0002 tree-path addressing.
@@ -155,6 +160,12 @@ multiverses:
 
 Exactly one of `universes` or `vary` must be present; `base` accompanies `vary`
 and is required unless `vary` covers every decision in scope.
+
+`base` here is the *same* diff mechanism a `Universe` uses, and `vary` is
+`decisions` generalized from single options to option sets: a generator is
+exactly the set of diff-universes `{base: <base>, decisions: <point>}` for
+every valid point of the swept product. One construction, scalar or
+set-valued.
 
 **Identity of generated universes.** A generated member is identified by its
 *effective selection* — the grid point itself, not the multiverse that produced
@@ -350,7 +361,7 @@ universes:
 
   - id: svm_standard
     description: Same specification with the model switched to SVM.
-    from: rf_standard
+    base: rf_standard
     decisions:
       model: svm
 
@@ -372,7 +383,7 @@ multiverses:
   qualifier; clarify in the `Decision.default` doc-string that the default is a
   presentational/scaffolding hint with no role in universe construction (its
   current "for baseline universes" wording suggests otherwise).
-- `src/astra/schema/universe.yaml`: add the `from` slot to `Universe` and
+- `src/astra/schema/universe.yaml`: add the `base` slot to `Universe` and
   document `decisions` as overrides relative to the base; add a `Multiverse`
   class (`id`, `description`, `universes`, `base`, `vary`) with a rule making
   `universes` and `vary` mutually exclusive. Revisit the
@@ -392,8 +403,8 @@ multiverses:
 - `astra validate` gains checks: universe and multiverse ids are unique in
   their shared namespace, and no declared id spells the derived id of a
   different selection; every `@` target resolves (declared or derived
-  universe, or multiverse) and qualifies a reference to an Output; `from`
-  chains resolve and are acyclic; a universe without `from` selects an option
+  universe, or multiverse) and qualifies a reference to an Output; `base`
+  chains resolve and are acyclic; a universe without `base` selects an option
   for every *active* decision; effective selections select valid options and
   honor `requires` / `incompatible_with`; `vary` names existing decisions and
   options, `base` is present whenever `vary` is partial, and a generator with
@@ -456,10 +467,10 @@ the draft PR resolves them.
   framework (Yu & Kumbier 2020) — every defensible universe has equal standing,
   and a spec-blessed default invites treating one path as *the* analysis with
   the rest as robustness garnish. Consequently: no reserved universe ids;
-  partial universes require an explicit `from`; generators require an explicit
+  partial universes require an explicit `base`; generators require an explicit
   `base` when `vary` is partial; `Decision.default` stays a presentational
   hint. Recorded so the convenience argument is not silently re-litigated.
-- **Are diffs too implicit? — open.** With `from:` chains, a universe's full
+- **Are diffs too implicit? — open.** With `base` chains, a universe's full
   selection is no longer visible at its declaration site. The record arguably
   *improves* — the relationship between specifications is the datum a stability
   comparison rests on — but tooling should make the effective selection one
