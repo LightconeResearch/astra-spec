@@ -42,8 +42,8 @@ In plain language: **universes become addressable elements of the analysis
 document, declared in full or as diffs of one another; sets of universes get
 names and constructors; and an output's inputs may reference an artifact *at*
 a universe or *across* a set of universes.** A plain reference keeps today's
-meaning — same universe as the consumer — so existing analyses are untouched.
-The proposal has three parts.
+meaning — same universe as the consumer — so existing references read
+unchanged. The proposal has three parts.
 
 One design principle runs through all three: **no universe is privileged by the
 spec.** The premise of multiverse analysis — and of the stability principle in
@@ -96,13 +96,8 @@ A universe's **effective selection** is its base's effective selection with the
 local `decisions` applied on top. The diff form is not just brevity — it is
 record quality: it states *how two specifications relate*, which is exactly the
 datum a stability comparison rests on. A universe that spells out every
-decision remains valid; the body of an existing `universes/` file is already a
-valid entry, so migration is a move, not a rewrite.
-
-The spec deliberately privileges no universe (see the design principle above),
-but nothing stops a *convention*: authors who want a reference configuration
-can simply name a declared universe `baseline` — the name is theirs, not the
-spec's.
+decision remains valid. Nothing stops the *convention* of naming a reference
+configuration `baseline` — the name carries no spec meaning.
 
 `Universe` fields after this change:
 
@@ -117,7 +112,8 @@ spec's.
 **The `universes/` directory is removed.** `astra.yaml` becomes the single
 source of truth: keeping the directory as an alternative would demand
 precedence rules and invite silent divergence, and external files remain
-invisible to the reference grammar (see *Migration*; this is breaking).
+invisible to the reference grammar (breaking — see *Implementation
+implications & migration*).
 
 Because `Analysis` is self-similar, `universes` (and `multiverses`, below) may
 be declared on any analysis node, and their ids are **unique across the whole
@@ -189,7 +185,7 @@ multiverses:
       random_seed: "*"
 
   - id: combined_robustness
-    description: Named configurations plus the scaling sweep.
+    description: Model comparison, declared sensitivity universes, and the scaling sweep.
     universes: [model_stability, "^sensitivity_.*$"]   # multiverse + regex
     base: rf_standard
     decisions:
@@ -215,10 +211,8 @@ the selection, not to any name. Generated universes are deliberately
 addressable. To pin or enumerate a specific grid point, *declare* it — with
 `base` that is a three-line diff — which also puts a name and a description in
 the record. How runners spell per-universe storage paths is a tooling
-convention, not spec surface: an option-id join (the prototype's
-`f5-nmo3-r2-ecl2-ec1`) reads well for narrow spaces, a digest of the canonical
-selection stays bounded for wide ones; either is faithful because identity
-rests on the selection.
+convention, not spec surface — identity rests on the selection (see
+*Questions* for the record).
 
 Three resolution rules keep this well-defined:
 
@@ -259,15 +253,14 @@ input-reference ::= artifact-id [ "#" selector-id ]
 selector-id     ::= universe-id | multiverse-id     ; declared ids only
 ```
 
-The sigil is `#`, not `@`, following ecosystem convention: `#` selects a
-fragment or view *within* a resource (URL fragments, CSS `#id`), while `@`
-conventionally pins a *revision* (`actions/checkout@v4`, `pkg@1.2.3`) — and
-`@` is deliberately left free for a future sources RFC to address external
-analyses at repository revisions, so the two axes compose
-(`…output@rev#universe`). One YAML caveat: `#` mid-token is literal
-(`score#full_grid` needs no quotes), but a stray space turns the selector into
-a comment and the reference into a valid plain `score` — validators should
-flag an input whose line-comment looks like a selector.
+The sigil is `#`, not `@`: `#` conventionally selects a view *within* a
+resource, while `@` pins a *revision* and is left free for a future sources
+RFC to address external analyses, so the two axes compose
+(`…output@rev#universe`; rationale recorded in *Questions*). One YAML caveat:
+`#` mid-token is literal (`score#full_grid` needs no quotes), but a stray
+space turns the selector into a comment and the reference into a valid plain
+`score` — validators should flag an input whose line-comment looks like a
+selector.
 
 `artifact-id` keeps its existing grammar (an Input or sibling Output id,
 resolving through `from:` chains, with `.` as the hierarchy separator
@@ -433,29 +426,6 @@ multiverses:
 
 ## Implementation implications & migration
 
-**Schema (`src/astra/schema/`):** `analysis.yaml` gains inlined `universes`
-and `multiverses` slots on `Analysis` (available at every node by
-self-similarity) and the `#selector` extension to the `Output.inputs`
-reference grammar; `Decision.default`'s doc-string is corrected to a
-presentational hint. `universe.yaml` gains `Universe.base`, the `Multiverse`
-class (`id`, `description`, `universes` selectors, `base`, `decisions` option
-selectors), and an updated `UniverseNode.universe` that points at in-file
-universes. Regenerate with `just gen-python` / `just gen-doc`; the published
-JSON Schema propagates to both SDKs; docs (`specification.md` *Universes*
-section, `elements/`, examples, README) update alongside per the repo's
-schema-change ritual.
-
-**Validation (`astra-tools`):** ids unique in the tree-wide shared namespace;
-`base` chains and multiverse membership acyclic; a universe without `base` is
-complete over active decisions; effective selections honor `requires` /
-`incompatible_with`; regex members are valid full-match patterns over declared
-universe ids; every multiverse expands to at least one universe; `#` selectors
-resolve and qualify Output references; a pin targets an output active in that
-universe; universe-invariant recipes use no `{decisions.<id>}` placeholders;
-lint for the YAML `#`-comment footgun. Runner scheduling, cache keys, and
-collection serialization are implementation concerns outside this RFC
-(identity keys on effective selections).
-
 **Compatibility:** this is a **breaking** change — a major bump under the
 versioning policy. Universe declarations move into `astra.yaml` and the
 `universes/` directory is dropped as a supported location; migration is
@@ -517,13 +487,6 @@ the draft PR resolves them.
   `@` stays free for a future sources RFC addressing external analyses at
   repository revisions, so the axes compose. Cost accepted: the YAML
   stray-space comment footgun, mitigated by a validator lint.
-- **Change the hierarchy separator from `.` to `:`? — rejected.** The
-  alternative draft proposes colon-delimited artifact paths to reserve `.`
-  for a future artifact-regex RFC. Rejected here: RFC-0002's accepted
-  tree-path addressing already uses `.`, and breaking every existing
-  hierarchical reference for a hypothetical future grammar is cost without
-  present benefit — a future RFC can choose regex delimiters that coexist
-  with `.` paths.
 
 ## References
 
@@ -546,11 +509,6 @@ the draft PR resolves them.
   (Anthony Ozerov) — the working prototype this RFC is grounded in; see also
   [`astra-multiverse-example-steegen-2`](https://github.com/anthonyozerov/astra-multiverse-example-steegen-2),
   the cross-version specification-search demonstration.
-- [Alternative draft](https://github.com/LightconeResearch/astra-spec/issues/52#issuecomment-5145724722)
-  on the tracking issue — source of the `#` selector, regex membership,
-  nested multiverses, union membership, and the tree-wide namespace adopted
-  here; diverges on defaults completion and the `:` separator (see
-  *Questions*).
 - Tracking issue: [#52](https://github.com/LightconeResearch/astra-spec/issues/52).
 - [RFC-0002](0002-decouple-reports.md) — establishes element addressing, which
   in-file universes and multiverses join as addressable elements.
