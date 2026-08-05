@@ -1,7 +1,7 @@
 ---
 rfc: 0003
 title: Multiverse analyses — in-file universes and cross-universe artifact references
-status: Draft # Draft | Active | Accepted | Rejected | Superseded
+status: Active # Draft | Active | Accepted | Rejected | Superseded
 authors:
   - Francois Lanusse (@eiffl)
   - Anthony Ozerov (@anthonyozerov)
