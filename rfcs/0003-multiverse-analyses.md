@@ -110,10 +110,10 @@ unchanged.
 | `analyses` | map of `UniverseNode` | No | Nested selections mirroring sub-analyses; inheritance applies recursively. |
 
 Only in-file universes are addressable: `base` (on universes and on multiverse
-generators), enumerations, and `@` scopes resolve against the document's `universes` (plus
-derived grid-point ids, below) — never against `universes/` directory files,
-which remain valid for runner-selected configurations (see *Migration*). In-file
-universes also join the RFC-0002 tree-path addressing.
+generators), enumerations, and `@` scopes resolve against the document's
+`universes` — never against `universes/` directory files, which remain valid
+for runner-selected configurations (see *Migration*). In-file universes also
+join the RFC-0002 tree-path addressing.
 
 ### 2. Add `multiverses` — named sets of universes, enumerated or generated
 
@@ -122,8 +122,7 @@ of universes so cross-universe steps can reference the set by a stable id and
 readers can see, in one place, which decision space a summary quantifies over.
 Membership takes one of three forms:
 
-- **(a) Enumeration** — `universes:` lists universe ids (declared, or derived
-  grid-point ids).
+- **(a) Enumeration** — `universes:` lists declared universe ids.
 - **(b) Generator** — `vary:` maps each swept decision to `"*"` (all of its
   options) or to an explicit option list; the members are the Cartesian product
   of the swept option sets. Any decision *not* listed in `vary` is held at
@@ -161,21 +160,19 @@ multiverses:
 Exactly one of `universes` or `vary` must be present; `base` accompanies `vary`
 and is required unless `vary` covers every decision in scope.
 
-`base` here is the *same* diff mechanism a `Universe` uses, and `vary` is
-`decisions` generalized from single options to option sets: a generator is
-exactly the set of diff-universes `{base: <base>, decisions: <point>}` for
-every valid point of the swept product. One construction, scalar or
-set-valued.
-
 **Identity of generated universes.** A generated member is identified by its
 *effective selection* — the grid point itself, not the multiverse that produced
-it. Its **derived id** joins the selected option ids in decision-declaration
-order with hyphens (e.g. `f5-nmo3-r2-ecl2-ec1`; option ids are snake_case and
-may not contain hyphens, so the derivation is unambiguous and reversible). The
-same point reached through different multiverses — or coinciding with a
-declared universe — is *one* universe: realizations and cache keys attach to
-the selection, not to the name. Derived ids are valid pin targets
-(`f1_score@none-svm-small-seed_42`), though declared names read better.
+it. The same point reached through different multiverses — or coinciding with
+a declared universe — is *one* universe: realizations and cache keys attach to
+the selection, not to any name. Generated universes are deliberately
+**anonymous**: they carry no spec-defined id and are not individually
+addressable. To pin or enumerate a specific grid point, *declare* it — with
+`base` that is a three-line diff — which also puts a name and a description in
+the record. How runners spell per-universe storage paths is a tooling
+convention, not spec surface: an option-id join (the prototype's
+`f5-nmo3-r2-ecl2-ec1`) reads well for narrow spaces, a digest of the canonical
+selection stays bounded for wide ones; either is faithful because identity
+rests on the selection.
 
 Three resolution rules keep this well-defined:
 
@@ -185,14 +182,11 @@ Three resolution rules keep this well-defined:
 - **The decision space is a tree, not a grid.** A `when` condition can
   deactivate a decision under some selections; enumeration recurses over
   *active* decisions only, and an inactive decision is omitted from the
-  effective selection and the derived id. Points that differ only in inactive
-  decisions are the same universe.
-- **One namespace, no ambiguity.** Universe and multiverse ids share a
-  namespace, so a `scope-id` resolves without guessing; a collision between
-  them is invalid. A declared universe id that spells the derived id of a
-  *different* selection is likewise invalid (checkable: parse the id as an
-  option join and compare) — a declared id may only coincide with the derived
-  id of its own selection, where the two readings agree.
+  effective selection. Points that differ only in inactive decisions are the
+  same universe.
+- **One namespace, no ambiguity.** Declared universe and multiverse ids share
+  a namespace, so a `scope-id` resolves without guessing; a collision between
+  them is invalid.
 
 `Multiverse` fields:
 
@@ -200,7 +194,7 @@ Three resolution rules keep this well-defined:
 |---|---|---:|---|
 | `id` | `string` | Yes | Multiverse identifier. |
 | `description` | `string` | No | Human-readable explanation of what the set covers. |
-| `universes` | list of universe ids, or `"*"` | One of `universes`/`vary` | Enumerated members (declared or derived ids), or the full valid decision space. |
+| `universes` | list of declared universe ids, or `"*"` | One of `universes`/`vary` | Enumerated members, or the full valid decision space. |
 | `base` | `string` | With partial `vary` | Generator form: declared universe holding the non-varied decisions. |
 | `vary` | map of `decision_id: "*"` \| option list | One of `universes`/`vary` | Generator form: swept decisions and their option sets. |
 
@@ -214,8 +208,7 @@ multiverse scope:
 
 ```
 input-reference ::= artifact-id [ "@" scope-id ]
-scope-id        ::= universe-id | multiverse-id
-universe-id     ::= declared universe id | derived grid-point id
+scope-id        ::= universe-id | multiverse-id     ; declared ids only
 ```
 
 `artifact-id` keeps its existing grammar (an Input or sibling Output id,
@@ -227,7 +220,7 @@ qualifying it is an error.
 | Reference | Meaning |
 |---|---|
 | `artifact` | Unchanged: the artifact in the *consumer's own* universe. |
-| `artifact@<universe_id>` | The artifact materialized under one specific universe — a **pin**. |
+| `artifact@<universe_id>` | The artifact materialized under one declared universe — a **pin**. |
 | `artifact@<multiverse_id>` | The artifact under *each* universe in the set — a **fan-out**, resolving to a collection. |
 
 Semantics:
@@ -401,9 +394,8 @@ multiverses:
 **`astra-tools` (Python CLI + SDK):**
 
 - `astra validate` gains checks: universe and multiverse ids are unique in
-  their shared namespace, and no declared id spells the derived id of a
-  different selection; every `@` target resolves (declared or derived
-  universe, or multiverse) and qualifies a reference to an Output; `base`
+  their shared namespace; every `@` target resolves to a declared universe or
+  multiverse and qualifies a reference to an Output; `base`
   chains resolve and are acyclic; a universe without `base` selects an option
   for every *active* decision; effective selections select valid options and
   honor `requires` / `incompatible_with`; `vary` names existing decisions and
@@ -412,9 +404,10 @@ multiverses:
   reference targets an output that is active in the pinned universe; a
   universe-invariant output's recipe uses no `{decisions.<id>}` placeholders.
 - Runner semantics: cross-universe edges change scheduling — one output can now
-  demand materialization of an upstream artifact under many universes — and the
-  derived-id scheme for `"*"` grid points must match the spec so artifact paths
-  are stable across runners.
+  demand materialization of an upstream artifact under many universes. Runners
+  key storage and caching on canonical effective selections; the path spelling
+  (option join vs. selection digest) is a runner convention, recorded in its
+  run manifest.
 
 **`astra-typescript` (`@astra-spec/sdk`):** regenerate types for the new slots
 and the `Multiverse` class; the reference grammar change surfaces wherever the
@@ -454,11 +447,17 @@ the draft PR resolves them.
   cache; the alternative — collapsing to distinct realizations — is equivalent
   to fanning out over the projection of the multiverse onto the output's
   `decisions`, and could later be expressed explicitly if needed.
-- **Derived universe ids — open.** The proposed scheme (option ids joined by
-  hyphens in decision-declaration order) is simple and collision-free, but ties
-  ids to declaration order and can get long for wide decision spaces. Is
-  declaration-order dependence acceptable, or should the id embed decision ids
-  (`fertility_assessment=f5,...`) at the cost of length?
+- **Should generated universes have addressable derived ids? — resolved: no.**
+  An earlier draft gave every grid point a spec-defined id (option ids joined
+  in decision-declaration order) usable in pins and enumerations. Rejected:
+  for a `"*"` over a wide decision space the join grows unboundedly (dozens of
+  decisions → ids of hundreds of characters, leaking into every artifact
+  path), it depends on declaration order, and making the spelling addressable
+  forced extra rules (declared-vs-derived collisions, shadowing). Instead,
+  identity attaches to the *effective selection*; generated universes are
+  anonymous; addressing a specific point means declaring it (a three-line
+  `base` diff, which also names and describes it in the record); and storage
+  spelling — join for narrow spaces, digest for wide — is a runner convention.
 - **Should decision defaults define an implicit `baseline` universe? —
   resolved: no.** An earlier draft derived an implicit, spec-reserved
   `baseline` universe from `Decision.default` and made it the default base for
