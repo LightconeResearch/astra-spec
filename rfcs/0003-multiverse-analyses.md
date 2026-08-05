@@ -223,17 +223,6 @@ qualifying it is an error.
 | `artifact@<universe_id>` | The artifact realized under one declared universe — a **pin**. |
 | `artifact@<multiverse_id>` | The artifact under *each* universe in the set — a **fan-out**, resolving to a collection. |
 
-**Evaluation model.** No output ever names its own universe — the document
-stays generic, exactly as today. A universe-scoped output denotes a *family*
-of realizations indexed by universe; the index is bound at run time by
-whatever demands the artifact (a runner materializing a chosen universe, or a
-pin/fan-out demanding specific members). A plain reference is a *bound
-variable*: "whatever universe this realization is being built under, consume
-the upstream artifact under the same one." A qualifier replaces that bound
-variable with a constant (pin) or quantifies it over a set (fan-out). A
-universe-invariant output has no index to bind, which is exactly why all of
-its references must be qualified or universe-invariant themselves.
-
 Semantics:
 
 - **Fan-outs respect activation.** `artifact@<multiverse_id>` resolves to the
@@ -377,66 +366,6 @@ multiverses:
       scaling: "*"
 ```
 
-## Implementation implications & migration
-
-**`astra-spec` (this repo) — schema, datamodel, docs:**
-
-- `src/astra/schema/analysis.yaml`: add optional `universes` and `multiverses`
-  slots to `Analysis` (the `universe` schema is already imported); extend the
-  `Output.inputs` documentation and validation pattern to admit the `@`
-  qualifier; clarify in the `Decision.default` doc-string that the default is a
-  presentational/scaffolding hint with no role in universe construction (its
-  current "for baseline universes" wording suggests otherwise).
-- `src/astra/schema/universe.yaml`: add the `base` slot to `Universe` and
-  document `decisions` as overrides relative to the base; add a `Multiverse`
-  class (`id`, `description`, `universes`, `base`, `vary`) with a rule making
-  `universes` and `vary` mutually exclusive. Revisit the
-  `UniverseNode.universe` doc-string, which currently hard-codes the
-  "sub-analysis's `universes/` directory."
-- Generated artifacts: `just gen-python`, `just gen-doc`; the published JSON
-  Schema at `astra-spec.org/<version>/schema/…` shifts, which is the propagation
-  point for both SDKs.
-- Docs: `specification.md` (the *Universes* section currently states universes
-  are "stored separately from `astra.yaml`"; add the reference grammar and a
-  *Multiverses* section), `index.md` at-a-glance example if touched, `cli.md`
-  validation rules, `README.md`, and the `examples/` projects. A Steegen-style
-  example project would exercise the full mechanism in-tree.
-
-**`astra-tools` (Python CLI + SDK):**
-
-- `astra validate` gains checks: universe and multiverse ids are unique in
-  their shared namespace; every `@` target resolves to a declared universe or
-  multiverse and qualifies a reference to an Output; `base`
-  chains resolve and are acyclic; a universe without `base` selects an option
-  for every *active* decision; effective selections select valid options and
-  honor `requires` / `incompatible_with`; `vary` names existing decisions and
-  options, `base` is present whenever `vary` is partial, and a generator with
-  no valid members is an error; enumerated multiverse members exist; a pinned
-  reference targets an output that is active in the pinned universe; a
-  universe-invariant output's recipe uses no `{decisions.<id>}` placeholders.
-- Runner semantics: cross-universe edges change scheduling — one output can now
-  demand materialization of an upstream artifact under many universes. Runners
-  key storage and caching on canonical effective selections; the path spelling
-  (option join vs. selection digest) is a runner convention, recorded in its
-  run manifest.
-
-**`astra-typescript` (`@astra-spec/sdk`):** regenerate types for the new slots
-and the `Multiverse` class; the reference grammar change surfaces wherever the
-SDK parses `Output.inputs`.
-
-**Compatibility / versioning:**
-
-- Plain references keep their exact current meaning, and both new slots are
-  optional, so existing analyses validate unchanged: the schema change is
-  **additive — a minor bump** under the versioning policy. Allowing partial
-  `Universe.decisions` is a loosening: complete universe files stay valid as-is
-  (an empty diff), and partial ones only become *newly* valid.
-- The `universes/` directory remains supported as a place for runner-selected
-  configurations; in-file `universes` are required only when a universe must be
-  *referenced* from within the document. Whether the directory is eventually
-  deprecated in favor of in-file definitions is left open (below); this RFC
-  does not remove anything.
-
 ## Questions or objections
 
 Recorded as open unless marked otherwise; discussion on the tracking issue and
@@ -448,9 +377,6 @@ the draft PR resolves them.
   a multiverse analysis that silently depended on which configurations happened
   to be declared would be fragile. Recorded so the alternative is not silently
   re-litigated.
-- **Should bare `artifact@*` be allowed in `inputs`? — resolved: no.** Every
-  fan-out goes through a named, described `Multiverse`. The prototype adopted
-  this voluntarily and the resulting record is better for it.
 - **One collection entry per universe, or per distinct realization? — open.**
   When an upstream output ignores some decisions, several member universes share
   one realization. The proposal delivers one entry per universe (Steegen-style
@@ -480,28 +406,9 @@ the draft PR resolves them.
   partial universes require an explicit `base`; generators require an explicit
   `base` when `vary` is partial; `Decision.default` stays a presentational
   hint. Recorded so the convenience argument is not silently re-litigated.
-- **Are diffs too implicit? — open.** With `base` chains, a universe's full
-  selection is no longer visible at its declaration site. The record arguably
-  *improves* — the relationship between specifications is the datum a stability
-  comparison rests on — but tooling should make the effective selection one
-  command away (e.g. `astra universe show <id>`).
-- **Sub-analysis scoping — open.** The prototype is a flat analysis. How does
-  the `@` grammar compose with sub-analyses — can a parent fan out over a
-  child's decision space, and how do `UniverseNode` selections participate in
-  `"*"` enumeration? A conservative first cut: `@` references and multiverse
-  enumeration operate on the current scope's decisions only.
 - **Combinatorial guardrails — open.** `"*"` can be astronomically large.
   Should validators warn (or runners require confirmation) above a universe
   count threshold, or is that purely a tooling concern outside the spec?
-- **Intensional multiverses — partially resolved.** The `base`/`vary` generator
-  covers the sweep and grid cases from the original sketch (vary some decisions,
-  hold the rest at a named universe). A general *constraint* language — "all
-  valid universes where `scaling` is not `none`" — is still deferred; it can be
-  layered on later (e.g. a `where:` clause) without breaking this design.
-- **Report scoping (RFC-0002 tie-in) — noted.** RFC-0002 left "can a report
-  compare across universes?" out of scope. Universe-invariant outputs give
-  reports a natural way to present multiverse-level results without resolving
-  that question in general.
 
 ## References
 
