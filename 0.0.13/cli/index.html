@@ -631,6 +631,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#astra-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra spec</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra guide</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#astra-schema" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1229,6 +1251,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#astra-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra spec</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#astra-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>astra guide</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#astra-schema" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1420,7 +1464,7 @@
 </tr>
 <tr>
 <td><a href="#astra-validate"><code>astra validate</code></a></td>
-<td>Validate an analysis or universe file</td>
+<td>Validate the whole project, or one analysis/universe file</td>
 </tr>
 <tr>
 <td><a href="#astra-info"><code>astra info</code></a></td>
@@ -1433,6 +1477,14 @@
 <tr>
 <td><a href="#astra-universe"><code>astra universe</code></a></td>
 <td>Generate and check universe files</td>
+</tr>
+<tr>
+<td><a href="#astra-spec"><code>astra spec</code></a></td>
+<td>Render the schema as agent-friendly reference text</td>
+</tr>
+<tr>
+<td><a href="#astra-guide"><code>astra guide</code></a></td>
+<td>Print the agent briefing (llms.txt) for the format</td>
 </tr>
 <tr>
 <td><a href="#astra-schema"><code>astra schema</code></a></td>
@@ -1463,11 +1515,13 @@
 <p>The boilerplate <code>astra.yaml</code> includes a single example decision and outputs marked with <code>TODO:</code> to guide you through filling them in.</p>
 <hr />
 <h2 id="astra-validate"><code>astra validate</code><a class="headerlink" href="#astra-validate" title="Permanent link">&para;</a></h2>
-<p>Validate an analysis or universe file.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>astra.yaml
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>astra<span class="w"> </span>validate<span class="w"> </span>universes/baseline.yaml<span class="w">          </span><span class="c1"># universe (analysis auto-discovered)</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>astra<span class="w"> </span>validate<span class="w"> </span>universes/foo.yaml<span class="w"> </span>-a<span class="w"> </span>astra.yaml<span class="w"> </span><span class="c1"># universe with explicit analysis</span>
+<p>Validate the whole project, or a single analysis/universe file.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>astra<span class="w"> </span>validate<span class="w">                                  </span><span class="c1"># whole project (everything under cwd)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>astra<span class="w"> </span>validate<span class="w"> </span>astra.yaml<span class="w">                       </span><span class="c1"># one analysis</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>astra<span class="w"> </span>validate<span class="w"> </span>universes/baseline.yaml<span class="w">          </span><span class="c1"># universe (analysis auto-discovered)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>astra<span class="w"> </span>validate<span class="w"> </span>universes/foo.yaml<span class="w"> </span>-a<span class="w"> </span>astra.yaml<span class="w"> </span><span class="c1"># universe with explicit analysis</span>
 </span></code></pre></div>
+<p>With no FILE, every analysis spec and universe file under the current directory is validated. Discovery skips hidden and vendored directories (<code>.*</code>, <code>node_modules</code>, <code>venv</code>, <code>__pycache__</code>); universe files are recognised inside a <code>universes/</code> directory or by <code>universe</code> in their filename; and an <code>astra.yaml</code> referenced as an external <code>path:</code> sub-analysis of another spec is validated in context through its root, not standalone. Validation keeps going past failures, then exits non-zero listing the files that failed.</p>
 <p>Validation runs in stages:</p>
 <ol>
 <li><strong>Schema validation</strong> — structure, types, required fields, format patterns (Pydantic models generated from the LinkML schema).</li>
@@ -1490,7 +1544,7 @@
 <tbody>
 <tr>
 <td><code>-a, --analysis PATH</code></td>
-<td>Analysis file (when validating a universe)</td>
+<td>Analysis file (when validating a single universe file)</td>
 </tr>
 <tr>
 <td><code>-e, --verify-evidence</code></td>
@@ -1499,6 +1553,10 @@
 <tr>
 <td><code>--skip-evidence</code></td>
 <td>Skip evidence verification</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Emit the report as a single JSON-encoded string (exit code unchanged)</td>
 </tr>
 </tbody>
 </table>
@@ -1510,8 +1568,9 @@
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>astra<span class="w"> </span>info<span class="w"> </span>--inputs<span class="w">                 </span><span class="c1"># inputs only</span>
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>astra<span class="w"> </span>info<span class="w"> </span>--outputs<span class="w">                </span><span class="c1"># outputs only</span>
 </span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>astra<span class="w"> </span>info<span class="w"> </span>-f<span class="w"> </span>path/to/astra.yaml<span class="w">    </span><span class="c1"># explicit file</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>astra<span class="w"> </span>info<span class="w"> </span>--json<span class="w">                   </span><span class="c1"># summary as one JSON-encoded string</span>
 </span></code></pre></div>
-<p>Decisions are displayed as a tree, with sub-analyses nested under their parent.</p>
+<p>The header includes a <code>Layout:</code> line summarising the sub-analyses the spec declares (with directories for external <code>path:</code> ones) and the universe files in <code>universes/</code>; it is omitted for flat analyses. Decisions are displayed as a tree, with sub-analyses nested under their parent.</p>
 <hr />
 <h2 id="astra-viz"><code>astra viz</code><a class="headerlink" href="#astra-viz" title="Permanent link">&para;</a></h2>
 <p>Visualise the decision space.</p>
@@ -1573,18 +1632,31 @@
 </span></code></pre></div>
 <p>The same checks run inside <code>astra validate</code>, but <code>universe check</code> is convenient when iterating on universe files without re-running the full analysis validation.</p>
 <hr />
+<h2 id="astra-spec"><code>astra spec</code><a class="headerlink" href="#astra-spec" title="Permanent link">&para;</a></h2>
+<p>Render the ASTRA schema as agent-friendly reference text, derived from the installed schema.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>astra<span class="w"> </span>spec<span class="w">              </span><span class="c1"># concept vocabulary: every class with a one-line summary</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>astra<span class="w"> </span>spec<span class="w"> </span>decision<span class="w">     </span><span class="c1"># one entry in full (case-insensitive)</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>astra<span class="w"> </span>spec<span class="w"> </span>--full<span class="w">       </span><span class="c1"># the entire reference (very long)</span>
+</span></code></pre></div>
+<hr />
+<h2 id="astra-guide"><code>astra guide</code><a class="headerlink" href="#astra-guide" title="Permanent link">&para;</a></h2>
+<p>Print the agent briefing for the ASTRA format — the same <a href="https://astra-spec.org/llms.txt">llms.txt</a> served by this site. The copy ships inside the installed <code>astra-spec</code> package (0.0.13 or later), so it always matches the schema the validator enforces.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>astra<span class="w"> </span>guide<span class="w">                 </span><span class="c1"># print the briefing</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>astra<span class="w"> </span>guide<span class="w"> </span>&gt;<span class="w"> </span>context.md<span class="w">    </span><span class="c1"># hand it to an agent as context</span>
+</span></code></pre></div>
+<hr />
 <h2 id="astra-schema"><code>astra schema</code><a class="headerlink" href="#astra-schema" title="Permanent link">&para;</a></h2>
 <p>Operate on the underlying LinkML schema files (sourced from <code>astra-spec</code>).</p>
 <h3 id="astra-schema-export"><code>astra schema export</code><a class="headerlink" href="#astra-schema-export" title="Permanent link">&para;</a></h3>
 <p>Copy the LinkML schema YAMLs into a directory of your choice.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>astra<span class="w"> </span>schema<span class="w"> </span><span class="nb">export</span><span class="w">                    </span><span class="c1"># default: ./schemas/</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>astra<span class="w"> </span>schema<span class="w"> </span><span class="nb">export</span><span class="w"> </span>-o<span class="w"> </span>vendor/astra/<span class="w">   </span><span class="c1"># custom path</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>astra<span class="w"> </span>schema<span class="w"> </span><span class="nb">export</span><span class="w">                    </span><span class="c1"># default: ./schemas/</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>astra<span class="w"> </span>schema<span class="w"> </span><span class="nb">export</span><span class="w"> </span>-o<span class="w"> </span>vendor/astra/<span class="w">   </span><span class="c1"># custom path</span>
 </span></code></pre></div>
 <h3 id="astra-schema-show"><code>astra schema show</code><a class="headerlink" href="#astra-schema-show" title="Permanent link">&para;</a></h3>
 <p>Print one of the schema files to stdout.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>analysis<span class="w">     </span><span class="c1"># main analysis schema</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>universe<span class="w">     </span><span class="c1"># universe schema</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>insights<span class="w">     </span><span class="c1"># insight + evidence schema</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>analysis<span class="w">     </span><span class="c1"># main analysis schema</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>universe<span class="w">     </span><span class="c1"># universe schema</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>astra<span class="w"> </span>schema<span class="w"> </span>show<span class="w"> </span>insights<span class="w">     </span><span class="c1"># insight + evidence schema</span>
 </span></code></pre></div>
 <hr />
 <h2 id="astra-paper"><code>astra paper</code><a class="headerlink" href="#astra-paper" title="Permanent link">&para;</a></h2>
@@ -1592,45 +1664,45 @@
 <p>The cache lives under <code>~/.cache/astra/papers/</code> (XDG-compliant) and is keyed by DOI (and version, for arXiv). Operations are content-addressed: each cached paper records a SHA-256 of the PDF.</p>
 <h3 id="astra-paper-add"><code>astra paper add</code><a class="headerlink" href="#astra-paper-add" title="Permanent link">&para;</a></h3>
 <p>Add a paper to the cache.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>--version<span class="w"> </span><span class="m">7</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.1038/s41586-023-06221-2
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.1234/example<span class="w"> </span>--pdf<span class="w"> </span>./local_paper.pdf
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>--version<span class="w"> </span><span class="m">7</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.1038/s41586-023-06221-2
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>astra<span class="w"> </span>paper<span class="w"> </span>add<span class="w"> </span><span class="m">10</span>.1234/example<span class="w"> </span>--pdf<span class="w"> </span>./local_paper.pdf
 </span></code></pre></div>
 <p><code>--pdf</code> registers a local file in the cache without downloading. Without it, the CLI downloads the paper from the DOI: arXiv DOIs (prefix <code>10.48550/arXiv.</code>) are fetched directly from <code>arxiv.org</code>, with <code>--version</code> selecting a specific revision; other DOIs are resolved through <a href="https://unpaywall.org/">Unpaywall</a> for an open-access PDF and will fail if no open copy is available. Title and authors are fetched separately via DOI content-negotiation against <code>doi.org</code>.</p>
 <h3 id="astra-paper-list"><code>astra paper list</code><a class="headerlink" href="#astra-paper-list" title="Permanent link">&para;</a></h3>
 <p>List all cached papers.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>list
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>list
 </span></code></pre></div>
 <h3 id="astra-paper-show"><code>astra paper show</code><a class="headerlink" href="#astra-paper-show" title="Permanent link">&para;</a></h3>
 <p>Show metadata of a single cached paper.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>show<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>--version<span class="w"> </span><span class="m">7</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>show<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>--version<span class="w"> </span><span class="m">7</span>
 </span></code></pre></div>
 <h3 id="astra-paper-path"><code>astra paper path</code><a class="headerlink" href="#astra-paper-path" title="Permanent link">&para;</a></h3>
 <p>Print the absolute path of a cached PDF — handy for piping into other tools or agents.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>path<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>xdg-open<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>astra<span class="w"> </span>paper<span class="w"> </span>path<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span><span class="k">)</span><span class="s2">&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>path<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>xdg-open<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>astra<span class="w"> </span>paper<span class="w"> </span>path<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span><span class="k">)</span><span class="s2">&quot;</span>
 </span></code></pre></div>
 <h3 id="astra-paper-remove"><code>astra paper remove</code><a class="headerlink" href="#astra-paper-remove" title="Permanent link">&para;</a></h3>
 <p>Remove a paper from the cache.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>remove<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>remove<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span>-v<span class="w"> </span><span class="m">7</span>
 </span></code></pre></div>
 <h3 id="astra-paper-fetch-metadata"><code>astra paper fetch-metadata</code><a class="headerlink" href="#astra-paper-fetch-metadata" title="Permanent link">&para;</a></h3>
 <p>Fetch title and authors via DOI content negotiation. Useful when papers were added with <code>--pdf</code> and have no upstream metadata yet.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>fetch-metadata<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>astra<span class="w"> </span>paper<span class="w"> </span>fetch-metadata<span class="w"> </span>--all<span class="w">      </span><span class="c1"># back-fill metadata for all cached papers</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>fetch-metadata<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>astra<span class="w"> </span>paper<span class="w"> </span>fetch-metadata<span class="w"> </span>--all<span class="w">      </span><span class="c1"># back-fill metadata for all cached papers</span>
 </span></code></pre></div>
 <h3 id="astra-paper-verify-quote"><code>astra paper verify-quote</code><a class="headerlink" href="#astra-paper-verify-quote" title="Permanent link">&para;</a></h3>
 <p>Check that a single quoted text appears in a cached paper. Uses fuzzy matching to tolerate minor extraction differences.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span>-q<span class="w"> </span><span class="s2">&quot;FlexZBoost achieves a normalized median absolute deviation of 0.018&quot;</span>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span>DOI<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span>--page<span class="w"> </span><span class="m">8</span>
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span>DOI<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span>--json<span class="w">     </span><span class="c1"># machine-readable output</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span>-q<span class="w"> </span><span class="s2">&quot;FlexZBoost achieves a normalized median absolute deviation of 0.018&quot;</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span>DOI<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span>--page<span class="w"> </span><span class="m">8</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify-quote<span class="w"> </span>DOI<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span>--json<span class="w">     </span><span class="c1"># machine-readable output</span>
 </span></code></pre></div>
 <p>Exit codes: <code>0</code> (verified), <code>1</code> (not found), <code>2</code> (paper not cached or extraction error).</p>
 <h3 id="astra-paper-verify-quotes"><code>astra paper verify-quotes</code><a class="headerlink" href="#astra-paper-verify-quotes" title="Permanent link">&para;</a></h3>
 <p>Bulk variant of <code>verify-quote</code>. Reads a JSON list of quotes from <code>stdin</code>, extracts PDF text once, and writes a JSON report to <code>stdout</code>.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;{&quot;quotes&quot;:[{&quot;text&quot;:&quot;...&quot;,&quot;page&quot;:8},{&quot;text&quot;:&quot;...&quot;}]}&#39;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>astra<span class="w"> </span>paper<span class="w"> </span>verify-quotes<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;{&quot;quotes&quot;:[{&quot;text&quot;:&quot;...&quot;,&quot;page&quot;:8},{&quot;text&quot;:&quot;...&quot;}]}&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>astra<span class="w"> </span>paper<span class="w"> </span>verify-quotes<span class="w"> </span><span class="m">10</span>.48550/arXiv.1706.03762
 </span></code></pre></div>
 <p>Designed to be driven by agents and CI scripts.</p>
 

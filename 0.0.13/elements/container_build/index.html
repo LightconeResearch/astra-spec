@@ -12,7 +12,7 @@
         <meta name="author" content="Lightcone Research">
       
       
-        <link rel="canonical" href="https://astra-spec.org/0.0.13/elements/analyses/">
+        <link rel="canonical" href="https://astra-spec.org/0.0.13/elements/container_build/">
       
       
       
@@ -25,7 +25,7 @@
     
     
       
-        <title>Slot: analyses - ASTRA</title>
+        <title>Slot: container_build - ASTRA</title>
       
     
     
@@ -81,7 +81,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#slot-analyses" class="md-skip">
+        <a href="#slot-container_build" class="md-skip">
           Skip to content
         </a>
       
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Slot: analyses
+              Slot: container_build
             
           </span>
         </div>
@@ -889,9 +889,9 @@
   
 
 
-<h1 id="slot-analyses">Slot: analyses<a class="headerlink" href="#slot-analyses" title="Permanent link">&para;</a></h1>
-<p>URI: <a href="https://w3id.org/astra/analyses">astra:analyses</a>
-Alias: analyses</p>
+<h1 id="slot-container_build">Slot: container_build<a class="headerlink" href="#slot-container_build" title="Permanent link">&para;</a></h1>
+<p>URI: <a href="https://w3id.org/ASTRA/container_build">astra:container_build</a>
+Alias: container_build</p>
 <!-- no inheritance hierarchy -->
 
 <h2 id="applicable-classes">Applicable Classes<a class="headerlink" href="#applicable-classes" title="Permanent link">&para;</a></h2>
@@ -905,13 +905,8 @@ Alias: analyses</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="../UniverseNode/">UniverseNode</a></td>
-<td>A universe node mirroring the analysis tree structure</td>
-<td>no</td>
-</tr>
-<tr>
-<td><a href="../Universe/">Universe</a></td>
-<td>A universe specification - a complete set of decisions across the entire anal...</td>
+<td><a href="../Recipe/">Recipe</a></td>
+<td>A build rule that produces an output</td>
 <td>no</td>
 </tr>
 <tr>
@@ -937,7 +932,7 @@ Alias: analyses</p>
 </tr>
 <tr>
 <td>Domain Of</td>
-<td><a href="../Analysis/">Analysis</a>, <a href="../UniverseNode/">UniverseNode</a>, <a href="../Universe/">Universe</a></td>
+<td><a href="../Recipe/">Recipe</a>, <a href="../Analysis/">Analysis</a></td>
 </tr>
 </tbody>
 </table>
@@ -968,23 +963,22 @@ Alias: analyses</p>
 <tbody>
 <tr>
 <td>self</td>
-<td>astra:analyses</td>
+<td>astra:container_build</td>
 </tr>
 <tr>
 <td>native</td>
-<td>astra:analyses</td>
+<td>astra:container_build</td>
 </tr>
 </tbody>
 </table>
 <h2 id="linkml-source">LinkML Source<a class="headerlink" href="#linkml-source" title="Permanent link">&para;</a></h2>
 <details>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analyses</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analyses</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">container_build</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">alias</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">container_build</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">domain_of</span><span class="p">:</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Analysis</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">UniverseNode</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Universe</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Recipe</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Analysis</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </span></code></pre></div>
 </details>
 
