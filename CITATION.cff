@@ -12,8 +12,8 @@ type: software
 url: "https://astra-spec.org"
 repository-code: "https://github.com/LightconeResearch/astra-spec"
 license: BSD-3-Clause
-version: "0.0.12"
-date-released: "2026-07-30"
+version: "0.0.13"
+date-released: "2026-08-10"
 keywords:
   - agentic AI
   - reproducibility
