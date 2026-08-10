@@ -7,7 +7,7 @@ The ASTRA schema is defined in LinkML files under `src/astra/schema/`. When modi
 - **`docs/specification.md`** — The human-readable specification. Update field tables, examples, and descriptions to reflect schema changes.
 - **`docs/index.md`** — Landing page; update the quick "At a glance" example if the change affects it.
 - **`docs/cli.md`** — CLI reference; update if the schema change adds a new validation rule or command surface.
-- **`docs/llms.txt`** — Agent-facing briefing served at `/latest/llms.txt` ([llms.txt convention](https://llmstxt.org/)). Update its concept list, example, and validator-rules section if the change affects them.
+- **`docs/llms.txt`** — Agent-facing briefing served at `/latest/llms.txt` ([llms.txt convention](https://llmstxt.org/)). Update its concept list, example, and validator-rules section if the change affects them. Also shipped inside the wheel as `astra/docs/llms.txt` (hatch force-include in pyproject.toml) so `astra guide` in astra-tools can print the copy matching the installed schema.
 - **`README.md`** — If the change affects the quick example or design principles, update the README too.
 
 Run `just gen-python` to regenerate Python datamodels and `just gen-doc` to regenerate the schema reference docs after any schema change.
