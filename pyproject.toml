@@ -79,10 +79,16 @@ include = [
   "/src/astra",
   "/pyproject.toml",
   "/LICENSE",
+  "/docs/llms.txt",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/astra"]
+
+# Ship the agent briefing inside the package so tooling (e.g. `astra guide`
+# from astra-tools) can read the copy matching the installed schema.
+[tool.hatch.build.targets.wheel.force-include]
+"docs/llms.txt" = "astra/docs/llms.txt"
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
