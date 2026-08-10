@@ -20,10 +20,12 @@ astra --help
 | Command | Purpose |
 |---------|---------|
 | [`astra init`](#astra-init) | Scaffold a minimal ASTRA project |
-| [`astra validate`](#astra-validate) | Validate an analysis or universe file |
+| [`astra validate`](#astra-validate) | Validate the whole project, or one analysis/universe file |
 | [`astra info`](#astra-info) | Show a summary of an analysis |
 | [`astra viz`](#astra-viz) | Visualise the decision space |
 | [`astra universe`](#astra-universe) | Generate and check universe files |
+| [`astra spec`](#astra-spec) | Render the schema as agent-friendly reference text |
+| [`astra guide`](#astra-guide) | Print the agent briefing (llms.txt) for the format |
 | [`astra schema`](#astra-schema) | Export or print the LinkML schema |
 | [`astra paper`](#astra-paper) | Manage cached papers and verify quotes |
 
@@ -58,13 +60,16 @@ The boilerplate `astra.yaml` includes a single example decision and outputs mark
 
 ## `astra validate`
 
-Validate an analysis or universe file.
+Validate the whole project, or a single analysis/universe file.
 
 ```bash
-astra validate astra.yaml
+astra validate                                  # whole project (everything under cwd)
+astra validate astra.yaml                       # one analysis
 astra validate universes/baseline.yaml          # universe (analysis auto-discovered)
 astra validate universes/foo.yaml -a astra.yaml # universe with explicit analysis
 ```
+
+With no FILE, every analysis spec and universe file under the current directory is validated. Discovery skips hidden and vendored directories (`.*`, `node_modules`, `venv`, `__pycache__`); universe files are recognised inside a `universes/` directory or by `universe` in their filename; and an `astra.yaml` referenced as an external `path:` sub-analysis of another spec is validated in context through its root, not standalone. Validation keeps going past failures, then exits non-zero listing the files that failed.
 
 Validation runs in stages:
 
@@ -86,9 +91,10 @@ Papers must be cached locally first with [`astra paper add`](#astra-paper-add). 
 
 | Flag | Meaning |
 |------|---------|
-| `-a, --analysis PATH` | Analysis file (when validating a universe) |
+| `-a, --analysis PATH` | Analysis file (when validating a single universe file) |
 | `-e, --verify-evidence` | Verify evidence quotes against cached papers |
 | `--skip-evidence` | Skip evidence verification |
+| `--json` | Emit the report as a single JSON-encoded string (exit code unchanged) |
 
 ---
 
@@ -102,9 +108,10 @@ astra info --decisions              # decisions only
 astra info --inputs                 # inputs only
 astra info --outputs                # outputs only
 astra info -f path/to/astra.yaml    # explicit file
+astra info --json                   # summary as one JSON-encoded string
 ```
 
-Decisions are displayed as a tree, with sub-analyses nested under their parent.
+The header includes a `Layout:` line summarising the sub-analyses the spec declares (with directories for external `path:` ones) and the universe files in `universes/`; it is omitted for flat analyses. Decisions are displayed as a tree, with sub-analyses nested under their parent.
 
 ---
 
@@ -163,6 +170,29 @@ astra universe check universes/foo.yaml -a path/to/astra.yaml
 ```
 
 The same checks run inside `astra validate`, but `universe check` is convenient when iterating on universe files without re-running the full analysis validation.
+
+---
+
+## `astra spec`
+
+Render the ASTRA schema as agent-friendly reference text, derived from the installed schema.
+
+```bash
+astra spec              # concept vocabulary: every class with a one-line summary
+astra spec decision     # one entry in full (case-insensitive)
+astra spec --full       # the entire reference (very long)
+```
+
+---
+
+## `astra guide`
+
+Print the agent briefing for the ASTRA format — the same [llms.txt](https://astra-spec.org/llms.txt) served by this site. The copy ships inside the installed `astra-spec` package (0.0.13 or later), so it always matches the schema the validator enforces.
+
+```bash
+astra guide                 # print the briefing
+astra guide > context.md    # hand it to an agent as context
+```
 
 ---
 
