@@ -1,0 +1,137 @@
+# ASTRA
+
+> ASTRA (Agentic Schema for Transparent Research Analysis) is a YAML specification for scientific analyses. An `astra.yaml` file records an experiment's inputs, outputs, methodological decisions, and evidence, so that agents and humans can validate, reproduce, and extend the work. This file is a self-contained briefing for AI agents: it explains the philosophy of the format and how to author and read ASTRA records.
+
+ASTRA is execution- and tooling-agnostic: the spec describes *what* an analysis does and *why*, not how to run it. Records are plain YAML, authored with any editor. Recipes declare shell commands that an executor — an agent, a workflow runner, or a human — expands and runs; nothing in the format depends on any particular tool.
+
+Core concepts:
+
+- **Analysis** — the root object of `astra.yaml`: metadata (`version`, `name`, `description`, `tags`, `container`) plus `inputs`, `outputs`, `decisions`, `prior_insights`, `findings`, and nested `analyses` (each sub-analysis is itself an Analysis). A sub-analysis may instead set `path` to a directory containing its own `astra.yaml`; `path` is mutually exclusive with inline content fields. A node-level `container` is the default execution image for every recipe in that node; a recipe-level `container` overrides it.
+- **Input** — something consumed: `type: data` (with `source`: path/URI/loader, descriptive not prescriptive) or `type: analysis` (with `ref`, optional `ref_version`, `use_outputs`) referencing another ASTRA record.
+- **Output** — an artifact produced: `type` is one of `metric`, `figure`, `table`, `data`, `report`. Declares its dependency contract: `inputs` (input or sibling-output IDs) and `decisions` (decision IDs), plus an optional `recipe`.
+- **Decision** — a methodological choice point with a `label`, optional `rationale` and `default`, and a map of `options`. Options may declare `requires` / `incompatible_with` constraints (form `decision_id.option_id`), supporting `insights`, or `excluded: true` with `excluded_reason`.
+- **Universe** — one complete selection of options, one per active decision, stored as a separate YAML file (conventionally `universes/<id>.yaml`): `id`, optional `description`, `decisions: {decision_id: option_id}`, and nested `analyses` mirroring sub-analyses.
+- **Insight / Evidence** — `prior_insights` (imported claims motivating choices) and `findings` (claims produced by the analysis) share one model: `claim`, `created_at`, and `evidence[]` where each item has exactly one of `doi` (literature) or `artifact` (an output ID), plus optional `quote.exact` for verifiable citations.
+
+Minimal valid `astra.yaml`:
+
+```yaml
+version: "1.0"
+name: Period-Luminosity Fit
+inputs:
+  - id: catalog_data
+    type: data
+    source: data/catalog_data.csv
+outputs:
+  - id: fit_params
+    type: table
+    inputs: [catalog_data]
+    decisions: [fit_method]
+    recipe:
+      command: >-
+        python src/fit.py --catalog {inputs.catalog_data}
+        --method {decisions.fit_method} --out {output}
+decisions:
+  fit_method:
+    label: Fitting method
+    default: ordinary_least_squares
+    options:
+      ordinary_least_squares: { label: Ordinary least squares }
+      robust_linear: { label: Robust linear fit }
+```
+
+Matching universe (`universes/baseline.yaml`):
+
+```yaml
+id: baseline
+decisions:
+  fit_method: ordinary_least_squares
+```
+
+Typical project layout (`astra.yaml` at the root is the source of truth; only `astra.yaml` and `universes/` are part of the spec, the rest is convention):
+
+```text
+my-analysis/
+├── astra.yaml              # analysis specification
+├── universes/              # one YAML file per universe
+│   ├── baseline.yaml
+│   └── robust.yaml
+├── src/                    # analysis code invoked by recipe commands
+├── data/                   # input data referenced by Input.source
+└── results/                # artifacts materialised by the executor,
+    └── baseline/           #   one subdirectory per universe
+```
+
+Large projects split sub-analyses into their own directories via `path:` (e.g. `analyses: {catalog_cleaning: {path: stages/catalog_cleaning}}`); each such directory is itself a valid ASTRA project with its own `astra.yaml` and optional `universes/`.
+
+Authoring workflow:
+
+1. Start from the skeleton: `name`, a one-paragraph `description`, then declare `inputs`, `outputs` (each with its `type`, its dependency contract, and a `recipe`), and `decisions`.
+2. Declare every methodological choice that could change an output as a `decision`, attach it to the affected outputs via `Output.decisions`, and record rejected alternatives as options with `excluded: true` and an `excluded_reason`.
+3. Cite motivating literature as `prior_insights` with DOI + exact quote; record post-hoc claims as `findings` with `evidence` pointing at output artifacts (see the evidence section below).
+4. Write one universe file per analysis path you intend to materialise, starting with a baseline built from the `default` of every decision; each variant universe changes one or a few selections.
+5. Keep the record valid as you go: the format rules below are what any conforming validator enforces, and the published schema is the authoritative definition.
+
+Authoring judgment — what separates a good ASTRA record from a mechanical one:
+
+- A decision is a methodological choice where a different defensible option could plausibly change a numerical result, even modestly: algorithmic choices (MCMC vs optimisation), numerical thresholds (sigma-clip level, bin width), statistical method (bootstrap vs analytic errors), data selection (quality cuts, magnitude limits), corrections and calibrations (which reddening law, which prior). When in doubt, include it.
+- Not decisions: tooling that produces identical numbers (language, framework, file format, parallelisation), fixed constraints with no live alternative, and *what to produce* — decisions govern how an output is computed, not which outputs exist.
+- Never make a consequential choice silently. The spec is authored for and with a human researcher who owns the science: when a fork could move a result, record it as a `decision` with real `options`, a `default`, and a `rationale` so the human can see it, agree, or override. When unsure whether a choice matters, encode it rather than resolve it silently — the silent default (a choice made in code that should have been a decision) is the worst failure mode because nothing flags it.
+- Never hardcode a decision value in code: the recipe references it via `{decisions.<id>}`. If the code cannot yet vary a consequential value, parameterise it.
+- Text outside `{...}` placeholders is literal, unvalidated command text: static constants (`--max-iter 1000`), env vars, pipes, and redirects all live there; there is no separate params channel.
+- Write the prose as you go: inputs, outputs, and options carry `description`, decisions carry `rationale` — fill them while the reasoning is fresh.
+- Default to a single flat analysis. Split out a sub-analysis only for a genuine unit of work: cleanly scoped decisions of its own, outputs someone else could reuse as-is (a cleaned catalog, a trained emulator), or an independent side investigation with its own inputs and code. Start flat and split later — splitting a working flat analysis is easy; merging a broken hierarchy is not.
+- Splitting anti-patterns: splitting by script instead of by analytical unit; zero-decision sub-analyses that only pass data through (make those recipes in the parent); hierarchy invented before the boundaries are real; independent stages forced into a linear chain just because the paper narrates them that way.
+- Universes are defensible alternative analysis paths, not versions: bug fixes and refactors are commits, not universes. Adding a new decision touches every universe — add it to the spec, parameterise the code, add the default selection to every existing universe file, then create the new universe.
+
+Adding evidence — the auditable chain is option → insight → evidence → DOI (or artifact):
+
+1. Author a `prior_insight` whose evidence names the `doi` of the source paper and quotes the exact supporting text (`quote.exact`, verbatim, 1–3 sentences; optional `prefix`/`suffix` disambiguate repeated text, `location.page` hints the PDF page; `version` pins an arXiv revision). Link the insight to the option it justifies via `Option.insights`.
+2. Record post-hoc claims as `findings` with `evidence.artifact` naming an output ID; optionally quote the exact text or value the artifact should contain, and set `derived: true` for claims synthesised from multiple sources.
+3. Evidence is designed for mechanical verification, which is why quotes must be verbatim: a literature quote can be checked to exist in the cited source, and artifact evidence becomes checkable once the artifact is materialised. Write every quote as if a machine will look for it — because one will.
+
+Evidence added to the minimal example above (the `robust_linear` option gains literature support; a finding cites the produced artifact):
+
+```yaml
+prior_insights:
+  robust_fitting_reference:
+    claim: Robust estimators reduce the influence of outliers on fitted relations.
+    created_at: "2026-05-11T00:00:00Z"
+    evidence:
+      - id: ev_robust_paper
+        doi: "10.1051/0004-6361/202244775"
+        quote:
+          exact: "robust estimators reduce the influence of outliers"
+        location: { page: 6 }
+
+findings:
+  scatter_reduced:
+    claim: The robust-linear universe reduced the fit scatter.
+    created_at: "2026-05-11T00:00:00Z"
+    derived: true
+    evidence:
+      - id: ev_fit_params
+        artifact: fit_params
+        quote: { exact: "scatter = 0.18 mag" }
+```
+
+and the option links back to the insight: `robust_linear: { label: Robust linear fit, insights: [robust_fitting_reference] }`.
+
+Format rules (what any conforming validator enforces):
+
+- Recipe placeholders: only `{inputs.<id>}`, `{inputs}`, `{decisions.<id>}`, `{output}`; `{{`/`}}` are literal braces. Every placeholder must name an ID listed in the parent output's `inputs` / `decisions` — undeclared references are rejected.
+- IDs: entity IDs match `^[a-z][a-z0-9_]*$` (snake_case); universe IDs also allow hyphens; `version` matches `^\d+\.\d+(\.\d+)?$`; DOIs match `^10\.\d{4,}/.*$`.
+- Required fields: a non-aliased Decision must have `label` and `options`; every Option must have `label`; a non-aliased Input or Output must have `type`; an Insight must have `claim`, `created_at`, and non-empty `evidence`.
+- Reserved names (not usable as entity IDs): `inputs`, `outputs`, `decisions`, `findings`, `prior_insights`, `analyses`, `options`, `content`.
+- Conditions: `when: [decision.option]` activates an element only when that option is selected; `~decision.option` negates; multiple entries are ANDed.
+- Cross-scope references use `from` with a path grammar (`../id` up, `scope.id` down, `../sibling.out_id` lateral). A node with `from` is a pure alias: only `id`, `from`, and (where legal) `when` may be set locally. Decisions only flow downward from ancestors; artifacts can flow up (re-export) or laterally.
+- A universe must select exactly one existing option for every active decision without violating any `requires` / `incompatible_with` constraint.
+- Each evidence item sets exactly one of `doi` or `artifact`.
+
+## Examples
+
+Complete, valid ASTRA projects (raw YAML, fetchable directly):
+
+- [iris analysis](https://raw.githubusercontent.com/LightconeResearch/astra-spec/main/examples/iris/astra.yaml): single-level analysis with decisions and `requires` / `incompatible_with` constraints.
+- [iris baseline universe](https://raw.githubusercontent.com/LightconeResearch/astra-spec/main/examples/iris/universes/baseline.yaml): universe file selecting default options.
+- [iris_pipeline analysis](https://raw.githubusercontent.com/LightconeResearch/astra-spec/main/examples/iris_pipeline/astra.yaml): nested sub-analyses with cross-scope `from` aliases.
