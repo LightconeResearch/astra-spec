@@ -19,7 +19,6 @@ This produces:
 my-analysis/
 ├── astra.yaml              # Analysis specification (source of truth)
 ├── .gitignore
-├── src/                    # Your analysis code
 └── universes/
     └── baseline.yaml       # Default decision selection
 ```

@@ -35,7 +35,7 @@ astra --help
 
 ## `astra init`
 
-Converge a directory into a minimal ASTRA analysis scaffold. The scaffold contains an `astra.yaml` boilerplate, a `universes/baseline.yaml`, an empty `src/` for analysis code, and a `.gitignore`. By default a fresh git repository is initialised in the directory.
+Converge a directory into a minimal ASTRA analysis scaffold. The scaffold contains an `astra.yaml` boilerplate, a `universes/baseline.yaml`, and a `.gitignore`. By default a fresh git repository is initialised in the directory. Where your analysis code lives is up to you — recipes name their paths explicitly.
 
 `astra init` is **idempotent** — safe to re-run at any time. Each run creates whatever is missing and never overwrites existing files: a directory that already holds an `astra.yaml`, or any other files, is adopted rather than rejected. The boilerplate `astra.yaml` and `universes/baseline.yaml` are written as one unit — if you already have your own `astra.yaml`, the boilerplate baseline (which references the boilerplate's example decision) is not written next to it.
 
@@ -52,7 +52,7 @@ astra init --check --json           # machine-readable report (for scripts and a
 ```json
 {
   "converged": false,
-  "created": ["astra.yaml", "universes/", "src/", ".gitignore"],
+  "created": ["astra.yaml", "universes/", ".gitignore"],
   "repaired": [],
   "unchanged": [],
   "warnings": []
@@ -65,7 +65,6 @@ astra init --check --json           # machine-readable report (for scripts and a
 my-analysis/
 ├── astra.yaml              # Analysis specification (source of truth)
 ├── .gitignore
-├── src/                    # Your analysis code
 └── universes/
     └── baseline.yaml       # Default decision selection
 ```
