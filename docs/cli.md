@@ -19,7 +19,7 @@ astra --help
 
 | Command | Purpose |
 |---------|---------|
-| [`astra init`](#astra-init) | Scaffold a minimal ASTRA project |
+| [`astra init`](#astra-init) | Converge a directory into a minimal ASTRA project (idempotent) |
 | [`astra validate`](#astra-validate) | Validate the whole project, or one analysis/universe file |
 | [`astra info`](#astra-info) | Show a summary of an analysis |
 | [`astra viz`](#astra-viz) | Visualise the decision space |
@@ -35,12 +35,28 @@ astra --help
 
 ## `astra init`
 
-Create a minimal ASTRA analysis scaffold. The scaffold contains an `astra.yaml` boilerplate, a `universes/baseline.yaml`, an empty `src/` for analysis code, and a `.gitignore`. By default a fresh git repository is initialised in the new directory.
+Converge a directory into a minimal ASTRA analysis scaffold. The scaffold contains an `astra.yaml` boilerplate, a `universes/baseline.yaml`, an empty `src/` for analysis code, and a `.gitignore`. By default a fresh git repository is initialised in the directory.
+
+`astra init` is **idempotent** — safe to re-run at any time. Each run creates whatever is missing and never overwrites existing files: a directory that already holds an `astra.yaml`, or any other files, is adopted rather than rejected. The boilerplate `astra.yaml` and `universes/baseline.yaml` are written as one unit — if you already have your own `astra.yaml`, the boilerplate baseline (which references the boilerplate's example decision) is not written next to it.
 
 ```bash
 astra init my-analysis
 astra init my-analysis --no-git     # skip git initialisation
-astra init .                        # scaffold in the current directory
+astra init .                        # converge the current directory
+astra init --check                  # report drift without writing; exit 1 if not converged
+astra init --check --json           # machine-readable report (for scripts and agents)
+```
+
+`--check` reports what a run would create, writes nothing, and exits non-zero when the directory is not converged. `--json` emits the report as JSON:
+
+```json
+{
+  "converged": false,
+  "created": ["astra.yaml", "universes/", "src/", ".gitignore"],
+  "repaired": [],
+  "unchanged": [],
+  "warnings": []
+}
 ```
 
 **Resulting layout:**

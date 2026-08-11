@@ -28,6 +28,8 @@ The scaffolded `astra.yaml` is a complete, valid analysis with `TODO:` markers i
 
 > **Tip:** By default `astra init` runs `git init` in the new directory and makes an initial commit. Pass `--no-git` to skip both.
 
+`astra init` is idempotent: re-running it creates whatever is missing and never overwrites existing files, so it is safe to run in a directory that already has content — including an existing `astra.yaml`, which is left untouched. Use `astra init --check` to see whether a directory is fully scaffolded without writing anything.
+
 ## Edit the analysis
 
 The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis declares three top-level sections — **`inputs:`**, **`outputs:`**, **`decisions:`** — plus optional metadata (`name`, `version`, `description`, `tags`, `container`).
