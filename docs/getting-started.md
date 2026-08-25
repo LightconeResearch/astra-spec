@@ -50,6 +50,7 @@ inputs:
 outputs:
   - id: main_result
     type: metric                  # metric | figure | table | data | report
+    format: json                  # file extension, no dot; required from 0.1.0
     description: "Primary output"
     decisions: [example_method]   # contract: only these decisions are visible to the recipe
     recipe:

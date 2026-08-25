@@ -29,6 +29,7 @@ outputs:
 
   - id: pipeline_summary
     type: report
+    format: md
     description: End-to-end comparison of feature extraction methods
     recipe:
       command: python src/summarize.py
@@ -73,6 +74,7 @@ analyses:
     outputs:
       - id: features
         type: data
+        format: npy
         description: Transformed feature matrix (n_samples x n_components)
         decisions: [method, n_components, seed]
         recipe:
@@ -80,6 +82,7 @@ analyses:
 
       - id: feature_plot
         type: figure
+        format: png
         description: Scatter plot of extracted features
         inputs: [features]
         decisions: [method, n_components]
@@ -132,6 +135,7 @@ analyses:
     outputs:
       - id: predictions
         type: data
+        format: csv
         description: Predicted class labels for the test set
         decisions: [classifier, split]
         recipe:
@@ -139,6 +143,7 @@ analyses:
 
       - id: accuracy
         type: metric
+        format: json
         description: Classification accuracy on held-out test set
         inputs: [predictions]
         decisions: [classifier, split]

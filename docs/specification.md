@@ -40,6 +40,7 @@ inputs:
 outputs:
   - id: fit_params
     type: table
+    format: csv
     description: Slope, intercept, and scatter for the period-luminosity relation.
     inputs: [catalog_data]
     decisions: [fit_method]
@@ -98,6 +99,7 @@ An input is something the analysis consumes. It can be a dataset, a file, an ext
 outputs:
   - id: fit_params
     type: table
+    format: csv
     description: Slope, intercept, and scatter for the period-luminosity relation.
     inputs: [catalog_data]
     decisions: [fit_method]
@@ -109,7 +111,7 @@ outputs:
         --out {output}
 ```
 
-An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `recipe` gives the Python command the runner invokes.
+An output is a scientific artifact the analysis produces: a metric, figure, table, data product, or report. Where `type` says what the artifact *is*, `format` says how it is encoded — the file extension it is written with, so a consumer can render, diff, or open it without inspecting the bytes. Importantly, each output says what it depends on, i.e. `inputs` names the upstream artifacts required to produce it, and `decisions` names the methodological choices that parameterize it. Finally, `recipe` gives the Python command the runner invokes.
 
 The recipe is not allowed to invent hidden dependencies, which makes the output a reviewable unit.
 
@@ -365,6 +367,8 @@ ASTRA validation is designed to catch both syntax errors and scientific-record e
 | Semantic validation | Duplicate IDs, references, `from` paths, recipe placeholders, and constraint satisfaction. |
 | Evidence verification | Optional quote matching against cited sources. |
 
+Not every finding is fatal. Fields that are *recommended* rather than required — currently `Output.format` — produce a **warning**: the document still validates, but the validator flags what will become an error in a future release.
+
 Run validation with:
 
 ```bash
@@ -438,6 +442,7 @@ An output is an artifact produced locally or re-exported from a child sub-analys
 | `id` | `string` | Yes | Local identifier. |
 | `label` | `string` | No | Short display name. |
 | `type` | `metric`, `figure`, `table`, `data`, or `report` | Yes when `from` is absent | Artifact kind. |
+| `format` | `string` | Recommended | Serialization of the artifact, as a lowercase token: the file extension without the leading dot. Becomes required at 0.1.0 — see below. |
 | `description` | `string` | No | What the output represents. |
 | `from` | `string` | No | Path alias to a child output. |
 | `when` | `string[]` | No | Conditions under which the output is active. |
@@ -454,6 +459,14 @@ Output types:
 | `table` | Structured tabular output. |
 | `data` | A processed dataset, catalog, calibration table, or intermediate artifact. |
 | `report` | Textual or document output. |
+
+Output formats:
+
+`format` is a lowercase token matching `^[a-z0-9][a-z0-9_.+-]*$` — the extension the artifact is written with, minus the leading dot. The value space is deliberately **open**: common values are `png`, `svg`, `pdf`, `csv`, `parquet`, `json`, `fits`, `hdf5`, `html`, and `md`, but any token matching the pattern is legal, so field-specific formats (`asdf`, `zarr`, `nc`) need no schema change.
+
+!!! warning "`format` becomes required at 0.1.0"
+
+    Throughout the 0.0.x series `format` is **recommended**, not required: a document that omits it validates, and `astra validate` reports a warning rather than an error. From **0.1.0** it is required on every non-aliased output, so add it now — the warning is your migration runway.
 
 When `from` is present, the output is a pure re-export. Only `id`, `from`, and `when` may be declared locally.
 

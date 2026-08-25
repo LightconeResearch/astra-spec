@@ -10,7 +10,11 @@ import astra.datamodel.analysis
 import yaml
 from linkml_runtime.loaders import yaml_loader
 from linkml.validator import Validator
-from linkml.validator.plugins import JsonschemaValidationPlugin
+from linkml.validator.report import Severity
+from linkml.validator.plugins import (
+    JsonschemaValidationPlugin,
+    RecommendedSlotsPlugin,
+)
 
 DATA_DIR_VALID = Path(__file__).parent / "data" / "valid"
 DATA_DIR_INVALID = Path(__file__).parent / "data" / "invalid"
@@ -63,3 +67,40 @@ def test_invalid_data_files_rejected(filepath, validator):
         data = yaml.safe_load(f)
     report = validator.validate(data, target_class=target_class_name)
     assert report.results, f"Expected validation errors but got none for {filepath}"
+
+
+@pytest.fixture(scope="module")
+def recommending_validator():
+    return Validator(
+        str(SCHEMA_PATH),
+        validation_plugins=[
+            JsonschemaValidationPlugin(closed=True),
+            RecommendedSlotsPlugin(),
+        ],
+    )
+
+
+def test_output_format_is_recommended_not_required(recommending_validator):
+    """`Output.format` warns when absent but never fails validation.
+
+    It is scheduled to become required at 0.1.0; until then a document
+    that omits it must still validate, with a recommendation reported so
+    authors get a migration runway.
+    """
+    doc = {
+        "id": "no_format",
+        "name": "Output without a format",
+        "outputs": [{"id": "result", "type": "figure"}],
+    }
+    report = recommending_validator.validate(doc, target_class="Analysis")
+    messages = [r.message for r in report.results]
+    assert any(
+        "format" in m and "recommended" in m for m in messages
+    ), f"expected a recommendation for Output.format, got {messages}"
+    assert all(
+        r.severity is Severity.WARN for r in report.results
+    ), f"omitting Output.format must not be an error: {messages}"
+
+    doc["outputs"][0]["format"] = "png"
+    report = recommending_validator.validate(doc, target_class="Analysis")
+    assert not report.results, [r.message for r in report.results]

@@ -1,0 +1,20 @@
+# Invalid: re-exported Output redeclares 'format'.
+# When 'from' is set the Output is a pure pointer — format, like type,
+# is inherited from the source and must not be declared locally.
+id: bad_aliased_output_format
+name: Aliased Output redeclares format
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    from: child.child_result
+    format: png
+analyses:
+  child:
+    id: child
+    outputs:
+      - id: child_result
+        type: figure
+        format: png
