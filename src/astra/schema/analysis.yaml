@@ -332,6 +332,28 @@ classes:
         description: >-
           Type of output. Required when `from` is unset; forbidden
           when `from` is set (inherited from the source).
+      format:
+        recommended: true
+        pattern: "^[a-z0-9][a-z0-9_.+-]*$"
+        annotations:
+          required_in: "0.1.0"
+        description: >-
+          Concrete serialization of the artifact, as a lowercase token:
+          the file extension the artifact is written with, without the
+          leading dot (`png`, `pdf`, `svg`, `csv`, `parquet`, `json`,
+          `fits`, `hdf5`, `html`, `md`). Where `type` says what the
+          output *is* (figure, table, data), `format` says how it is
+          encoded, so consumers can render, diff, or open it without
+          inspecting the file.
+
+          The value space is deliberately open — any lowercase token
+          matching the pattern is legal, so formats specific to a field
+          (`asdf`, `zarr`, `nc`) need no schema change.
+
+          Recommended, not required, in 0.0.x: validators warn when it
+          is missing. It becomes **required** for non-aliased Outputs in
+          0.1.0. Forbidden when `from` is set (inherited from the
+          source).
       description:
         description: Free-prose description of this output.
       inputs:
@@ -375,6 +397,9 @@ classes:
       - title: from_alias_forbids_type
         preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
         postconditions: {slot_conditions: {type: {value_presence: ABSENT}}}
+      - title: from_alias_forbids_format
+        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
+        postconditions: {slot_conditions: {format: {value_presence: ABSENT}}}
       - title: from_alias_forbids_label
         preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
         postconditions: {slot_conditions: {label: {value_presence: ABSENT}}}

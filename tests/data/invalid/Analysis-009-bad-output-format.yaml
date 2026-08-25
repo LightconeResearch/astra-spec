@@ -1,0 +1,12 @@
+# Invalid: Output.format must be a lowercase token matching
+# ^[a-z0-9][a-z0-9_.+-]*$ — no uppercase, no leading dot.
+id: bad_output_format
+name: Output format violates the token pattern
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    type: figure
+    format: ".PNG"

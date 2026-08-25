@@ -23,6 +23,7 @@ inputs:
 outputs:
   - id: bias_metric
     type: metric
+    format: json
     description: Photo-z bias measurement
     inputs:
       - redshift_estimates
@@ -30,6 +31,7 @@ outputs:
       command: python src/evaluate.py --metric bias
   - id: redshift_estimates
     type: data
+    format: parquet
     description: Redshift point estimates and PDFs
     decisions:
       - method
@@ -48,6 +50,7 @@ outputs:
         gpus: 1
   - id: scatter_plot
     type: figure
+    format: png
     description: Photo-z scatter plot (z_phot vs z_spec)
     when:
       - method.neural_net
@@ -151,6 +154,7 @@ analyses:
     outputs:
       - id: calibrated_pdfs
         type: data
+        format: hdf5
         description: Calibrated redshift PDFs
         decisions:
           - cal_method

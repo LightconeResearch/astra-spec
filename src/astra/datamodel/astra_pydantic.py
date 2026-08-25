@@ -493,6 +493,11 @@ class Output(ConfiguredBaseModel):
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
                                                                    'value_presence': 'PRESENT'}}},
                     'title': 'from_alias_forbids_type'},
+                   {'postconditions': {'slot_conditions': {'format': {'name': 'format',
+                                                                      'value_presence': 'ABSENT'}}},
+                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
+                                                                   'value_presence': 'PRESENT'}}},
+                    'title': 'from_alias_forbids_format'},
                    {'postconditions': {'slot_conditions': {'label': {'name': 'label',
                                                                      'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
@@ -547,6 +552,11 @@ class Output(ConfiguredBaseModel):
                        'Analysis']} })
     label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     type: Optional[OutputType] = Field(default=None, description="""Type of output. Required when `from` is unset; forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
+    format: Optional[str] = Field(default=None, description="""Concrete serialization of the artifact, as a lowercase token: the file extension the artifact is written with, without the leading dot (`png`, `pdf`, `svg`, `csv`, `parquet`, `json`, `fits`, `hdf5`, `html`, `md`). Where `type` says what the output *is* (figure, table, data), `format` says how it is encoded, so consumers can render, diff, or open it without inspecting the file.
+The value space is deliberately open — any lowercase token matching the pattern is legal, so formats specific to a field (`asdf`, `zarr`, `nc`) need no schema change.
+Recommended, not required, in 0.0.x: validators warn when it is missing. It becomes **required** for non-aliased Outputs in 0.1.0. Forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'annotations': {'required_in': {'tag': 'required_in', 'value': '0.1.0'}},
+         'domain_of': ['Output'],
+         'recommended': True} })
     description: Optional[str] = Field(default=None, description="""Free-prose description of this output.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     inputs: Optional[list[str]] = Field(default=None, description="""IDs of upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
 References use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
@@ -578,6 +588,19 @@ References use plain decision IDs and resolve through any `from:` chain in the s
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('format')
+    def pattern_format(cls, v):
+        pattern=re.compile(r"^[a-z0-9][a-z0-9_.+-]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid format format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid format format: {v}"
             raise ValueError(err_msg)
         return v
 

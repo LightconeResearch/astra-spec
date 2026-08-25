@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-08-10T23:44:16
+# Generation date: 2026-08-25T13:50:00
 # Schema: analysis
 #
 # id: https://w3id.org/astra/analysis
@@ -308,6 +308,7 @@ class Output(YAMLRoot):
     when: Optional[Union[str, list[str]]] = empty_list()
     label: Optional[str] = None
     type: Optional[Union[str, "OutputType"]] = None
+    format: Optional[str] = None
     description: Optional[str] = None
     inputs: Optional[Union[str, list[str]]] = empty_list()
     decisions: Optional[Union[str, list[str]]] = empty_list()
@@ -331,6 +332,9 @@ class Output(YAMLRoot):
 
         if self.type is not None and not isinstance(self.type, OutputType):
             self.type = OutputType(self.type)
+
+        if self.format is not None and not isinstance(self.format, str):
+            self.format = str(self.format)
 
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
@@ -934,6 +938,10 @@ slots.output__label = Slot(uri=ASTRA.label, name="output__label", curie=ASTRA.cu
 
 slots.output__type = Slot(uri=ASTRA.type, name="output__type", curie=ASTRA.curie('type'),
                    model_uri=ASTRA.output__type, domain=None, range=Optional[Union[str, "OutputType"]])
+
+slots.output__format = Slot(uri=ASTRA.format, name="output__format", curie=ASTRA.curie('format'),
+                   model_uri=ASTRA.output__format, domain=None, range=Optional[str],
+                   pattern=re.compile(r'^[a-z0-9][a-z0-9_.+-]*$'))
 
 slots.output__description = Slot(uri=ASTRA.description, name="output__description", curie=ASTRA.curie('description'),
                    model_uri=ASTRA.output__description, domain=None, range=Optional[str])

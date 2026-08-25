@@ -8,7 +8,7 @@ Core concepts:
 
 - **Analysis** — the root object of `astra.yaml`: metadata (`version`, `name`, `description`, `tags`, `container`) plus `inputs`, `outputs`, `decisions`, `prior_insights`, `findings`, and nested `analyses` (each sub-analysis is itself an Analysis). A sub-analysis may instead set `path` to a directory containing its own `astra.yaml`; `path` is mutually exclusive with inline content fields. A node-level `container` is the default execution image for every recipe in that node; a recipe-level `container` overrides it.
 - **Input** — something consumed: `type: data` (with `source`: path/URI/loader, descriptive not prescriptive) or `type: analysis` (with `ref`, optional `ref_version`, `use_outputs`) referencing another ASTRA record.
-- **Output** — an artifact produced: `type` is one of `metric`, `figure`, `table`, `data`, `report`. Declares its dependency contract: `inputs` (input or sibling-output IDs) and `decisions` (decision IDs), plus an optional `recipe`.
+- **Output** — an artifact produced: `type` is one of `metric`, `figure`, `table`, `data`, `report`, and `format` is the serialization as a lowercase extension token without the dot (`png`, `csv`, `parquet`, `fits`, …; open value space, pattern `^[a-z0-9][a-z0-9_.+-]*$`). `format` is *recommended* in 0.0.x — omitting it validates with a warning — and becomes **required** on non-aliased outputs at 0.1.0, so always emit it. Declares its dependency contract: `inputs` (input or sibling-output IDs) and `decisions` (decision IDs), plus an optional `recipe`.
 - **Decision** — a methodological choice point with a `label`, optional `rationale` and `default`, and a map of `options`. Options may declare `requires` / `incompatible_with` constraints (form `decision_id.option_id`), supporting `insights`, or `excluded: true` with `excluded_reason`.
 - **Universe** — one complete selection of options, one per active decision, stored as a separate YAML file (conventionally `universes/<id>.yaml`): `id`, optional `description`, `decisions: {decision_id: option_id}`, and nested `analyses` mirroring sub-analyses.
 - **Insight / Evidence** — `prior_insights` (imported claims motivating choices) and `findings` (claims produced by the analysis) share one model: `claim`, `created_at`, and `evidence[]` where each item has exactly one of `doi` (literature) or `artifact` (an output ID), plus optional `quote.exact` for verifiable citations.
@@ -25,6 +25,7 @@ inputs:
 outputs:
   - id: fit_params
     type: table
+    format: csv
     inputs: [catalog_data]
     decisions: [fit_method]
     recipe:
@@ -122,6 +123,8 @@ Format rules (what any conforming validator enforces):
 - Recipe placeholders: only `{inputs.<id>}`, `{inputs}`, `{decisions.<id>}`, `{output}`; `{{`/`}}` are literal braces. Every placeholder must name an ID listed in the parent output's `inputs` / `decisions` — undeclared references are rejected.
 - IDs: entity IDs match `^[a-z][a-z0-9_]*$` (snake_case); universe IDs also allow hyphens; `version` matches `^\d+\.\d+(\.\d+)?$`; DOIs match `^10\.\d{4,}/.*$`.
 - Required fields: a non-aliased Decision must have `label` and `options`; every Option must have `label`; a non-aliased Input or Output must have `type`; an Insight must have `claim`, `created_at`, and non-empty `evidence`.
+- Recommended fields (a warning, not an error): a non-aliased Output should have `format`. It becomes required at 0.1.0 — always emit it when authoring a record.
+- `Output.format` matches `^[a-z0-9][a-z0-9_.+-]*$` and is forbidden on an aliased output (inherited from the source, like `type`).
 - Reserved names (not usable as entity IDs): `inputs`, `outputs`, `decisions`, `findings`, `prior_insights`, `analyses`, `options`, `content`.
 - Conditions: `when: [decision.option]` activates an element only when that option is selected; `~decision.option` negates; multiple entries are ANDed.
 - Cross-scope references use `from` with a path grammar (`../id` up, `scope.id` down, `../sibling.out_id` lateral). A node with `from` is a pure alias: only `id`, `from`, and (where legal) `when` may be set locally. Decisions only flow downward from ancestors; artifacts can flow up (re-export) or laterally.

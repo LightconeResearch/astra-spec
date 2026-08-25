@@ -26,6 +26,7 @@ inputs:
 outputs:
   - id: trained_output
     type: data
+    format: pkl
     description: Best performing classifier
     decisions: [scaling, model, test_size, random_seed]
     recipe:
@@ -33,6 +34,7 @@ outputs:
 
   - id: accuracy
     type: metric
+    format: json
     description: Classification accuracy on held-out test set
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
@@ -41,6 +43,7 @@ outputs:
 
   - id: f1_score
     type: metric
+    format: json
     description: Macro-averaged F1 score
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
@@ -49,6 +52,7 @@ outputs:
 
   - id: confusion_matrix
     type: figure
+    format: png
     description: Confusion matrix heatmap
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
@@ -57,6 +61,7 @@ outputs:
 
   - id: model_comparison
     type: table
+    format: csv
     description: Accuracy by model and preprocessing combination
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
@@ -65,6 +70,7 @@ outputs:
 
   - id: conclusion
     type: report
+    format: md
     description: Summary of classifier performance and suitability for the application
     inputs: [trained_output]
     recipe:

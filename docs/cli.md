@@ -92,6 +92,12 @@ Validation runs in stages:
 1. **Schema validation** — structure, types, required fields, format patterns (Pydantic models generated from the LinkML schema).
 2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions, constraints respected, etc.
 
+### Recommended fields
+
+The schema marks some fields *recommended* rather than required. An analysis that omits one still validates — it is a soft signal that the field will be required in a future release, not an error.
+
+Currently there is one: `Output.format`, the artifact's serialization (a lowercase extension token such as `png`, `csv`, or `parquet`). It is optional throughout 0.0.x and **becomes required on every non-aliased output at 0.1.0**, so add it to your outputs now.
+
 ### Evidence verification
 
 When an analysis declares `prior_insights:` or `findings:`, `astra validate` can additionally check that quoted text in literature evidence actually appears in the source PDFs:
