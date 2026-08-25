@@ -426,18 +426,6 @@ classes:
           slot_conditions:
             type:
               required: true
-      # NOTE: the recommendation on `format` is carried by the
-      # `recommended: true` flag on the slot itself, not by a rule.
-      # Expressing it as a conditional postcondition
-      # (`from` ABSENT -> format recommended) looks more precise, but
-      # gen-json-schema lowers a `recommended` postcondition to a hard
-      # `required`, which would make `format` mandatory immediately.
-      # Consequence: linkml's stock RecommendedSlotsPlugin is
-      # unconditional, so it also flags re-exported Outputs, where
-      # `format` is in fact forbidden. A `from`-aware validator should
-      # skip aliased Outputs when reporting this recommendation.
-      # At 0.1.0 this becomes a `required: true` rule mirroring
-      # `type_required_when_not_aliased`.
 
   # --- Decisions ---
 
