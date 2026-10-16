@@ -1,5 +1,5 @@
 # Auto generated from analysis.yaml by pythongen.py version: 0.0.1
-# Generation date: 2026-08-25T14:15:47
+# Generation date: 2026-10-16T14:15:27
 # Schema: analysis
 #
 # id: https://w3id.org/astra/analysis
@@ -435,7 +435,6 @@ class Decision(YAMLRoot):
     label: Optional[str] = None
     rationale: Optional[str] = None
     tags: Optional[Union[str, list[str]]] = empty_list()
-    default: Optional[str] = None
     options: Optional[Union[dict[Union[str, OptionId], Union[dict, Option]], list[Union[dict, Option]]]] = empty_dict()
 
     def __post_init__(self, *_: str, **kwargs: Any):
@@ -460,9 +459,6 @@ class Decision(YAMLRoot):
         if not isinstance(self.tags, list):
             self.tags = [self.tags] if self.tags is not None else []
         self.tags = [v if isinstance(v, str) else str(v) for v in self.tags]
-
-        if self.default is not None and not isinstance(self.default, str):
-            self.default = str(self.default)
 
         self._normalize_inlined_as_dict(slot_name="options", slot_type=Option, key_name="id", keyed=True)
 
@@ -495,6 +491,7 @@ class Analysis(YAMLRoot):
     container: Optional[str] = None
     path: Optional[str] = None
     analyses: Optional[Union[dict[Union[str, AnalysisId], Union[dict, "Analysis"]], list[Union[dict, "Analysis"]]]] = empty_dict()
+    universes: Optional[Union[dict[Union[str, UniverseId], Union[dict, "Universe"]], list[Union[dict, "Universe"]]]] = empty_dict()
 
     def __post_init__(self, *_: str, **kwargs: Any):
         if self._is_empty(self.id):
@@ -532,6 +529,8 @@ class Analysis(YAMLRoot):
             self.path = str(self.path)
 
         self._normalize_inlined_as_dict(slot_name="analyses", slot_type=Analysis, key_name="id", keyed=True)
+
+        self._normalize_inlined_as_list(slot_name="universes", slot_type=Universe, key_name="id", keyed=True)
 
         super().__post_init__(**kwargs)
 
@@ -792,7 +791,11 @@ class UniverseNode(YAMLRoot):
 @dataclass(repr=False)
 class Universe(YAMLRoot):
     """
-    A universe specification - a complete set of decisions across the entire analysis tree.
+    A named universe: one selected option for each active decision of the analysis that declares it. A universe is
+    declared either in full or as a diff of another universe of the same analysis via `derived_from`.
+    Its effective selection is the `derived_from` universe's effective selection with the local `decisions` applied on
+    top. An inherited selection for a decision whose `when` condition no longer holds is dropped. No universe is
+    privileged: there is no default or implicit universe and no universe id is reserved.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -803,6 +806,7 @@ class Universe(YAMLRoot):
 
     id: Union[str, UniverseId] = None
     description: Optional[str] = None
+    derived_from: Optional[str] = None
     decisions: Optional[Union[dict[Union[str, DecisionSelectionDecisionId], Union[dict, DecisionSelection]], list[Union[dict, DecisionSelection]]]] = empty_dict()
     analyses: Optional[Union[dict[Union[str, UniverseNodeId], Union[dict, UniverseNode]], list[Union[dict, UniverseNode]]]] = empty_dict()
 
@@ -814,6 +818,9 @@ class Universe(YAMLRoot):
 
         if self.description is not None and not isinstance(self.description, str):
             self.description = str(self.description)
+
+        if self.derived_from is not None and not isinstance(self.derived_from, str):
+            self.derived_from = str(self.derived_from)
 
         self._normalize_inlined_as_dict(slot_name="decisions", slot_type=DecisionSelection, key_name="decision_id", keyed=True)
 
@@ -947,7 +954,8 @@ slots.output__description = Slot(uri=ASTRA.description, name="output__descriptio
                    model_uri=ASTRA.output__description, domain=None, range=Optional[str])
 
 slots.output__inputs = Slot(uri=ASTRA.inputs, name="output__inputs", curie=ASTRA.curie('inputs'),
-                   model_uri=ASTRA.output__inputs, domain=None, range=Optional[Union[str, list[str]]])
+                   model_uri=ASTRA.output__inputs, domain=None, range=Optional[Union[str, list[str]]],
+                   pattern=re.compile(r'^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_-]*)?$'))
 
 slots.output__decisions = Slot(uri=ASTRA.decisions, name="output__decisions", curie=ASTRA.curie('decisions'),
                    model_uri=ASTRA.output__decisions, domain=None, range=Optional[Union[str, list[str]]])
@@ -993,9 +1001,6 @@ slots.decision__rationale = Slot(uri=ASTRA.rationale, name="decision__rationale"
 slots.decision__tags = Slot(uri=ASTRA.tags, name="decision__tags", curie=ASTRA.curie('tags'),
                    model_uri=ASTRA.decision__tags, domain=None, range=Optional[Union[str, list[str]]])
 
-slots.decision__default = Slot(uri=ASTRA.default, name="decision__default", curie=ASTRA.curie('default'),
-                   model_uri=ASTRA.decision__default, domain=None, range=Optional[str])
-
 slots.decision__options = Slot(uri=ASTRA.options, name="decision__options", curie=ASTRA.curie('options'),
                    model_uri=ASTRA.decision__options, domain=None, range=Optional[Union[dict[Union[str, OptionId], Union[dict, Option]], list[Union[dict, Option]]]])
 
@@ -1040,6 +1045,9 @@ slots.analysis__path = Slot(uri=ASTRA.path, name="analysis__path", curie=ASTRA.c
 slots.analysis__analyses = Slot(uri=ASTRA.analyses, name="analysis__analyses", curie=ASTRA.curie('analyses'),
                    model_uri=ASTRA.analysis__analyses, domain=None, range=Optional[Union[dict[Union[str, AnalysisId], Union[dict, Analysis]], list[Union[dict, Analysis]]]])
 
+slots.analysis__universes = Slot(uri=ASTRA.universes, name="analysis__universes", curie=ASTRA.curie('universes'),
+                   model_uri=ASTRA.analysis__universes, domain=None, range=Optional[Union[dict[Union[str, UniverseId], Union[dict, Universe]], list[Union[dict, Universe]]]])
+
 slots.textQuoteSelector__exact = Slot(uri=ASTRA.exact, name="textQuoteSelector__exact", curie=ASTRA.curie('exact'),
                    model_uri=ASTRA.textQuoteSelector__exact, domain=None, range=str)
 
@@ -1064,7 +1072,8 @@ slots.evidence__doi = Slot(uri=ASTRA.doi, name="evidence__doi", curie=ASTRA.curi
                    pattern=re.compile(r'^10\.\d{4,}/.*$'))
 
 slots.evidence__artifact = Slot(uri=ASTRA.artifact, name="evidence__artifact", curie=ASTRA.curie('artifact'),
-                   model_uri=ASTRA.evidence__artifact, domain=None, range=Optional[str])
+                   model_uri=ASTRA.evidence__artifact, domain=None, range=Optional[str],
+                   pattern=re.compile(r'^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_-]*)?$'))
 
 slots.evidence__version = Slot(uri=ASTRA.version, name="evidence__version", curie=ASTRA.curie('version'),
                    model_uri=ASTRA.evidence__version, domain=None, range=Optional[int])
@@ -1123,7 +1132,8 @@ slots.universeNode__id = Slot(uri=ASTRA.id, name="universeNode__id", curie=ASTRA
                    pattern=re.compile(r'^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$'))
 
 slots.universeNode__universe = Slot(uri=ASTRA.universe, name="universeNode__universe", curie=ASTRA.curie('universe'),
-                   model_uri=ASTRA.universeNode__universe, domain=None, range=Optional[str])
+                   model_uri=ASTRA.universeNode__universe, domain=None, range=Optional[str],
+                   pattern=re.compile(r'^[a-z][a-z0-9_-]*$'))
 
 slots.universeNode__decisions = Slot(uri=ASTRA.decisions, name="universeNode__decisions", curie=ASTRA.curie('decisions'),
                    model_uri=ASTRA.universeNode__decisions, domain=None, range=Optional[Union[dict[Union[str, DecisionSelectionDecisionId], Union[dict, DecisionSelection]], list[Union[dict, DecisionSelection]]]])
@@ -1138,6 +1148,10 @@ slots.universe__id = Slot(uri=ASTRA.id, name="universe__id", curie=ASTRA.curie('
 slots.universe__description = Slot(uri=ASTRA.description, name="universe__description", curie=ASTRA.curie('description'),
                    model_uri=ASTRA.universe__description, domain=None, range=Optional[str])
 
+slots.universe__derived_from = Slot(uri=ASTRA.derived_from, name="universe__derived_from", curie=ASTRA.curie('derived_from'),
+                   model_uri=ASTRA.universe__derived_from, domain=None, range=Optional[str],
+                   pattern=re.compile(r'^[a-z][a-z0-9_-]*$'))
+
 slots.universe__decisions = Slot(uri=ASTRA.decisions, name="universe__decisions", curie=ASTRA.curie('decisions'),
                    model_uri=ASTRA.universe__decisions, domain=None, range=Optional[Union[dict[Union[str, DecisionSelectionDecisionId], Union[dict, DecisionSelection]], list[Union[dict, DecisionSelection]]]])
 
@@ -1151,6 +1165,9 @@ slots.Input_from = Slot(uri=ASTRA['from'], name="Input_from", curie=ASTRA.curie(
 slots.Output_from = Slot(uri=ASTRA['from'], name="Output_from", curie=ASTRA.curie('from'),
                    model_uri=ASTRA.Output_from, domain=Output, range=Optional[str],
                    pattern=re.compile(r'^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$'))
+
+slots.Output_when = Slot(uri=ASTRA.when, name="Output_when", curie=ASTRA.curie('when'),
+                   model_uri=ASTRA.Output_when, domain=Output, range=Optional[Union[str, list[str]]])
 
 slots.Decision_from = Slot(uri=ASTRA['from'], name="Decision_from", curie=ASTRA.curie('from'),
                    model_uri=ASTRA.Decision_from, domain=Decision, range=Optional[str],

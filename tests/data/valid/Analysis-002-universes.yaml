@@ -1,0 +1,77 @@
+# Valid: universes declared in the file with one written as a diff of
+# another (derived_from). Also an output built once from two pinned
+# inputs and evidence pinned to a universe.
+id: model_stability
+version: "0.1.0"
+name: Model stability comparison
+inputs:
+  - id: iris_data
+    type: data
+    source: sklearn.datasets.load_iris
+outputs:
+  - id: trained_model
+    type: data
+    format: pkl
+    inputs: [iris_data]
+    decisions: [scaling, model]
+    recipe:
+      command: >-
+        python src/train.py --data {inputs.iris_data}
+        --scaling {decisions.scaling} --model {decisions.model}
+        --out {output}
+  - id: f1_score
+    type: metric
+    format: json
+    description: Built once per universe because its input is.
+    inputs: [trained_model]
+    recipe:
+      command: python src/evaluate.py --model {inputs.trained_model} --out {output}
+  - id: model_comparison
+    type: table
+    format: csv
+    description: Built once from the F1 score in two named universes.
+    inputs:
+      - f1_score#rf_standard
+      - f1_score#svm_standard
+    recipe:
+      command: >-
+        python src/compare.py
+        --a {inputs.f1_score#rf_standard}
+        --b {inputs.f1_score#svm_standard}
+        --out {output}
+decisions:
+  scaling:
+    label: Feature scaling
+    options:
+      none:
+        label: No scaling
+      standard:
+        label: StandardScaler
+  model:
+    label: Classification model
+    options:
+      random_forest:
+        label: Random forest
+      svm:
+        label: Support vector machine
+findings:
+  rf_scores_higher:
+    id: rf_scores_higher
+    claim: The random forest scores higher than the SVM under standard scaling.
+    created_at: "2026-10-16T00:00:00Z"
+    evidence:
+      - id: ev_rf_f1
+        artifact: f1_score#rf_standard
+      - id: ev_comparison
+        artifact: model_comparison
+universes:
+  - id: rf_standard
+    description: Random forest with standard scaling.
+    decisions:
+      scaling: standard
+      model: random_forest
+  - id: svm_standard
+    description: Same specification with the model switched to SVM.
+    derived_from: rf_standard
+    decisions:
+      model: svm

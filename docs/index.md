@@ -57,23 +57,21 @@ decisions:
   fit_method:
     label: Fitting method
     rationale: The fitting method determines how outliers influence the inferred relation.
-    default: ordinary_least_squares
     options:
       ordinary_least_squares:
         label: Ordinary least squares
       robust_linear:
         label: Robust linear fit
-```
 
-=== "Universe (`universes/baseline.yaml`)"
-
-```yaml
-# universes/baseline.yaml
-id: baseline
-description: Default configuration for the period-luminosity fit.
-
-decisions:
-  fit_method: ordinary_least_squares
+universes:
+  - id: least_squares
+    description: Ordinary least squares fit.
+    decisions:
+      fit_method: ordinary_least_squares
+  - id: robust
+    description: Robust linear fit - less sensitive to outliers.
+    decisions:
+      fit_method: robust_linear
 ```
 
 === "Run it"

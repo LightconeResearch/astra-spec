@@ -16,6 +16,7 @@ An `astra.yaml` file contains an `Analysis`, which declares:
 | `inputs` | What data or prior analyses does this analysis consume? |
 | `outputs` | What metrics, figures, tables, data products, or reports does it produce? |
 | `decisions` | Which methodological choice points shape the outputs? |
+| `universes` | Which combinations of choices is the analysis run under? |
 | `prior_insights` | Which existing claims or sources inform the analysis? |
 | `findings` | What claims does this analysis make after its outputs are produced? |
 | `analyses` | Which nested sub-analyses make up a larger analysis tree? |
@@ -55,13 +56,14 @@ decisions:
   fit_method:
     label: Fitting method
     rationale: The fitting method determines how outliers influence the inferred relation.
-    default: ordinary_least_squares
     options:
       ordinary_least_squares:
         label: Ordinary least squares
       robust_linear:
         label: Robust linear fit
 ```
+
+Validating this document gives a warning: it declares a decision but no universes, so nothing that depends on `fit_method` can be built yet. [Universes](#universes) shows how to declare them.
 
 ## Reading the example from top to bottom
 
@@ -124,7 +126,6 @@ decisions:
   fit_method:
     label: Fitting method
     rationale: The fitting method determines how outliers influence the inferred relation.
-    default: ordinary_least_squares
     options:
       ordinary_least_squares:
         label: Ordinary least squares
@@ -132,9 +133,9 @@ decisions:
         label: Robust linear fit
 ```
 
-The `fit_method` decision captures the fitting-method choice. `default` records the baseline choice used by the analysis, and `options` records the alternatives.
+The `fit_method` decision captures the fitting-method choice and `options` records the alternatives. None of them is singled out as the default - which option is used is chosen by each universe (see [Universes](#universes)).
 
-Use a decision when changing a methodological choice could change an output. Give the choice an `id`, record the baseline with `default`, and list the allowed `options`. Then attach the decision to each affected output. In this example, `fit_params.decisions: [fit_method]` tells the reader that the fitted parameters depend on the selected fitting method.
+Use a decision when changing a methodological choice could change an output. Give the choice an `id` and list the allowed `options`. Then attach the decision to each affected output. In this example, `fit_params.decisions: [fit_method]` tells the reader that the fitted parameters depend on the selected fitting method.
 
 ## Building up the specification
 
@@ -149,7 +150,6 @@ decisions:
   photometric_band:
     label: Photometric band
     rationale: The chosen band changes the fitted relation and its scatter.
-    default: g_band
     options:
       g_band:
         label: G band
@@ -170,7 +170,6 @@ Sometimes, methodological choices are linked: one choice may require another, or
 decisions:
   fit_method:
     label: Line fitting method
-    default: ordinary_least_squares
     options:
       ordinary_least_squares:
         label: Ordinary least squares
@@ -179,7 +178,6 @@ decisions:
 
   outlier_handling:
     label: Outlier handling
-    default: keep_all
     options:
       keep_all:
         label: Keep all points
@@ -193,19 +191,59 @@ Here, `outlier_handling.sigma_clip` is incompatible with `fit_method.robust_line
 
 ### Universes
 
-A universe is one complete selection of decision options, stored separately from `astra.yaml`. A project usually keeps one YAML file per universe in a `universes/` directory, such as `universes/baseline.yaml` or `universes/cleaned-data.yaml`. If the analysis defines `fit_method` and `outlier_handling`, then each universe file chooses one option for each decision.
+A universe selects one option for each decision. Universes are declared in `astra.yaml` under `universes`. If the analysis defines `fit_method` and `outlier_handling` then each universe chooses an option for both.
 
 ```yaml
-# universes/baseline.yaml
-id: baseline
-description: Fit the relation with ordinary least squares and keep all points.
+universes:
+  - id: baseline
+    description: Fit the relation with ordinary least squares and keep all points.
+    decisions:
+      fit_method: ordinary_least_squares
+      outlier_handling: keep_all
 
-decisions:
-  fit_method: ordinary_least_squares
-  outlier_handling: keep_all
+  - id: robust
+    description: Same as baseline with a robust linear fit.
+    derived_from: baseline
+    decisions:
+      fit_method: robust_linear
+
+  - id: clean
+    description: Same as baseline with extreme outliers removed.
+    derived_from: baseline
+    decisions:
+      outlier_handling: sigma_clip
 ```
 
-One analysis can have many universes. A baseline universe might keep all points and use ordinary least squares. A robustness universe might switch to `fit_method: robust_linear`. A cleaned-data universe might use `outlier_handling: sigma_clip`. Each universe produces its own outputs under one declared choice configuration. For example, the plot from the baseline universe might be written to `results/baseline/`, while the cleaned-data universe plot might be written to `results/clean/`.
+A universe written in full lists an option for every decision. A universe can instead be written as a diff of another with `derived_from` - it inherits that universe's selections and lists only what changes. `robust` above is `baseline` with the fitting method switched. Diffs can chain but must not loop. The full set of selections a universe ends up with is its *effective selection*. If a diff switches off a conditional decision (see [Conditional elements](#conditional-elements)) the selection it inherited for that decision is dropped.
+
+No universe is privileged. ASTRA has no default or implicit universe and reserves no universe id - `baseline` above is only a name. `derived_from` records how two universes relate and doesn't make either of them special.
+
+Each universe produces its own outputs. For example the plot from `baseline` might be written to `results/baseline/` while the plot from `clean` might be written to `results/clean/`.
+
+### Comparing universes
+
+An output's inputs normally mean "in the same universe as this output". A *pin* names a universe instead: `fit_params#robust` is `fit_params` as built in `robust`. Pins let one output compare universes.
+
+```yaml
+outputs:
+  - id: method_comparison
+    type: table
+    format: csv
+    description: Fitted parameters under the two fitting methods side by side.
+    inputs:
+      - fit_params#baseline
+      - fit_params#robust
+    recipe:
+      command: >-
+        python src/compare_fits.py
+        --a {inputs.fit_params#baseline}
+        --b {inputs.fit_params#robust}
+        --out {output}
+```
+
+A pin must name a universe declared in the analysis and the artifact must be active in that universe. Only outputs can be pinned - an external input is the same in every universe. Mind YAML here: `fit_params #robust` with a space is `fit_params` followed by a comment.
+
+Whether an output is built once per universe or only once is worked out from what it depends on. It is built per universe if it declares `decisions` or reads an unpinned input that is built per universe. Otherwise it is built once - `method_comparison` depends on no universe because both its inputs are pinned. An output built once must declare its `format` and can't use `when` since there is no current universe to evaluate it in.
 
 ### Recipes and command templates
 
@@ -255,13 +293,15 @@ findings:
     created_at: "2026-05-11T00:00:00Z"
     evidence:
       - id: ev_fit_params
-        artifact: fit_params
+        artifact: fit_params#clean
         quote:
           exact: "scatter = 0.18 mag"
     derived: true
 ```
 
 Evidence is what lets a reader check a claim instead of simply accepting it. It can cite a paper, identify a passage in a source document, or point to an artifact produced by the analysis. The same structure works for prior insights and findings: a decision can say which insight supports it, and each insight can say exactly which source or output supports the claim. With evidence verification enabled, tools can check whether quoted text actually appears in the cited source.
+
+When the cited output is built per universe, pin it to the universe the claim is about (`fit_params#clean` above) - the quoted scatter is only true of that universe's fit.
 
 ### Excluded options
 
@@ -297,7 +337,6 @@ analyses:
     decisions:
       outlier_handling:
         label: Outlier handling
-        default: keep_all
         options:
           keep_all: { label: Keep all points }
           sigma_clip: { label: Remove extreme outliers }
@@ -332,7 +371,6 @@ Use `when` when a choice creates a branch of the analysis. For example, one choi
 decisions:
   correction_mode:
     label: Correction mode
-    default: none
     options:
       none: { label: No correction }
       calibrated: { label: Apply calibration }
@@ -341,7 +379,6 @@ decisions:
     label: Calibration prior
     when:
       - correction_mode.calibrated
-    default: weak
     options:
       weak: { label: Weak prior }
       informative: { label: Informative prior }
@@ -364,10 +401,12 @@ ASTRA validation is designed to catch both syntax errors and scientific-record e
 | Stage | What it checks |
 |---|---|
 | Schema validation | YAML shape, types, enums, version and DOI patterns. |
-| Semantic validation | Duplicate IDs, references, `from` paths, recipe placeholders, and constraint satisfaction. |
+| Semantic validation | Duplicate IDs, references, `from` paths, recipe placeholders, and constraint satisfaction. Universes and pins: `derived_from` chains, complete effective selections, pinned universes that exist and where the artifact is active. |
 | Evidence verification | Optional quote matching against cited sources. |
 
 Not every finding is fatal. Fields that are *recommended* rather than required — currently `Output.format` — produce a **warning**: the document still validates, but the validator flags what will become an error in a future release.
+
+Semantic validation also warns about things that are allowed but probably not meant: a pin on an output that is built once anyway, evidence citing an output built per universe without a pin, and decisions declared with no universes to build them.
 
 Run validation with:
 
@@ -411,6 +450,7 @@ The `Analysis` object is the root of `astra.yaml` and the type used for every su
 | `prior_insights` | map of `Insight` | No | Existing claims used to motivate choices. |
 | `findings` | map of `Insight` | No | Claims produced by this analysis. |
 | `analyses` | map of `Analysis` | No | Nested sub-analyses. |
+| `universes` | `Universe[]` | No | Universes declared in this analysis. The root analysis's universes are the ones that are built. |
 | `path` | `string` | No | External directory containing a sub-analysis ASTRA file. |
 
 `path` is for nested analyses only. It is mutually exclusive with inline content fields on that sub-analysis.
@@ -442,11 +482,11 @@ An output is an artifact produced locally or re-exported from a child sub-analys
 | `id` | `string` | Yes | Local identifier. |
 | `label` | `string` | No | Short display name. |
 | `type` | `metric`, `figure`, `table`, `data`, or `report` | Yes when `from` is absent | Artifact kind. |
-| `format` | `string` | Recommended | Serialization of the artifact, as a lowercase token: the file extension without the leading dot. Becomes required at 0.1.0 — see below. |
+| `format` | `string` | Recommended | Serialization of the artifact, as a lowercase token: the file extension without the leading dot. Becomes required at 0.1.0 — see below. Required on an output built once. |
 | `description` | `string` | No | What the output represents. |
 | `from` | `string` | No | Path alias to a child output. |
-| `when` | `string[]` | No | Conditions under which the output is active. |
-| `inputs` | `string[]` | No | Local input or sibling output IDs this output depends on. |
+| `when` | `string[]` | No | Conditions under which the output is active. Not allowed on an output built once. |
+| `inputs` | `string[]` | No | Local input or sibling output IDs this output depends on. An output can be pinned to a universe (`fit_params#robust`). |
 | `decisions` | `string[]` | No | Local decision IDs that parameterize the output. |
 | `recipe` | `Recipe` | No | Command and execution context for producing the output. |
 
@@ -484,13 +524,13 @@ Recipe placeholders:
 
 | Placeholder | Meaning |
 |---|---|
-| `{inputs.<id>}` | Path to a named input declared in the parent output's `inputs`. |
+| `{inputs.<entry>}` | Path to one input, naming the entry exactly as written in the parent output's `inputs` (`{inputs.catalog_data}`, `{inputs.fit_params#robust}`). |
 | `{inputs}` | Space-separated paths to all parent output inputs in declaration order. |
 | `{decisions.<id>}` | Active option ID for a decision declared in the parent output's `decisions`. |
 | `{output}` | Path where the runner should write the produced artifact. |
 | `{{` and `}}` | Literal braces. |
 
-The command string is a typed template. Every `{inputs.<id>}` placeholder must name an input or sibling output listed in the parent `Output.inputs`. Every `{decisions.<id>}` placeholder must name a decision listed in the parent `Output.decisions`. Validators reject unresolved or undeclared placeholders.
+The command string is a typed template. Every `{inputs.<entry>}` placeholder must match an entry of the parent `Output.inputs` exactly - including any dots and pin. Every `{decisions.<id>}` placeholder must name a decision listed in the parent `Output.decisions`. Validators reject unresolved or undeclared placeholders.
 
 Placeholders always use local IDs in the surrounding analysis scope. If an input or decision is aliased from another scope with `from`, the recipe still names the local alias. Recipes do not use `../` path syntax. Cross-scope wiring is declared once on the `Input`, `Output`, or `Decision`.
 
@@ -528,7 +568,6 @@ A decision is a methodological choice point.
 | `tags` | `string[]` | No | Grouping labels. |
 | `when` | `string[]` | No | Conditions under which this decision is active. |
 | `from` | `string` | No | Alias to an ancestor decision. |
-| `default` | `string` | No | Default option ID. |
 | `options` | map of `Option` | Yes when `from` is absent | Available choices. |
 
 When `from` is present, the decision is a pure alias to an ancestor decision. Only `from` and, where needed, `when` may be declared locally.
@@ -574,7 +613,7 @@ Evidence fields:
 |---|---|---:|---|
 | `id` | `string` | Yes | Local evidence identifier. |
 | `doi` | `string` | Exactly one of `doi` or `artifact` | DOI for a cited paper or source. |
-| `artifact` | `string` | Exactly one of `doi` or `artifact` | ASTRA artifact ID, often an output. |
+| `artifact` | `string` | Exactly one of `doi` or `artifact` | ASTRA artifact ID, often an output. Pin it to a universe when the output is built per universe (`fit_params#clean`). |
 | `version` | `integer` | No | Source paper version, especially for arXiv papers. |
 | `snapshot` | `string` | No | Path to an immutable copy of an artifact. |
 | `source_commit` | `string` | No | Commit that produced an artifact. |
@@ -606,10 +645,13 @@ A universe selects one option for every active decision.
 |---|---|---:|---|
 | `id` | `string` | Yes | Universe identifier. |
 | `description` | `string` | No | Human-readable explanation. |
-| `decisions` | map of `decision_id: option_id` | No | Selections at the current analysis scope. |
+| `derived_from` | `string` | No | Another universe of the same analysis whose effective selection this one inherits. |
+| `decisions` | map of `decision_id: option_id` | No | Selections at the current analysis scope. Complete unless `derived_from` is set - then only what differs. |
 | `analyses` | map of `UniverseNode` | No | Nested selections mirroring sub-analyses. |
 
 Universe IDs may use lowercase letters, numbers, underscores, and hyphens. Decision and option IDs use lowercase snake_case.
+
+An `analyses` entry either lists the sub-analysis's `decisions` or names one of that sub-analysis's own universes with `universe: <id>`. With `derived_from` the entries are inherited per sub-analysis - an entry's `decisions` override the inherited ones and an entry naming `universe` replaces the inherited entry.
 
 ### Conditions and constraints
 
@@ -686,7 +728,7 @@ Legal directions:
 | `Output.from` | `child.out_id`, `child.sub.out_id` | Re-export a child output. |
 | `Decision.from` | `../id`, `../../id` | Inherit an ancestor decision. |
 
-`from` is the only primitive for crossing analysis scopes. Recipe templates, `Output.inputs`, and `Output.decisions` continue to use local IDs in their surrounding scope. When `from` is set, the node is a pure alias: only `id`, `from`, and, where applicable, `when` may be declared locally. Content fields such as `type`, `description`, `label`, `source`, `options`, `default`, and `recipe` are inherited from the source.
+`from` is the only primitive for crossing analysis scopes. Recipe templates, `Output.inputs`, and `Output.decisions` continue to use local IDs in their surrounding scope. When `from` is set, the node is a pure alias: only `id`, `from`, and, where applicable, `when` may be declared locally. Content fields such as `type`, `description`, `label`, `source`, `options`, and `recipe` are inherited from the source.
 
 Inputs and outputs can reach into subordinate scopes for artifacts, which can flow upward by re-export or laterally between sibling sub-analyses. Decisions only flow downward from ancestors into descendants. To share a decision between siblings, declare it on their common ancestor and alias it with `from` inside each child.
 

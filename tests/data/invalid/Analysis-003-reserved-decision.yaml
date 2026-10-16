@@ -13,7 +13,6 @@ decisions:
     id: options
     label: Reserved name
     rationale: should fail validation
-    default: a
     options:
       a:
         label: A

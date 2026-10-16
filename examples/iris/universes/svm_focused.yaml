@@ -1,8 +1,0 @@
-id: svm_focused
-description: Configuration optimized for SVM (requires standard scaling)
-
-decisions:
-  scaling: standard
-  model: svm
-  test_size: small
-  random_seed: seed_42

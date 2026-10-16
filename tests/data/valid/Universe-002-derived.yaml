@@ -1,0 +1,5 @@
+id: svm_focused
+description: Same as baseline with the model switched to SVM
+derived_from: baseline
+decisions:
+  model: svm

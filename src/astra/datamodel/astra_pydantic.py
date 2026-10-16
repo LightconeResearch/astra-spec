@@ -164,7 +164,7 @@ class Evidence(ConfiguredBaseModel):
                        'Decision',
                        'Analysis']} })
     doi: Optional[str] = Field(default=None, description="""DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
-    artifact: Optional[str] = Field(default=None, description="""Output ID referencing a declared output in this analysis""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
+    artifact: Optional[str] = Field(default=None, description="""Output ID referencing a declared output in this analysis - optionally pinned to a universe (`artifact#universe_id`). Pin it when the output is built per universe so that the evidence names the realisation that supports the claim.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
     version: Optional[int] = Field(default=None, description="""Paper version for arXiv papers (version matters for reproducibility)""", ge=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence', 'Analysis']} })
     snapshot: Optional[str] = Field(default=None, description="""Path to immutable copy of the artifact""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
     source_commit: Optional[str] = Field(default=None, description="""Git commit that produced the original artifact""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence']} })
@@ -194,6 +194,19 @@ class Evidence(ConfiguredBaseModel):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid doi format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('artifact')
+    def pattern_artifact(cls, v):
+        pattern=re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_-]*)?$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid artifact format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid artifact format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -270,7 +283,7 @@ class UniverseNode(ConfiguredBaseModel):
                        'Option',
                        'Decision',
                        'Analysis']} })
-    universe: Optional[str] = Field(default=None, description="""Name of a universe in the sub-analysis's universes/ directory. Alternative to inline decisions.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode']} })
+    universe: Optional[str] = Field(default=None, description="""Id of a universe declared in the sub-analysis's own `universes` list, whose selection is used for this node. Alternative to inline `decisions`: a node sets one or the other.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode']} })
     decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Decision selections (decision_id to option_id)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
@@ -287,14 +300,28 @@ class UniverseNode(ConfiguredBaseModel):
             raise ValueError(err_msg)
         return v
 
+    @field_validator('universe')
+    def pattern_universe(cls, v):
+        pattern=re.compile(r"^[a-z][a-z0-9_-]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid universe format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid universe format: {v}"
+            raise ValueError(err_msg)
+        return v
+
 
 class Universe(ConfiguredBaseModel):
     """
-    A universe specification - a complete set of decisions across the entire analysis tree.
+    A named universe: one selected option for each active decision of the analysis that declares it. A universe is declared either in full or as a diff of another universe of the same analysis via `derived_from`.
+    Its effective selection is the `derived_from` universe's effective selection with the local `decisions` applied on top. An inherited selection for a decision whose `when` condition no longer holds is dropped. No universe is privileged: there is no default or implicit universe and no universe id is reserved.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/astra/universe'})
 
-    id: str = Field(default=..., description="""Unique identifier for the universe""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
+    id: str = Field(default=..., description="""Universe identifier, unique within the declaring analysis. Referenced from artifact pins (`artifact#<id>`) and from `derived_from`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
                        'UniverseNode',
                        'Universe',
@@ -304,7 +331,8 @@ class Universe(ConfiguredBaseModel):
                        'Decision',
                        'Analysis']} })
     description: Optional[str] = Field(default=None, description="""Free-prose description of this universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
-    decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Root-level decision selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
+    derived_from: Optional[str] = Field(default=None, description="""Id of another universe declared in the same analysis. Its effective selection is inherited and the local `decisions` override it. Chains resolve transitively; cycles are invalid. Expresses a relationship the author chooses between two declared universes - it does not make the other universe special.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe']} })
+    decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Decision selections (decision_id to option_id). Must cover every active decision when `derived_from` is absent; otherwise only the selections that differ from the `derived_from` universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
     analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
     @field_validator('id')
@@ -317,6 +345,19 @@ class Universe(ConfiguredBaseModel):
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid id format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('derived_from')
+    def pattern_derived_from(cls, v):
+        pattern=re.compile(r"^[a-z][a-z0-9_-]*$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid derived_from format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid derived_from format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -354,8 +395,10 @@ class Recipe(ConfiguredBaseModel):
     command: Optional[str] = Field(default=None, description="""POSIX shell command to execute (e.g., 'python src/train.py', 'Rscript analysis.R', 'julia model.jl'). Any executable invocation is fine.
 The command is a template. Runners substitute these placeholders before invoking it:
 
-  {inputs.<id>}     -- path to the named upstream input
-                       (must be declared in Output.inputs)
+  {inputs.<entry>}  -- path to one upstream input; <entry>
+                       is an Output.inputs entry exactly as
+                       written, including any dots and pin
+                       (e.g. {inputs.f1_score#rf_standard})
   {inputs}          -- space-separated paths to all declared
                        inputs, in declaration order
   {decisions.<id>}  -- active option ID for the named
@@ -537,10 +580,20 @@ class Output(ConfiguredBaseModel):
                                                 'upward is not allowed — Outputs flow '
                                                 'up only via re-export at each layer.',
                                  'name': 'from',
-                                 'pattern': '^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$'}}})
+                                 'pattern': '^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$'},
+                        'when': {'description': 'Conditions for when this output is '
+                                                'active, evaluated in the universe '
+                                                'being built. Format: '
+                                                "'decision_id.option_id' or "
+                                                "'~decision_id.option_id'; multiple "
+                                                "conditions are AND'd together. Not "
+                                                'allowed on an output built once (see '
+                                                '`inputs`) as it has no current '
+                                                'universe.',
+                                 'name': 'when'}}})
 
     from_: Optional[str] = Field(default=None, alias="from", description="""Path to a descendant Output: `child.out_id` for an own child sub-analysis's output, or deeper (`child.grand.out_id`) to descend through nested children. Reaching upward is not allowed — Outputs flow up only via re-export at each layer.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Decision']} })
-    when: Optional[list[str]] = Field(default=None, description="""Conditions for when this element is active. Format: 'decision_id.option_id' or '~decision_id.option_id'. Multiple conditions are AND'd together.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Decision']} })
+    when: Optional[list[str]] = Field(default=None, description="""Conditions for when this output is active, evaluated in the universe being built. Format: 'decision_id.option_id' or '~decision_id.option_id'; multiple conditions are AND'd together. Not allowed on an output built once (see `inputs`) as it has no current universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Decision']} })
     id: str = Field(default=..., description="""Unique identifier for the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
                        'UniverseNode',
@@ -554,12 +607,15 @@ class Output(ConfiguredBaseModel):
     type: Optional[OutputType] = Field(default=None, description="""Type of output. Required when `from` is unset; forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output']} })
     format: Optional[str] = Field(default=None, description="""Concrete serialization of the artifact, as a lowercase token: the file extension the artifact is written with, without the leading dot (`png`, `pdf`, `svg`, `csv`, `parquet`, `json`, `fits`, `hdf5`, `html`, `md`). Where `type` says what the output *is* (figure, table, data), `format` says how it is encoded, so consumers can render, diff, or open it without inspecting the file.
 The value space is deliberately open — any lowercase token matching the pattern is legal, so formats specific to a field (`asdf`, `zarr`, `nc`) need no schema change.
-Recommended, not required, in 0.0.x: validators warn when it is missing. It becomes **required** for non-aliased Outputs in 0.1.0. Forbidden when `from` is set (inherited from the source).""", json_schema_extra = { "linkml_meta": {'annotations': {'required_in': {'tag': 'required_in', 'value': '0.1.0'}},
+Recommended, not required, in 0.0.x: validators warn when it is missing. It becomes **required** for non-aliased Outputs in 0.1.0. Forbidden when `from` is set (inherited from the source).
+An Output that is built once (see `inputs`) must declare its format so that its file is told apart from the per-universe results. Validators enforce this.""", json_schema_extra = { "linkml_meta": {'annotations': {'required_in': {'tag': 'required_in', 'value': '0.1.0'}},
          'domain_of': ['Output'],
          'recommended': True} })
     description: Optional[str] = Field(default=None, description="""Free-prose description of this output.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
-    inputs: Optional[list[str]] = Field(default=None, description="""IDs of upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
-References use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
+    inputs: Optional[list[str]] = Field(default=None, description="""References to upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
+References use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.
+Grammar: `artifact-id [ \"#\" universe-id ]`. A plain reference means the artifact realised in the same universe as this output. `artifact#u` is a pin: the artifact realised in universe `u`. That universe must be declared on the root analysis and the artifact must be active in it. A pin is only valid on a reference that resolves to an Output; an external Input does not vary by universe. (Mind YAML: a space before `#` turns the pin into a comment.)
+Whether an output is built once per universe or once in total is inferred: it is per universe if it declares `decisions` or if any reference without a pin resolves to a per-universe artifact. Pins and external Inputs never make an output per universe. An output built once has no current universe so it must not declare `when`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
     decisions: Optional[list[str]] = Field(default=None, description="""Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.
 Runners use this to (a) compute the per-output cache key, (b) determine the minimal universe set needed to materialize the output, and (c) deliver the active option values to the recipe (via flags, env vars, or a sidecar — runner's choice).
 References use plain decision IDs and resolve through any `from:` chain in the surrounding analysis scope.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
@@ -601,6 +657,19 @@ References use plain decision IDs and resolve through any `from:` chain in the s
                     raise ValueError(err_msg)
         elif isinstance(v, str) and not pattern.match(v):
             err_msg = f"Invalid format format: {v}"
+            raise ValueError(err_msg)
+        return v
+
+    @field_validator('inputs')
+    def pattern_inputs(cls, v):
+        pattern=re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_-]*)?$")
+        if isinstance(v, list):
+            for element in v:
+                if isinstance(element, str) and not pattern.match(element):
+                    err_msg = f"Invalid inputs format: {element}"
+                    raise ValueError(err_msg)
+        elif isinstance(v, str) and not pattern.match(v):
+            err_msg = f"Invalid inputs format: {v}"
             raise ValueError(err_msg)
         return v
 
@@ -663,11 +732,6 @@ class Decision(ConfiguredBaseModel):
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
                                                                    'value_presence': 'PRESENT'}}},
                     'title': 'from_alias_forbids_options'},
-                   {'postconditions': {'slot_conditions': {'default': {'name': 'default',
-                                                                       'value_presence': 'ABSENT'}}},
-                    'preconditions': {'slot_conditions': {'from': {'name': 'from',
-                                                                   'value_presence': 'PRESENT'}}},
-                    'title': 'from_alias_forbids_default'},
                    {'postconditions': {'slot_conditions': {'rationale': {'name': 'rationale',
                                                                          'value_presence': 'ABSENT'}}},
                     'preconditions': {'slot_conditions': {'from': {'name': 'from',
@@ -712,7 +776,6 @@ class Decision(ConfiguredBaseModel):
     label: Optional[str] = Field(default=None, description="""Human-readable name for the decision""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Decision']} })
     rationale: Optional[str] = Field(default=None, description="""Why this decision exists""", json_schema_extra = { "linkml_meta": {'domain_of': ['Decision']} })
     tags: Optional[list[str]] = Field(default=None, description="""Tags for grouping and categorizing""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Decision', 'Analysis']} })
-    default: Optional[str] = Field(default=None, description="""Default option ID for baseline universes""", json_schema_extra = { "linkml_meta": {'domain_of': ['Decision']} })
     options: Optional[dict[str, Option]] = Field(default=None, description="""Map of option IDs to option specifications""", json_schema_extra = { "linkml_meta": {'domain_of': ['Decision']} })
 
     @field_validator('from_')
@@ -769,6 +832,7 @@ class Analysis(ConfiguredBaseModel):
     container: Optional[str] = Field(default=None, description="""Default container for recipes in this node. Image names are pulled; file paths are built from source.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Recipe', 'Analysis']} })
     path: Optional[str] = Field(default=None, description="""Path to a directory containing its own astra.yaml. Mutually exclusive with inline content fields (inputs, outputs, decisions, etc.).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     analyses: Optional[dict[str, Analysis]] = Field(default=None, description="""Nested sub-analyses (keyed by analysis ID)""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+    universes: Optional[list[Universe]] = Field(default=None, description="""Universes declared in this analysis. Their ids are unique within it. The root analysis's universes are the ones that are built and that pins name; a sub-analysis's universes can be selected by id from a universe's `analyses` entries.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
 
     @field_validator('id')
     def pattern_id(cls, v):

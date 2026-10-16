@@ -1,0 +1,18 @@
+# Invalid: Output.inputs entries must match
+# artifact-id [ "#" universe-id ]. 'f1_score#' has an empty pin.
+id: bad_pin
+name: Malformed pin in Output.inputs
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: f1_score
+    type: metric
+    format: json
+    inputs: [data]
+  - id: comparison
+    type: table
+    format: csv
+    inputs:
+      - "f1_score#"

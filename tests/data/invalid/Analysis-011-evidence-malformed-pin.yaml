@@ -1,0 +1,21 @@
+# Invalid: Evidence.artifact follows the same grammar as Output.inputs.
+# 'f1_score#rf#svm' has two pins.
+id: bad_evidence_pin
+name: Malformed pin in Evidence.artifact
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: f1_score
+    type: metric
+    format: json
+    inputs: [data]
+findings:
+  claim_one:
+    id: claim_one
+    claim: Something about the F1 score.
+    created_at: "2026-10-16T00:00:00Z"
+    evidence:
+      - id: ev_one
+        artifact: "f1_score#rf#svm"

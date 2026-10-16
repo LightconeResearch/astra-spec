@@ -63,10 +63,15 @@ outputs:
     type: table
     format: csv
     description: Accuracy by model and preprocessing combination
-    inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
+    inputs:
+      - accuracy#baseline
+      - accuracy#svm_focused
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/compare.py
+        --a {inputs.accuracy#baseline}
+        --b {inputs.accuracy#svm_focused}
+        --out {output}
 
   - id: conclusion
     type: report
@@ -80,7 +85,6 @@ decisions:
   scaling:
     label: Feature Scaling
     rationale: Scaling affects distance-based algorithms like SVM
-    default: standard
     options:
       none:
         label: No Scaling
@@ -97,7 +101,6 @@ decisions:
   model:
     label: Classification Model
     rationale: Core algorithmic choice affecting accuracy and interpretability
-    default: random_forest
     options:
       svm:
         label: Support Vector Machine
@@ -114,7 +117,6 @@ decisions:
   test_size:
     label: Test Set Proportion
     rationale: Trade-off between training data and evaluation reliability
-    default: small
     options:
       small:
         label: "20%"
@@ -124,9 +126,23 @@ decisions:
   random_seed:
     label: Random Seed
     rationale: For reproducibility and stability testing
-    default: seed_42
     options:
       seed_42:
         label: "42"
       seed_123:
         label: "123"
+
+universes:
+  - id: baseline
+    description: Default configuration using standard practices
+    decisions:
+      scaling: standard
+      model: random_forest
+      test_size: small
+      random_seed: seed_42
+
+  - id: svm_focused
+    description: Configuration optimized for SVM (requires standard scaling)
+    derived_from: baseline
+    decisions:
+      model: svm

@@ -1,0 +1,5 @@
+# Invalid: derived_from must be a universe id (^[a-z][a-z0-9_-]*$).
+id: svm_focused
+derived_from: Baseline Universe
+decisions:
+  model: svm

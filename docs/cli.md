@@ -20,10 +20,10 @@ astra --help
 | Command | Purpose |
 |---------|---------|
 | [`astra init`](#astra-init) | Converge a directory into a minimal ASTRA project (idempotent) |
-| [`astra validate`](#astra-validate) | Validate the whole project, or one analysis/universe file |
+| [`astra validate`](#astra-validate) | Validate the whole project, or one analysis file |
 | [`astra info`](#astra-info) | Show a summary of an analysis |
 | [`astra viz`](#astra-viz) | Visualise the decision space |
-| [`astra universe`](#astra-universe) | Generate and check universe files |
+| [`astra universe`](#astra-universe) | Check a universe and show its effective selection |
 | [`astra spec`](#astra-spec) | Render the schema as agent-friendly reference text |
 | [`astra guide`](#astra-guide) | Print the agent briefing (llms.txt) for the format |
 | [`astra schema`](#astra-schema) | Export or print the LinkML schema |
@@ -35,9 +35,9 @@ astra --help
 
 ## `astra init`
 
-Converge a directory into a minimal ASTRA analysis scaffold. The scaffold contains an `astra.yaml` boilerplate, a `universes/baseline.yaml`, an empty `src/` for analysis code, and a `.gitignore`. By default a fresh git repository is initialised in the directory.
+Converge a directory into a minimal ASTRA analysis scaffold. The scaffold contains an `astra.yaml` boilerplate, an empty `src/` for analysis code, and a `.gitignore`. By default a fresh git repository is initialised in the directory.
 
-`astra init` is **idempotent** — safe to re-run at any time. Each run creates whatever is missing and never overwrites existing files: a directory that already holds an `astra.yaml`, or any other files, is adopted rather than rejected. The boilerplate `astra.yaml` and `universes/baseline.yaml` are written as one unit — if you already have your own `astra.yaml`, the boilerplate baseline (which references the boilerplate's example decision) is not written next to it.
+`astra init` is **idempotent** — safe to re-run at any time. Each run creates whatever is missing and never overwrites existing files: a directory that already holds an `astra.yaml`, or any other files, is adopted rather than rejected.
 
 ```bash
 astra init my-analysis
@@ -52,7 +52,7 @@ astra init --check --json           # machine-readable report (for scripts and a
 ```json
 {
   "converged": false,
-  "created": ["astra.yaml", "universes/", "src/", ".gitignore"],
+  "created": ["astra.yaml", "src/", ".gitignore"],
   "repaired": [],
   "unchanged": [],
   "warnings": []
@@ -65,9 +65,7 @@ astra init --check --json           # machine-readable report (for scripts and a
 my-analysis/
 ├── astra.yaml              # Analysis specification (source of truth)
 ├── .gitignore
-├── src/                    # Your analysis code
-└── universes/
-    └── baseline.yaml       # Default decision selection
+└── src/                    # Your analysis code
 ```
 
 The boilerplate `astra.yaml` includes a single example decision and outputs marked with `TODO:` to guide you through filling them in.
@@ -76,27 +74,36 @@ The boilerplate `astra.yaml` includes a single example decision and outputs mark
 
 ## `astra validate`
 
-Validate the whole project, or a single analysis/universe file.
+Validate the whole project, or a single analysis file.
 
 ```bash
 astra validate                                  # whole project (everything under cwd)
 astra validate astra.yaml                       # one analysis
-astra validate universes/baseline.yaml          # universe (analysis auto-discovered)
-astra validate universes/foo.yaml -a astra.yaml # universe with explicit analysis
 ```
 
-With no FILE, every analysis spec and universe file under the current directory is validated. Discovery skips hidden and vendored directories (`.*`, `node_modules`, `venv`, `__pycache__`); universe files are recognised inside a `universes/` directory or by `universe` in their filename; and an `astra.yaml` referenced as an external `path:` sub-analysis of another spec is validated in context through its root, not standalone. Validation keeps going past failures, then exits non-zero listing the files that failed.
+With no FILE, every analysis spec under the current directory is validated together with the universes it declares. Discovery skips hidden and vendored directories (`.*`, `node_modules`, `venv`, `__pycache__`) and an `astra.yaml` referenced as an external `path:` sub-analysis of another spec is validated in context through its root, not standalone. Validation keeps going past failures, then exits non-zero listing the files that failed.
+
+Universes used to be separate files in a `universes/` directory. If a file there still looks like one (a top-level `id` and `decisions`) the validator warns that it is ignored and should move under `universes` in `astra.yaml`. Other files in that directory are left alone.
 
 Validation runs in stages:
 
 1. **Schema validation** — structure, types, required fields, format patterns (Pydantic models generated from the LinkML schema).
-2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions, constraints respected, etc.
+2. **Semantic validation** — duplicate IDs, `from:` paths and tree-path references resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions (following `derived_from`), pins name a declared universe where the artifact is active, outputs built once declare a `format` and no `when`, constraints respected, etc.
 
 ### Recommended fields
 
 The schema marks some fields *recommended* rather than required. An analysis that omits one still validates — it is a soft signal that the field will be required in a future release, not an error.
 
 Currently there is one: `Output.format`, the artifact's serialization (a lowercase extension token such as `png`, `csv`, or `parquet`). It is optional throughout 0.0.x and **becomes required on every non-aliased output at 0.1.0**, so add it to your outputs now.
+
+### Semantic warnings
+
+Some things are allowed but probably not meant. These are reported as warnings and don't change the exit code:
+
+- a pin on an output that is built once anyway;
+- evidence citing an output built per universe without a pin;
+- decisions declared with no universes to build them;
+- a file in a `universes/` directory that looks like an old universe file.
 
 ### Evidence verification
 
@@ -113,7 +120,6 @@ Papers must be cached locally first with [`astra paper add`](#astra-paper-add). 
 
 | Flag | Meaning |
 |------|---------|
-| `-a, --analysis PATH` | Analysis file (when validating a single universe file) |
 | `-e, --verify-evidence` | Verify evidence quotes against cached papers |
 | `--skip-evidence` | Skip evidence verification |
 | `--json` | Emit the report as a single JSON-encoded string (exit code unchanged) |
@@ -133,7 +139,7 @@ astra info -f path/to/astra.yaml    # explicit file
 astra info --json                   # summary as one JSON-encoded string
 ```
 
-The header includes a `Layout:` line summarising the sub-analyses the spec declares (with directories for external `path:` ones) and the universe files in `universes/`; it is omitted for flat analyses. Decisions are displayed as a tree, with sub-analyses nested under their parent.
+The header includes a `Layout:` line summarising the sub-analyses the spec declares (with directories for external `path:` ones) and the number of universes it declares; it is omitted for flat analyses. Decisions are displayed as a tree, with sub-analyses nested under their parent.
 
 ---
 
@@ -146,7 +152,7 @@ astra viz                           # ASCII tree (default)
 astra viz --format mermaid          # Mermaid diagram (paste into Markdown)
 ```
 
-The Mermaid output renders all decisions and options, highlights defaults, and draws `incompatible_with` / `requires` constraint edges. It can be embedded directly in Markdown documentation:
+The Mermaid output renders all decisions and options and draws `incompatible_with` / `requires` constraint edges. It can be embedded directly in Markdown documentation:
 
 ````markdown
 ```mermaid
@@ -159,39 +165,24 @@ graph TD
 
 ## `astra universe`
 
-Universe management commands.
+Universe commands.
 
-### `astra universe generate`
+### `astra universe check`
 
-Generate a universe YAML file from the analysis's `default` options.
+Validate one universe declared in `astra.yaml` and print its effective selection, marking the selections it inherits through `derived_from`.
 
 ```bash
-astra universe generate --name baseline
-astra universe generate -n svm-focused -d "SVM with standard scaling"
-astra universe generate -n baseline -o custom/path.yaml
+astra universe check baseline
+astra universe check svm_focused -a path/to/astra.yaml
 ```
 
-Every decision in the analysis tree must declare a `default`; otherwise the command lists the missing decisions and exits.
+The same checks run inside `astra validate`, but `universe check` is convenient when working on one universe - especially to see what a `derived_from` chain resolves to.
 
 **Options:**
 
 | Flag | Default | Meaning |
 |------|---------|---------|
-| `-n, --name` | `baseline` | Universe ID and filename stem |
 | `-a, --analysis` | auto | Analysis file |
-| `-o, --output` | `universes/<name>.yaml` | Output path |
-| `-d, --description` | _(none)_ | Universe description string |
-
-### `astra universe check`
-
-Validate a universe file against the constraints declared in the analysis.
-
-```bash
-astra universe check universes/baseline.yaml
-astra universe check universes/foo.yaml -a path/to/astra.yaml
-```
-
-The same checks run inside `astra validate`, but `universe check` is convenient when iterating on universe files without re-running the full analysis validation.
 
 ---
 

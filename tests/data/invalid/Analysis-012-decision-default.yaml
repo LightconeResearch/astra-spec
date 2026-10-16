@@ -1,0 +1,22 @@
+# Invalid: Decision has no 'default' field. No universe is privileged
+# so a decision records its options without singling one out.
+id: bad_decision_default
+name: Decision declares a default
+inputs:
+  - id: data
+    type: data
+    source: data.csv
+outputs:
+  - id: result
+    type: metric
+    format: json
+    decisions: [model]
+decisions:
+  model:
+    label: Model
+    default: svm
+    options:
+      svm:
+        label: SVM
+      random_forest:
+        label: Random forest

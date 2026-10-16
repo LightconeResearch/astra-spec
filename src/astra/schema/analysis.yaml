@@ -174,8 +174,10 @@ classes:
           The command is a template. Runners substitute these
           placeholders before invoking it:
 
-            {inputs.<id>}     -- path to the named upstream input
-                                 (must be declared in Output.inputs)
+            {inputs.<entry>}  -- path to one upstream input; <entry>
+                                 is an Output.inputs entry exactly as
+                                 written, including any dots and pin
+                                 (e.g. {inputs.f1_score#rf_standard})
             {inputs}          -- space-separated paths to all declared
                                  inputs, in declaration order
             {decisions.<id>}  -- active option ID for the named
@@ -317,6 +319,13 @@ classes:
           to descend through nested children. Reaching upward is not
           allowed — Outputs flow up only via re-export at each layer.
         pattern: "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+      when:
+        description: >-
+          Conditions for when this output is active, evaluated in the
+          universe being built. Format: 'decision_id.option_id' or
+          '~decision_id.option_id'; multiple conditions are AND'd
+          together. Not allowed on an output built once (see
+          `inputs`) as it has no current universe.
     attributes:
       id:
         identifier: true
@@ -354,12 +363,17 @@ classes:
           is missing. It becomes **required** for non-aliased Outputs in
           0.1.0. Forbidden when `from` is set (inherited from the
           source).
+
+          An Output that is built once (see `inputs`) must declare its
+          format so that its file is told apart from the per-universe
+          results. Validators enforce this.
       description:
         description: Free-prose description of this output.
       inputs:
         multivalued: true
+        pattern: "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_-]*)?$"
         description: >-
-          IDs of upstream artifacts this output depends on. Each
+          References to upstream artifacts this output depends on. Each
           reference resolves to either an Input declared on the
           surrounding analysis (an external dataset/file/analysis)
           or a sibling Output (another artifact in scope). Runners
@@ -372,6 +386,22 @@ classes:
           `from:` chain in the surrounding analysis scope. An aliased
           Input (one with `from:`) is a valid local reference here;
           the runner walks the chain to the source.
+
+          Grammar: `artifact-id [ "#" universe-id ]`. A plain
+          reference means the artifact realised in the same universe
+          as this output. `artifact#u` is a pin: the artifact realised
+          in universe `u`. That universe must be declared on the root
+          analysis and the artifact must be active in it. A pin is only
+          valid on a reference that resolves to an Output; an external
+          Input does not vary by universe. (Mind YAML: a space before
+          `#` turns the pin into a comment.)
+
+          Whether an output is built once per universe or once in total
+          is inferred: it is per universe if it declares `decisions`
+          or if any reference without a pin resolves to a per-universe
+          artifact. Pins and external Inputs never make an output per
+          universe. An output built once has no current universe so it
+          must not declare `when`.
       decisions:
         multivalued: true
         description: >-
@@ -494,8 +524,6 @@ classes:
       tags:
         multivalued: true
         description: Tags for grouping and categorizing
-      default:
-        description: Default option ID for baseline universes
       options:
         range: Option
         multivalued: true
@@ -510,9 +538,6 @@ classes:
       - title: from_alias_forbids_options
         preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
         postconditions: {slot_conditions: {options: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_default
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {default: {value_presence: ABSENT}}}
       - title: from_alias_forbids_rationale
         preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
         postconditions: {slot_conditions: {rationale: {value_presence: ABSENT}}}
@@ -602,3 +627,12 @@ classes:
         multivalued: true
         inlined: true
         description: Nested sub-analyses (keyed by analysis ID)
+      universes:
+        range: Universe
+        multivalued: true
+        inlined_as_list: true
+        description: >-
+          Universes declared in this analysis. Their ids are unique
+          within it. The root analysis's universes are the ones that
+          are built and that pins name; a sub-analysis's universes can
+          be selected by id from a universe's `analyses` entries.

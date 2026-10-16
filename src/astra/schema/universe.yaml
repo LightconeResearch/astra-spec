@@ -2,8 +2,9 @@
 id: https://w3id.org/astra/universe
 name: universe
 description: |-
-  Universe specification models. A universe is a complete set of
-  decisions across the entire analysis tree.
+  Universe specification models. A universe selects one option for
+  each active decision of an analysis. Universes are declared in the
+  analysis's `universes` list - in full or as diffs of one another.
 # Placeholder version. The real version is injected at build time from the
 # latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0
@@ -45,9 +46,12 @@ classes:
         pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
         description: Node identifier (the sub-analysis key)
       universe:
+        pattern: "^[a-z][a-z0-9_-]*$"
         description: >-
-          Name of a universe in the sub-analysis's universes/ directory.
-          Alternative to inline decisions.
+          Id of a universe declared in the sub-analysis's own
+          `universes` list, whose selection is used for this node.
+          Alternative to inline `decisions`: a node sets one or the
+          other.
       decisions:
         range: DecisionSelection
         multivalued: true
@@ -61,22 +65,50 @@ classes:
 
   Universe:
     description: >-
-      A universe specification - a complete set of decisions
-      across the entire analysis tree.
+      A named universe: one selected option for each active decision
+      of the analysis that declares it. A universe is declared either
+      in full or as a diff of another universe of the same analysis
+      via `derived_from`.
+
+      Its effective selection is the `derived_from` universe's
+      effective selection with the local `decisions` applied on top.
+      An inherited selection for a decision whose `when` condition no
+      longer holds is dropped. No universe is privileged: there is no
+      default or implicit universe and no universe id is reserved.
     attributes:
       id:
         identifier: true
         pattern: "^[a-z][a-z0-9_-]*$"
-        description: Unique identifier for the universe
+        description: >-
+          Universe identifier, unique within the declaring analysis.
+          Referenced from artifact pins (`artifact#<id>`) and from
+          `derived_from`.
       description:
         description: Free-prose description of this universe.
+      derived_from:
+        pattern: "^[a-z][a-z0-9_-]*$"
+        description: >-
+          Id of another universe declared in the same analysis. Its
+          effective selection is inherited and the local `decisions`
+          override it. Chains resolve transitively; cycles are
+          invalid. Expresses a relationship the author chooses between
+          two declared universes - it does not make the other universe
+          special.
       decisions:
         range: DecisionSelection
         multivalued: true
         inlined: true
-        description: Root-level decision selections
+        description: >-
+          Decision selections (decision_id to option_id). Must cover
+          every active decision when `derived_from` is absent;
+          otherwise only the selections that differ from the
+          `derived_from` universe.
       analyses:
         range: UniverseNode
         multivalued: true
         inlined: true
-        description: Sub-analysis universe selections
+        description: >-
+          Sub-analysis universe selections. With `derived_from` they are
+          inherited per sub-analysis: an entry's `decisions` override the
+          inherited ones and nested `analyses` merge the same way. An
+          entry that names a `universe` replaces the inherited entry.

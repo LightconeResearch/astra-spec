@@ -41,22 +41,27 @@ outputs:
 decisions:
   scaling:
     label: Feature Scaling
-    default: standard
     options:
       none:     { label: No Scaling }
       standard: { label: StandardScaler }
 
   model:
     label: Classification Model
-    default: random_forest
     options:
       random_forest: { label: Random Forest }
       svm:
         label: SVM
         requires: [scaling.standard]
+
+universes:
+  - id: rf_standard
+    decisions: { scaling: standard, model: random_forest }
+  - id: svm_standard
+    derived_from: rf_standard
+    decisions: { model: svm }
 ```
 
-A *universe* picks one option per decision (e.g. `{ scaling: standard, model: svm }`). The same analysis can carry many universes; each one yields one set of results.
+A *universe* picks one option per decision (e.g. `{ scaling: standard, model: svm }`). Universes are declared in `astra.yaml` - in full or as a diff of another (`derived_from`) and none of them is privileged. Each one yields one set of results and an output can compare universes by pinning its inputs to them (`accuracy#rf_standard`).
 
 ## Install and try it
 

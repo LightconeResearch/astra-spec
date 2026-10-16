@@ -62,7 +62,6 @@ decisions:
     rationale: Choice of ML method affects accuracy and calibration
     tags:
       - methodology
-    default: neural_net
     options:
       neural_net:
         label: Neural network
@@ -81,7 +80,6 @@ decisions:
         excluded_reason: Poor performance on faint galaxies
   training_split:
     label: Training data split ratio
-    default: split_80_20
     options:
       split_80_20:
         label: 80/20 split
@@ -163,7 +161,6 @@ analyses:
     decisions:
       cal_method:
         label: Calibration method
-        default: pitpz
         options:
           pitpz:
             label: PIT-based calibration

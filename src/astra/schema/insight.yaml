@@ -71,7 +71,12 @@ classes:
         description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
         pattern: "^10\\.\\d{4,}/.*$"
       artifact:
-        description: Output ID referencing a declared output in this analysis
+        pattern: "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_-]*)?$"
+        description: >-
+          Output ID referencing a declared output in this analysis -
+          optionally pinned to a universe (`artifact#universe_id`).
+          Pin it when the output is built per universe so that the
+          evidence names the realisation that supports the claim.
       version:
         range: integer
         minimum_value: 1

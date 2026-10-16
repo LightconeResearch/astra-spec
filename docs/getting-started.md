@@ -19,9 +19,7 @@ This produces:
 my-analysis/
 ├── astra.yaml              # Analysis specification (source of truth)
 ├── .gitignore
-├── src/                    # Your analysis code
-└── universes/
-    └── baseline.yaml       # Default decision selection
+└── src/                    # Your analysis code
 ```
 
 The scaffolded `astra.yaml` is a complete, valid analysis with `TODO:` markers in the prose. It includes a `description`, a `container:` default (`python:3.12-slim`), one example decision (`example_method` with options `option_a` and `option_b`), and two outputs (`main_result` chained into a `conclusion` report). It compiles as-is — you can edit incrementally rather than rewriting from scratch.
@@ -59,7 +57,6 @@ outputs:
 decisions:
   example_method:
     label: "Example Method"
-    default: option_a             # used when generating a baseline universe
     options:
       option_a: { label: "Option A" }
       option_b: { label: "Option B" }
@@ -68,9 +65,9 @@ decisions:
 A few things worth noting:
 
 - **Decisions parameterize outputs.** `Output.decisions` declares the contract — only the listed decisions resolve inside `recipe.command`. The validator rejects `{decisions.foo}` if `foo` isn't in the list.
-- **Recipe placeholders.** Four forms are legal: `{inputs}` (all declared inputs, space-separated), `{inputs.<id>}` (one declared input), `{decisions.<id>}` (one declared decision), and `{output}` (where to write). `{{` and `}}` are literal braces.
+- **Recipe placeholders.** Four forms are legal: `{inputs}` (all declared inputs, space-separated), `{inputs.<entry>}` (one declared input, written exactly as in `inputs` - pin included), `{decisions.<id>}` (one declared decision), and `{output}` (where to write). `{{` and `}}` are literal braces.
 - **Rich reports live alongside `astra.yaml`.** The spec keeps a single optional `description`; a fuller write-up — figures, citations, multi-page structure — is built next to the analysis and references its elements rather than restating them. [MySTRA](https://github.com/LightconeResearch/MySTRA) is one framework that does this.
-- **Constraints between options.** `requires:` and `incompatible_with:` (format: `decision.option`) gate which option combinations are valid. They are checked when you validate a universe.
+- **Constraints between options.** `requires:` and `incompatible_with:` (format: `decision.option`) gate which option combinations are valid. Every universe is checked against them.
 
 ## Validate
 
@@ -83,7 +80,7 @@ astra validate astra.yaml
 Validation runs in three stages, each gating the next:
 
 1. **Schema validation** — Pydantic models (generated from the LinkML schema) check types, required fields, and format patterns (ID pattern, version pattern, DOI pattern, …).
-2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve and respect direction rules, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve.
+2. **Semantic validation** — duplicate IDs, `from:` paths and tree-path references resolve and respect direction rules, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve, universes are complete and valid, pins name a declared universe.
 3. **Evidence verification** (opt-in, `--verify-evidence`) — quoted text in `prior_insights` and `findings` actually appears in the cached source PDFs.
 
 A clean run prints:
@@ -118,12 +115,12 @@ astra info
 astra info --decisions
 ```
 
-[`astra viz`](https://astra-spec.org/latest/cli/#astra-viz) draws the decision space. The default ASCII tree groups options under each decision, marks the default with `[default]`, and renders `incompatible_with` / `requires` constraints as glyphs (`✗` and `→`):
+[`astra viz`](https://astra-spec.org/latest/cli/#astra-viz) draws the decision space. The default ASCII tree groups options under each decision and renders `incompatible_with` / `requires` constraints as glyphs (`✗` and `→`):
 
 ```text
 └── My Analysis
     └── example_method
-        ├── option_a: Option A [default]
+        ├── option_a: Option A
         └── option_b: Option B
 ```
 
@@ -135,55 +132,61 @@ astra viz --format mermaid
 
 ## Define universes
 
-A *universe* is one complete set of decision selections — one option per decision in the analysis tree. Each universe yields one set of results; the same analysis can carry many of them.
-
-Generate the baseline from your `default:` values:
-
-```bash
-astra universe generate --name baseline
-```
-
-This writes `universes/baseline.yaml`:
+A *universe* selects one option per decision. Each universe yields one set of results and the same analysis can carry many of them. Universes are declared in `astra.yaml` under `universes`:
 
 ```yaml
-id: baseline
-description: Default configuration using standard practices
+universes:
+  - id: baseline
+    description: First pass with option A
+    decisions:
+      example_method: option_a
 
-decisions:
-  example_method: option_a
+  - id: alt
+    description: Alternative method choice
+    derived_from: baseline
+    decisions:
+      example_method: option_b
 ```
 
-Add a second universe by hand to flex an alternative path:
+`baseline` lists every decision. `alt` is written as a diff of it with `derived_from` - it inherits `baseline`'s selections and lists only what changes. No universe is privileged: `baseline` is just a name.
 
-```yaml
-# universes/alt.yaml
-id: alt
-description: Alternative method choice
-
-decisions:
-  example_method: option_b
-```
-
-Validate either way:
+`astra validate` checks every universe. To check one and see its full selection:
 
 ```bash
-astra validate universes/alt.yaml          # full validation against the analysis
-astra universe check universes/alt.yaml    # universe-only checks (faster on iteration)
+astra universe check alt
 ```
 
-Universe validation enforces three rules: every decision in the analysis tree has a selection; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
+Universe validation enforces three rules: every active decision has a selection once `derived_from` is followed; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
 
 For nested analyses, the universe mirrors the tree:
 
 ```yaml
-id: baseline
-decisions:
-  random_seed: seed_42       # root decision
-analyses:
-  feature_extraction:
+universes:
+  - id: baseline
     decisions:
-      method: pca            # selection inside a sub-analysis
+      random_seed: seed_42       # root decision
+    analyses:
+      feature_extraction:
+        decisions:
+          method: pca            # selection inside a sub-analysis
 ```
+
+To compare universes, pin an output's inputs to them:
+
+```yaml
+outputs:
+  - id: method_comparison
+    type: table
+    format: csv
+    inputs: [main_result#baseline, main_result#alt]
+    recipe:
+      command: >-
+        python src/compare.py
+        --a {inputs.main_result#baseline} --b {inputs.main_result#alt}
+        --out {output}
+```
+
+`method_comparison` depends on no universe so it is built once rather than once per universe.
 
 ## Add evidence (optional)
 
@@ -204,7 +207,6 @@ prior_insights:
 decisions:
   architecture:
     label: "Architecture"
-    default: transformer
     options:
       transformer:
         label: "Transformer"
@@ -227,6 +229,6 @@ Artifact-backed evidence (typical for `findings:` whose output artifacts haven't
 
 ## What ASTRA doesn't run
 
-The CLI validates and inspects analyses; it does **not** execute recipes. Each `recipe.command` is a POSIX shell command that an executor — an agent, a workflow runner, a notebook, or you on the command line — reads and invokes. The executor materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the `{inputs.<id>}` / `{inputs}` / `{decisions.<id>}` / `{output}` placeholders against the active universe, and runs the resulting command.
+The CLI validates and inspects analyses; it does **not** execute recipes. Each `recipe.command` is a POSIX shell command that an executor — an agent, a workflow runner, a notebook, or you on the command line — reads and invokes. The executor materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the `{inputs.<entry>}` / `{inputs}` / `{decisions.<id>}` / `{output}` placeholders against the active universe, and runs the resulting command.
 
 This separation is intentional: the spec stays stable as the agent and execution layer evolves. ASTRA's job is to make every analytical choice explicit, traceable, and verifiable; the choice of *runner* is yours.

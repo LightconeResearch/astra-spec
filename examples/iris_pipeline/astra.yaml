@@ -38,7 +38,6 @@ decisions:
   test_split:
     label: Test Set Proportion
     rationale: Trade-off between training data and evaluation reliability
-    default: twenty_pct
     options:
       twenty_pct:
         label: "20%"
@@ -50,7 +49,6 @@ decisions:
   random_seed:
     label: Random Seed
     rationale: Controls reproducibility of splits and model initialization
-    default: seed_42
     options:
       seed_42:
         label: "42"
@@ -96,7 +94,6 @@ analyses:
       method:
         label: Extraction Method
         rationale: PCA is interpretable and deterministic; MLP encoder may capture nonlinear structure
-        default: pca
         options:
           pca:
             label: PCA
@@ -110,7 +107,6 @@ analyses:
       n_components:
         label: Number of Components
         rationale: Dimensionality of the learned representation
-        default: two
         options:
           two:
             label: 2 components
@@ -157,7 +153,6 @@ analyses:
       classifier:
         label: Classifier
         rationale: Logistic regression is a strong linear baseline; SVM adds a nonlinear kernel
-        default: logistic
         options:
           logistic:
             label: Logistic Regression
@@ -168,3 +163,33 @@ analyses:
           knn:
             label: k-Nearest Neighbors
             description: k=5 nearest neighbors in the extracted feature space
+
+universes:
+  - id: baseline
+    description: PCA with 2 components, logistic regression — the simplest sensible pipeline
+    decisions:
+      test_split: twenty_pct
+      random_seed: seed_42
+    analyses:
+      feature_extraction:
+        id: feature_extraction
+        decisions:
+          method: pca
+          n_components: two
+      classification:
+        id: classification
+        decisions:
+          classifier: logistic
+
+  - id: mlp_svm
+    description: MLP encoder features with SVM classifier — tests whether learned features help
+    derived_from: baseline
+    analyses:
+      feature_extraction:
+        id: feature_extraction
+        decisions:
+          method: mlp_encoder
+      classification:
+        id: classification
+        decisions:
+          classifier: svm
