@@ -110,5 +110,6 @@ classes:
         description: >-
           Sub-analysis universe selections. With `derived_from` they are
           inherited per sub-analysis: an entry's `decisions` override the
-          inherited ones and nested `analyses` merge the same way. An
-          entry that names a `universe` replaces the inherited entry.
+          inherited ones and nested `analyses` merge the same way. If
+          either the entry or the inherited one names a `universe` the
+          entry replaces the inherited one.

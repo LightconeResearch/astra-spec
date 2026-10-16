@@ -324,8 +324,8 @@ classes:
           Conditions for when this output is active, evaluated in the
           universe being built. Format: 'decision_id.option_id' or
           '~decision_id.option_id'; multiple conditions are AND'd
-          together. Not allowed on an output built once (see
-          `inputs`) as it has no current universe.
+          together. An output with `when` is built per universe - in
+          each universe where its conditions hold (see `inputs`).
     attributes:
       id:
         identifier: true
@@ -397,11 +397,10 @@ classes:
           `#` turns the pin into a comment.)
 
           Whether an output is built once per universe or once in total
-          is inferred: it is per universe if it declares `decisions`
-          or if any reference without a pin resolves to a per-universe
-          artifact. Pins and external Inputs never make an output per
-          universe. An output built once has no current universe so it
-          must not declare `when`.
+          is inferred: it is per universe if it declares `decisions`,
+          has a `when` or has a reference without a pin that resolves
+          to a per-universe artifact. Pins and external Inputs never
+          make an output per universe.
       decisions:
         multivalued: true
         description: >-

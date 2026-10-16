@@ -333,7 +333,7 @@ class Universe(ConfiguredBaseModel):
     description: Optional[str] = Field(default=None, description="""Free-prose description of this universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe', 'Input', 'Output', 'Option', 'Analysis']} })
     derived_from: Optional[str] = Field(default=None, description="""Id of another universe declared in the same analysis. Its effective selection is inherited and the local `decisions` override it. Chains resolve transitively; cycles are invalid. Expresses a relationship the author chooses between two declared universes - it does not make the other universe special.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Universe']} })
     decisions: Optional[dict[str, Union[str, DecisionSelection]]] = Field(default=None, description="""Decision selections (decision_id to option_id). Must cover every active decision when `derived_from` is absent; otherwise only the selections that differ from the `derived_from` universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })
-    analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
+    analyses: Optional[dict[str, UniverseNode]] = Field(default=None, description="""Sub-analysis universe selections. With `derived_from` they are inherited per sub-analysis: an entry's `decisions` override the inherited ones and nested `analyses` merge the same way. If either the entry or the inherited one names a `universe` the entry replaces the inherited one.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Analysis']} })
 
     @field_validator('id')
     def pattern_id(cls, v):
@@ -586,14 +586,14 @@ class Output(ConfiguredBaseModel):
                                                 'being built. Format: '
                                                 "'decision_id.option_id' or "
                                                 "'~decision_id.option_id'; multiple "
-                                                "conditions are AND'd together. Not "
-                                                'allowed on an output built once (see '
-                                                '`inputs`) as it has no current '
-                                                'universe.',
+                                                "conditions are AND'd together. An "
+                                                'output with `when` is built per '
+                                                'universe - in each universe where its '
+                                                'conditions hold (see `inputs`).',
                                  'name': 'when'}}})
 
     from_: Optional[str] = Field(default=None, alias="from", description="""Path to a descendant Output: `child.out_id` for an own child sub-analysis's output, or deeper (`child.grand.out_id`) to descend through nested children. Reaching upward is not allowed — Outputs flow up only via re-export at each layer.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Input', 'Output', 'Decision']} })
-    when: Optional[list[str]] = Field(default=None, description="""Conditions for when this output is active, evaluated in the universe being built. Format: 'decision_id.option_id' or '~decision_id.option_id'; multiple conditions are AND'd together. Not allowed on an output built once (see `inputs`) as it has no current universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Decision']} })
+    when: Optional[list[str]] = Field(default=None, description="""Conditions for when this output is active, evaluated in the universe being built. Format: 'decision_id.option_id' or '~decision_id.option_id'; multiple conditions are AND'd together. An output with `when` is built per universe - in each universe where its conditions hold (see `inputs`).""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Decision']} })
     id: str = Field(default=..., description="""Unique identifier for the output""", json_schema_extra = { "linkml_meta": {'domain_of': ['Evidence',
                        'Insight',
                        'UniverseNode',
@@ -615,7 +615,7 @@ An Output that is built once (see `inputs`) must declare its format so that its 
     inputs: Optional[list[str]] = Field(default=None, description="""References to upstream artifacts this output depends on. Each reference resolves to either an Input declared on the surrounding analysis (an external dataset/file/analysis) or a sibling Output (another artifact in scope). Runners materialize the upstream artifacts before invoking the recipe and surface the resolved input map to it (Snakemake-style `{input.x}` substitution, env vars, sidecar JSON — runner's choice).
 References use plain artifact IDs and resolve through any `from:` chain in the surrounding analysis scope. An aliased Input (one with `from:`) is a valid local reference here; the runner walks the chain to the source.
 Grammar: `artifact-id [ \"#\" universe-id ]`. A plain reference means the artifact realised in the same universe as this output. `artifact#u` is a pin: the artifact realised in universe `u`. That universe must be declared on the root analysis and the artifact must be active in it. A pin is only valid on a reference that resolves to an Output; an external Input does not vary by universe. (Mind YAML: a space before `#` turns the pin into a comment.)
-Whether an output is built once per universe or once in total is inferred: it is per universe if it declares `decisions` or if any reference without a pin resolves to a per-universe artifact. Pins and external Inputs never make an output per universe. An output built once has no current universe so it must not declare `when`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
+Whether an output is built once per universe or once in total is inferred: it is per universe if it declares `decisions`, has a `when` or has a reference without a pin that resolves to a per-universe artifact. Pins and external Inputs never make an output per universe.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
     decisions: Optional[list[str]] = Field(default=None, description="""Decision IDs (in the surrounding scope) that parameterize this output. Declares the output's provenance contract: re-running with a different option for any listed decision must be expected to produce a different output.
 Runners use this to (a) compute the per-output cache key, (b) determine the minimal universe set needed to materialize the output, and (c) deliver the active option values to the recipe (via flags, env vars, or a sidecar — runner's choice).
 References use plain decision IDs and resolve through any `from:` chain in the surrounding analysis scope.""", json_schema_extra = { "linkml_meta": {'domain_of': ['UniverseNode', 'Universe', 'Output', 'Analysis']} })

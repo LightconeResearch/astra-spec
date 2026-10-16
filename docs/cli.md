@@ -88,7 +88,7 @@ Universes used to be separate files in a `universes/` directory. If a file there
 Validation runs in stages:
 
 1. **Schema validation** — structure, types, required fields, format patterns (Pydantic models generated from the LinkML schema).
-2. **Semantic validation** — duplicate IDs, `from:` paths and tree-path references resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions (following `derived_from`), pins name a declared universe where the artifact is active, outputs built once declare a `format` and no `when`, constraints respected, etc.
+2. **Semantic validation** — duplicate IDs, `from:` paths and tree-path references resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, universe selections match analysis decisions (following `derived_from`), pins name a declared universe where the artifact is active, outputs built once declare a `format`, constraints respected, etc.
 
 ### Recommended fields
 

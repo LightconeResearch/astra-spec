@@ -243,7 +243,7 @@ outputs:
 
 A pin must name a universe declared in the analysis and the artifact must be active in that universe. Only outputs can be pinned - an external input is the same in every universe. Mind YAML here: `fit_params #robust` with a space is `fit_params` followed by a comment.
 
-Whether an output is built once per universe or only once is worked out from what it depends on. It is built per universe if it declares `decisions` or reads an unpinned input that is built per universe. Otherwise it is built once - `method_comparison` depends on no universe because both its inputs are pinned. An output built once must declare its `format` and can't use `when` since there is no current universe to evaluate it in.
+Whether an output is built once per universe or only once is worked out from what it depends on. It is built per universe if it declares `decisions`, has a `when` (whether it exists depends on the universe) or reads an unpinned input that is built per universe. Otherwise it is built once - `method_comparison` depends on no universe because both its inputs are pinned. An output built once must declare its `format`.
 
 ### Recipes and command templates
 
@@ -253,6 +253,7 @@ After an output has declared what it depends on, the recipe says how a runner sh
 outputs:
   - id: fit_params
     type: table
+    format: csv
     inputs: [catalog_data]
     decisions: [fit_method]
     recipe:
@@ -331,6 +332,7 @@ analyses:
     outputs:
       - id: cleaned_catalog
         type: data
+        format: csv
         decisions: [outlier_handling]
         recipe:
           command: python src/clean_catalog.py --out {output}
@@ -386,6 +388,7 @@ decisions:
 outputs:
   - id: calibrated_table
     type: table
+    format: csv
     when:
       - correction_mode.calibrated
     recipe:
@@ -485,7 +488,7 @@ An output is an artifact produced locally or re-exported from a child sub-analys
 | `format` | `string` | Recommended | Serialization of the artifact, as a lowercase token: the file extension without the leading dot. Becomes required at 0.1.0 — see below. Required on an output built once. |
 | `description` | `string` | No | What the output represents. |
 | `from` | `string` | No | Path alias to a child output. |
-| `when` | `string[]` | No | Conditions under which the output is active. Not allowed on an output built once. |
+| `when` | `string[]` | No | Conditions under which the output is active. An output with `when` is built per universe. |
 | `inputs` | `string[]` | No | Local input or sibling output IDs this output depends on. An output can be pinned to a universe (`fit_params#robust`). |
 | `decisions` | `string[]` | No | Local decision IDs that parameterize the output. |
 | `recipe` | `Recipe` | No | Command and execution context for producing the output. |
@@ -651,7 +654,7 @@ A universe selects one option for every active decision.
 
 Universe IDs may use lowercase letters, numbers, underscores, and hyphens. Decision and option IDs use lowercase snake_case.
 
-An `analyses` entry either lists the sub-analysis's `decisions` or names one of that sub-analysis's own universes with `universe: <id>`. With `derived_from` the entries are inherited per sub-analysis - an entry's `decisions` override the inherited ones and an entry naming `universe` replaces the inherited entry.
+An `analyses` entry either lists the sub-analysis's `decisions` or names one of that sub-analysis's own universes with `universe: <id>`. With `derived_from` the entries are inherited per sub-analysis - an entry's `decisions` override the inherited ones. If either the entry or the inherited one names a `universe` the entry replaces the inherited one.
 
 ### Conditions and constraints
 
@@ -740,6 +743,7 @@ analyses:
     outputs:
       - id: cleaned_catalog
         type: data
+        format: csv
 
   fitting:
     inputs:
