@@ -1,11 +1,12 @@
 ---
 rfc: 0003
 title: Multiverse analyses — in-file universes and cross-universe artifact references
-status: Active # Draft | Active | Accepted | Rejected | Superseded
+status: Draft # Draft | Active | Accepted | Rejected | Superseded
 authors:
   - Francois Lanusse (@eiffl)
   - Anthony Ozerov (@anthonyozerov)
   - Jacopo Teneggi (@JacopoTeneggi)
+  - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-07-30
 tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/52
 superseded-by:
@@ -60,15 +61,15 @@ editors; it plays no role in universe construction.)
 and `Universe` gains one construction rule:
 
 - **Universes may be declared as diffs.** `Universe.decisions` may be
-  **partial** when a new optional **`base`** slot names another declared
-  universe: unspecified decisions inherit their selection from the base.
-  Without `base`, `decisions` must be complete, exactly as today. `base` chains
-  resolve transitively; cycles are invalid. `base` expresses a *relationship
-  between two declared universes*, chosen by the author — it does not anoint
-  the base as special. (The existing `from` idiom is deliberately *not* reused:
-  on `Input`/`Output`, `from` is a pure re-export alias that forbids local
-  overrides, whereas `base` is inherit-*and*-override — a different operation
-  deserving a different word.)
+  **partial** when a new optional **`derived_from`** slot names another
+  universe declared in the same analysis: unspecified decisions inherit their
+  selection from it. Without `derived_from`, `decisions` must be complete,
+  exactly as today. `derived_from` chains resolve transitively; cycles are
+  invalid. `derived_from` expresses a *relationship between two declared
+  universes*, chosen by the author — it does not anoint the universe it names
+  as special. (This is not the existing `from` idiom: on `Input`/`Output`,
+  `from` is a pure re-export alias that forbids local overrides, whereas
+  `derived_from` is inherit-*and*-override — a different operation.)
 
 ```yaml
 universes:
@@ -81,18 +82,18 @@ universes:
       random_seed: seed_42
 
   - id: svm_standard
-    base: rf_standard       # same specification, one decision changed
+    derived_from: rf_standard   # same specification, one decision changed
     decisions:
       model: svm
 
   - id: svm_large_test
-    base: svm_standard      # diffs chain
+    derived_from: svm_standard  # diffs chain
     decisions:
       test_size: large
 ```
 
-A universe's **effective selection** is its base's effective selection with the
-local `decisions` applied on top. The diff form is not just brevity — it is
+A universe's **effective selection** is the effective selection of the universe
+it is derived from, with the local `decisions` applied on top. The diff form is not just brevity — it is
 record quality: it states *how two specifications relate*, which is exactly the
 datum a stability comparison rests on. A universe that spells out every
 decision remains valid. Nothing stops the *convention* of naming a reference
@@ -104,8 +105,8 @@ configuration `baseline` — the name carries no spec meaning.
 |---|---|---:|---|
 | `id` | `string` | Yes | Universe identifier. |
 | `description` | `string` | No | Human-readable explanation. |
-| `base` | `string` | No | Declared universe whose effective selection is inherited. |
-| `decisions` | map of `decision_id: option_id` | No | Overrides relative to `base`; must be complete when `base` is absent. |
+| `derived_from` | `string` | No | Another universe of the same analysis whose effective selection is inherited. |
+| `decisions` | map of `decision_id: option_id` | No | Overrides relative to `derived_from`; must be complete when `derived_from` is absent. |
 | `analyses` | map of `UniverseNode` | No | Nested selections mirroring sub-analyses; inheritance applies recursively. |
 
 **The `universes/` directory is removed.** `astra.yaml` becomes the single
@@ -114,34 +115,28 @@ precedence rules and invite silent divergence, and external files remain
 invisible to the reference grammar (breaking — see *Implementation
 implications & migration*).
 
-Because `Analysis` is self-similar, `universes` may
-be declared on any analysis node, and their ids are **unique across the whole
-analysis tree** — so a selector resolves tree-wide without qualification.
-In-file universes also join the RFC-0002 tree-path addressing.
+Because `Analysis` is self-similar, `universes` may be declared on any analysis
+node, and their ids are **unique within their analysis**. In-file universes also join the RFC-0002 tree-path addressing.
 
 ### 2. Extend the artifact reference grammar with `#`
 
-Entries in `Output.inputs` may qualify an artifact reference with a universe
-selector:
+Entries in `Output.inputs` may pin an artifact reference to a universe:
 
 ```
 input-reference ::= artifact-id [ "#" universe-id ]     ; declared ids only
 ```
 
-The sigil is `#`, not `@`: `#` conventionally selects a view *within* a
-resource, while `@` pins a *revision* and is left free for a future sources
-RFC to address external analyses, so the two axes compose
-(`…output@rev#universe`; rationale recorded in *Questions*). One YAML caveat:
-`#` mid-token is literal (`score#full_grid` needs no quotes), but a stray
-space turns the selector into a comment and the reference into a valid plain
-`score` — validators should flag an input whose line-comment looks like a
-selector.
+The sigil is `#`: it conventionally selects a view *within* a resource
+(rationale recorded in *Questions*). One YAML caveat: `#` mid-token is literal
+(`f1_score#rf_standard` needs no quotes), but a stray space turns the pin into
+a comment and the reference into a valid plain `f1_score` — validators should
+flag an input whose line-comment looks like a pin.
 
 `artifact-id` keeps its existing grammar (an Input or sibling Output id,
 resolving through `from:` chains, with `.` as the hierarchy separator
 unchanged); `#` cannot appear in element ids, so the extension is unambiguous.
-The selector is only valid on references that resolve to an *Output*: an
-external `Input` does not vary by universe, so qualifying it is an error.
+A pin is only valid on references that resolve to an *Output*: an external
+`Input` does not vary by universe, so pinning it is an error.
 
 | Reference | Meaning |
 |---|---|
@@ -195,7 +190,7 @@ universes:
 
   - id: svm_standard
     description: Same specification with the model switched to SVM.
-    base: rf_standard
+    derived_from: rf_standard
     decisions:
       model: svm
 ```
@@ -207,7 +202,7 @@ versioning policy. Universe declarations move into `astra.yaml` and the
 `universes/` directory is dropped as a supported location; migration is
 mechanical (each file's body is already a valid in-file entry). Unqualified
 references, the `.` hierarchy separator, and all other existing grammar keep
-their exact meaning; the `#` selector itself is additive.
+their exact meaning; the `#` pin itself is additive.
 
 ## Questions or objections
 
@@ -222,19 +217,17 @@ the draft PR resolves them.
   framework (Yu & Kumbier 2020) — every defensible universe has equal standing,
   and a spec-blessed default invites treating one path as *the* analysis with
   the rest as robustness garnish. Consequently: no reserved universe ids;
-  partial universes require an explicit `base`; `Decision.default` stays a
+  partial universes require an explicit `derived_from`; `Decision.default` stays a
   presentational hint. Authors who want a reference configuration may *name* a
   universe `baseline` by convention — the spec attaches no meaning to the
   name. (A contemporaneous alternative draft on the tracking issue completes
   omitted decisions from defaults; this RFC deliberately does not.) Recorded
   so the convenience argument is not silently re-litigated.
-- **Selector sigil: `#` over `@` — resolved.** Earlier drafts used `@`.
-  Adopted `#` following the alternative draft on the tracking issue and
-  ecosystem convention: `#` selects a view *within* a resource (URL fragments,
-  CSS `#id`), `@` pins a *revision* (`actions/checkout@v4`, `pkg@1.2.3`), and
-  `@` stays free for a future sources RFC addressing external analyses at
-  repository revisions, so the axes compose. Cost accepted: the YAML
-  stray-space comment footgun, mitigated by a validator lint.
+- **Pin sigil: `#` — resolved.** Earlier drafts used `@`. Adopted `#`
+  following the alternative draft on the tracking issue and ecosystem
+  convention: `#` selects a view *within* a resource (URL fragments, CSS
+  `#id`). Cost accepted: the YAML stray-space comment footgun, mitigated by a
+  validator lint.
 
 ## References
 
