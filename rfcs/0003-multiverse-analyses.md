@@ -39,9 +39,8 @@ The consequence is that a whole class of analyses cannot be declared:
 ## Proposal
 
 In plain language: **universes become addressable elements of the analysis
-document, declared in full or as diffs of one another; sets of universes get
-names and constructors; and an output's inputs may reference an artifact *at*
-a universe or *across* a set of universes.** A plain reference keeps today's
+document, declared in full or as diffs of one another, and an output's inputs
+may reference an artifact *at* a universe.** A plain reference keeps today's
 meaning — same universe as the consumer — so existing references read
 unchanged. The proposal has three parts.
 
@@ -115,142 +114,18 @@ precedence rules and invite silent divergence, and external files remain
 invisible to the reference grammar (breaking — see *Implementation
 implications & migration*).
 
-Because `Analysis` is self-similar, `universes` (and `multiverses`, below) may
+Because `Analysis` is self-similar, `universes` may
 be declared on any analysis node, and their ids are **unique across the whole
 analysis tree** — so a selector resolves tree-wide without qualification.
 In-file universes also join the RFC-0002 tree-path addressing.
 
-### 2. Add `multiverses` — named sets of universes, enumerated or generated
+### 2. Extend the artifact reference grammar with `#`
 
-`Analysis` gains an optional **`multiverses`** slot. A `Multiverse` names a set
-of universes so cross-universe steps can reference the set by a stable id and
-readers can see, in one place, which decision space a summary quantifies over.
-Membership is declared through two fields — at least one must be present, and
-when both are, the membership is their **union**:
-
-**(a) `universes` — selection.** A list whose entries are, in resolution
-order:
-
-1. an exact declared **universe id**;
-2. an exact **multiverse id** — recursively including its members (direct or
-   indirect membership cycles are invalid);
-3. a **regular expression** over declared universe ids (full-string match,
-   declared universes only — it never matches multiverse ids or generated
-   members).
-
-Universe and multiverse ids keep the existing grammar (`^[a-z][a-z0-9_-]*$`),
-which contains no regex metacharacters — so an id-shaped entry is always an
-exact reference (it must resolve; it is *not* reinterpreted as a regex when
-missing), and anything else is a regex. Note the trade the regex form makes:
-declaring a new matching universe changes the multiverse's membership in that
-revision of the document.
-
-**(b) `decisions` — generation.** A map from decision references to *option
-selectors*: a single option id, a list of option ids, or `"*"` (every option
-of that decision). Members are the Cartesian product of the selected option
-sets; any decision *not* in the map is held at **`base`**, a declared universe
-id — required whenever the map does not cover every decision in scope, so
-nothing is pinned implicitly. Combinations excluded by `requires` /
-`incompatible_with` are filtered out (unlike a declared universe, where an
-invalid selection is an error). As a shorthand for the full space,
-`decisions: "*"` (scalar) varies *every* active decision over all of its
-options — no `base`, nothing held fixed.
-
-A decision in a sub-analysis is referenced by its tree path
-(`preprocessing.threshold`); an unqualified id is allowed when it resolves in
-the current node or names exactly one decision in the subtree, and is an error
-otherwise.
-
-```yaml
-multiverses:
-  - id: model_stability
-    description: Configurations for the model-choice stability comparison.
-    universes: [rf_standard, svm_standard]      # (a) exact selection
-
-  - id: all_sensitivity
-    description: Every declared sensitivity configuration.
-    universes: ["^sensitivity_.*$"]             # (a) regex selection
-
-  - id: scaling_sweep
-    description: Vary feature scaling; all else held at rf_standard.
-    base: rf_standard                           # (b) generation: 3 universes
-    decisions:
-      scaling: "*"
-
-  - id: seed_scaling_grid
-    description: Scaling x seed grid around the SVM configuration.
-    base: svm_standard                          # (b) generation: 2 x 2 grid
-    decisions:
-      scaling: [standard, minmax]
-      random_seed: "*"
-
-  - id: combined_robustness
-    description: Model comparison, declared sensitivity universes, and the scaling sweep.
-    universes: [model_stability, "^sensitivity_.*$"]   # multiverse + regex
-    base: rf_standard
-    decisions:
-      scaling: "*"                              # union of (a) and (b)
-
-  - id: full_multiverse
-    description: The valid Cartesian product across all decisions.
-    decisions: "*"                              # the whole valid space
-```
-
-`Multiverse.decisions` is `Universe.decisions` generalized from single options
-to option selectors, and `base` is the same diff mechanism a `Universe` uses:
-a generator is exactly the set of diff-universes
-`{base: <base>, decisions: <point>}` for every valid point of the product. A
-multiverse expanding to zero universes is invalid.
-
-**Identity of generated universes.** A generated member is identified by its
-*effective selection* — the grid point itself, not the multiverse that produced
-it. The same point reached through different multiverses — or coinciding with
-a declared universe — is *one* universe: realizations and cache keys attach to
-the selection, not to any name. Generated universes are deliberately
-**anonymous**: they carry no spec-defined id and are not individually
-addressable. To pin or enumerate a specific grid point, *declare* it — with
-`base` that is a three-line diff — which also puts a name and a description in
-the record. How runners spell per-universe storage paths is a tooling
-convention, not spec surface — identity rests on the selection (see
-*Questions* for the record).
-
-Three resolution rules keep this well-defined:
-
-- **Multiverses are sets.** Members with identical effective selections
-  collapse to one — whether listed twice in an enumeration or reached twice by
-  a generator.
-- **The decision space is a tree, not a grid.** A `when` condition can
-  deactivate a decision under some selections; enumeration recurses over
-  *active* decisions only, and an inactive decision is omitted from the
-  effective selection. Points that differ only in inactive decisions are the
-  same universe.
-- **One namespace, no ambiguity.** Declared universe and multiverse ids share
-  a single namespace across the whole analysis tree, so a selector resolves
-  without guessing; a collision — even between declarations in different
-  nested nodes — is invalid.
-
-`Multiverse` fields:
-
-| Field | Type | Required | Meaning |
-|---|---|---:|---|
-| `id` | `string` | Yes | Multiverse identifier. |
-| `description` | `string` | No | Human-readable explanation of what the set covers. |
-| `universes` | list of (universe id \| multiverse id \| regex) | At least one of `universes`/`decisions` | Selected members; union with `decisions`. |
-| `base` | `string` | With a partial `decisions` map | Declared universe holding the non-varied decisions. |
-| `decisions` | map of `decision_ref:` option \| option list \| `"*"` — or scalar `"*"` | At least one of `universes`/`decisions` | Generated members; scalar `"*"` is the full valid space. |
-
-(`"*"` never means "all declared universes" — as an option selector it means
-"every option of this decision," and as `decisions: "*"` it means the full
-valid decision space; see *Questions* for the record.)
-
-### 3. Extend the artifact reference grammar with `#`
-
-Entries in `Output.inputs` may qualify an artifact reference with a universe or
-multiverse selector:
+Entries in `Output.inputs` may qualify an artifact reference with a universe
+selector:
 
 ```
-input-reference ::= artifact-id [ "#" selector-id ]
-selector-id     ::= universe-id | multiverse-id     ; declared ids only
+input-reference ::= artifact-id [ "#" universe-id ]     ; declared ids only
 ```
 
 The sigil is `#`, not `@`: `#` conventionally selects a view *within* a
@@ -267,24 +142,16 @@ resolving through `from:` chains, with `.` as the hierarchy separator
 unchanged); `#` cannot appear in element ids, so the extension is unambiguous.
 The selector is only valid on references that resolve to an *Output*: an
 external `Input` does not vary by universe, so qualifying it is an error.
-Whether the selector names a universe or a multiverse is not visible in the
-syntax; resolution in the shared namespace determines the cardinality.
 
 | Reference | Meaning |
 |---|---|
 | `artifact` | Unchanged: the artifact realized under the *same universe as the consumer* (late-bound; see below). |
 | `artifact#<universe_id>` | The artifact realized under one declared universe — a **pin**. |
-| `artifact#<multiverse_id>` | The artifact under *each* universe in the set — a **fan-out**, resolving to a collection. |
 
 Semantics:
 
-- **Fan-outs respect activation.** `artifact#<multiverse_id>` resolves to the
-  artifact's realizations in the universes of the set where the artifact is
-  *active* — universes excluded by the output's `when` conditions contribute
-  nothing (the multiverse keeps those members; only this artifact's projection
-  is smaller). A *pin* to a universe where the artifact is inactive is an
-  error. (In the prototype, `religiosity_study1_p#full_multiverse` yields 120
-  artifacts while its siblings yield 210.)
+- **Pins respect activation.** A pin to a universe where the artifact is
+  inactive is an error.
 - **Universe scoping is inferred, and `#` cuts it.** An output is
   *universe-scoped* if it declares `decisions`, or if any unqualified input
   reference resolves to a universe-scoped artifact. Qualified references never
@@ -295,88 +162,12 @@ Semantics:
   "current universe," so `{decisions.<id>}` placeholders are invalid there;
   and since qualifying a reference to a universe-invariant artifact selects
   nothing, validators should flag it as redundant.
-- **Recipe surface.** In recipe templates, `{inputs.<id>}` for a fan-out
-  reference expands to the collection of materialized artifact paths; how the
-  collection is surfaced (space-separated paths, a manifest file, a sidecar)
-  remains the runner's choice, consistent with the existing recipe contract.
-  The resolved collection must preserve each member's complete effective
-  selection, so an anonymous generated universe stays scientifically
-  identifiable without a human-facing id.
-- **Materialization sharing.** Two universes that differ only in decisions *not*
-  listed on the upstream output's `decisions` share a realization; runners
-  already compute per-output cache keys this way. A fan-out delivers one entry
-  per member universe, with shared realizations deduplicated at the cache, not
-  in the collection (see *Questions*).
-
-Bare `artifact#*` (option 2 in the tracking issue) is **not** proposed: a
-fan-out must name a declared multiverse. This keeps every cross-universe edge
-attached to a described, reusable set — one extra stanza in exchange for the
-summary's domain being part of the record.
 
 ## Examples
 
-**A real multiverse analysis** — trimmed from the prototype's reproduction of
-Steegen et al. (2016) Figure 1. Five decisions with option constraints define
-210 valid universes; each p-value output is computed per universe; the figure
-consumes all of them:
-
-```yaml
-decisions:
-  fertility_assessment:      # F1–F5
-    ...
-  next_menstrual_onset:      # NMO1–NMO3
-    ...
-  cycle_length_exclusion:
-    options:
-      ecl1: { label: ECL1 }
-      ecl2:
-        label: ECL2
-        incompatible_with: [next_menstrual_onset.nmo2]
-      ecl3:
-        label: ECL3
-        incompatible_with: [next_menstrual_onset.nmo1]
-  ...
-
-outputs:
-  - id: religiosity_study1_p
-    type: metric
-    inputs: [study1_data]
-    decisions: [fertility_assessment, next_menstrual_onset,
-                relationship_status, cycle_length_exclusion,
-                certainty_exclusion]
-    when: ["~next_menstrual_onset.nmo3"]   # NMO3 unavailable in Study 1
-    recipe:
-      command: >-
-        python src/analyze_universe.py --data {inputs.study1_data}
-        --outcome religiosity ... --output {output}
-
-  - id: fig1
-    type: figure
-    description: Six-panel histogram of interaction p-values across universes.
-    inputs:
-      - religiosity_study1_p#full_multiverse   # 120 artifacts
-      - religiosity_study2_p#full_multiverse   # 210 artifacts
-      - fiscal_attitudes_p#full_multiverse
-      - social_attitudes_p#full_multiverse
-      - voting_preference_p#full_multiverse
-      - donation_preference_p#full_multiverse
-    recipe:
-      command: >-
-        python src/plot_figure1.py --multiverse-results {inputs}
-        --significance 0.05 --output {output}
-
-multiverses:
-  - id: full_multiverse
-    description: >-
-      The valid Cartesian product across all five decisions. Option
-      constraints remove NMO1+ECL3 and NMO2+ECL2, leaving 210 universes.
-    decisions: "*"
-```
-
-**Declared universes, diffs, and a sweep** — the iris example, extended with a
-pinned stability comparison and a one-decision sweep. `svm_standard` is a
-one-line diff of `rf_standard` (a relationship, not a hierarchy — neither is
-privileged), and every set an output quantifies over is named and described:
+**Declared universes, diffs, and a comparison** — the iris example, extended
+with a pinned stability comparison. `svm_standard` is a one-line diff of
+`rf_standard` (a relationship, not a hierarchy — neither is privileged):
 
 ```yaml
 outputs:
@@ -396,14 +187,6 @@ outputs:
     recipe:
       command: python src/compare.py
 
-  - id: scaling_sensitivity
-    type: metric
-    description: Macro-F1 as a function of feature scaling, all else at rf_standard.
-    inputs:
-      - f1_score#scaling_sweep   # fan-out: one artifact per scaling option
-    recipe:
-      command: python src/scaling_sensitivity.py
-
 universes:
   - id: rf_standard
     description: Random forest with standard scaling.
@@ -415,13 +198,6 @@ universes:
     base: rf_standard
     decisions:
       model: svm
-
-multiverses:
-  - id: scaling_sweep
-    description: Vary feature scaling; all else held at rf_standard.
-    base: rf_standard
-    decisions:
-      scaling: "*"
 ```
 
 ## Implementation implications & migration
@@ -438,30 +214,6 @@ their exact meaning; the `#` selector itself is additive.
 Recorded as open unless marked otherwise; discussion on the tracking issue and
 the draft PR resolves them.
 
-- **What does `"*"` quantify over? — resolved by the prototype.** The full
-  valid decision space (constrained Cartesian product), not "all declared
-  universes." The declared-universes reading is expressible by enumeration, and
-  a multiverse analysis that silently depended on which configurations happened
-  to be declared would be fragile. Recorded so the alternative is not silently
-  re-litigated.
-- **One collection entry per universe, or per distinct realization? — open.**
-  When an upstream output ignores some decisions, several member universes share
-  one realization. The proposal delivers one entry per universe (Steegen-style
-  counts over universes need the multiplicity) with realizations shared in the
-  cache; the alternative — collapsing to distinct realizations — is equivalent
-  to fanning out over the projection of the multiverse onto the output's
-  `decisions`, and could later be expressed explicitly if needed.
-- **Should generated universes have addressable derived ids? — resolved: no.**
-  An earlier draft gave every grid point a spec-defined id (option ids joined
-  in decision-declaration order) usable in pins and enumerations. Rejected:
-  for a `"*"` over a wide decision space the join grows unboundedly (dozens of
-  decisions → ids of hundreds of characters, leaking into every artifact
-  path), it depends on declaration order, and making the spelling addressable
-  forced extra rules (declared-vs-derived collisions, shadowing). Instead,
-  identity attaches to the *effective selection*; generated universes are
-  anonymous; addressing a specific point means declaring it (a three-line
-  `base` diff, which also names and describes it in the record); and storage
-  spelling — join for narrow spaces, digest for wide — is a runner convention.
 - **Should decision defaults define an implicit `baseline` universe? —
   resolved: no.** An earlier draft derived an implicit, spec-reserved
   `baseline` universe from `Decision.default` and made it the default base for
@@ -470,16 +222,12 @@ the draft PR resolves them.
   framework (Yu & Kumbier 2020) — every defensible universe has equal standing,
   and a spec-blessed default invites treating one path as *the* analysis with
   the rest as robustness garnish. Consequently: no reserved universe ids;
-  partial universes require an explicit `base`; generators require an explicit
-  `base` when their `decisions` map is partial; `Decision.default` stays a
+  partial universes require an explicit `base`; `Decision.default` stays a
   presentational hint. Authors who want a reference configuration may *name* a
   universe `baseline` by convention — the spec attaches no meaning to the
   name. (A contemporaneous alternative draft on the tracking issue completes
   omitted decisions from defaults; this RFC deliberately does not.) Recorded
   so the convenience argument is not silently re-litigated.
-- **Combinatorial guardrails — open.** `"*"` can be astronomically large.
-  Should validators warn (or runners require confirmation) above a universe
-  count threshold, or is that purely a tooling concern outside the spec?
 - **Selector sigil: `#` over `@` — resolved.** Earlier drafts used `@`.
   Adopted `#` following the alternative draft on the tracking issue and
   ecosystem convention: `#` selects a view *within* a resource (URL fragments,
@@ -503,12 +251,10 @@ the draft PR resolves them.
   [10.1073/pnas.1901326117](https://doi.org/10.1073/pnas.1901326117) — the PCS
   framework; its stability principle motivates treating all defensible
   specifications symmetrically, which is why this RFC privileges no universe.
-- [Snakemake `expand()`](https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#the-expand-function)
-  — the workflow-level fan-in pattern over parameter grids.
 - [`astra-multiverse-example`](https://github.com/anthonyozerov/astra-multiverse-example)
   (Anthony Ozerov) — the working prototype this RFC is grounded in; see also
   [`astra-multiverse-example-steegen-2`](https://github.com/anthonyozerov/astra-multiverse-example-steegen-2),
   the cross-version specification-search demonstration.
 - Tracking issue: [#52](https://github.com/LightconeResearch/astra-spec/issues/52).
 - [RFC-0002](0002-decouple-reports.md) — establishes element addressing, which
-  in-file universes and multiverses join as addressable elements.
+  in-file universes join as addressable elements.
