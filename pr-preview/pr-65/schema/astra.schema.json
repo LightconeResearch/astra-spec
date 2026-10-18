@@ -1463,6 +1463,26 @@
                     "then": {
                         "not": {
                             "required": [
+                                "format"
+                            ]
+                        },
+                        "properties": {
+                            "format": {}
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "from": {}
+                        },
+                        "required": [
+                            "from"
+                        ]
+                    },
+                    "then": {
+                        "not": {
+                            "required": [
                                 "label"
                             ]
                         },
@@ -1586,6 +1606,14 @@
                 },
                 "description": {
                     "description": "Free-prose description of this output.",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "format": {
+                    "description": "Concrete serialization of the artifact, as a lowercase token: the file extension the artifact is written with, without the leading dot (`png`, `pdf`, `svg`, `csv`, `parquet`, `json`, `fits`, `hdf5`, `html`, `md`). Where `type` says what the output *is* (figure, table, data), `format` says how it is encoded, so consumers can render, diff, or open it without inspecting the file.\nThe value space is deliberately open \u2014 any lowercase token matching the pattern is legal, so formats specific to a field (`asdf`, `zarr`, `nc`) need no schema change.\nRecommended, not required, in 0.0.x: validators warn when it is missing. It becomes **required** for non-aliased Outputs in 0.1.0. Forbidden when `from` is set (inherited from the source).",
+                    "pattern": "^[a-z0-9][a-z0-9_.+-]*$",
                     "type": [
                         "string",
                         "null"
@@ -2097,6 +2125,6 @@
     ],
     "title": "analysis",
     "type": "object",
-    "version": "0.0.12"
+    "version": "0.0.14"
 }
 
