@@ -134,7 +134,7 @@ no `requires` or `incompatible_with` broken.
 |---|---|---:|---|
 | `id` | `string` | Yes | Universe identifier. |
 | `description` | `string` | No | Human-readable explanation. |
-| `derived_from` | `string` | No | Another universe of the same analysis whose effective selection is inherited. |
+| `derived_from` | `universe_id` | No | Another universe of the same analysis whose effective selection is inherited. |
 | `decisions` | map of `decision_id: option_id` | No | Overrides relative to `derived_from`; must be complete when `derived_from` is absent. |
 | `analyses` | map of `UniverseNode` | No | Nested selections mirroring sub-analyses; inheritance applies recursively. |
 
@@ -357,41 +357,6 @@ keep their exact meaning; the `#` pin itself is additive.
 3. Give every output built once a `format`.
 4. Pin evidence that cites an output built per universe.
 
-**Schema (`src/astra/schema/`):**
-
-- `Analysis.universes`: a list of `Universe` (`inlined_as_list`).
-- `Universe.derived_from`, with the universe-id pattern; the descriptions of
-  `Universe.decisions` and `Universe.analyses` updated.
-- `UniverseNode.universe` names a universe in the sub-analysis's `universes`
-  list.
-- `Output.inputs` and `Evidence.artifact` gain the pattern
-  `^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_-]*)?$`.
-- `Decision.default` and its `from_alias_forbids_default` rule are removed.
-- The descriptions of `Output.inputs`, `Output.when`, `Output.format` and
-  `Recipe.command` cover scoping, `format` on outputs built once, and
-  placeholders as written.
-
-**Tooling (astra-tools):**
-
-- The validator checks every declared universe on its effective selection and
-  applies the rules above.
-- `astra validate` reads universes from `astra.yaml`, and warns about files in
-  a `universes/` folder that look like old universe files.
-- `astra universe check <id>` validates one universe and shows its effective
-  selection, marking what it inherits; `astra universe generate` (which built a
-  universe from defaults) is removed.
-- `astra init` writes no `universes/` folder.
-- The resolver records each input's pin and whether an output is built per
-  universe, and can plan every output to build across the declared universes,
-  with the files each reads.
-
-A prototype implements all of this on the `proto/universes` branches of
-[astra-spec](https://github.com/LightconeResearch/astra-spec/tree/proto/universes)
-and [astra-tools](https://github.com/LightconeResearch/astra-tools/tree/proto/universes).
-[`astra-universes-demo`](https://github.com/tomcharnock-lightcone/astra-universes-demo)
-has a small runner that builds the iris example above, with stub scripts and
-with scikit-learn.
-
 ## Questions or objections
 
 Recorded as open unless marked otherwise; discussion on the tracking issue and
@@ -427,7 +392,7 @@ the draft PR resolves them.
   one — the privileging this RFC sets out to avoid — and tooling built a
   baseline universe from it. What a default used to say about a result is
   said by pinning the evidence (§3).
-- **Why does `when` count for scoping? — resolved while prototyping.** An
+- **Why does `when` count for scoping? — resolved.** An
   earlier draft scoped an output by its `decisions` and unpinned inputs only.
   An output whose only link to a decision is a `when` was then built once, and
   an output built once has no current universe to evaluate its `when` in. The
@@ -439,9 +404,9 @@ the draft PR resolves them.
   `format` is already scheduled to become required everywhere at 0.1.0; this
   RFC does not move that date.
 - **Where are outputs built once stored? — open, for
-  [#72](https://github.com/LightconeResearch/astra-spec/issues/72).** The
-  prototype writes them directly in `results/`; a fixed folder that cannot be
-  a universe id (`results/_/`) is the alternative.
+  [#72](https://github.com/LightconeResearch/astra-spec/issues/72).** They
+  could sit directly in `results/`, or in a fixed folder that cannot be a
+  universe id (`results/_/`).
 - **Pins name the root's universes — a known limitation.** A sub-analysis that
   is also used on its own names its own universes when used alone and the
   root's when included, so its pins only work in both if the ids line up. A
@@ -452,8 +417,6 @@ the draft PR resolves them.
   convention: `#` selects a view *within* a resource (URL fragments, CSS
   `#id`). Cost accepted: the YAML stray-space comment footgun, mitigated by a
   validator lint.
-- **The stray-space comment check — open.** Recommended in §2 and listed among
-  the validator rules; the prototype does not implement it yet.
 
 ## References
 
@@ -474,9 +437,6 @@ the draft PR resolves them.
   (Anthony Ozerov) — the working prototype this RFC is grounded in; see also
   [`astra-multiverse-example-steegen-2`](https://github.com/anthonyozerov/astra-multiverse-example-steegen-2),
   the cross-version specification-search demonstration.
-- [`astra-universes-demo`](https://github.com/tomcharnock-lightcone/astra-universes-demo)
-  — the runner for this RFC's prototype on the `proto/universes` branches of
-  astra-spec and astra-tools, building the iris example above.
 - [#72](https://github.com/LightconeResearch/astra-spec/issues/72) — where
   results are stored.
 - Tracking issue: [#52](https://github.com/LightconeResearch/astra-spec/issues/52).
