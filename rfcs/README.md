@@ -54,3 +54,4 @@ discoverability. Each RFC's `status:` frontmatter field is the durable record.
 |---|---|---|
 | [0001](0001-establish-the-rfc-process.md) | Establish the ASTRA RFC process and interim governance | Accepted |
 | [0002](0002-decouple-reports.md) | Decouple analysis reports from astra.yaml | Active |
+| [NNNN](NNNN-composition.md) | Declared analyses and cross-analysis references | Draft |
