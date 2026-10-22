@@ -1,5 +1,5 @@
 ---
-rfc: NNNN
+rfc: 0004
 title: Declared analyses and cross-analysis references
 status: Draft
 authors:
