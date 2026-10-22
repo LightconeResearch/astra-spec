@@ -348,7 +348,7 @@ findings:
 
 Evidence isn't built in a universe, so when it cites an output that is built per universe it should carry a pin. A finding about results that a driver builds therefore belongs in the driver's `astra.yaml`.
 
-The grammar of `Output.inputs` from RFC-0003, which `Evidence.artifact` now shares, becomes
+The grammar of `Output.inputs` and `Evidence.artifact` from RFC-0003 becomes
 
 ```
 reference ::= address [ "#" universe-id ]
