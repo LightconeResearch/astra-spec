@@ -265,32 +265,32 @@ outputs:
     inputs: [subanalysis1.output1#u1]
 ```
 
-This is fine if we want to pin specific universes, but means that in each analysis that references a universe of a different analysis we would have to specifically pin each universe. To avoid this we can use `#.` which means push through the universe being built.
+This is fine if we want to pin specific universes, but most of the time an analysis wants another analysis' output in whichever universe is being built. As within one analysis in RFC-0003, a reference without a pin means exactly that.
 
 ```yaml
 # analysis/subanalysis2/astra.yaml
 outputs:
   - id: output2
     ...
-    inputs: [sibling_analysis.output1#.]
+    inputs: [sibling_analysis.output1]
     decisions: [c]
 ```
 
 The above example means that the input to `output2` is the `output1` from `sibling_analysis` built in whichever universe is currently building `output2`. The universe being built is defined by analysis and id, not by its id alone (the same id could be used in several analyses) and so is only relevant in an analysis which is defining the universe or an analysis driven by that driving analysis.
 
-Because universes are pushed through all analyses in the root level when using `#.` we can define something like
+Because the universe being built is pushed through every analysis the root drives, we can define something like
 
 ```yaml
 # analysis/astra.yaml
 outputs:
   - id: summary
     ...
-    inputs: [subanalysis2.output2#.]
+    inputs: [subanalysis2.output2]
 ```
 
 which would allow us to build `summary` for whichever universe we want to build by asking a runner for `summary` pinned at that universe which would push through that universe to `subanalysis2.output2`.
 
-Even an analysis without any decisions depends on the universe when it reads with `#.`
+Even an analysis without any decisions depends on the universe when it reads an output that is built per universe without a pin
 
 ```yaml
 # analysis/subanalysis3/astra.yaml
@@ -299,7 +299,7 @@ analyses:
 outputs:
   - id: output3_per_universe
     ...
-    inputs: [subanalysis2.output2#.]
+    inputs: [subanalysis2.output2]
 ```
 
 so `output3_per_universe` is built in each of the root's universes (which is driving) and those results belong to the root, whilst `output3` (from earlier) is still built once and belongs to `subanalysis3`.
@@ -333,7 +333,7 @@ outputs:
 
 Both declarations for the analysis `subanalysis1/subsubanalysis1` are the same directory but only `subsubanalysis1` is named in the root's universes (`subsubanalysis1.d: d1`) and therefore only `subsubanalysis1` is driven and the universe from `subsubanalysis1_undriven` is free to be referenced directly.
 
-As with RFC-0003, external inputs and outputs that are built once do not require a `#`.
+As with RFC-0003, external inputs and outputs that are built once are the same in every universe and so take no pin.
 
 Evidence cites an artifact in the same way, so a finding can name the result of another analysis in the universe that supports it
 
@@ -346,16 +346,15 @@ findings:
       - artifact: subanalysis1.output1#u1
 ```
 
-Evidence isn't built in a universe so it can't use `#.`. This means that when evidence cites an output that is built per universe it should carry a pin. A finding about results that a driver builds therefore belongs in the driver's `astra.yaml`.
+Evidence isn't built in a universe, so when it cites an output that is built per universe it should carry a pin. A finding about results that a driver builds therefore belongs in the driver's `astra.yaml`.
 
-The grammar of `Output.inputs` from RFC-0003, and that of `Evidence.artifact`, become
+The grammar of `Output.inputs` from RFC-0003, which `Evidence.artifact` now shares, becomes
 
 ```
-input-reference    ::= address [ "#" universe-id | "#." ]
-evidence-reference ::= address [ "#" universe-id ]
+reference ::= address [ "#" universe-id ]
 ```
 
-A pin `#<universe_id>`, in either, names the driver's universe through a driven declaration or otherwise the analysis' own universe.
+A pin `#<universe_id>` names the driver's universe through a driven declaration or otherwise the analysis' own universe. Without a pin, an input is read in the universe being built.
 
 #### 5. Results live with the universe that produced them
 
@@ -408,14 +407,12 @@ analysis/
 | A driven analysis has each of the active decisions it defines set in every one of the driver's universes | error |
 | A declaration is driven by all of the driver's universes or by none | error |
 | Two spellings of the same decision select the same option | error |
-| `#.` and another analysis' decision are only used where the analysis they belong to is built in the universe being built | error |
-| In the file of the analysis whose universe is being built, `#.` and another analysis' decision go through a declaration that analysis drives (`subsubanalysis1_undriven.output1#.` has no match) | error |
-| An output read with `#.` exists in the universe being built (its `when` holds there) | error |
-| Another analysis' output that is built per universe is read with `#.` or a pin | error |
+| Another analysis' output read without a pin, and another analysis' decision, are only used where the analysis they belong to is built in the universe being built | error |
+| In the file of the analysis whose universe is being built, another analysis' output read without a pin and another analysis' decision go through a declaration that analysis drives (`subsubanalysis1_undriven.output1` has no match) | error |
+| An output read without a pin exists in the universe being built (its `when` holds there) | error |
 | A pin, in `Output.inputs` or evidence, names a universe of the driver through a driven declaration and of the declared analysis if not driven | error |
-| Evidence doesn't use `#.` | error |
 | Evidence citing an output that is built per universe without a pin | warning |
-| Decisions declared but no universes, unless the analysis is driven or consumes a decision | warning |
+| Decisions declared, or outputs built per universe, but no universes, unless the analysis is driven or consumes a decision | warning |
 
 ## Examples
 
@@ -441,7 +438,7 @@ outputs:
     inputs: [subanalysis1.output1#u1]
   - id: summary
     ...
-    inputs: [subanalysis2.output2#.]
+    inputs: [subanalysis2.output2]
   - id: subsummary1_u1
     ...
     inputs: [subsubanalysis1.output1#u1]
@@ -503,7 +500,7 @@ decisions:
 outputs:
   - id: output2
     ...
-    inputs: [sibling_analysis.output1#.]
+    inputs: [sibling_analysis.output1]
     decisions: [c]
 ```
 
@@ -518,7 +515,7 @@ outputs:
     inputs: [root.data]
   - id: output3_per_universe
     ...
-    inputs: [subanalysis2.output2#.]
+    inputs: [subanalysis2.output2]
 ```
 
 ### Example 2: `iris_pipeline`
@@ -555,9 +552,9 @@ outputs:
   - id: summary
     type: report
     format: md
-    inputs: [classification.accuracy#.]
+    inputs: [classification.accuracy]
     recipe:
-      command: python src/summary.py --accuracy {inputs.classification.accuracy#.} --out {output}
+      command: python src/summary.py --accuracy {inputs.classification.accuracy} --out {output}
   - id: comparison
     type: metric
     format: json
@@ -636,12 +633,12 @@ outputs:
   - id: predictions
     type: data
     format: csv
-    inputs: [feature_extraction.features#., iris.split#.]
+    inputs: [feature_extraction.features, iris.split]
     decisions: [classifier]
     recipe:
       command: >-
-        python src/classify.py --features {inputs.feature_extraction.features#.}
-        --split {inputs.iris.split#.} --classifier {decisions.classifier} --out {output}
+        python src/classify.py --features {inputs.feature_extraction.features}
+        --split {inputs.iris.split} --classifier {decisions.classifier} --out {output}
   - id: accuracy
     type: metric
     format: json
@@ -683,7 +680,6 @@ iris_pipeline/
 - all `from: ../x` becomes a declaration of the parent (`{id: root, path: ..}`) and `root.x`
 - a decision taken with `from:` is removed and wherever it was used the decision is named by address instead (`decisions: [root.a]`, `{decisions.root.a}`, `when: [root.a.a1]`)
 - all re-exports become direct reads, and evidence that cited a re-exported output cites the subanalysis' output by address
-- a read of another analysis' output that is built per universe gets `#.` (or a pin)
 - `Universe.analyses` and presets become flat keys covering every decision
 - `type: analysis` inputs become declarations
 
