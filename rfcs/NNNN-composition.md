@@ -686,8 +686,6 @@ iris_pipeline/
 ## Questions or objections
 
 - **Should setting the same decision under two spellings give a warning?** When one analysis is reached by two driven paths, its decisions can be set under either (`subanalysis1.subsubanalysis1.d` or `subsubanalysis1.d`). Two different options is an error but setting the same option under both is allowed. I'd say that whether that repetition should give at least a warning is open.
-- **Should `Input.type` stay?** With `type: analysis` removed, `data` is the only value left. Whether to keep or drop it isn't answered here since it doesn't affect composition, but it is very little extra effort.
-- **Can identical results be shared between universes?** `u2` only changes `subanalysis1.b`, so `subsubanalysis1.output1` is the same in `u1` and `u2` but is built in each. What we do with that information is up for discussion and links to where results are stored ([#72](https://github.com/LightconeResearch/astra-spec/issues/72)) and to multiverses ([#82](https://github.com/LightconeResearch/astra-spec/issues/82)).
 
 ## Other RFCs that could spawn out of this RFC
 - **Remote analyses:** A `path` is local and inside the repository. Analyses in other repositories, with their revisions and fetching, would build on [#55](https://github.com/LightconeResearch/astra-spec/issues/55) and should now be relatively simple.
