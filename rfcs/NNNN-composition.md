@@ -23,7 +23,7 @@ To reference different analyses there exists also `type: analysis` for `inputs:`
 
 ## Proposal
 
-This RFC proposes to promote every subanalysis to its own standalone analysis in its own directory and with its own `astra.yaml`, where it can have its own decisions, universes and results. This means that any stage of analysis can be built and checked by itself and easily moved and reused by other analyses. The language for interaction between analyses is greatly simplified, reducing to one declaration and addressing. Furthermore, analyses can use each other by declaring each other and referring to elements by name, i.e. an analysis that declares another analysis can read that declared analysis' outputs, take one of its decisions or drive its decisions from its own universes.
+This RFC proposes to promote every subanalysis to its own standalone analysis in its own directory and with its own `astra.yaml`, where it can have its own decisions, universes and results. This means that any stage of analysis can be built and checked by itself and easily moved and reused by other analyses. The language for interaction between analyses is greatly simplified, reducing to one declaration and addressing. Furthermore, analyses can use each other by declaring each other and referring to elements by name, i.e. an analysis that declares another analysis can use that declared analysis' outputs and decisions or drive its decisions from its own universes.
 
 ### Glossary
 
@@ -35,8 +35,8 @@ This is just a short glossary of terms that seem somewhat abstract and are used 
 | Root | The top-level analysis being validated or built - any analysis can be the root |
 | Analysis stack | The root and every analysis it declares whether directly or via another declared analysis |
 | Subanalysis | Any analysis in the analysis stack other than the root. Validated or built on its own that analysis becomes the root |
-| Driver / driven | An analysis whose universes set the decisions of another analysis is its driver and that other analysis is driven (section 3a) |
-| Consuming | Using an element of another analysis without driving it. Either reading its inputs or outputs by address, or taking one of its decisions with `reference` (sections 2 and 3b) |
+| Driver / driven | An analysis whose universes set the decisions of another analysis is its driver and that other analysis is driven (section 3, *Driving decisions*) |
+| Consuming | Using an element of another analysis by address without driving it, whether one of its inputs, outputs or decisions (section 2) |
 
 ### Modifications
 
@@ -86,27 +86,33 @@ This modification replaces the functionality of inline subanalyses, `path:` from
 
 #### 2. Referencing anything from anywhere
 
-An element of a declared analysis is addressed as `<id>.<element>` and elements of a subanalysis declared by a declared analysis can be referenced as `<id>.<sub>.<element>` *ad infinitum*. This form can be used as the `inputs` of `outputs`, as a `reference` to a `decision` or as the `artifact` cited by `evidence`. For example, if the root analysis defined:
+An element of a declared analysis is addressed as `<id>.<element>` and elements of a subanalysis declared by a declared analysis can be referenced as `<id>.<sub>.<element>` *ad infinitum*. This form can be used as the `inputs` or `decisions` of `outputs`, in conditions and constraints (`when`, `requires` and `incompatible_with`) or as the `artifact` cited by `evidence`. For example, if the root analysis defined:
 
 ```yaml
 # analysis/astra.yaml
 inputs:
   - { id: data, type: data }
+decisions:
+  a: { options: { a1: ..., a2: ... } }
 ```
 
-then an `inputs` of `outputs` can *consume* the root's `data` directly by address
+then an output can *consume* the root's `data` and `a` directly by address
 
-```yaml  
+```yaml
 # analysis/subanalysis1/astra.yaml
 outputs:
-  - { id: output1, ..., inputs: [root.data] }
+  - { id: output1, ..., inputs: [root.data], decisions: [root.a] }
 ```
 
-All addresses are considered local to the declaring analysis. This removes completely the need for `from:` in `Input` and `Output` since the other analysis' elements are accessed directly by address.
+A recipe names them as they are written, `{inputs.root.data}` and `{decisions.root.a}`. Conditions and constraints name another analysis' decision in the same way followed by one of its options, so `when: [root.a.a1]` would make an element exist only when the root's `a` is `a1`.
+
+All addresses are considered local to the declaring analysis. This removes completely the need for `from:` in `Input`, `Output` and `Decision` since the other analysis' elements are accessed directly by address.
 
 #### 3. Universes across analyses
 
-##### a. Driving decisions
+A decision used by address (section 2) has the value chosen in the universe being built and so a decision address never takes a `#`. This means that the analysis the decision belongs to has to be built in that universe too, i.e. `output1` can only be built in the root's universes (or those of an analysis driving the root) since `subanalysis1` can't know the value of `a` on its own.
+
+##### Driving decisions
 
 Each analysis can have its own set of decisions and options, where decisions belonging to a particular analysis should be defined within that analysis
 
@@ -236,33 +242,7 @@ analyses:
 
 This method of interacting with analyses in `universes` using flat keys means we can remove `Universe.analyses` and `UniverseNode`. 
 
-##### b. Consuming
-
-Sometimes a decision which affects an analysis might really belong to a different analysis (for example the seed of a whole analysis stack belongs to the driving analysis and is an intrinsic decision rather than a decision to be driven by the driving analysis). 
-As inputs and outputs can be *consumed* as in section 2, decisions are consumed by linking by `reference`
-
-```yaml
-# analysis/subanalysis1/astra.yaml
-decisions:
-  a: { reference: root.a }
-  b: { options: { b1: ..., b2: ... } }
-```
-
-such that whatever value the decision for `a` is in the analysis `root`, this analysis will take the same value. 
-
-As with `from:` today, only `when` can be set alongside `reference`, so `a: { reference: root.a, when: [b.b2] }` would take `a` only when `b` is `b2`. A consumed decision is also inactive wherever the decision it references is inactive, and no universe can set it (`subanalysis1.a` isn't a valid key).
-
-Note that `reference` is used here rather than just implementing a short-form (`a: root.a`) because it keeps every value in `decisions` a `Decision` mapping. This is useful because LinkML cannot describe a map whose values are either a string *or* a mapping. Furthermore, the shape of the short-form would be identical to a selection in a universe's decisions but have a different meaning, which could be confusing.
-
-Creating a decision which links to another analysis like this means that it cannot be built independently of the declared analysis that it references. References can chain through many analyses as long as they don't loop and they end at a true decision.
-
-A decision should be driven if it only matters to one analysis and should be consumed from the driving analysis if it is shared by several analyses - although this is just convention rather than enforced.
-
-To be able to consume decisions requires adding `reference` (replacing `from:`) to `Decision`:
-
-| Field     | Type   | Required | Meaning                                                                                       |
-|-----------|--------|----------|-----------------------------------------------------------------------------------------------|
-| `reference` | string | No     | The address of a decision of a declared analysis whose options and value this decision takes  |
+A decision should be driven if it only matters to one analysis and should be consumed by address if it is shared by several analyses (like the seed of a whole analysis stack) - although this is just convention rather than enforced. Driving leaves an analysis able to stand alone whilst consuming a decision ties the outputs that use it to the analysis the decision belongs to.
 
 #### 4. Which universe a reference reads
 
@@ -274,7 +254,7 @@ outputs:
   - id: output1
     ...
     inputs: [root.data]
-    decisions: [a, b]
+    decisions: [root.a, b]
 ```
 
 ```yaml
@@ -422,17 +402,14 @@ analysis/
 | Declaration ids are unique within an analysis | error |
 | A declaration's `path` is relative, inside the repository of the root (the top-level analysis being validated or built), and holds an `astra.yaml` | error |
 | Every analysis has `version`, `name` and `outputs` | error |
-| An address resolves through the declarations to an element of the right kind: an input or output in `Output.inputs`, a decision in `reference`, an output in `Evidence.artifact` | error |
+| An address resolves through the declarations to an element of the right kind: an input or output in `Output.inputs`, a decision (without a `#`) in `Output.decisions`, a decision and one of its options in `when`, `requires` and `incompatible_with`, an output in `Evidence.artifact` | error |
 | Outputs don't depend on each other in a cycle | error |
-| A `reference` has only `when` alongside it | error |
-| References don't loop | error |
-| The analysis a consumed decision references is built in every universe the consuming analysis is built in | error |
-| A flat key names a declaration path, one of the decisions that analysis defines (not a consumed one) and one of its options | error |
+| A flat key names a declaration path, one of the decisions that analysis defines and one of its options | error |
 | A driven analysis has each of the active decisions it defines set in every one of the driver's universes | error |
 | A declaration is driven by all of the driver's universes or by none | error |
 | Two spellings of the same decision select the same option | error |
-| `#.` is only used where the artifact's analysis is built in the universe being built | error |
-| In the file of the analysis whose universe is being built, `#.` goes through a declaration that analysis drives (`subsubanalysis1_undriven.output1#.` has no match) | error |
+| `#.` and another analysis' decision are only used where the analysis they belong to is built in the universe being built | error |
+| In the file of the analysis whose universe is being built, `#.` and another analysis' decision go through a declaration that analysis drives (`subsubanalysis1_undriven.output1#.` has no match) | error |
 | An output read with `#.` exists in the universe being built (its `when` holds there) | error |
 | Another analysis' output that is built per universe is read with `#.` or a pin | error |
 | A pin, in `Output.inputs` or evidence, names a universe of the driver through a driven declaration and of the declared analysis if not driven | error |
@@ -495,13 +472,12 @@ analyses:
   - { id: root, path: .. }
   - { id: subsubanalysis1, path: subsubanalysis1 }
 decisions:
-  a: { reference: root.a }
   b: { options: { b1: ..., b2: ... } }
 outputs:
   - id: output1
     ...
     inputs: [root.data]
-    decisions: [a, b]
+    decisions: [root.a, b]
 ```
 
 ```yaml
@@ -605,7 +581,7 @@ universes:
       classification.classifier: svm
 ```
 
-The feature extraction stage defines its own method and number of components and takes the seed from the root:
+The feature extraction stage defines its own method and number of components and consumes the root's seed by address:
 
 ```yaml
 # iris_pipeline/feature_extraction/astra.yaml
@@ -623,17 +599,16 @@ decisions:
   n_components:
     label: Number of components
     options: { two: { label: "2" }, three: { label: "3" } }
-  seed: { reference: iris.random_seed }
 outputs:
   - id: features
     type: data
     format: npy
     inputs: [iris.iris_data]
-    decisions: [method, n_components, seed]
+    decisions: [method, n_components, iris.random_seed]
     recipe:
       command: >-
         python src/extract.py --data {inputs.iris.iris_data} --method {decisions.method}
-        --components {decisions.n_components} --seed {decisions.seed} --out {output}
+        --components {decisions.n_components} --seed {decisions.iris.random_seed} --out {output}
   - id: feature_plot
     type: figure
     format: png
@@ -706,7 +681,7 @@ iris_pipeline/
 - each subanalysis gets its own directory and `astra.yaml` (version, name, outputs)
 - these subanalyses are then declared in `analyses:`
 - all `from: ../x` becomes a declaration of the parent (`{id: root, path: ..}`) and `root.x`
-- in each decision `from:` becomes `reference`
+- a decision taken with `from:` is removed and wherever it was used the decision is named by address instead (`decisions: [root.a]`, `{decisions.root.a}`, `when: [root.a.a1]`)
 - all re-exports become direct reads, and evidence that cited a re-exported output cites the subanalysis' output by address
 - a read of another analysis' output that is built per universe gets `#.` (or a pin)
 - `Universe.analyses` and presets become flat keys covering every decision
