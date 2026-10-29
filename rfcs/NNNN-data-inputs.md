@@ -54,7 +54,7 @@ where RFC 0004 had `{ id: data, type: data }`, and `Input` becomes
 - stays inside the analysis's own folder and outside any analysis within it (a folder with an `astra.yaml` of its own). The data belongs with the analysis that uses it. Another analysis reads it by address as in RFC 0004, so `subanalysis1` reads `root.data` rather than declaring `../data.csv`
 - names the file the analysis reads. What's committed is the file itself, or something standing in for it that tooling recognises - a git-annex link or a Git LFS pointer at the path, or a DVC file beside it. A large file therefore needn't be in git's history and how its bytes are kept is up to the tooling. Something standing in for the content isn't the content
 
-No hash is declared in `astra.yaml`. A change to an input's file only stales the results that read it (#91, sections 3 and 4). An analysis's code (#91, section 3) also leaves out what stands in for an input's file, such as a DVC file beside it.
+No hash is declared in `astra.yaml`. A change to an input's file only makes the results that read it stale (#91, sections 3 and 4). An analysis's code (#91, section 3) also leaves out what stands in for an input's file, such as a DVC file beside it.
 
 #### 2. `type` is removed
 
@@ -62,7 +62,7 @@ Its one value, `data`, says nothing about an input that every input doesn't alre
 
 #### 3. Data from outside the repository
 
-Data that isn't committed with the analysis comes in through an output whose recipe gets it - a download, a loader, a query. The output is built once, or per universe when it depends on a decision such as which data release to use. If the root's data in the running example came from outside, `data` would be an output instead, here per universe since it depends on `a`
+Data that isn't committed with the analysis comes in through an output whose recipe gets it - a download, a loader, a query. The output is built once, or per universe when it depends on a decision such as which data release to use. If the root's data in the running example came from outside, `data` would be an output instead.
 
 ```yaml
 # analysis/astra.yaml
@@ -70,12 +70,11 @@ outputs:
   - id: data
     type: data
     format: csv
-    decisions: [a]
     recipe:
-      command: python src/get_data.py --option {decisions.a} --out {output}
+      command: python src/get_data.py --out {output}
 ```
 
-Nothing that reads `root.data` changes. Each of the output's results has a provenance record like any other result: the code that got the data and the content hash of what came back. Getting the data again and getting different bytes shows as a different hash. The spec names no way of getting data, so any tool can be used to get it.
+Nothing that reads `root.data` changes. Its result has a provenance record like any other result: the commit its recipe ran from and the content hash of what came back. Getting the data again and getting different bytes shows as a different hash. The spec names no way of getting data, so any tool can be used to get it.
 
 ### What validators check
 
@@ -84,8 +83,9 @@ Nothing that reads `root.data` changes. Each of the output's results has a prove
 | An input's `path` is relative and without `..` | error |
 | An input's file isn't inside another analysis's folder | error |
 | An input's `path` names a file (its content, or something standing in for it) | error |
+| An input's file, or what stands in for it, is tracked in git | error |
 
-`type` and `source` are no longer valid fields of `Input`. Only committed files are run (#91), so validators don't check whether an input's file is committed.
+`type` and `source` are no longer valid fields of `Input`. The last row is needed because an input's file isn't code, so #91's runner, which only runs committed code, doesn't cover it.
 
 ## Examples
 
@@ -115,7 +115,7 @@ An input and an output are read by address in the same way, so `split`'s `inputs
 
 ## Implementation implications & migration
 
-*Compatibility:* breaking - `type` was required and `source` becomes a required `path` with a narrower meaning. Builds on RFC 0004 and the RFCs on Analyses in other repositories and Result provenance and layout.
+*Compatibility:* breaking - `type` was required and `source` becomes a required `path` with a narrower meaning. Builds on RFC 0004 and the RFC on Result provenance and layout.
 
 *Migration steps:*
 
@@ -137,7 +137,6 @@ An input and an output are read by address in the same way, so `split`'s `inputs
 ## References
 
 - [RFC 0004](0004-composition.md): declared analyses and addresses (reading an input from another analysis)
-- Analyses in other repositories ([#89](https://github.com/LightconeResearch/astra-spec/pull/89)): which Result provenance and layout builds on
 - Result provenance and layout ([#91](https://github.com/LightconeResearch/astra-spec/pull/91)): each result's record holds the content hash of every input file it read
 - [#86](https://github.com/LightconeResearch/astra-spec/issues/86): the review of `Input`'s fields
 - [#58](https://github.com/LightconeResearch/astra-spec/pull/58): `Output.target` and its rule for paths
