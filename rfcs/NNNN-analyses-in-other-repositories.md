@@ -4,6 +4,7 @@ title: Analyses in other repositories
 status: Draft
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
+  - Francois Lanusse (@eiffl)
 created: 2026-10-26
 tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/88
 superseded-by:
@@ -19,7 +20,7 @@ Leaving out anything outside the top-level repository cuts new work off from the
 - using the upstream repository of a fork
 - reusing another astra analysis in a different repository altogether
 
-With [Result provenance and layout](https://github.com/LightconeResearch/astra-spec/pull/91) each result has a record committed with its analysis. The record holds the result's content hash, its size and the commit of the code that made it. Whether a result is still current can then be told without having to rematerialise it. With [Data inputs](https://github.com/LightconeResearch/astra-spec/pull/92) every input is a file committed with its analysis. One commit of an analysis's repository therefore fixes its code, its inputs and the records of its results.
+With [Result provenance and layout](https://github.com/LightconeResearch/astra-spec/pull/91) each result has a record committed with its analysis. The record holds the result's content hash, its size and the commit its recipe ran from. Whether a result is unchanged can then be told without having to rematerialise it. With [Data inputs](https://github.com/LightconeResearch/astra-spec/pull/92) every input is a file committed with its analysis. One commit of an analysis's repository therefore fixes its code, its inputs and the records of its results.
 
 So far, though, all of this only works for an analysis declared by `path`. An analysis in another repository has to be copied in or added as a git submodule. Either way the whole analysis is required even when only one of its results is read. `astra.yaml` can't say which repository and commit the analysis comes from either.
 
@@ -27,7 +28,7 @@ So far, though, all of this only works for an analysis declared by `path`. An an
 
 ## Proposal
 
-This RFC proposes that a declaration names either a `path` or a `repository`. A `path` names an analysis within the top-level analysis's repository as in RFC 0004. A `repository` names an analysis from a commit, either of another repository (a remote) or of the declaring analysis's own repository. An analysis from a commit is read from git at that commit and reading it doesn't need a checkout - only the `astra.yaml` files, the records of its results and the bytes that a recipe reads are required. Whilst this is enough for using results that other analyses have already materialised, it may also be desirable to *drive* an analysis from a commit, in which case it's checked out at the declaration's `checkout` (section 7) and driven like any other declared analysis.
+This RFC proposes that a declaration names either a `path` or a `url` and may name a `commit`. A `path` names an analysis within the top-level analysis's repository as in RFC 0004 and a `url` names another repository (a remote), whose top-level analysis is the one declared. With a `commit` (required for `url`) the declaration names an analysis from a commit - the analysis as it was at that commit. An analysis from a commit is read from git at that commit and reading it doesn't need a checkout - only the `astra.yaml` files, the records of its results and the bytes that a recipe reads are required. Whilst this is enough for using results that other analyses have already materialised, it may also be desirable to *drive* an analysis from a commit, in which case the tool gets its files at that commit and it's driven like any other declared analysis (section 7).
 
 This RFC requires *Result provenance and layout* ([#91](https://github.com/LightconeResearch/astra-spec/pull/91)) and *Data inputs* ([#92](https://github.com/LightconeResearch/astra-spec/pull/92)), which it refers to throughout: the results of an analysis from a commit are read through *Result provenance and layout*'s records and *Data inputs* makes every input a file committed with its analysis.
 
@@ -41,56 +42,49 @@ Imagine using RFC 0004's running example (Example 1) and committing it at the to
 # followup/astra.yaml
 analyses:
   - id: upstream
-    repository:
-      url: https://github.com/owner/analysis
-      commit: <full commit id>
+    url: https://github.com/owner/analysis
+    commit: <full commit id>
 outputs:
   - id: report
     ...
     inputs: [upstream.summary#u1, upstream.subanalysis3.output3]
 ```
 
-where an `AnalysisDeclaration` has exactly one of
+where, beside its `id`, an `AnalysisDeclaration` has
 
-| Field        | Type         | Required                                 | Meaning                                                                                       |
-|--------------|--------------|------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `path`       | string       | No - required if there's no `repository` | The directory of an analysis in the declaring analysis's repository, as in RFC 0004           |
-| `repository` | `Repository` | No - required if there's no `path`       | An analysis from a commit of another repository or of the declaring analysis's own repository |
+| Field    | Type   | Required                           | Meaning                                                                                            |
+|----------|--------|------------------------------------|----------------------------------------------------------------------------------------------------|
+| `path`   | string | No - required if there's no `url`  | The directory of an analysis in the declaring analysis's repository, as in RFC 0004                |
+| `url`    | string | No - required if there's no `path` | Where git can fetch another repository (a remote) from. Its top-level analysis is the one declared |
+| `commit` | string | No - required with a `url`         | The full id of the commit the declared analysis is from                                            |
 
-where `Repository` has
+A declaration with a `path` and no `commit` means exactly what it means in RFC 0004. With a `url` the declared analysis is the analysis at the top level of the repository at that commit. If it has analyses of its own they are reached by address through it (`upstream.subanalysis3.output3`) as for any declared analysis.
 
-| Field      | Type   | Required | Meaning                                                                                                   |
-|------------|--------|----------|-----------------------------------------------------------------------------------------------------------|
-| `url`      | string | No       | Where git can fetch the repository from. Left out for a commit of the declaring analysis's own repository |
-| `commit`   | string | Yes      | The full id of the commit                                                                                 |
-| `checkout` | string | No       | Where the analysis is checked out to be driven (section 7)                                                |
+With a `commit`
 
-A declaration with a `path` means exactly what it means in RFC 0004. With a `repository`
-
-- the declared analysis is the analysis at the top level of its repository at that commit. If it has analyses of its own they are reached by address through it (`upstream.subanalysis3.output3`) as for any declared analysis
-- declarations can form cycles within a repository as in RFC 0004 but not across repositories since a commit can only name a commit that existed before it
+- the declaration is never part of a cycle, since a commit can only name earlier ones. Declarations by `path` alone can still form cycles as in RFC 0004
 - only a full commit id is accepted (40 hexadecimal digits, or 64 in a SHA-256 repository). A branch moves. A tag can be moved or deleted and can name another commit in a fork or a mirror. A shortened id can become ambiguous as a repository grows
 
-A commit of the declaring analysis's own repository is declared without a `url`
+A `path` with a `commit` declares the analysis at that `path` as it was at that commit. The `path` is relative to the declaring analysis and inside the repository of the top-level analysis exactly as in RFC 0004, only read at that commit. The declaring analysis as it was at an earlier commit, for example, is
 
 ```yaml
 # followup/astra.yaml
 analyses:
   - id: previous
-    repository:
-      commit: <full commit id of an earlier commit>
+    path: .
+    commit: <full commit id of an earlier commit>
 ```
 
-Such an analysis is the repository's top-level analysis at that commit, read from the local repository. Where the declaring analysis is itself read from a remote, the commit is looked up in that remote's repository instead, at its URL. The commit SHOULD be an ancestor of the commit the declaration is in.
+and any other analysis in the repository can be declared at a commit in the same way. Such an analysis is read from the local repository. Where the declaring analysis is itself read from a remote, the commit is looked up in that remote's repository instead, at its URL. The commit SHOULD be an ancestor of the commit the declaration is in.
 
 #### 2. Identity and reading at the commit
 
-The commit id is the declared analysis's identity. Two declarations naming the same commit name the same analysis. The URL only says where to get it - a fork or a mirror with the same commit gives the same analysis.
+The commit id, with the `path` for an analysis of the declaring analysis's own repository, is the declared analysis's identity. Two declarations naming the same commit and `path` name the same analysis. A remote's URL only says where to get it - a fork or a mirror with the same commit gives the same analysis.
 
 The declared analysis is read from git at the declared commit and git itself checks everything read against the commit id. Reading it runs none of its code. Only these are read
 
 - the `astra.yaml` files of the declared analysis and of every analysis it declares
-- the `astra.yaml` of a result's analysis at the commit its record names, to tell whether the result is current (section 4)
+- the `astra.yaml` of a result's analysis at the commit its record names, to tell whether the result is unchanged (section 4)
 - the record of each result that is read or cited and the records of all the results it was made from (section 4)
 - which files there are at a commit and which differ between two commits (without their contents)
 - the bytes of each result or input file that a recipe reads (section 5)
@@ -99,7 +93,7 @@ Where a tool keeps what it read is up to the tool. However, it is required that 
 
 #### 3. Using an analysis from a commit
 
-None of the declared analysis's recipes can run without a checkout so the declared analysis can only be used for
+Unless it's driven (section 7) none of the declared analysis's recipes run so it can only be used for
 
 - its outputs in its own universes, with a pin (`upstream.summary#u1`)
 - its outputs that are built once (`upstream.subanalysis3.output3`)
@@ -107,7 +101,7 @@ None of the declared analysis's recipes can run without a checkout so the declar
 
 Evidence can cite its results in the same way.
 
-RFC 0004 already allows only these through a declaration that isn't driven - a decision or an output read without a pin has to go through a driven declaration. The only new rule is that no universe drives an analysis from a commit without a `checkout`.
+RFC 0004 already allows only these through a declaration that isn't driven - a decision or an output read without a pin has to go through a driven declaration.
 
 #### 4. Results and their records
 
@@ -118,18 +112,18 @@ upstream.summary#u1              =>    .astra/records/u1/summary.json
 upstream.subanalysis3.output3    =>    subanalysis3/.astra/records/output3.json
 ```
 
-Records are committed in the repository of the analysis they belong to. If `upstream` itself declared an analysis by `repository`, that analysis's records would be in its own repository at the commit `upstream` names.
+Records are committed in the repository of the analysis they belong to. If `upstream` itself declared an analysis from a commit, that analysis's records would be read in its repository at the commit `upstream` names for it.
 
-A result can only be read once its record is committed so the declaring analysis names the commit that added the records rather than the one the recipes ran from. If the recipes ran at `<commit A>`, the code in their records names `<commit A>`. The records are then committed in a later commit, `<commit B>` which is the commit `followup` declares `upstream` at.
+A result can only be read once its record is committed so the declaring analysis names the commit that added the records rather than the one the recipes ran from. If the recipes ran at `<commit A>`, their records name `<commit A>`. The records are then committed in a later commit, `<commit B>` which is the commit `followup` declares `upstream` at.
 
-In *Result provenance and layout*'s section 4, "now" for the declared analysis is the declared commit, `<commit B>`. The declared analysis's code, the output's declaration and the options of its decisions are compared at `<commit A>` and `<commit B>` to tell whether a result is current. The commit a record names SHOULD be an ancestor of the commit the record is added in so that `<commit A>` can be got wherever `<commit B>` can.
+A result is unchanged if nothing *Result provenance and layout*'s section 4 compares has changed between `<commit A>` and `<commit B>`. *Result provenance and layout*'s section 3 keeps the commit a record names in the history of the commits that hold the record, so `<commit A>` can be got wherever `<commit B>` can.
 
-A result is only current if the results it was made from are current too so their records are read as well. The content hash of each of those results is taken from its record and their bytes aren't needed.
+A result is only unchanged if the results it was made from are unchanged too so their records are read as well. The content hash of each of those results is taken from its record and their bytes aren't needed.
 
-An address is part of `astra.yaml` and so an address that doesn't exist in the declared analysis is an error in the declaring analysis. Anything with a valid address can be pointed to - whether it has been recorded and is still current is checked separately
+An address is part of `astra.yaml` and so an address that doesn't exist in the declared analysis is an error in the declaring analysis. Anything with a valid address can be pointed to - whether it has been recorded and is unchanged is checked separately
 
 - a result with no record at the declared commit is `missing`
-- a result whose record isn't current at the declared commit is `stale`
+- a result recorded at the declared commit is `stale` if something it was made from has changed since the commit its record names
 
 #### 5. Getting the bytes
 
@@ -141,28 +135,25 @@ Where the bytes are kept is up to the tool and, like everything else read from a
 
 #### 6. Validating an analysis from a commit and reaching a remote
 
-The declared analysis must be valid as the top-level analysis of its repository at the declared commit. That can't change - a commit's files never change and each `astra.yaml` is read by the version it states. A validator can therefore either read every `astra.yaml` the declared analysis reaches or remember the answer for a commit it has already validated.
+The declared analysis, with everything it declares, must be valid at the declared commit. That can't change - a commit's files never change and each `astra.yaml` is read by the version it states. A validator can therefore either read every `astra.yaml` the declared analysis reaches or remember the answer for a commit it has already validated.
 
 A published analysis SHOULD only declare remotes that its readers can fetch. This isn't a MUST because a remote may well be private whilst the analysis is being worked on. A remote that can't be fetched is an error in the declaring analysis that names its declaration.
 
 #### 7. Driving an analysis from a commit
 
-Driving the declared analysis runs its recipes so it has to be checked out at the place the declaration's `checkout` names. By convention only an analysis that is driven is given a `checkout` since reading it doesn't need one.
+Whether an analysis from a commit is driven is up to the driver's universes as in RFC 0004. Driving it runs its recipes so the tool needs its files at the declared commit. The recipes MUST run on exactly those files. Where the tool puts them is up to the tool and, like everything else read from a commit, they aren't part of the declaring analysis's code and aren't a change that stops a runner from running. Which environment the recipes run in is up to the runner, as for any recipe - the driver's or one it builds for the driven analysis - and it's recorded in the driver's records as in *Result provenance and layout* (as a `uri` when it's built from the driven analysis's own files, since a `file` environment's path is read in the repository the record is committed in).
 
-As in RFC 0004, reading one of the declared analysis's own universes whilst also driving it takes a second declaration (and that one needs no `checkout`)
+As in RFC 0004, reading one of the declared analysis's own universes whilst also driving it takes a second declaration
 
 ```yaml
 # followup/astra.yaml
 analyses:
   - id: upstream
-    repository:
-      url: https://github.com/owner/analysis
-      commit: <full commit id>
+    url: https://github.com/owner/analysis
+    commit: <full commit id>
   - id: upstream_driven
-    repository:
-      url: https://github.com/owner/analysis
-      commit: <same full commit id>
-      checkout: remotes/upstream
+    url: https://github.com/owner/analysis
+    commit: <same full commit id>
 outputs:
   - id: against_u1
     ...
@@ -178,41 +169,33 @@ universes:
 
 `upstream_driven.summary` is built in `w1` with every decision of `upstream_driven` set by `followup`'s universe. `upstream.summary#u1` is `upstream`'s own `u1`, read through its record.
 
-With a `checkout`
-
-- the declared analysis is checked out at `checkout` at the declared commit and its recipes run there
-- anything already at `checkout` must be at the declared commit with none of its committed files changed. Files added afterwards aren't part of the commit and so don't count as a change
-- `checkout` is relative and stays inside the declaring analysis's repository
-- declarations with the same `checkout` name the same commit
-
-The results of the driven analysis belong to the driver as in RFC 0004 and so do their records
+Only what the driver's universes build is built. Those results belong to the driver as in RFC 0004 and so do their records
 
 ```
 followup/results/w1/upstream_driven.summary.<format>
 followup/.astra/records/w1/upstream_driven.summary.json
 ```
 
-A record of a result made from a remote's code also names the remote's `url` in its `code`, beside the `commit` and `path` of *Result provenance and layout*.
+Those records name the driver's commit, as in *Result provenance and layout*, and the declaration at that commit says which commit the driven analysis is from - and, for a remote, where to get it.
 
-RFC 0004 already allows a declared analysis to be a git submodule, which records a URL and a commit. That is still allowed. A submodule's URL and commit are only known to git and its checkout can drift from them. A `repository` with a `checkout` does the same job but puts the URL and commit in `astra.yaml` so
+The driven analysis's outputs built once aren't built - like the rest of its results they're read through their records at the declared commit (section 4).
+
+RFC 0004 already allows a declared analysis to be a git submodule, which records a URL and a commit. That is still allowed. A submodule's URL and commit are only known to git and its checkout can drift from them. A `url` and a `commit` do the same job in `astra.yaml` so
 
 - the declared analysis has the same identity whether it is read or driven
-- validators check that the checkout is at that commit
+- what a driver runs is the declared commit, with no checkout to drift from it
 
 ### What validators check
 
 | Rule | Severity |
 |---|---|
-| A declaration has exactly one of `path` and `repository` | error |
-| A `repository` has a `commit` that is a full commit id | error |
-| A `repository` without a `url` names a commit the declaring analysis's repository has | error |
-| A `repository` without a `url` names an ancestor of the commit its declaration is in | warning |
-| An analysis from a commit is valid as the top-level analysis of its repository at that commit | error |
+| A declaration has exactly one of `path` and `url` | error |
+| A declaration with a `url` has a `commit` | error |
+| A `commit` is a full commit id | error |
+| A `path` with a `commit` names a commit the declaring analysis's repository has | error |
+| A `path` with a `commit` names an ancestor of the commit its declaration is in | warning |
+| An analysis from a commit, with everything it declares, is valid at that commit | error |
 | A remote can be fetched: its URL can be reached and has the commit | error |
-| A `checkout` is relative and stays inside the declaring analysis's repository | error |
-| Declarations with the same `checkout` name the same `commit` | error |
-| A checkout is at its commit with none of its committed files changed, or there is nothing there yet | error |
-| No flat key names an analysis from a commit without a `checkout` | error |
 
 Every other rule of RFC 0004 applies to analyses from commits as it is, with their files read at their commits.
 
@@ -220,7 +203,7 @@ Every other rule of RFC 0004 applies to analyses from commits as it is, with the
 
 | Rule | Checked by | Result |
 |---|---|---|
-| A result of an analysis from a commit that is read or cited has a current record at the declared commit | check | `current`, `stale` or `missing` |
+| A result of an analysis from a commit that is read or cited is unchanged at the declared commit | check | `unchanged`, `stale` or `missing` |
 | The bytes of a result of an analysis from a commit that a recipe reads are the ones its record names | check | `present`, `modified` or `absent` |
 | An output that reads a result of an analysis from a commit when that result is missing or stale, or its bytes can't be got or aren't the recorded ones | runner | isn't built |
 
@@ -237,14 +220,11 @@ version: "0.1.0"
 name: The iris pipeline again with k-NN
 analyses:
   - id: iris
-    repository:
-      url: https://github.com/owner/iris-pipeline
-      commit: <commit id that added its records>
+    url: https://github.com/owner/iris-pipeline
+    commit: <commit id that added its records>
   - id: iris_knn
-    repository:
-      url: https://github.com/owner/iris-pipeline
-      commit: <same commit id>
-      checkout: remotes/iris
+    url: https://github.com/owner/iris-pipeline
+    commit: <same commit id>
 outputs:
   - id: against_baseline
     type: report
@@ -264,19 +244,19 @@ universes:
       iris_knn.classification.classifier: knn
 ```
 
-`iris.summary#baseline` is read through `.astra/records/baseline/summary.json` in the pipeline's repository at that commit. Its bytes are got from `results/baseline/summary.md` there (or by the tooling that holds them) and checked against that record. Nothing else of the pipeline is fetched to read it. `iris_knn` is checked out at `remotes/iris` and driven by `knn`. Its results go in `iris_rerun/results/knn/`.
+`iris.summary#baseline` is read through `.astra/records/baseline/summary.json` in the pipeline's repository at that commit. Its bytes are got from `results/baseline/summary.md` there (or by the tooling that holds them) and checked against that record. Nothing else of the pipeline is fetched to read it. `iris_knn` is driven by `knn` from the pipeline's files at that commit, wherever the tool puts them. Its results go in `iris_rerun/results/knn/`.
 
 ## Implementation implications & migration
 
-*Compatibility:* additive on top of RFC 0004. Every existing declaration has a `path` and is unchanged. It requires *Result provenance and layout* and *Data inputs*. It adds `url` to the `code` of *Result provenance and layout*'s records.
+*Compatibility:* additive on top of RFC 0004. Every existing declaration has a `path` without a `commit` and is unchanged. It requires *Result provenance and layout* and *Data inputs*.
 
-*Migration steps:* none. An analysis moved from this repository into another one swaps its declaration's `path` for a `repository`, with a `checkout` if it's driven.
+*Migration steps:* none. An analysis moved from this repository into another one swaps its declaration's `path` for a `url` and a `commit`.
 
 ## References
 
 - [RFC 0004](0004-composition.md): declared analyses, addresses, driving and pins, which this RFC extends to analyses in other repositories
 - [RFC 0003](0003-cross-universe-artifact-references.md) ([#52](https://github.com/LightconeResearch/astra-spec/issues/52), [#65](https://github.com/LightconeResearch/astra-spec/pull/65), reduced to universes in [#83](https://github.com/LightconeResearch/astra-spec/pull/83)): in-file universes and pins
-- [Result provenance and layout](https://github.com/LightconeResearch/astra-spec/pull/91) (tracked in [#90](https://github.com/LightconeResearch/astra-spec/issues/90)): the records a declared analysis's results are read through, and the `code` this RFC adds `url` to
+- [Result provenance and layout](https://github.com/LightconeResearch/astra-spec/pull/91) (tracked in [#90](https://github.com/LightconeResearch/astra-spec/issues/90)): the records a declared analysis's results are read through
 - [Data inputs](https://github.com/LightconeResearch/astra-spec/pull/92) (tracked in [#86](https://github.com/LightconeResearch/astra-spec/issues/86)): an input names a file committed with its analysis, so the declared commit fixes it
 - [#55](https://github.com/LightconeResearch/astra-spec/issues/55): cross-repository artifact references, which this RFC is based on
 - [#43](https://github.com/LightconeResearch/astra-spec/issues/43): an identity layer for addressing and resolving content across analyses
