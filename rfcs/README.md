@@ -56,4 +56,5 @@ discoverability. Each RFC's `status:` frontmatter field is the durable record.
 | [0002](0002-decouple-reports.md) | Decouple analysis reports from astra.yaml | Accepted |
 | [0003](0003-cross-universe-artifact-references.md) | In-file universes and cross-universe artifact references | Accepted |
 | [0004](0004-composition.md) | Declared analyses and cross-analysis references | Draft |
+| [NNNN](NNNN-using-conditional-elements.md) | Using conditional elements | Draft |
 
