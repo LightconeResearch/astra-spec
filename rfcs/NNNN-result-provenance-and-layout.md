@@ -41,7 +41,9 @@ Records are tracked in git with the analysis, as its `astra.yaml` is, so they ca
 - git-annex moves the results into its own store, `.git/annex/objects/...`, under a key made from the content hash and size (`SHA256E-s<size>--<SHA-256 hash>.<ext>`) and leaves a link at the default location
 - Git LFS keeps the results in `.git/lfs/objects/...`, named by their content hash and commits a pointer file at the default location (`oid sha256:<SHA-256 hash>`, `size`)
 
-Here we see that the default `results/` becomes a view of the actual bytes of the results. Of course the runner still needs to write to the default location, but the bytes aren't destined to survive there. It is for this reason the records must record the results' content hash and size. 
+Here we see that the default `results/` becomes a view of the actual bytes of the results. Of course the runner still needs to write to the default location, but the bytes aren't destined to survive there. It is for this reason the records must record the results' content hash and size.
+
+Whatever is at a result's default place MUST be its recorded bytes or something standing in for them. Whilst any check can say whether the recorded bytes are there (`present`) or not (`absent`), we leave it to tooling that recognises what can stand in for them (git-annex's links, LFS's pointers) to tell whether the bytes have been `modified`.
 
 Keeping the bytes in a store, asked by content hash, is for a later RFC. The default place would then become a view of the store - links into it - rather than moving, and moving it would itself take an RFC since runners and checkers rely on it.
 
@@ -81,7 +83,8 @@ analysis/
 | Rule | Checked by | Result |
 |---|---|---|
 | A record names the result whose record is kept where it is | check | `missing` |
-| A result's bytes are at its default place and match its record | check | `present`, `modified` or `absent` |
+| A result's recorded bytes are at its default place | check | `absent` (not an error because they may be kept elsewhere) |
+| Whatever is at a result's default place is its recorded bytes or a stand-in for them | tooling that recognises stand-ins (MAY) | `modified` |
 
 #### 2. What a record holds
 
@@ -100,14 +103,10 @@ Records have a schema of their own `provenance.yaml` beside `analysis.yaml`, whi
     "inputs": [
       { "entry": "root.data", "content_hash": "sha256:<SHA-256 hash>", "size": <size> }
     ],
-    "environment": {
-      "kind": "file",
-      "value": "envs/sandbox/uv.lock",
-      "content_hash": "sha256:<SHA-256 hash>"
-    },
+    "environment": { "iri": "urn:example-runner:env:sha256:<SHA-256 hash>" },
     "runner": { "id": "example-runner", "version": "1.2.0" },
-    "started": "2026-10-26T14:00:00Z",
-    "finished": "2026-10-26T14:00:02Z"
+    "started": "2026-10-26T14:00:00.000Z",
+    "finished": "2026-10-26T14:00:02.000Z"
   }
 }
 ```
@@ -118,15 +117,13 @@ Records have a schema of their own `provenance.yaml` beside `analysis.yaml`, whi
 - `size`: *required* - their size in bytes
 - `generated_by`: *required* - the run of the recipe that made the result
   - `commit`: *required* - the full id of the git commit the recipe ran from (it pins every file of the code and every `astra.yaml` - an analysis in a submodule through the commit the submodule is pinned at)
-  - `inputs`: *required if the output lists any* - for each input the output lists, its `entry` as listed in the `astra.yaml` and the `content_hash` and `size` of what the recipe read - another output's result or the file an external input names.
-  - `environment`: *required* - what the recipe ran in (section 3)
-    - `kind`: `file` or `uri`
-    - `value`: for `file` the file's path from the top level of the repository the record is committed in, for `uri` a URI naming the environment
-    - `content_hash`: *required for `file`* - the file's SHA-256
+  - `inputs`: *required if the output lists any* - for each input the output lists, its `entry` as listed in the `astra.yaml` and the `content_hash` and `size` of what the recipe read - another output's result or the file an external input names
+  - `environment`: *required* - the environment the recipe ran in
+    - `iri`: *required* - an IRI naming exactly that environment, which only its runner needs to read (section 3). It needn't be online (`urn:…`, or a scheme of the runner's)
   - `runner`: *required* - the runner that ran the recipe
-    - `id`: *required* - its name, ideally unique (a URI, say)
+    - `id`: *required* - its name, ideally unique (an IRI, say)
     - `version`: *required* - its version
-  - `started`, `finished`: when the recipe started and finished, in UTC ending in `Z`
+  - `started`, `finished`: when the recipe started and finished, in UTC to the millisecond, ending in `Z`
 
 Beyond its `version`, a record holds only what the commit it names can't give. The output's declaration, the options of its decisions and its format are all in the `astra.yaml` files at that commit. We can imagine tooling that can reconstruct all supplementary information given the commit.
 
@@ -136,13 +133,13 @@ Converted to RDF through the schema, a record is PROV-O.
 
 The information in or lacking from these records will start to allow us to build the level of reproducibility of a result. Without running anything, the record tells us whether a result is unchanged (section 4) and whether the bytes at hand correspond to what was produced. Two records of the same result with the same commit, inputs and environment (from another machine, say) show whether a result reproduces when their `content_hash` is the same. How well a result can be made again rests on its runner, which section 3 holds to recreating its environment. A record doesn't say whether its runner enforced the rules of section 3.
 
-A record holds only these fields, and the order they're written in carries no meaning: two records with the same keys and values are the same record.
+A record holds only the fields its `version` defines, and the order they're written in carries no meaning: two records with the same keys and values are the same record. A later version may add fields, so a check ignores a field it doesn't know, as a later version's, rather than calling the record `missing`.
 
 **What's checked**
 
 | Rule | Checked by | Result |
 |---|---|---|
-| A record matches the record schema: its required fields, a full commit id, hashes that name their algorithm, a `file` environment's hash, times in UTC ending in `Z` | check | `missing` |
+| A record matches the record schema, fields it doesn't know aside: its required fields, a full commit id, hashes that name their algorithm, an IRI for the environment, times in UTC to the millisecond ending in `Z` | check | `missing` |
 
 #### 3. What a runner does
 
@@ -150,8 +147,8 @@ A runner
 
 - writes a record for each result it makes in the analysis the result belongs to
 - only runs committed code: while the repository has changes other than the results and records it writes itself the runner refuses to run
-- records the environment each recipe ran in, enough for the runner, at the version it records, to recreate that environment and make the result again. The same `kind` and `value` in `environment` always name the same environment
-- SHOULD let someone see what an environment it recorded holds
+- records the environment each recipe ran in as an IRI that always names that same environment, enough for the runner, at the version it records, to recreate it and make the result again
+- SHOULD let someone see what an environment it recorded holds, for example as PROV
 
 A record names the commit its recipe ran from so it has to be committed in a later commit. Records and results aren't *code* so that later commit doesn't make them stale. The commit a record names has to stay in the history of the commits that hold the record, so branches with records should be merged rather than squashed or rebased.
 
@@ -178,7 +175,7 @@ In the running example, with scripts in `analysis/src/` and `analysis/subanalysi
 | Only committed code is run | runner | refuses to run |
 | A result's code has no uncommitted changes | check | `stale` |
 | Recipes use no other code, and read the files inputs name only through their output's inputs | runner (MAY, with a sandbox say) | the recipe fails |
-| A runner can recreate the environment it recorded, at its version, and make the result again | running the record again with that runner | the same `content_hash` |
+| A runner can recreate the environment it recorded, at its version, and make the result again | running the record again with that runner | another `content_hash`, or no result |
 
 #### 4. When a result is unchanged
 
@@ -189,7 +186,6 @@ At a later commit, a result is *unchanged* if, since the commit in its record, n
 - its output's declaration: its recipe's command, inputs, decisions and format
 - the options of its decisions
 - the content of its inputs
-- its environment's file, for an environment of kind `file`
 - the code of the analysis that declares its output
 
 Unchanged suggests, but doesn't guarantee, that the recipe would make the same result again. Otherwise the result is stale. This means a result can become stale when
@@ -199,11 +195,10 @@ Unchanged suggests, but doesn't guarantee, that the recipe would make the same r
   - the order of its decisions doesn't, since each reaches the recipe by name
 - an option of one of its decisions has changed
 - an input file it reads has changed
-- its environment's file has changed
 - a script of the analysis that declares its output has changed
 - a result it reads is stale. Once that result is rebuilt, this one is unchanged again if the rebuilt bytes are the same
 
-Nothing else counts: editing a finding, a description or another output leaves a result unchanged, and an environment named by a URI is recorded but not compared.
+Nothing else counts: editing a finding, a description or another output leaves a result unchanged, and the environment is recorded but not compared.
 
 In the running example
 
@@ -218,7 +213,7 @@ How a checker finds this out is up to the tooling.
 
 | Rule | Checked by | Result |
 |---|---|---|
-| Each planned result is unchanged | check | `unchanged`, `stale` (saying what changed) or `missing` (no record, or a file breaking a rule of section 1 or 2) |
+| Each planned result is unchanged | check | `stale` (saying what changed) or `missing` (no record, or a file breaking a rule of section 1 or 2) |
 
 #### 5. Evidence
 
@@ -228,7 +223,7 @@ Evidence citing a result is checked through the record its address names: the ad
 
 | Rule | Checked by | Result |
 |---|---|---|
-| Evidence citing a result cites an unchanged one | check | the result's `unchanged`, `stale` or `missing` |
+| Evidence citing a result cites an unchanged one | check | the result's `stale` or `missing` |
 
 ## Examples
 
@@ -246,7 +241,7 @@ $ cat .astra/records/baseline/classification.accuracy.json
     "size": 732,
   ...
 ```
-  
+
 ```
 # git-annex
 $ git annex lookupkey results/baseline/classification.accuracy.json
@@ -265,7 +260,7 @@ The hash of the link or pointer file itself would not be the content hash in the
 
 Tooling that recognises these pointers could tell the two cases apart: a pointer naming the record's content hash would mean the bytes are `absent` (they exist and can be fetched), while other bytes, or a pointer naming another hash, mean they're `modified`.
 
-If other bytes were put at that place, say `mlp_svm`'s accuracy (also 732 bytes), a check would find `classification`'s accuracy as being modified. The result would still be unchanged, since its record says what the result should be and it's what shows the bytes are wrong.
+If other bytes were put at that place, say `mlp_svm`'s accuracy (also 732 bytes), any check would find `classification`'s accuracy absent, and tooling that recognises the pointers would find it modified. The result would still be unchanged, since its record says what the result should be and it's what shows the bytes are wrong.
 
 ## Implementation implications & migration
 
