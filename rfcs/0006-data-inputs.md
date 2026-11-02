@@ -1,5 +1,5 @@
 ---
-rfc: NNNN
+rfc: 0006
 title: Data inputs
 status: Draft
 authors:
