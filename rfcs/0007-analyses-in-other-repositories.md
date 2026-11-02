@@ -1,7 +1,7 @@
 ---
-rfc: NNNN
+rfc: 0007
 title: Analyses in other repositories
-status: Draft
+status: Active
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
   - Francois Lanusse (@eiffl)
