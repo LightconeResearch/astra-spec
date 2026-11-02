@@ -124,12 +124,9 @@ An input and an output are read by address in the same way, so `split`'s `inputs
 - an input naming a file in another analysis's folder moves to that analysis and is read by address
 - any other `source` (a loader, a URI, a dataset id), or none, becomes an output built once whose recipe gets the data. (If the id is kept the same all the rest of the analyses that use it don't change).
 
-## Questions or objections
-
-- **Credit for data from outside:** where data from outside the repository comes from (a DOI or a URL) is only held in the recipe and the description. Whether astra should say more is left open until attribution and trust are dealt with.
-
 ## Future possible RFCs
 
+- **Established data sources:** besides committed files, a standard way to name data from established sources such as Zenodo or Hugging Face (a record or dataset and its version), so tooling can fetch and check it without a recipe of its own ([#101](https://github.com/LightconeResearch/astra-spec/issues/101)).
 - **Fetching by content hash:** a project lists where the bytes of its inputs and results are kept (a git-annex remote, a bucket, a cache) and tooling fetches them from there by their content hash ([#66](https://github.com/LightconeResearch/astra-spec/issues/66)).
 - **Very large data:** data read where it is rather than copied, on a cluster or in a bucket (#66).
 - **Inputs of many files:** a dataset split over many files, or a format that is a folder such as Zarr.
