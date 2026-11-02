@@ -23,7 +23,7 @@ Result provenance and layout ([#91](https://github.com/LightconeResearch/astra-s
 
 This RFC proposes that an input is a file committed with the analysis that declares it, named by its path. Data from anywhere else comes in through an output's recipe, which astra already has.
 
-This RFC requires Result provenance and layout ([#91](https://github.com/LightconeResearch/astra-spec/pull/91)), which it refers to throughout: the record of each result holds the content hash of each input file it read and #91 leaves the files that inputs name out of an analysis's code.
+This RFC requires Result provenance and layout ([#91](https://github.com/LightconeResearch/astra-spec/pull/91)), which it refers to throughout: the record of each result holds the content hash of each input file it read.
 
 The examples use RFC 0004's running example, whose root declares the input `data` that `subanalysis1.output1` reads as `root.data`.
 
@@ -54,7 +54,7 @@ where RFC 0004 had `{ id: data, type: data }`, and `Input` becomes
 - stays inside the analysis's own folder and outside any analysis within it (a folder with an `astra.yaml` of its own). The data belongs with the analysis that uses it. Another analysis reads it by address as in RFC 0004, so `subanalysis1` reads `root.data` rather than declaring `../data.csv`
 - names the file the analysis reads. What's committed is the file itself, or something standing in for it that tooling recognises - a git-annex link or a Git LFS pointer at the path, or a DVC file beside it. A large file therefore needn't be in git's history and how its bytes are kept is up to the tooling. Something standing in for the content isn't the content
 
-No hash is declared in `astra.yaml`. A change to an input's file only makes the results that read it stale (#91, sections 3 and 4). An analysis's code (#91, section 3) also leaves out what stands in for an input's file, such as a DVC file beside it.
+No hash is declared in `astra.yaml`. A change to an input's file only makes the results that read it stale (#91, sections 3 and 4).
 
 #### 2. `type` is removed
 
