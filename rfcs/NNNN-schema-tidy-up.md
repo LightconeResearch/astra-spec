@@ -5,7 +5,7 @@ status: Draft
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-10-30
-tracking-issue:
+tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/94
 superseded-by:
 ---
 
@@ -25,7 +25,7 @@ A few parts of the schema are unused, inconsistent or say less than tooling enfo
    ```
 
    A universe has no label at all, though it is what a reader sees most - in results, comparisons and pins.
-5. **Decisions and declared analyses have no `description`.** Inputs, outputs, options, universes and analyses each have an optional `description` for free prose. A decision has only `rationale` (why the choice matters) so there's nowhere to say what the choice is. A declaration of another analysis (RFC-0004) has only its id and where the analysis is, so what it's used for - or why it's pinned to a commit - can only go in a YAML comment, which tooling never sees.
+5. **Tags on only some elements.** `Analysis`, `Decision` and `Insight` have an optional `tags` list for grouping and classifying them. Inputs, outputs, options and universes can't be tagged.
 6. **Two fields for one fact.** An excluded option is marked `excluded: true` and gives its reason in `excluded_reason`. The schema and the specification say the reason is optional. `astra validate` requires one when `excluded` is true and rejects one otherwise, so a file that follows the specification can still fail. The rule can't be written into the schema either, since LinkML can't put a condition on a boolean's value into the JSON Schema it generates.
 
 RFC-0003 and RFC-0004 already change every `astra.yaml` (universes move into the file and `from:` goes) so this is the cheapest moment to remove and tighten fields - analyses migrate once rather than twice.
@@ -59,23 +59,9 @@ random_seed:
 
 A universe's label isn't inherited through `derived_from`, since it names that universe and not the one it starts from.
 
-#### 5. `Decision.description` and `AnalysisDeclaration.description`
+#### 5. `tags` on inputs, outputs, options and universes
 
-Decisions get an optional `description` for free prose, as the other elements have. `rationale` stays for why the choice matters.
-
-Declarations get one too, for what the declared analysis is used for here - its role, why it's pinned to a commit or which view of a directory declared twice it is. What the analysis is stays in its own `astra.yaml`, under its `name` and `description`.
-
-```yaml
-analyses:
-  - id: classification
-    path: classification
-  - id: classification_then
-    description: The classification stage as it was for the first paper, to compare against.
-    path: classification
-    commit: <git commit id>
-```
-
-A declaration gets no `label` since tooling can show the declared analysis's own `name` beside its id.
+`Input`, `Output`, `Option` and `Universe` get an optional `tags` list, as `Analysis`, `Decision` and `Insight` already have. Tags are free strings. A universe's tags, like its label, aren't inherited through `derived_from`. A declaration gets none since the analysis it names has its own.
 
 #### 6. `excluded` holds the reason
 
@@ -91,7 +77,7 @@ As before, no universe may select an excluded option.
 
 ## Implementation implications & migration
 
-*Compatibility:* breaking. Changes 1, 2 and 6 can make a file invalid. Change 3 affects no file, only code that imports the generated classes. Changes 4 and 5 are additive. Only part of change 5 depends on another RFC: declarations come from RFC-0004.
+*Compatibility:* breaking. Changes 1, 2 and 6 can make a file invalid. Change 3 affects no file, only code that imports the generated classes. Changes 4 and 5 are additive.
 
 *Migration steps:*
 - remove `snapshot` and `source_commit` from evidence. Evidence citing an output built per universe pins it to the universe the claim is about
@@ -105,7 +91,7 @@ As before, no universe may select an excluded option.
 ## References
 
 - [RFC-0003](0003-cross-universe-artifact-references.md): pins, which evidence uses to name the result it cites
-- [RFC-0004](0004-composition.md): declared analyses, `name` required on every analysis and the example in *Context*
+- [RFC-0004](0004-composition.md): `name` required on every analysis and the example in *Context*
 - [#91](https://github.com/LightconeResearch/astra-spec/pull/91): a record per result, with the commit it was made from and when it was made
 - [#54](https://github.com/LightconeResearch/astra-spec/issues/54): how times are written, which no longer arises in `astra.yaml`
 - [#10](https://github.com/LightconeResearch/astra-spec/pull/10): `container_build` folded into `container`, leaving `KeyValuePair` unused
