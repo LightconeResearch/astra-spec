@@ -57,4 +57,5 @@ discoverability. Each RFC's `status:` frontmatter field is the durable record.
 | [0003](0003-cross-universe-artifact-references.md) | In-file universes and cross-universe artifact references | Accepted |
 | [0004](0004-composition.md) | Declared analyses and cross-analysis references | Draft |
 | [0006](0006-data-inputs.md) | Data inputs | Active |
+| [0007](0007-analyses-in-other-repositories.md) | Analyses in other repositories | Active |
 
