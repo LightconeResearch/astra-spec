@@ -1,7 +1,7 @@
 ---
 rfc: 0005
 title: Result provenance and layout
-status: Active
+status: Accepted
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
   - Francois Lanusse (@eiffl)
