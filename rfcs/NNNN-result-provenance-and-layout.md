@@ -150,31 +150,16 @@ A runner
 - records the environment each recipe ran in as an IRI that always names that same environment, enough for the runner, at the version it records, to recreate it and make the result again
 - SHOULD let someone see what an environment it recorded holds, for example as PROV
 
-A record names the commit its recipe ran from so it has to be committed in a later commit. Records and results aren't *code* so that later commit doesn't make them stale. The commit a record names has to stay in the history of the commits that hold the record, so branches with records should be merged rather than squashed or rebased.
+A record names the commit its recipe ran from so it has to be committed in a later commit. Since that later commit only adds records and results it doesn't make them stale. The commit a record names has to stay in the history of the commits that hold the record, so branches with records should be merged rather than squashed or rebased.
 
-An analysis's *code* is the files in its directory (see [Questions or objections](#questions-or-objections)) other than
-
-- its `astra.yaml`
-- the files its inputs name
-- its results and records
-- any directory inside it with an `astra.yaml` of its own - another analysis, declared or not, with its own code
-
-Its recipes
-
-- MUST use no other code. Anything else they use is an input or part of the environment, so a recipe that needs a subanalysis's work reads one of its outputs
-- MUST read the files the analysis's inputs name only through the inputs their output lists
-
-A runner MAY enforce both rules, and a checker MAY ignore files that can't change a result, such as git's own configuration files.
-
-In the running example, with scripts in `analysis/src/` and `analysis/subanalysis1/src/`, the root's code would be `analysis/src/` and `subanalysis1`'s is `analysis/subanalysis1/src/`. A `README` beside either would also be considered code too.
+A recipe MUST read the files inputs name and other outputs' results only through the inputs its output lists - a check only sees a change to them through those inputs. Anything else a recipe uses is pinned by the commit or is part of the environment. A runner MAY enforce this.
 
 **What's checked**
 
 | Rule | Checked by | Result |
 |---|---|---|
 | Only committed code is run | runner | refuses to run |
-| A result's code has no uncommitted changes | check | `stale` |
-| Recipes use no other code, and read the files inputs name only through their output's inputs | runner (MAY, with a sandbox say) | the recipe fails |
+| Recipes read the files inputs name and other outputs' results only through their output's inputs | runner (MAY, with a sandbox say) | the recipe fails |
 | A runner can recreate the environment it recorded, at its version, and make the result again | running the record again with that runner | another `content_hash`, or no result |
 
 #### 4. When a result is unchanged
@@ -186,25 +171,23 @@ At a later commit, a result is *unchanged* if, since the commit in its record, n
 - its output's declaration: its recipe's command, inputs, decisions and format
 - the options of its decisions
 - the content of its inputs
-- the code of the analysis that declares its output
 
-Unchanged suggests, but doesn't guarantee, that the recipe would make the same result again. Otherwise the result is stale. This means a result can become stale when
+At the level astra describes nothing has changed: the reasoning in the `astra.yaml` still describes the result. Unchanged suggests, but doesn't guarantee, that the recipe would make the same result again. The code (through the commit) and the environment are recorded but not compared - a change to either only shows when the recipe is run again and makes other bytes. Otherwise the result is stale. This means a result can become stale when
 
 - its output's declaration has changed
   - the order of its inputs counts, since `{inputs}` passes them to the recipe in that order
   - the order of its decisions doesn't, since each reaches the recipe by name
 - an option of one of its decisions has changed
-- an input file it reads has changed
-- a script of the analysis that declares its output has changed
+- a file or result it reads as an input has changed
 - a result it reads is stale. Once that result is rebuilt, this one is unchanged again if the rebuilt bytes are the same
 
-Nothing else counts: editing a finding, a description or another output leaves a result unchanged, and the environment is recorded but not compared.
+Nothing else counts: editing a finding, a description or another output leaves a result unchanged.
 
 In the running example
 
 - editing `finding1` leaves every result unchanged
 - setting `u2`'s `subanalysis1.b` to `b1` makes `subanalysis1.output1#u2` stale, and with it `subanalysis2.output2#u2`, `subanalysis3.output3_per_universe#u2` and `summary#u2`
-- changing a script in `analysis/subanalysis1/src/` makes `subanalysis1.output1` stale in both universes, and with it `subanalysis2.output2`, `subanalysis3.output3_per_universe` and `summary` in both. Once `subanalysis1.output1` is rebuilt in a universe, those three are unchanged again there if its bytes are the same
+- changing a script in `analysis/subanalysis1/src/` leaves every result unchanged as far as a check can tell. If `subanalysis1.output1` is then made again in a universe with other bytes, `subanalysis2.output2`, `subanalysis3.output3_per_universe` and `summary` are stale there
 - `subsubanalysis1`'s results stay unchanged throughout
 
 How a checker finds this out is up to the tooling.
@@ -270,13 +253,9 @@ If other bytes were put at that place, say `mlp_svm`'s accuracy (also 732 bytes)
 
 *Migration steps:* existing results have no record, so they're missing until a runner makes them.
 
-## Questions or objections
-
-- **What counts as code.** An analysis's code is its whole directory, less the exclusions in section 3, so editing a README or a `.gitignore` there makes its results stale. Code could instead be a fixed folder such as `src/`, or the paths an analysis declares, thoughts?
-
 ## Possible future RFCs
 
-- **Result identity:** a key computed from what goes into a result, with the code each result uses rather than its analysis's whole directory, so that records and results can be kept by hash ([#43](https://github.com/LightconeResearch/astra-spec/issues/43)).
+- **Result identity:** a key computed from what goes into a result, the code each result uses included, so that a change of code can be detected and records and results can be kept by hash ([#43](https://github.com/LightconeResearch/astra-spec/issues/43)).
 - **Fetching by content hash:** stores a project lists, asked by content hash, for inputs and results ([#66](https://github.com/LightconeResearch/astra-spec/issues/66)). As with git-annex today (section 1), a store could become the natural home of results, with the default place as its view.
 - **Signed records:** a record is its runner's claim, and anyone could edit it. Signing records, as in-toto and SLSA sign build provenance, would let a reader trust a record as far as they trust its runner - and runners could be certified by re-running their records.
 
