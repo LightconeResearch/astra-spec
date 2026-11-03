@@ -11,7 +11,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 def built_wheel(tmp_path: Path) -> zipfile.ZipFile:
     """`uv build --wheel --out-dir tmp_path` (fail if uv is missing); open the one wheel."""
     uv = shutil.which("uv")
-    assert uv is not None, "uv must be on PATH: this test builds the wheel with `uv build`"
+    assert uv is not None, (
+        "uv must be on PATH: this test builds the wheel with `uv build`"
+    )
     result = subprocess.run(
         [uv, "build", "--wheel", "--out-dir", str(tmp_path)],
         cwd=REPO_ROOT,
@@ -27,16 +29,28 @@ def built_wheel(tmp_path: Path) -> zipfile.ZipFile:
 def test_wheel_ships_only_schema_artefacts(tmp_path):
     names = [n for n in built_wheel(tmp_path).namelist() if ".dist-info/" not in n]
     assert names
-    unexpected = [n for n in names if not (n.startswith("astra/schema/") or n == "astra/docs/llms.txt")]
+    unexpected = [
+        n
+        for n in names
+        if not (n.startswith("astra/schema/") or n == "astra/docs/llms.txt")
+    ]
     assert not unexpected
     assert not [n for n in names if n.endswith(".py")]
 
 
 def test_wheel_ships_the_contract(tmp_path):
     names = set(built_wheel(tmp_path).namelist())
-    contract = ["analysis.schema.json", "provenance.schema.json", "provenance.open.schema.json"]
+    contract = [
+        "analysis.schema.json",
+        "provenance.schema.json",
+        "provenance.open.schema.json",
+    ]
     contexts = ["provenance.context.jsonld"]
-    shipped = sorted(n.removeprefix("astra/schema/generated/") for n in names if n.startswith("astra/schema/generated/"))
+    shipped = sorted(
+        n.removeprefix("astra/schema/generated/")
+        for n in names
+        if n.startswith("astra/schema/generated/")
+    )
     assert shipped == sorted(contract + contexts)
 
 

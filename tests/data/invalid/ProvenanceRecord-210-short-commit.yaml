@@ -1,4 +1,4 @@
-# rule: SHORT_COMMIT
+# rule: INVALID_COMMIT
 # fails at: /generated_by/commit
 spec_version: "0.1.0"
 address: "subanalysis1.output1#u1"

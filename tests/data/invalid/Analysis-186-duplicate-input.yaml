@@ -1,0 +1,11 @@
+# rule: DUPLICATE_ENTRY
+# fails at: /outputs/result/inputs
+spec_version: "0.1.0"
+inputs:
+  data:
+    path: data.csv
+outputs:
+  result:
+    type: metric
+    format: json
+    inputs: [data, data]

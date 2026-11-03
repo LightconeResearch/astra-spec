@@ -1,11 +1,20 @@
-"""Every fixture, through the committed JSON Schema: valid ones pass, invalid ones fail where they say (design §9)."""
+"""Every fixture, through the committed JSON Schema: valid ones pass, invalid ones fail where they say, and why (design §9)."""
 
 from pathlib import Path
 
 import pytest
-from ruamel.yaml.constructor import DuplicateKeyError
 
-from .conftest import error_pointers, fixture_header, fixtures, load_yaml, validator
+from .conftest import (
+    COMBINATORS,
+    PARSE_ERRORS,
+    SCHEMA_KEYWORDS,
+    errors,
+    fixture_header,
+    fixtures,
+    is_ancestor,
+    load_yaml,
+    validator,
+)
 
 
 def root_of(path: Path) -> str:
@@ -16,14 +25,33 @@ def root_of(path: Path) -> str:
 @pytest.mark.parametrize("path", fixtures("valid"), ids=lambda path: path.stem)
 def test_valid_fixture(path):
     v = validator(root_of(path))
-    assert [f"{list(e.absolute_path)}: {e.message}" for e in v.iter_errors(load_yaml(path))] == []
+    assert [
+        f"{list(e.absolute_path)}: {e.message}" for e in v.iter_errors(load_yaml(path))
+    ] == []
 
 
 @pytest.mark.parametrize("path", fixtures("invalid"), ids=lambda path: path.stem)
 def test_invalid_fixture(path):
-    _, fails_at = fixture_header(path)
+    """It fails at `fails_at` and nowhere else (a combinator at an ancestor aside), by a keyword its rule implies."""
+    rule, fails_at = fixture_header(path)
     if fails_at == "parse":
-        with pytest.raises(DuplicateKeyError):
+        assert rule in PARSE_ERRORS, f"{rule} is not a parse-layer code"
+        with pytest.raises(PARSE_ERRORS[rule]):
             load_yaml(path)
-    else:
-        assert fails_at in error_pointers(validator(root_of(path)), load_yaml(path))
+        return
+    assert rule in SCHEMA_KEYWORDS, f"{rule} is not a schema-layer code"
+    found = errors(validator(root_of(path)), load_yaml(path))
+    elsewhere = {
+        (pointer, keyword)
+        for pointer, keyword, _ in found
+        if pointer != fails_at
+        and not (keyword in COMBINATORS and is_ancestor(pointer, fails_at))
+    }
+    assert elsewhere == set()
+    keywords = {
+        keyword
+        for pointer, keyword, explains in found
+        if pointer == fails_at and not explains
+    }
+    assert keywords
+    assert keywords <= SCHEMA_KEYWORDS[rule]

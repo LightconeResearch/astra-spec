@@ -34,7 +34,10 @@ def document(**fields):
 def failures(validator, instance):
     """The JSON Pointers at which `instance` fails; empty if it is valid."""
     return {
-        "".join("/" + str(part).replace("~", "~0").replace("/", "~1") for part in error.absolute_path)
+        "".join(
+            "/" + str(part).replace("~", "~0").replace("/", "~1")
+            for part in error.absolute_path
+        )
         for error in validator.iter_errors(instance)
     }
 
@@ -58,7 +61,9 @@ def test_the_key_is_not_repeated_in_the_entry(closed):
 
 def test_key_plus_one_slot_is_compact_only(closed):
     assert failures(closed, document(picks={"x.y": "foo"})) == set()
-    assert failures(closed, document(picks={"x.y": {"choice": "foo"}})) == {"/picks/x.y"}
+    assert failures(closed, document(picks={"x.y": {"choice": "foo"}})) == {
+        "/picks/x.y"
+    }
     assert failures(closed, document(picks={"x.y": "Foo"})) == {"/picks/x.y"}
 
 

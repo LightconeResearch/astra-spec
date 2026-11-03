@@ -1030,9 +1030,11 @@ In the Source column, a number is an ASTRA RFC:
 [0005](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0005-result-provenance-and-layout.md),
 [0006](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0006-data-inputs.md) or
 [0007](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0007-analyses-in-other-repositories.md),
-followed by its section where one is given. `tidy-up` is the draft schema
-tidy-up RFC, `main` a rule of the specification before version 0.1, `#73` an
-issue of the specification's repository, and `§n` a section of this
+followed by its section where one is given, as in `0005 §1`; two sections
+of one RFC are written with its number each time, as in `0005 §1, 0005 §3`.
+`tidy-up` is the draft schema tidy-up RFC, `main` a rule of the
+specification before version 0.1, `#73` an issue of the specification's
+repository, and a bare `§n`, with no RFC number before it, a section of this
 specification.
 
 What breaking a rule leads to depends on the layer:
@@ -1053,6 +1055,7 @@ Every rule here is a `MUST`.
 
 | Code | Layer | Rule | Source |
 |---|---|---|---|
+| `INVALID_SYNTAX` | parse | Every `astra.yaml` is well-formed YAML 1.2 under the core schema (with no `%YAML` directive other than 1.2), and every record is well-formed JSON | §3, 0005 |
 | `DUPLICATE_KEY` | parse | Every key of a map is distinct. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, §4 |
 | `INVALID_ID` | schema | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | §4 |
 | `INVALID_REFERENCE` | schema | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
@@ -1061,12 +1064,13 @@ Every rule here is a `MUST`.
 | `EMPTY_COLLECTION` | schema | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry | 0004, `main` |
 | `INVALID_DECLARATION_SOURCE` | schema | A declaration has exactly one of `path` and `url` | 0007 |
 | `URL_WITHOUT_COMMIT` | schema | A declaration with a `url` has a `commit` | 0007 |
-| `SHORT_COMMIT` | schema | Every `commit` is a full commit id | 0007 |
-| `INVALID_PATH` | schema | A declaration's `path` is relative. An input's `path` is relative and has no `..` segment | 0004, 0006 |
+| `INVALID_COMMIT` | schema | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007 |
+| `INVALID_PATH` | schema | A declaration's `path` is relative (no leading `/` or `~`), `/`-separated, with no backslash and no ASCII control character. An input's `path` is the same, and also has no `..` segment and doesn't end in `/` | 0004, 0006 |
 | `BLANK_EXCLUDED` | schema | An option's `excluded` reason is not blank | tidy-up |
 | `INVALID_EVIDENCE_SOURCE` | schema | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
-| `WRONG_TYPE` | schema | Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true` and the old list form of `outputs` fail) | §4, §10 |
-| `INVALID_VALUE` | schema | Every value matches its pattern or range: `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0 and `Evidence.version` ≥ 1 | 0005, 0007, #73 |
+| `WRONG_TYPE` | schema | Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails) | §4, §10 |
+| `DUPLICATE_ENTRY` | schema | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | §4 |
+| `INVALID_VALUE` | schema | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, #73 |
 
 ### validator
 
@@ -1077,7 +1081,7 @@ Every rule here is a `MUST`.
 | `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003 |
 | `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | `main` |
 | `UNDECLARED_TEMPLATE_REF` | MUST | Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
-| `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (today, an input and an output, both of which `Output.inputs` takes) | §4 |
+| `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | §4 |
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the repository of the root | 0004 |
 | `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` | 0004, 0007 |
 | `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit` names a commit the repository has | 0007 |
@@ -1150,13 +1154,18 @@ by the same rules, through their records at the declared commit (0007
 
 | Code | Level | Rule | Source |
 |---|---|---|---|
-| `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, in the analysis the result belongs to, and writes the bytes to their default place | 0005 §1, §3 |
+| `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, in the analysis the result belongs to, and writes the bytes to their default place | 0005 §1, 0005 §3 |
 | `UNCOMMITTED_CHANGES` | MUST | A runner runs only when the repository has no changes other than the results and records it writes | 0005 §3 |
-| `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an IRI that it can recreate at its version, and SHOULD let someone see what the environment holds | 0005 §3 |
-| `UNDECLARED_READ` | MUST | A recipe reads files and results only through its output's inputs. A runner MAY enforce it | 0005 §3 |
+| `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an IRI that it can recreate at its version | 0005 §3 |
+| `UNDECLARED_READ` | MUST | A recipe reads files and results only through its output's inputs | 0005 §3 |
 | `NOT_AT_COMMIT` | MUST | A runner drives an analysis from a commit on exactly its files at that commit | 0007 §7 |
 | `REBUILT_FROM_COMMIT` | MUST | A runner builds none of the outputs built once of an analysis from a commit that it drives, and reads them through their records | 0007 §7 |
 | `STALE_INPUT` | MUST | A runner builds an output only when every result it reads is `unchanged` and its bytes can be got and are the recorded ones | 0007 |
+
+Two duties that are not rules of their own, because nothing can check them: a
+runner SHOULD let someone see what an environment it recorded holds, and MAY
+enforce `UNDECLARED_READ` (with a sandbox, say). The specification states them
+in its §8.
 
 ## 10. Schema artefacts
 

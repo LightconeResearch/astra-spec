@@ -44,7 +44,9 @@ DIALECT_ESCAPES = set("dDwWsSbBAZz")
 STANDARD_KEYWORDS = {
     keyword
     for vocabulary in ("core", "applicator", "validation", "meta-data")
-    for keyword in REGISTRY.contents(f"https://json-schema.org/draft/2019-09/meta/{vocabulary}")["properties"]
+    for keyword in REGISTRY.contents(
+        f"https://json-schema.org/draft/2019-09/meta/{vocabulary}"
+    )["properties"]
 }
 """The keywords of JSON Schema 2019-09's core, applicator, validation and meta-data vocabularies."""
 
@@ -66,7 +68,9 @@ def nodes(node: Any, pointer: str = "") -> Iterator[tuple[str, dict]]:
     else:
         return
     for key, child in children:
-        yield from nodes(child, f"{pointer}/{str(key).replace('~', '~0').replace('/', '~1')}")
+        yield from nodes(
+            child, f"{pointer}/{str(key).replace('~', '~0').replace('/', '~1')}"
+        )
 
 
 def is_map(subschema: dict) -> bool:
@@ -87,9 +91,14 @@ def maps(schema: dict) -> list[tuple[str, dict]]:
 
 def fields(schema: dict) -> Iterator[tuple[str, str, dict]]:
     """`(owner, field, subschema)` for each property of the root (owner `(root)`) and of each `$defs` entry."""
-    yield from (("(root)", field, sub) for field, sub in schema.get("properties", {}).items())
+    yield from (
+        ("(root)", field, sub) for field, sub in schema.get("properties", {}).items()
+    )
     for owner, definition in schema["$defs"].items():
-        yield from ((owner, field, sub) for field, sub in definition.get("properties", {}).items())
+        yield from (
+            (owner, field, sub)
+            for field, sub in definition.get("properties", {}).items()
+        )
 
 
 @functools.cache
@@ -103,7 +112,10 @@ def source_classes() -> dict[str, dict]:
 
 def source_slots(class_name: str) -> dict[str, dict]:
     """The slots of the class `class_name` in the LinkML sources, by name."""
-    return {name: slot or {} for name, slot in (source_classes()[class_name].get("attributes") or {}).items()}
+    return {
+        name: slot or {}
+        for name, slot in (source_classes()[class_name].get("attributes") or {}).items()
+    }
 
 
 def source_maps() -> set[tuple[str, str]]:
@@ -112,7 +124,9 @@ def source_maps() -> set[tuple[str, str]]:
         (class_name, name)
         for class_name in source_classes()
         for name, slot in source_slots(class_name).items()
-        if slot.get("multivalued") and slot.get("inlined") and not slot.get("inlined_as_list")
+        if slot.get("multivalued")
+        and slot.get("inlined")
+        and not slot.get("inlined_as_list")
     }
 
 
@@ -179,7 +193,11 @@ def pattern_problems(pattern: str) -> list[str]:
 
 @pytest.mark.parametrize("name", ROOTS)
 def test_every_map_constrains_its_keys(name):
-    assert [pointer for pointer, node in maps(load(name)) if not isinstance(key_pattern(node), str)] == []
+    assert [
+        pointer
+        for pointer, node in maps(load(name))
+        if not isinstance(key_pattern(node), str)
+    ] == []
 
 
 @pytest.mark.parametrize("name", ROOTS)
@@ -191,7 +209,11 @@ def test_every_source_map_is_a_map(name):
     expected = {
         (owner, field)
         for owner, field, _ in fields(schema)
-        if (ROOTS[name] if owner == "(root)" else owner.removesuffix(ENTRY_SUFFIX), field) in declared
+        if (
+            ROOTS[name] if owner == "(root)" else owner.removesuffix(ENTRY_SUFFIX),
+            field,
+        )
+        in declared
     }
     assert found == expected
 
@@ -202,15 +224,25 @@ def test_every_map_entry_has_one_form(name):
     defs = schema["$defs"]
     wrong = []
     for pointer, node in maps(schema):
-        entry = {k: v for k, v in node["additionalProperties"].items() if k not in ANNOTATIONS}
+        entry = {
+            k: v
+            for k, v in node["additionalProperties"].items()
+            if k not in ANNOTATIONS
+        }
         if entry.keys() == {"$ref"}:
             # The object form: the entry's class without its key, so the id is written once, as the map key.
             target = entry["$ref"].removeprefix("#/$defs/")
             if not entry["$ref"].startswith("#/$defs/") or target not in defs:
                 wrong.append(pointer)
                 continue
-            (key,) = [n for n, slot in source_slots(target.removesuffix(ENTRY_SUFFIX)).items() if slot.get("key")]
-            if key in defs[target].get("properties", {}) or key in defs[target].get("required", []):
+            (key,) = [
+                n
+                for n, slot in source_slots(target.removesuffix(ENTRY_SUFFIX)).items()
+                if slot.get("key")
+            ]
+            if key in defs[target].get("properties", {}) or key in defs[target].get(
+                "required", []
+            ):
                 wrong.append(pointer)
         elif entry.keys() != {"type", "pattern"} or entry["type"] != "string":
             # Otherwise only the compact form: the value of the class's one slot besides its key.
@@ -224,11 +256,14 @@ def test_no_field_accepts_null(name):
     nullable = [
         pointer
         for pointer, node in nodes(schema)
-        if node.get("type") == "null" or (isinstance(node.get("type"), list) and "null" in node["type"])
+        if node.get("type") == "null"
+        or (isinstance(node.get("type"), list) and "null" in node["type"])
     ]
     assert nullable == []
     # And by behaviour, which a field with no type at all (`{}`) would also fail.
-    values = [(f"{pointer}/*", node["additionalProperties"]) for pointer, node in maps(schema)]
+    values = [
+        (f"{pointer}/*", node["additionalProperties"]) for pointer, node in maps(schema)
+    ]
     for owner, field, sub in fields(schema):
         values.append((f"{owner}.{field}", sub))
         if isinstance(sub.get("items"), dict):
@@ -242,7 +277,8 @@ def test_closed_schemas_are_closed(name):
     open_ = [
         owner
         for owner, definition in {"(root)": schema, **schema["$defs"]}.items()
-        if "properties" in definition and definition.get("additionalProperties") is not False
+        if "properties" in definition
+        and definition.get("additionalProperties") is not False
     ]
     assert open_ == []
 
@@ -262,7 +298,9 @@ def test_every_pattern_means_the_same_in_python_and_ecma_262(name):
 
 def test_each_schema_is_identified_by_its_own_file_uri():
     """Each JSON Schema's `$id` is its published URI, so the closed and open record schemas are distinct."""
-    assert {name: load(name).get("$id") for name in ROOTS} == {name: NAMESPACE + name for name in ROOTS}
+    assert {name: load(name).get("$id") for name in ROOTS} == {
+        name: NAMESPACE + name for name in ROOTS
+    }
 
 
 @pytest.mark.parametrize("name", ROOTS)
@@ -270,7 +308,9 @@ def test_top_level_holds_only_standard_keywords(name):
     """No LinkML keyword at the top level, so strict validators (Ajv) compile the contract; the version is a comment."""
     schema = load(name)
     assert sorted(set(schema) - STANDARD_KEYWORDS) == []
-    assert re.fullmatch(r".* version [0-9]+\.[0-9]+\.[0-9]+", schema.get("$comment", ""))
+    assert re.fullmatch(
+        r".* version [0-9]+\.[0-9]+\.[0-9]+", schema.get("$comment", "")
+    )
 
 
 @pytest.mark.parametrize("name", ROOTS)
@@ -283,8 +323,15 @@ def test_every_def_is_reachable_from_the_root(name):
 def test_lists_of_strings_hold_no_entry_twice(name):
     """`uniqueItems` on every list of scalars, and on no list of objects (`DUPLICATE_ENTRY`)."""
     schema = load(name)
-    lists = [(pointer, node) for pointer, node in nodes(schema) if node.get("type") == "array"]
+    lists = [
+        (pointer, node)
+        for pointer, node in nodes(schema)
+        if node.get("type") == "array"
+    ]
     assert lists
     found = {pointer: node.get("uniqueItems") is True for pointer, node in lists}
-    expected = {pointer: item_type(node["items"], schema["$defs"]) != "object" for pointer, node in lists}
+    expected = {
+        pointer: item_type(node["items"], schema["$defs"]) != "object"
+        for pointer, node in lists
+    }
     assert found == expected

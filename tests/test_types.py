@@ -34,7 +34,15 @@ TABLE = {
     ),
     "condition": (
         ["scaling.standard", "~scaling.standard", "~iris.random_seed.seed_42"],
-        ["scaling", "~scaling", "a.~b", "~~a.b", "!a.b", "~ a.b", "~scaling.standard\n"],
+        [
+            "scaling",
+            "~scaling",
+            "a.~b",
+            "~~a.b",
+            "!a.b",
+            "~ a.b",
+            "~scaling.standard\n",
+        ],
     ),
     "commit_id": (
         [HEX_40, HEX_64],
@@ -55,7 +63,11 @@ TABLE = {
         ["0.1", "v0.1.0", "01.1.0", "0.1.0-rc1", "0.1.0\n"],
     ),
     "timestamp": (
-        ["2026-10-26T14:00:00.000Z", "2026-12-31T23:59:59.999Z", "2026-01-01T00:00:00.000Z"],
+        [
+            "2026-10-26T14:00:00.000Z",
+            "2026-12-31T23:59:59.999Z",
+            "2026-01-01T00:00:00.000Z",
+        ],
         [
             "2026-10-26T14:00:00Z",
             "2026-10-26T14:00:00.000+00:00",
@@ -72,7 +84,9 @@ TABLE = {
 }
 
 CASES = [
-    pytest.param(type_, value, valid, id=f"{type_}-{'valid' if valid else 'invalid'}-{value!r}")
+    pytest.param(
+        type_, value, valid, id=f"{type_}-{'valid' if valid else 'invalid'}-{value!r}"
+    )
     for type_, (accepted, rejected) in TABLE.items()
     for values, valid in [(accepted, True), (rejected, False)]
     for value in values
@@ -86,7 +100,10 @@ def validator():
 
 def failures(validator, instance):
     """The JSON Pointers at which `instance` fails; empty if it is valid."""
-    return {"".join(f"/{part}" for part in error.absolute_path) for error in validator.iter_errors(instance)}
+    return {
+        "".join(f"/{part}" for part in error.absolute_path)
+        for error in validator.iter_errors(instance)
+    }
 
 
 @pytest.mark.parametrize("type_, value, valid", CASES)

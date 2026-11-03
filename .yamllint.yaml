@@ -2,10 +2,14 @@
 
 extends: default
 
-# A duplicate key is these fixtures' point: they fail at parse.
+# Failing at parse (a duplicate key, malformed YAML, a %YAML 1.1 directive) is
+# these fixtures' point. Keep in step with check-yaml's exclude in
+# .pre-commit-config.yaml.
 ignore: |
   tests/data/invalid/Analysis-101-duplicate-output.yaml
   tests/data/invalid/Analysis-146-duplicate-universe.yaml
+  tests/data/invalid/Analysis-182-malformed-yaml.yaml
+  tests/data/invalid/Analysis-183-yaml-1-1-directive.yaml
 
 rules:
   document-start: disable  # Don't check if document has a start marker (---).
