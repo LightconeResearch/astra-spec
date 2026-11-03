@@ -1,6 +1,8 @@
 # generated part of documentation
 /docs/elements/*.md
-# generated schema artifacts (regenerated on every docs build and served from gh-pages)
+# published schema artifacts, written on every docs build and served from gh-pages:
+# the merged model (gen-yaml), and the JSON Schemas and JSON-LD contexts copied
+# from the committed src/astra/schema/generated/ (_add-artifacts)
 /docs/schema/*.yaml
 /docs/schema/*.json
 /docs/schema/*.jsonld
