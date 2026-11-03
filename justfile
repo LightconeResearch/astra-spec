@@ -21,21 +21,10 @@ shebang := if os() == 'windows' {
 # Environment variables with defaults
 schema_name := env_var_or_default("LINKML_SCHEMA_NAME", "_no_schema_given_")
 source_schema_dir := env_var_or_default("LINKML_SCHEMA_SOURCE_DIR", "")
-config_yaml := if env_var_or_default("LINKML_GENERATORS_CONFIG_YAML", "") != "" {
-  "--config-file " + env_var_or_default("LINKML_GENERATORS_CONFIG_YAML", "")
-} else {
-  ""
-}
 gen_doc_args := env_var_or_default("LINKML_GENERATORS_DOC_ARGS", "")
-gen_java_args := env_var_or_default("LINKML_GENERATORS_JAVA_ARGS", "")
-gen_owl_args := env_var_or_default("LINKML_GENERATORS_OWL_ARGS", "")
-gen_pydantic_args := env_var_or_default("LINKML_GENERATORS_PYDANTIC_ARGS", "")
-gen_ts_args := env_var_or_default("LINKML_GENERATORS_TYPESCRIPT_ARGS", "")
 
 # Directory variables
-src := "src"
 dest := "project"
-pymodel := src / schema_name / "datamodel"
 schema_source_file := env_var_or_default("LINKML_SCHEMA_SOURCE_FILE", schema_name)
 source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 # Generators read from a staged copy under tmp/schema/ where the version is
@@ -57,13 +46,9 @@ _default: _status
 setup: _check-config _git-init install _git-add && _setup_part2
   git commit -m "Initialise git with minimal project" -a || true
 
-_setup_part2: gen-project gen-doc
+_setup_part2: gen-doc
   @echo
   @echo '=== Setup completed! ==='
-  @echo 'Various model representations have been created under directory "project". By default'
-  @echo 'they are ignored by git. You decide whether you want to add them to git tracking or'
-  @echo 'continue to git-ignore them as they can be regenerated if needed.'
-  @echo 'For tracking specific subfolders, add !project/[foldername]/* line(s) to ".gitignore".'
 
 # Install project dependencies
 [group('project management')]
@@ -85,9 +70,9 @@ clean: _clean_project
   rm -rf tmp
   rm -rf {{docdir}}/*.md
 
-# (Re-)Generate project and documentation locally
+# (Re-)Generate documentation locally
 [group('model development')]
-site: gen-project gen-doc
+site: gen-doc
 
 # Build docs site (output: site/)
 [group('documentation')]
@@ -130,17 +115,16 @@ _docs-prep: gen-doc docs-install
 
 # Run all tests
 [group('model development')]
-test: _test-schema _test-python _test-examples
+test: _pytest
 
 # Run linting
 [group('model development')]
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
-# Tag a new release: regenerates the Python datamodels with the new version
-# baked in, updates CITATION.cff, commits both, and creates an annotated git
-# tag. Schema YAMLs are not mutated — generators inject the version from
-# $RELEASE_VERSION at build time. After pushing the tag, the
+# Tag a new release: updates CITATION.cff, commits it, and creates an
+# annotated git tag. Schema YAMLs are not mutated — generators inject the
+# version from $RELEASE_VERSION at build time. After pushing the tag, the
 # `Deploy versioned docs on tag` workflow will publish the docs automatically.
 [group('model development')]
 release version:
@@ -162,8 +146,6 @@ release version:
     echo "Error: CITATION.cff is missing." >&2
     exit 1
   fi
-  RELEASE_VERSION="{{version}}" just gen-python
-  git add src/astra/datamodel
   today=$(date -u +%Y-%m-%d)
   sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
   sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff
@@ -179,35 +161,6 @@ release version:
 [group('model development')]
 gen-doc: _stage-versioned _gen-yaml && _add-artifacts
   uv run gen-doc {{gen_doc_args}} -d {{docdir}} {{staged_schema_path}}
-
-# Generate the Python data models (dataclasses & pydantic)
-gen-python: _stage-versioned
-  uv run gen-project -d  {{pymodel}} -I python {{staged_schema_path}}
-  just _fix-python-keywords
-  @# Run gen-pydantic from the staged dir so the recorded source_file is just
-  @# the bare filename (e.g. "analysis.yaml") rather than the tmp/ build path.
-  cd {{staged_schema_dir}} && uv run gen-pydantic {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
-
-# Generate project files including Python data model
-[group('model development')]
-gen-project: _stage-versioned
-  uv run gen-project {{config_yaml}} -d {{dest}} {{staged_schema_path}}
-  mv {{dest}}/*.py {{pymodel}}
-  just _fix-python-keywords
-  cd {{staged_schema_dir}} && uv run gen-pydantic {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
-
-  @# Some generators ignore config_yaml or cannot create directories, so we run them separately.
-  uv run gen-java {{gen_java_args}} --output-directory {{dest}}/java/ {{staged_schema_path}}
-
-  @if [ ! -d "{{dest}}/typescript" ]; then \
-    mkdir -p {{dest}}/typescript ; \
-  fi
-  uv run gen-typescript {{gen_ts_args}} {{staged_schema_path}} > {{dest}}/typescript/{{schema_name}}.ts
-
-  @if [ ! -d "{{dest}}/owl" ]; then \
-    mkdir -p {{dest}}/owl ; \
-  fi
-  uv run gen-owl {{gen_owl_args}} {{staged_schema_path}} > "{{dest}}/owl/{{schema_name}}.owl.ttl"
 
 # ============== Migrations recipes for Copier ==============
 
@@ -265,48 +218,13 @@ _update-template:
 _update-linkml:
   uv add linkml --upgrade-package linkml
 
-# Fix Python keywords in generated dataclass model (gen-project/pythongen
-# does not handle reserved words; the pydantic generator does this itself).
-_fix-python-keywords:
-  uv run python -c "\
-  import re, pathlib; \
-  p = pathlib.Path('{{pymodel}}/analysis.py'); \
-  s = p.read_text(); \
-  s = re.sub(r'^(\s+)from:', r'\1from_:', s, flags=re.MULTILINE); \
-  s = re.sub(r'\bself\.from\b', 'self.from_', s); \
-  s = re.sub(r'\bslots\.from\b', 'slots.from_', s); \
-  s = re.sub(r'ASTRA\.from\b', \"ASTRA['from']\", s); \
-  p.write_text(s)"
-
-# Test schema generation
-_test-schema: _stage-versioned
-  uv run gen-project {{config_yaml}} -d tmp {{staged_schema_path}} 2>/dev/null
-
 # Run Python unit tests with pytest
-_test-python: gen-python
+_pytest:
   uv run python -m pytest
-
-# Run example tests
-# NOTE: linkml-run-examples has known issues:
-# 1. "simple dict" detection bug for classes with an identifier + exactly
-#    one required field (e.g. Option).
-# 2. The 'from' slot generates invalid Python (keyword conflict) when
-#    pythongen compiles the module on the fly.
-# Allow this step to fail until the upstream issues are resolved.
-_test-examples: _stage-versioned _ensure_examples_output
-  -uv run linkml-run-examples \
-    --input-formats json \
-    --input-formats yaml \
-    --output-formats json \
-    --output-formats yaml \
-    --counter-example-input-directory tests/data/invalid \
-    --input-directory tests/data/valid \
-    --output-directory examples/output \
-    --schema {{staged_schema_path}} > examples/output/README.md
 
 # Stage a versioned copy of every schema YAML under tmp/schema/. The version
 # is injected at build time so source files keep a stable placeholder and are
-# never mutated by `gen-doc`/`gen-python`. Uses $RELEASE_VERSION when set,
+# never mutated by `gen-doc`. Uses $RELEASE_VERSION when set,
 # otherwise falls back to the latest git tag.
 _stage-versioned:
   #!/usr/bin/env bash
@@ -361,19 +279,6 @@ _clean_project:
         if d.is_dir():
             print(f'removing "{d}"')
             shutil.rmtree(d, ignore_errors=True)
-    # remove the generated python data model
-    for d in pathlib.Path("{{pymodel}}").iterdir():
-        if d.name == "__init__.py":
-            continue
-        print(f'removing "{d}"')
-        if d.is_dir():
-            shutil.rmtree(d, ignore_errors=True)
-        else:
-            d.unlink()
-
-_ensure_examples_output:  # Ensure a clean examples/output directory exists
-  -mkdir -p examples/output
-  -rm -rf examples/output/*.*
 
 # ============== Include project-specific recipes ==============
 

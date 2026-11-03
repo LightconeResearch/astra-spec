@@ -16,7 +16,7 @@ maintainers = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.10"
 dynamic = ["version"]
 keywords = [
   "astra",
@@ -38,7 +38,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -50,9 +49,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 
-dependencies = [
-  "linkml-runtime >=1.9.4",
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://astra-spec.org"
@@ -64,7 +61,10 @@ Changelog = "https://github.com/LightconeResearch/astra-spec/releases"
 
 [dependency-groups]
 dev = [
-    "linkml>=1.9.3",
+    "linkml==1.12.1",
+    "jsonschema>=4.23",
+    "ruamel.yaml>=0.18",
+    "pytest>=8",
 ]
 docs = [
     "zensical>=0.0.33; python_version >= '3.10'",
@@ -102,6 +102,7 @@ fallback-version = "0.0.0"
 # Ref.: https://docs.pytest.org/en/stable/reference/reference.html#configuration-options
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tools"]
 
 # Ref.: https://github.com/codespell-project/codespell
 [tool.codespell]
@@ -110,8 +111,6 @@ skip = [
   "pyproject.toml",
   "uv.lock",
   "project/*",
-  "src/astra/datamodel/astra_pydantic.py",
-  "src/astra/datamodel/astra.py",
 ]
 
 # Reminder: words have to be lowercased for the ignore-words-list
@@ -127,6 +126,4 @@ extend-exclude = [
   "uv.lock",
   "pyproject.toml",
   "project/*",
-  "src/astra/datamodel/astra_pydantic.py",
-  "src/astra/datamodel/astra.py",
 ]
