@@ -38,7 +38,7 @@ ENTRY_SUFFIX = "__identifier_optional"
 ONE_CLASS = re.compile(r"\[\^?(?:\\.|[^\\\]])+\]", re.DOTALL)
 """A pattern that is a single bracketed character class, such as `[^\\x00-\\x20\\x7f]`."""
 
-DIALECT_ESCAPES = set("dDwWsSbBAZz")
+DIALECT_ESCAPES = {"d", "D", "w", "W", "s", "S", "b", "B", "A", "Z", "z"}
 """Escapes that Python's `re` and ECMA-262 define differently, or that only one of them has."""
 
 STANDARD_KEYWORDS = {

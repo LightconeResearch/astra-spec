@@ -77,11 +77,17 @@ def test_nan_is_a_float(load):
 
 
 def test_quoted_scalars_are_strings(load):
-    assert load("a: 'true'\nb: \"42\"\nc: \"null\"\n") == {"a": "true", "b": "42", "c": "null"}
+    assert load('a: \'true\'\nb: "42"\nc: "null"\n') == {
+        "a": "true",
+        "b": "42",
+        "c": "null",
+    }
 
 
 def test_core_tags_are_allowed(load):
-    assert load("a: !!str 42\nb: !!int '42'\nc: !!float 1\nd: !!bool true\ne: !!null ''\n") == {
+    assert load(
+        "a: !!str 42\nb: !!int '42'\nc: !!float 1\nd: !!bool true\ne: !!null ''\n"
+    ) == {
         "a": "42",
         "b": 42,
         "c": 1.0,
@@ -90,14 +96,19 @@ def test_core_tags_are_allowed(load):
     }
 
 
-@pytest.mark.parametrize("text", ["a: !!int 1_000\n", "a: !!int x\n", "a: !!bool yes\n", "a: !!null x\n"])
+@pytest.mark.parametrize(
+    "text", ["a: !!int 1_000\n", "a: !!int x\n", "a: !!bool yes\n", "a: !!null x\n"]
+)
 def test_a_core_tag_takes_only_its_core_form(load, text):
     with pytest.raises(YAMLError):
         load(text)
 
 
 def test_merge_key_is_an_ordinary_key(load):
-    assert load("base: &b {x: 1}\nother:\n  <<: *b\n") == {"base": {"x": 1}, "other": {"<<": {"x": 1}}}
+    assert load("base: &b {x: 1}\nother:\n  <<: *b\n") == {
+        "base": {"x": 1},
+        "other": {"<<": {"x": 1}},
+    }
 
 
 @pytest.mark.parametrize(
