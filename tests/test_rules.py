@@ -5,19 +5,22 @@ The extractor is strict, so it is tested on small specifications, one per way a 
 error, each a schema-layer code. `absolute_keyword_location` is checked where `jsonschema`'s paths need resolving.
 """
 
+import copy as copy_module
 import json
 import re
 from collections.abc import Iterator
 from typing import Any
 
 import pytest
+from jsonschema import Draft201909Validator
 from jsonschema_generator import generate
 from linkml_runtime import SchemaView
-from rules import build_catalogue, build_error_map, extract_rules
+from rules import build_catalogue, build_error_map, extract_rules, json_pointer
 
 from .conftest import (
     GENERATED,
     REPO_ROOT,
+    absolute_keyword_location,
     errors,
     fixture_header,
     fixtures,
@@ -214,6 +217,25 @@ MALFORMED = {
         "Every planned result has a record (`SHOULD`) |",
         r"NO_RECORD.*SHOULD",
     ),
+    "keyword against a code span": (
+        "Every planned result has a record |",
+        "Every planned result has a record, see`SHOULD` |",
+        r"NO_RECORD.*SHOULD",
+    ),
+    "keyword against a link": (
+        "Every planned result has a record |",
+        "Every planned result has a [record](#a)SHOULD |",
+        r"NO_RECORD.*SHOULD",
+    ),
+    "rule table outside a subsection": (
+        "### parse and schema\n",
+        (
+            "| Code | Level | Rule | Source |\n|---|---|---|---|\n"
+            "| `SNEAKY` | MUST | A rule outside the subsections | §9 |\n\n"
+            "### parse and schema\n"
+        ),
+        r"line 15: a rule table .* must be under one of §9's ### subsections",
+    ),
     "no section 9": ("## 9. Conformance", "## 9. Rules", r"9\. Conformance"),
 }
 
@@ -309,17 +331,17 @@ REPORTING = {
 def reporting_keywords(node: dict, pointer: str = "") -> Iterator[str]:
     """The JSON Pointer of every keyword in the schema `node` that can report an error (`additionalProperties: false` too)."""
     for keyword, value in node.items():
-        here = f"{pointer}/{keyword}"
+        here = pointer + json_pointer([keyword])
         if keyword in REPORTING or (
             keyword == "additionalProperties" and value is False
         ):
             yield here
         if keyword in ("$defs", "properties"):
             for name, sub in value.items():
-                yield from reporting_keywords(sub, f"{here}/{name}")
+                yield from reporting_keywords(sub, here + json_pointer([name]))
         elif keyword in ("oneOf", "anyOf", "allOf"):
             for index, sub in enumerate(value):
-                yield from reporting_keywords(sub, f"{here}/{index}")
+                yield from reporting_keywords(sub, here + json_pointer([index]))
         elif keyword in (
             "items",
             "additionalProperties",
@@ -473,6 +495,36 @@ def test_open_variant_has_no_unknown_fields():
     assert OPEN + "/additionalProperties" not in rules_catalogue()["errors"]
 
 
+def test_every_map_key_is_an_id():
+    """A map key that doesn't match its key's type is `INVALID_ID`, whatever that type (an `address` included)."""
+    keys = {
+        location: code
+        for location, code in rules_catalogue()["errors"].items()
+        if location.endswith(("/propertyNames", "/propertyNames/pattern"))
+    }
+    expected = {
+        schema["$id"] + "#" + pointer
+        for schema in map(load, SCHEMAS)
+        for pointer in reporting_keywords(schema)
+        if pointer.endswith(("/propertyNames", "/propertyNames/pattern"))
+    }
+    assert sorted(keys) == sorted(expected)
+    assert {code for code in keys.values()} == {"INVALID_ID"}
+
+
+def test_catalogue_is_built_from_the_sources():
+    """`build_catalogue` on the specification, the committed schemas and their LinkML sources gives `rules.json`."""
+    schemas = [
+        (load(name), SchemaView(str(SOURCES / f"{module}.yaml")))
+        for name, module in SCHEMAS.items()
+    ]
+    built = build_catalogue(specification(), schemas)
+    assert built == {
+        "rules": rules_catalogue()["rules"],
+        "errors": rules_catalogue()["errors"],
+    }
+
+
 # --- The error map, on scratch schemas ---
 
 SCRATCH = """\
@@ -572,6 +624,43 @@ def test_a_constraint_without_a_code_fails(tmp_path, old, new, message):
         build_error_map(*scratch_schema(tmp_path, SCRATCH.replace(old, new, 1)))
 
 
+UNUSED = {
+    "on a class": (
+        "  Thing:\n    tree_root: true\n",
+        "  Thing:\n    tree_root: true\n    annotations:\n      rule: INVALID_VALUE\n",
+        r"annotation of the class Thing$",
+    ),
+    "on a slot with no pattern": (
+        "        description: Where it is.\n",
+        "        description: Where it is.\n        annotations:\n          rule: INVALID_VALUE\n",
+        r"annotation of Thing\.url$",
+    ),
+    "on a type no slot uses": (
+        "classes:\n",
+        (
+            "types:\n  code:\n    typeof: string\n    pattern: '^[a-z]+$'\n"
+            "    annotations:\n      rule: INVALID_ID\nclasses:\n"
+        ),
+        r"annotation of the type code$",
+    ),
+}
+
+
+def test_scratch_catalogue_builds(tmp_path):
+    """The scratch schema's annotations all give codes, so the cases below fail for their one extra annotation."""
+    assert build_catalogue(specification(), [scratch_schema(tmp_path, SCRATCH)])[
+        "errors"
+    ]
+
+
+@pytest.mark.parametrize("old, new, message", UNUSED.values(), ids=UNUSED)
+def test_a_rule_annotation_that_gives_no_code_fails(tmp_path, old, new, message):
+    assert old in SCRATCH
+    schema_and_view = scratch_schema(tmp_path, SCRATCH.replace(old, new, 1))
+    with pytest.raises(ValueError, match=message):
+        build_catalogue(specification(), [schema_and_view])
+
+
 def test_a_code_that_is_not_a_schema_code_fails(tmp_path):
     """Every code the schema names is a schema-layer rule of §9: here, a validator-layer one."""
     schema, view = scratch_schema(
@@ -655,3 +744,11 @@ def test_absolute_keyword_location(doc, expected):
         (pointer, location)
         for pointer, location, _ in errors(validator("Analysis"), doc)
     } == expected
+
+
+def test_absolute_keyword_location_finds_the_subschema_by_identity():
+    """An error whose subschema isn't the schema's own object, even an equal copy, has no location."""
+    copy = Draft201909Validator(copy_module.deepcopy(validator("Analysis").schema))
+    (error,) = copy.iter_errors({**DOCUMENT, "extra": 1})
+    with pytest.raises(ValueError, match="isn't found in the schema"):
+        absolute_keyword_location(validator("Analysis"), error)

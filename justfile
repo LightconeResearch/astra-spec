@@ -281,9 +281,10 @@ _gen-yaml:
   uv run gen-yaml {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
 
 # Publish the committed contract, the JSON Schemas, the record's JSON-LD
-# context and `rules.json` of `gen-schema`, beside the merged model. Copied, not regenerated: stock
-# `gen-json-schema` would publish a second, weaker schema (design D1). Any
-# other .json or .jsonld there is removed, so only the contract is published.
+# context and `rules.json` of `gen-schema`, beside the merged model. Copied,
+# not regenerated: stock `gen-json-schema` would publish a second, weaker
+# schema (design D1). Any other .json or .jsonld there is removed, so only the
+# contract is published.
 _add-artifacts:
   rm -f {{distrib_schema_path}}/*.json {{distrib_schema_path}}/*.jsonld
   cp {{source_schema_dir}}/generated/* {{distrib_schema_path}}/

@@ -5,7 +5,6 @@ import json
 import re
 from pathlib import Path
 from typing import Any
-from urllib.parse import urldefrag, urljoin
 
 from jsonschema import Draft201909Validator, ValidationError
 from ruamel.yaml import YAML
@@ -13,6 +12,7 @@ from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError, SafeCon
 from ruamel.yaml.error import YAMLError
 from ruamel.yaml.resolver import VersionedResolver
 from ruamel.yaml.scanner import Scanner, ScannerError
+from rules import json_pointer
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GENERATED = REPO_ROOT / "src" / "astra" / "schema" / "generated"
@@ -147,8 +147,12 @@ def load_yaml_text(text: str) -> Any:
     return _core_schema_yaml().load(text)
 
 
+@functools.cache
 def validator(root: str, *, closed: bool = True) -> Draft201909Validator:
-    """A validator for documents rooted at `root`, from the committed schema (its open variant if not `closed`)."""
+    """A validator for documents rooted at `root`, from the committed schema (its open variant if not `closed`).
+
+    Made once for each schema, so that each schema is read, and indexed for `absolute_keyword_location`, once.
+    """
     suffix = ".schema.json" if closed else ".open.schema.json"
     schema = json.loads(
         (GENERATED / f"{_SCHEMA_NAMES[root]}{suffix}").read_text(encoding="utf-8")
@@ -163,16 +167,30 @@ def rules_catalogue() -> dict[str, Any]:
     return json.loads((GENERATED / "rules.json").read_text(encoding="utf-8"))
 
 
-def _escape(part: Any) -> str:
-    """`part` as a JSON Pointer reference token."""
-    return str(part).replace("~", "~0").replace("/", "~1")
-
-
 def _pointer(path) -> str:
     """The JSON Pointer for a path of keys and indices, or `(root)` for the document."""
-    if not path:
-        return "(root)"
-    return "".join("/" + _escape(part) for part in path)
+    return json_pointer(path) if path else "(root)"
+
+
+_SUBSCHEMAS: dict[int, tuple[dict, dict[int, str]]] = {}
+"""For each schema indexed, by `id`: the schema itself (kept, so that no other object takes its `id`), and the JSON
+Pointer of every object in it, by `id`."""
+
+
+def _subschema_pointers(schema: dict) -> dict[int, str]:
+    """The JSON Pointer of every object in `schema`, by identity (`id`), indexed once per schema."""
+    if id(schema) not in _SUBSCHEMAS:
+        pointers: dict[int, str] = {}
+        todo: list[tuple[Any, list[Any]]] = [(schema, [])]
+        while todo:
+            node, tokens = todo.pop()
+            if isinstance(node, dict):
+                pointers[id(node)] = json_pointer(tokens)
+                todo.extend((child, [*tokens, key]) for key, child in node.items())
+            elif isinstance(node, list):
+                todo.extend((child, [*tokens, i]) for i, child in enumerate(node))
+        _SUBSCHEMAS[id(schema)] = (schema, pointers)
+    return _SUBSCHEMAS[id(schema)][1]
 
 
 def absolute_keyword_location(v: Draft201909Validator, error: ValidationError) -> str:
@@ -180,35 +198,20 @@ def absolute_keyword_location(v: Draft201909Validator, error: ValidationError) -
 
     That is the keyword's place once every `$ref` is resolved, as JSON Schema 2019-09 defines it and as `rules.json`
     keys its error map. `jsonschema`'s `absolute_schema_path` runs through `$ref`s without naming them (and leaves out
-    an `if` before its `then`), so it is followed from the root: wherever its next step isn't in the subschema reached,
-    that subschema's `$ref` is taken first, and the location starts again from the reference's target.
+    an `if` before its `then`), so it isn't that place. But `error.schema` is the subschema that holds the failing
+    keyword, and `error.validator` the keyword: the location is that subschema's JSON Pointer, found in the schema by
+    identity, then the keyword. It is an error if the subschema isn't in the schema or doesn't hold the keyword.
     """
-    root = v.schema
-    uri = root["$id"]
-    node: Any = root
-    pointer: list[Any] = []
-    parent = None
-    for part in error.absolute_schema_path:
-        while isinstance(node, dict) and part not in node and "$ref" in node:
-            uri, fragment = urldefrag(urljoin(uri, node["$ref"]))
-            if uri != root["$id"] or not fragment.startswith("/"):
-                raise ValueError(
-                    f"{node['$ref']}: not a JSON Pointer into {root['$id']}"
-                )
-            pointer = [
-                token.replace("~1", "/").replace("~0", "~")
-                for token in fragment.split("/")[1:]
-            ]
-            node = root
-            for token in pointer:
-                node = node[token]
-        parent, node = node, node[part]
-        pointer.append(part)
-    if parent is not error.schema:
+    pointer = _subschema_pointers(v.schema).get(id(error.schema))
+    if (
+        pointer is None
+        or error.validator not in error.schema
+        or error.absolute_schema_path[-1] != error.validator
+    ):
         raise ValueError(
-            f"{list(error.absolute_schema_path)} doesn't lead to the subschema that failed"
+            f"{list(error.absolute_schema_path)}: the subschema that failed isn't found in the schema"
         )
-    return uri + "#" + "".join("/" + _escape(part) for part in pointer)
+    return v.schema["$id"] + "#" + pointer + json_pointer([error.validator])
 
 
 def errors(v: Draft201909Validator, doc: Any) -> set[tuple[str, str, bool]]:

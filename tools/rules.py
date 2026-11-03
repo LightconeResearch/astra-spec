@@ -9,12 +9,14 @@
   (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it enforces. The code
   comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type or slot that
   defines a pattern, on a class rule, on each branch of an ``exactly_one_of``), or, for the keywords whose code never
-  varies, from a default. Every such keyword has exactly one code, and every code is a schema-layer rule of §9.
+  varies, from a default. Every such keyword has exactly one code, every code is a schema-layer rule of §9, and every
+  ``rule`` annotation gives some keyword its code.
 """
 
 import argparse
 import json
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -74,6 +76,13 @@ ENTRY_SUFFIX = "__identifier_optional"
 """The suffix of the `$defs` entry LinkML makes for a class written as a map entry, its key left out."""
 
 
+def json_pointer(tokens: Iterable[Any]) -> str:
+    """The JSON Pointer (RFC 6901) made of `tokens`, each escaped (`~` as `~0`, `/` as `~1`); `""` for none."""
+    return "".join(
+        "/" + str(token).replace("~", "~0").replace("/", "~1") for token in tokens
+    )
+
+
 # --- The rules, from §9 ---
 
 
@@ -94,8 +103,11 @@ def _markdown() -> MarkdownIt:
 
 
 def _text(tokens: list[Token]) -> str:
-    """The plain text of inline tokens: their text and code spans, without markup."""
-    return "".join(t.content for t in tokens if t.type in ("text", "code_inline"))
+    """The plain text of inline tokens: their text and code spans, without markup, each set apart by a space.
+
+    So a keyword written against a code span or a link (``see`SHOULD` ``, `[the](#a)SHOULD`) is still a word.
+    """
+    return " ".join(t.content for t in tokens if t.type in ("text", "code_inline"))
 
 
 def _shape(tokens: list[Token]) -> list[tuple[str, str, str]]:
@@ -195,6 +207,11 @@ def _sections(tokens: list[Token]) -> list[tuple[str, int, list[list[Token]]]]:
             if t.type == "table_close":
                 if sections:
                     sections[-1][2].append(table)
+                elif "Code" in _rows(table)[0]:
+                    raise ValueError(
+                        f"line {(table[0].map or [0])[0] + 1}: a rule table (a table with a Code column)"
+                        " must be under one of §9's ### subsections"
+                    )
                 table = None
     return sections
 
@@ -351,11 +368,11 @@ class _ErrorMap:
         self.view = view
         self.base = schema["$id"] + "#"
         self.codes: dict[str, str] = {}
+        self.used: set[tuple[str, ...]] = set()
+        """The LinkML elements whose `rule` annotation gave a code, keyed as `_rule_annotations` keys them."""
 
     def location(self, pointer: list[Any]) -> str:
-        return self.base + "".join(
-            "/" + str(p).replace("~", "~0").replace("/", "~1") for p in pointer
-        )
+        return self.base + json_pointer(pointer)
 
     def add(self, pointer: list[Any], code: str) -> None:
         location = self.location(pointer)
@@ -462,6 +479,9 @@ class _ErrorMap:
                 f"{self.location(pointer)}: each branch of {cls}'s exactly_one_of must name the same code"
                 f" in a {ANNOTATION!r} annotation, not {codes}"
             )
+        self.used.update(
+            ("exactly_one_of", cls, str(index)) for index in range(len(expressions))
+        )
         self.add(pointer, codes[0])
         for index, branch in enumerate(branches):
             self.condition(branch, [*pointer, index], codes[0])
@@ -489,19 +509,21 @@ class _ErrorMap:
     def class_rule(self, cls: str, pointer: list[Any]) -> str:
         """The code of the one class rule LinkML writes as the class's `if`/`then`/`else`."""
         rules = [
-            rule
+            (ancestor, index, rule)
             for ancestor in self.view.class_ancestors(cls)
-            for rule in self.view.get_class(ancestor).rules
+            for index, rule in enumerate(self.view.get_class(ancestor).rules or [])
         ]
-        if len(rules) != 1 or rules[0].bidirectional:
+        if len(rules) != 1 or rules[0][2].bidirectional:
             raise ValueError(
                 f"{self.location(pointer)}: {cls} must have one class rule, not bidirectional"
             )
-        code = _annotation(rules[0])
+        ((ancestor, index, rule),) = rules
+        code = _annotation(rule)
         if code is None:
             raise ValueError(
                 f"{self.location(pointer)}: {cls}'s class rule has no {ANNOTATION!r} annotation"
             )
+        self.used.add(("rule", ancestor, str(index)))
         return code
 
     def pattern_code(self, cls: str, slot: Any, pointer: list[Any]) -> str:
@@ -512,6 +534,7 @@ class _ErrorMap:
         """
         code = _annotation(slot)
         if code is not None:
+            self.used.update(self.slot_origins(cls, slot.name))
             return code
         if (
             not (slot.pattern or slot.structured_pattern)
@@ -525,10 +548,78 @@ class _ErrorMap:
                         raise ValueError(
                             f"{self.location(pointer)}: the type {name} has no {ANNOTATION!r} annotation for its pattern"
                         )
+                    self.used.add(("type", name))
                     return code
         raise ValueError(
             f"{self.location(pointer)}: {cls}.{slot.name} has no {ANNOTATION!r} annotation for its pattern"
         )
+
+    def slot_origins(self, cls: str, name: str) -> set[tuple[str, ...]]:
+        """Where the slot `name` of `cls` is written with a `rule` annotation: an attribute, a slot_usage, a slot."""
+        found = set()
+        for ancestor in self.view.class_ancestors(cls):
+            definition = self.view.get_class(ancestor)
+            for kind, slots in (
+                ("attribute", definition.attributes),
+                ("slot_usage", definition.slot_usage),
+            ):
+                if name in (slots or {}) and _annotation(slots[name]) is not None:
+                    found.add((kind, ancestor, name))
+        top = self.view.all_slots(attributes=False).get(name)
+        if top is not None and _annotation(top) is not None:
+            found.add(("slot", name))
+        return found
+
+
+def _rule_annotations(view: SchemaView) -> set[tuple[str, ...]]:
+    """Every element of `view` written with a `rule` annotation, keyed as the walk keys the ones it takes a code from."""
+    found: set[tuple[str, ...]] = set()
+
+    def note(key: tuple[str, ...], element: Any) -> None:
+        if _annotation(element) is not None:
+            found.add(key)
+
+    note(("schema", view.schema.name), view.schema)
+    for name, definition in view.all_types().items():
+        note(("type", name), definition)
+    for name, definition in view.all_slots(attributes=False).items():
+        note(("slot", name), definition)
+    for name, definition in view.all_enums().items():
+        note(("enum", name), definition)
+        for value, permissible in (definition.permissible_values or {}).items():
+            note(("permissible_value", name, value), permissible)
+    for name, definition in view.all_classes().items():
+        note(("class", name), definition)
+        for kind, slots in (
+            ("attribute", definition.attributes),
+            ("slot_usage", definition.slot_usage),
+        ):
+            for slot_name, slot in (slots or {}).items():
+                note((kind, name, slot_name), slot)
+        for kind, expressions in (
+            ("rule", definition.rules),
+            ("exactly_one_of", definition.exactly_one_of),
+            ("any_of", definition.any_of),
+            ("all_of", definition.all_of),
+            ("none_of", definition.none_of),
+        ):
+            for index, expression in enumerate(expressions or []):
+                note((kind, name, str(index)), expression)
+    return found
+
+
+def _describe(key: tuple[str, ...]) -> str:
+    """A LinkML element, from its key, for an error message."""
+    kind, *parts = key
+    if kind in ("attribute", "slot_usage"):
+        return f"{parts[0]}.{parts[1]}" + (
+            " (slot_usage)" if kind == "slot_usage" else ""
+        )
+    if kind == "permissible_value":
+        return f"the value {parts[1]} of {parts[0]}"
+    if len(parts) == 2:
+        return f"{kind} {int(parts[1]) + 1} of {parts[0]}"
+    return f"the {kind} {parts[0]}"
 
 
 def _tree_root(view: SchemaView) -> str:
@@ -541,6 +632,11 @@ def build_error_map(schema: dict, schema_view: SchemaView) -> dict[str, str]:
 
     It holds every keyword of `schema` that can report an error, and raises `ValueError` for any it can't give a code.
     """
+    return dict(sorted(_walk(schema, schema_view).codes.items()))
+
+
+def _walk(schema: dict, schema_view: SchemaView) -> _ErrorMap:
+    """The walk of `schema`: its codes, and the LinkML elements whose `rule` annotation gave one."""
     walk = _ErrorMap(schema, schema_view)
     walk.klass(schema, [], _tree_root(schema_view))
     for name, definition in schema.get("$defs", {}).items():
@@ -553,7 +649,7 @@ def build_error_map(schema: dict, schema_view: SchemaView) -> dict[str, str]:
             raise ValueError(
                 f"{walk.location(['$defs', name])}: neither a class nor an enum of {schema_view.schema.name}"
             )
-    return dict(sorted(walk.codes.items()))
+    return walk
 
 
 # --- rules.json ---
@@ -562,17 +658,31 @@ def build_error_map(schema: dict, schema_view: SchemaView) -> dict[str, str]:
 def build_catalogue(
     markdown: str, schemas: list[tuple[dict, SchemaView]]
 ) -> dict[str, Any]:
-    """`rules.json` without its `$comment`: the rules of `markdown`'s §9, and the error map of each `(schema, view)`."""
+    """`rules.json` without its `$comment`: the rules of `markdown`'s §9, and the error map of each `(schema, view)`.
+
+    Every code in the error map is a schema-layer code of §9, and every `rule` annotation in the views gives a code
+    to some keyword of the schemas: one that gives none (on a class, say) is an error.
+    """
     rules = extract_rules(markdown)
     schema_codes = {rule["code"] for rule in rules if rule["layer"] == "schema"}
     errors: dict[str, str] = {}
+    annotated: set[tuple[str, ...]] = set()
+    used: set[tuple[str, ...]] = set()
     for schema, view in schemas:
-        for location, code in build_error_map(schema, view).items():
+        walk = _walk(schema, view)
+        for location, code in walk.codes.items():
             if code not in schema_codes:
                 raise ValueError(f"{location}: {code} is not a schema-layer code of §9")
             if location in errors:
                 raise ValueError(f"{location}: in two schemas")
             errors[location] = code
+        annotated |= _rule_annotations(view)
+        used |= walk.used
+    if annotated - used:
+        raise ValueError(
+            f"no keyword of the JSON Schemas takes its code from the {ANNOTATION!r} annotation of "
+            + ", ".join(_describe(key) for key in sorted(annotated - used))
+        )
     return {"rules": rules, "errors": dict(sorted(errors.items()))}
 
 

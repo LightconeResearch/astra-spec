@@ -1065,16 +1065,30 @@ whether a file is valid.
 
 **The catalogue as data.** The rules are extracted from this section into
 `rules.json` (§10), so its tables are a format that tools parse, not only
-text to read. A layer's rules are the one table under its heading (`parse
-and schema`, `validator`, `check` and `runner`, in that order) whose header
-has a Code column, and its columns are found by the names in its header:
-Code, Level, Rule and Source, with Layer in the parse and schema table and
-Status when broken in the check table. Each row is one rule and fills every
-column. Its Code is one code span, used by no other row; its Layer is
-`parse` or `schema`; its Level is `MUST`, `SHOULD` or `MAY`; and its Rule
-uses no RFC 2119 keyword in capitals of another level. A table that breaks
-any of this is an error in this specification, and no `rules.json` is made
-from it.
+text to read:
+
+- **Subsections.** This section has four `###` subsections, `parse and
+  schema`, `validator`, `check` and `runner`, in that order, and no others.
+- **Rule tables.** A rule table is a table whose header has a Code column.
+  Each subsection has exactly one, and no rule table stands outside them.
+  Other tables, such as the check layer's statuses, are not read.
+- **Columns** are found by the names in a rule table's header: Code, Level,
+  Rule and Source, with Layer in the parse and schema table and Status when
+  broken in the check table, and no others.
+- **Rows.** Each row is one rule, with one cell per column and none empty.
+  Its Code is one code span holding a capital letter, then capitals, digits
+  and underscores (`[A-Z][A-Z0-9_]*`), and no other row has it. Its Layer is
+  `parse` or `schema`, and its Level `MUST`, `SHOULD` or `MAY`. Its Rule
+  uses no RFC 2119 keyword in capitals, in its text or in a code span, of
+  another level.
+- **Cells** hold only text, code spans, emphasis, links and inline HTML.
+  `rules.json` records a cell as Markdown rebuilt from what it parses to,
+  with each link reduced to its text, so the rebuilt Markdown must parse the
+  same way: an escape whose loss would change the cell, such as `\*` before
+  text that would then become emphasis, is not allowed.
+
+A table that breaks any of this is an error in this specification, and no
+`rules.json` is made from it.
 
 ### parse and schema
 
@@ -1287,27 +1301,38 @@ a rule (`MISSING_FIELD`), `additionalProperties` (`UNKNOWN_FIELD`), `type`
 ```
 
 **From an error to its code.** A tool that reports the catalogue's codes
-looks up the absolute keyword location of each error its validator reports
-in `errors`. Every error a validator reports for these schemas has an entry,
-the errors that say why a `oneOf` failed included. What validators give is
-the path they took to the keyword, which passes through `$ref`s, so a tool
-needs one step to get the location:
+looks up, in `errors`, the absolute keyword location of each error its
+validator reports. `jsonschema` and Ajv report the innermost errors: each
+names the keyword that failed, either an assertion (such as `pattern`,
+`required` or `additionalProperties: false`) or a `oneOf`, `not`, `if` or
+`propertyNames` that fails as a whole. Each such error has an entry,
+including those that say why a `oneOf` failed. A validator that writes one
+of JSON Schema's standard output formats also lists the applicators above
+an error (`properties`, `items`, `$ref`, an `additionalProperties` that
+holds a schema, `then`). Those have no entry; a tool maps the innermost
+errors.
+
+What a validator gives with an error is the path it took to the keyword,
+through `$ref`s, so a tool needs one step to get the location. In both
+validators below, an error comes with the subschema that holds the failing
+keyword, and the location is the schema's `$id`, `#`, that subschema's JSON
+Pointer in the schema, `/` and the keyword. The pointer is found by walking
+the schema once and comparing objects by identity, not by value, since
+equal subschemas sit in different places:
 
 - **Python's `jsonschema`.** An error's `absolute_schema_path` runs through
   each `$ref` without naming it (and leaves out the `if` of a failing
-  `then`). Follow it from the schema's root: wherever the next step isn't in
-  the subschema reached, take that subschema's `$ref` first, and go on from
-  the reference's target, whose JSON Pointer replaces the path so far. The
-  location is the schema's `$id`, `#`, and the pointer reached.
-- **Ajv.** An error's `schemaPath` is relative to the part of the schema
-  Ajv compiled the keyword in. A `$ref` target that Ajv inlines is written
-  as its reference (`#/$defs/…`), but one it compiles on its own, as it does
-  any target with a `$ref` of its own, starts again from `#`. So
-  `schemaPath` is not always the location. Compile with the option
-  `verbose: true` instead: an error's `parentSchema` is then the subschema
-  that holds the failing keyword, and the location is the schema's `$id`,
-  `#`, the JSON Pointer of that subschema in the schema (found by walking
-  the schema once), `/` and the error's `keyword`.
+  `then`), so it is not the location. Its `schema` is the subschema, and its
+  `validator` the keyword.
+- **Ajv.** Compile with the options `allErrors: true` and `verbose: true`.
+  Without `allErrors`, Ajv stops at the first error it meets, which can be a
+  `oneOf` above the error that matters, with another code. An error's
+  `schemaPath` is relative to the part of the schema Ajv compiled the
+  keyword in: a `$ref` target that Ajv inlines is written as its reference
+  (`#/$defs/…`), but one it compiles on its own, as it does any target with
+  a `$ref` of its own, starts again from `#`. So `schemaPath` is not always
+  the location. With `verbose: true`, an error's `parentSchema` is the
+  subschema, and its `keyword` the keyword.
 
 **RDF.** `provenance.context.jsonld` maps a record's terms onto
 [W3C PROV-O](https://www.w3.org/TR/prov-o/), with ASTRA's own, where PROV has
