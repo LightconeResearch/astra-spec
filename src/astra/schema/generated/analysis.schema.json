@@ -4,6 +4,17 @@
       "additionalProperties": false,
       "description": "An analysis: the files it reads, the artefacts it makes and the decisions it makes along the way. It is the content of an `astra.yaml` file.",
       "properties": {
+        "analyses": {
+          "additionalProperties": {
+            "$ref": "#/$defs/AnalysisDeclaration__identifier_optional"
+          },
+          "description": "The other analyses this analysis uses, keyed by the id it addresses them by.",
+          "propertyNames": {
+            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "type": "string"
+          },
+          "type": "object"
+        },
         "container": {
           "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
           "type": "string"
@@ -61,6 +72,17 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "universes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Universe__identifier_optional"
+          },
+          "description": "The universes of the analysis, keyed by id.",
+          "propertyNames": {
+            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "type": "string"
+          },
+          "type": "object"
         }
       },
       "required": [
@@ -68,6 +90,129 @@
         "outputs"
       ],
       "title": "Analysis",
+      "type": "object"
+    },
+    "AnalysisDeclaration": {
+      "additionalProperties": false,
+      "description": "Another analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
+      "if": {
+        "properties": {
+          "url": {}
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "path": {}
+          },
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "properties": {
+            "url": {}
+          },
+          "required": [
+            "url"
+          ]
+        }
+      ],
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit the declared analysis is read at. A declaration with a `url` has one; with a `path`, it declares the analysis at that path as it was at that commit.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)",
+          "type": "string"
+        },
+        "id": {
+          "description": "The id this analysis addresses the declared analysis by, written as its key in `analyses`.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+          "type": "string"
+        },
+        "path": {
+          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml` and inside the repository of the root analysis. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), and has no control character; `..` segments are allowed.",
+          "pattern": "^(?![/~])[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
+          "type": "string"
+        },
+        "url": {
+          "description": "Where git fetches another repository from, as a remote: `scheme://\u2026`, such as `https://github.com/owner/analysis`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`. Anything local is a `path`.",
+          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "then": {
+        "properties": {
+          "commit": {}
+        },
+        "required": [
+          "commit"
+        ]
+      },
+      "title": "AnalysisDeclaration",
+      "type": "object"
+    },
+    "AnalysisDeclaration__identifier_optional": {
+      "additionalProperties": false,
+      "description": "Another analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
+      "if": {
+        "properties": {
+          "url": {}
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "path": {}
+          },
+          "required": [
+            "path"
+          ]
+        },
+        {
+          "properties": {
+            "url": {}
+          },
+          "required": [
+            "url"
+          ]
+        }
+      ],
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit the declared analysis is read at. A declaration with a `url` has one; with a `path`, it declares the analysis at that path as it was at that commit.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)",
+          "type": "string"
+        },
+        "path": {
+          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml` and inside the repository of the root analysis. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), and has no control character; `..` segments are allowed.",
+          "pattern": "^(?![/~])[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
+          "type": "string"
+        },
+        "url": {
+          "description": "Where git fetches another repository from, as a remote: `scheme://\u2026`, such as `https://github.com/owner/analysis`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`. Anything local is a `path`.",
+          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
+          "type": "string"
+        }
+      },
+      "required": [],
+      "then": {
+        "properties": {
+          "commit": {}
+        },
+        "required": [
+          "commit"
+        ]
+      },
+      "title": "AnalysisDeclaration",
       "type": "object"
     },
     "Decision": {
@@ -120,6 +265,49 @@
         "options"
       ],
       "title": "Decision",
+      "type": "object"
+    },
+    "DecisionSelection": {
+      "additionalProperties": false,
+      "description": "The option a universe selects for one decision, written in the universe's `decisions` as `<decision>: <option>`, such as `model: svm`.",
+      "properties": {
+        "decision": {
+          "description": "The address of the decision, written as its key in the universe's `decisions`.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
+          "type": "string"
+        },
+        "option": {
+          "description": "The id of the option selected for the decision.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "option"
+      ],
+      "title": "DecisionSelection",
+      "type": "object"
+    },
+    "DecisionSelection__identifier_optional": {
+      "additionalProperties": false,
+      "description": "The option a universe selects for one decision, written in the universe's `decisions` as `<decision>: <option>`, such as `model: svm`.",
+      "properties": {
+        "decision": {
+          "description": "The address of the decision, written as its key in the universe's `decisions`.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
+          "type": "string"
+        },
+        "option": {
+          "description": "The id of the option selected for the decision.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "option"
+      ],
+      "title": "DecisionSelection",
       "type": "object"
     },
     "Decision__identifier_optional": {
@@ -544,6 +732,97 @@
       },
       "title": "Resources",
       "type": "object"
+    },
+    "Universe": {
+      "additionalProperties": false,
+      "description": "A universe: a selection of one option for every active decision of the analysis and of every analysis it drives. Its effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` applied on top.",
+      "properties": {
+        "decisions": {
+          "additionalProperties": {
+            "description": "The id of the option selected for the decision.",
+            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "type": "string"
+          },
+          "description": "The options the universe selects, as `<decision>: <option>`. Each key is the id of a decision of the analysis or, for a decision of an analysis it drives, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `stage.method`.",
+          "propertyNames": {
+            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "derived_from": {
+          "description": "The id of another universe of the analysis. This universe inherits that universe's effective selection, with its own `decisions` applied on top, so it needs to give only the decisions it changes.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+          "type": "string"
+        },
+        "description": {
+          "description": "What the universe is, in free prose.",
+          "type": "string"
+        },
+        "id": {
+          "description": "The universe's id, written as its key in `universes`.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+          "type": "string"
+        },
+        "label": {
+          "description": "A short display name for the universe. It is not inherited through `derived_from`.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the universe. They are not inherited through `derived_from`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Universe",
+      "type": "object"
+    },
+    "Universe__identifier_optional": {
+      "additionalProperties": false,
+      "description": "A universe: a selection of one option for every active decision of the analysis and of every analysis it drives. Its effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` applied on top.",
+      "properties": {
+        "decisions": {
+          "additionalProperties": {
+            "description": "The id of the option selected for the decision.",
+            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "type": "string"
+          },
+          "description": "The options the universe selects, as `<decision>: <option>`. Each key is the id of a decision of the analysis or, for a decision of an analysis it drives, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `stage.method`.",
+          "propertyNames": {
+            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "derived_from": {
+          "description": "The id of another universe of the analysis. This universe inherits that universe's effective selection, with its own `decisions` applied on top, so it needs to give only the decisions it changes.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+          "type": "string"
+        },
+        "description": {
+          "description": "What the universe is, in free prose.",
+          "type": "string"
+        },
+        "label": {
+          "description": "A short display name for the universe. It is not inherited through `derived_from`.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the universe. They are not inherited through `derived_from`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [],
+      "title": "Universe",
+      "type": "object"
     }
   },
   "$id": "https://w3id.org/astra/analysis",
@@ -552,6 +831,17 @@
   "description": "An analysis: the files it reads, the artefacts it makes and the decisions it makes along the way. It is the content of an `astra.yaml` file.",
   "metamodel_version": "1.12.0",
   "properties": {
+    "analyses": {
+      "additionalProperties": {
+        "$ref": "#/$defs/AnalysisDeclaration__identifier_optional"
+      },
+      "description": "The other analyses this analysis uses, keyed by the id it addresses them by.",
+      "propertyNames": {
+        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "type": "string"
+      },
+      "type": "object"
+    },
     "container": {
       "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
       "type": "string"
@@ -609,6 +899,17 @@
         "type": "string"
       },
       "type": "array"
+    },
+    "universes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Universe__identifier_optional"
+      },
+      "description": "The universes of the analysis, keyed by id.",
+      "propertyNames": {
+        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "type": "string"
+      },
+      "type": "object"
     }
   },
   "required": [

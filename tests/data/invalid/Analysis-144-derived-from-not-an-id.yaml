@@ -1,0 +1,17 @@
+# rule: INVALID_ID
+# fails at: /universes/u/derived_from
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+decisions:
+  model:
+    options:
+      rf: {}
+      svm: {}
+universes:
+  u:
+    derived_from: rf-standard
+    decisions:
+      model: rf

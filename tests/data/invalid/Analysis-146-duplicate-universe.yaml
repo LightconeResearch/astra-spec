@@ -1,0 +1,19 @@
+# rule: DUPLICATE_KEY
+# fails at: parse
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+decisions:
+  model:
+    options:
+      rf: {}
+      svm: {}
+universes:
+  u:
+    decisions:
+      model: rf
+  u:
+    decisions:
+      model: rf

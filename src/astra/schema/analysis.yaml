@@ -277,6 +277,116 @@ classes:
           Why the option is ruled out, as a reason that is not blank. An
           option with a reason is excluded: no universe selects it.
 
+  # --- Universes ---
+
+  Universe:
+    description: >-
+      A universe: a selection of one option for every active decision of the
+      analysis and of every analysis it drives. Its effective selection is
+      the effective selection of the universe it is derived from, if any,
+      with its own `decisions` applied on top.
+    attributes:
+      id:
+        key: true
+        range: id
+        description: The universe's id, written as its key in `universes`.
+      label:
+        description: >-
+          A short display name for the universe. It is not inherited through
+          `derived_from`.
+      description:
+        description: What the universe is, in free prose.
+      tags:
+        multivalued: true
+        description: >-
+          Keywords for grouping and finding the universe. They are not
+          inherited through `derived_from`.
+      derived_from:
+        range: id
+        description: >-
+          The id of another universe of the analysis. This universe inherits
+          that universe's effective selection, with its own `decisions`
+          applied on top, so it needs to give only the decisions it changes.
+      decisions:
+        range: DecisionSelection
+        multivalued: true
+        inlined: true
+        description: >-
+          The options the universe selects, as `<decision>: <option>`. Each
+          key is the id of a decision of the analysis or, for a decision of an
+          analysis it drives, a flat key: the decision's address through the
+          declarations, `<declaration>.<decision>`, such as `stage.method`.
+
+  DecisionSelection:
+    description: >-
+      The option a universe selects for one decision, written in the
+      universe's `decisions` as `<decision>: <option>`, such as `model: svm`.
+    attributes:
+      decision:
+        key: true
+        range: address
+        description: >-
+          The address of the decision, written as its key in the universe's
+          `decisions`.
+      option:
+        range: id
+        required: true
+        description: The id of the option selected for the decision.
+
+  # --- Declarations ---
+
+  AnalysisDeclaration:
+    description: >-
+      Another analysis that this analysis uses, found by exactly one of
+      `path` and `url`. Its elements are addressed through the declaration's
+      id, as `<declaration>.<element>`.
+    attributes:
+      id:
+        key: true
+        range: id
+        description: >-
+          The id this analysis addresses the declared analysis by, written as
+          its key in `analyses`.
+      path:
+        pattern: '^(?![/~])[^\x00-\x1f\x7f\\]+$(?!\n)'
+        description: >-
+          The directory of the declared analysis's `astra.yaml`, relative to
+          the folder of this `astra.yaml` and inside the repository of the
+          root analysis. It doesn't start with `/` or `~`, separates folders
+          with `/` (never `\`), and has no control character; `..` segments
+          are allowed.
+      url:
+        pattern: '^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$(?!\n)'
+        description: >-
+          Where git fetches another repository from, as a remote:
+          `scheme://…`, such as `https://github.com/owner/analysis`, or
+          `[user@]host:path`, such as `git@github.com:owner/repo`. The
+          declared analysis is the one at the top level of that repository,
+          at `commit`. Anything local is a `path`.
+      commit:
+        range: commit_id
+        description: >-
+          The full id of the commit the declared analysis is read at. A
+          declaration with a `url` has one; with a `path`, it declares the
+          analysis at that path as it was at that commit.
+    exactly_one_of:
+      - slot_conditions:
+          path:
+            required: true
+      - slot_conditions:
+          url:
+            required: true
+    rules:
+      - description: A declaration with a `url` has a `commit`.
+        preconditions:
+          slot_conditions:
+            url:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            commit:
+              value_presence: PRESENT
+
   # --- Analysis ---
 
   Analysis:
@@ -318,6 +428,18 @@ classes:
         multivalued: true
         inlined: true
         description: The choices the analysis makes, keyed by id.
+      analyses:
+        range: AnalysisDeclaration
+        multivalued: true
+        inlined: true
+        description: >-
+          The other analyses this analysis uses, keyed by the id it addresses
+          them by.
+      universes:
+        range: Universe
+        multivalued: true
+        inlined: true
+        description: The universes of the analysis, keyed by id.
       container:
         description: >-
           Default container for recipes in this node.

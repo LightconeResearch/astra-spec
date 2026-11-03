@@ -2,9 +2,10 @@
 
 extends: default
 
-# A duplicate key is this fixture's point: it fails at parse.
+# A duplicate key is these fixtures' point: they fail at parse.
 ignore: |
   tests/data/invalid/Analysis-101-duplicate-output.yaml
+  tests/data/invalid/Analysis-146-duplicate-universe.yaml
 
 rules:
   document-start: disable  # Don't check if document has a start marker (---).

@@ -9,10 +9,15 @@
       "linkml": "https://w3id.org/linkml/",
       "skos": "http://www.w3.org/2004/02/skos/core#",
       "@vocab": "https://w3id.org/astra/",
+      "analyses": {
+         "@type": "@id",
+         "@id": "analyses"
+      },
       "container": {
          "@id": "container"
       },
       "decisions": {
+         "@type": "@id",
          "@id": "decisions"
       },
       "description": {
@@ -34,8 +39,21 @@
       "tags": {
          "@id": "tags"
       },
+      "universes": {
+         "@type": "@id",
+         "@id": "universes"
+      },
+      "commit": {
+         "@id": "commit"
+      },
       "id": {
          "@id": "id"
+      },
+      "path": {
+         "@id": "path"
+      },
+      "url": {
+         "@id": "url"
       },
       "options": {
          "@type": "@id",
@@ -47,8 +65,11 @@
       "when": {
          "@id": "when"
       },
-      "path": {
-         "@id": "path"
+      "decision": {
+         "@id": "decision"
+      },
+      "option": {
+         "@id": "option"
       },
       "excluded": {
          "@id": "excluded"
@@ -101,11 +122,20 @@
       "time_limit": {
          "@id": "time_limit"
       },
+      "derived_from": {
+         "@id": "derived_from"
+      },
       "Analysis": {
          "@id": "Analysis"
       },
+      "AnalysisDeclaration": {
+         "@id": "AnalysisDeclaration"
+      },
       "Decision": {
          "@id": "Decision"
+      },
+      "DecisionSelection": {
+         "@id": "DecisionSelection"
       },
       "Input": {
          "@id": "Input"
@@ -121,6 +151,9 @@
       },
       "Resources": {
          "@id": "Resources"
+      },
+      "Universe": {
+         "@id": "Universe"
       }
    }
 }

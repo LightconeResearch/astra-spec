@@ -1,0 +1,23 @@
+spec_version: "0.1.0"
+analyses:
+  stage:
+    path: stage
+  parent:
+    path: ..
+  previous:
+    path: .
+    commit: "0dbb615a0fa1b1d6ecf3158e97e35b57c606beb3"
+  upstream:
+    url: https://github.com/owner/analysis
+    commit: "0f2ce11579a60f84e4dd6a06b8da589991bd078e23f3cab3ab991fc95e373ecf"
+  ssh:
+    url: "git@github.com:owner/repo"
+    commit: "21ca41dd31d8d87c017e04a7b02b0ab7f7d6b30d"
+  local:
+    url: "file:///srv/repo"
+    commit: "18dbdb684ed8956ea319dbe6acbc4e0700577d38"
+outputs:
+  report:
+    type: report
+    format: pdf
+    inputs: ["upstream.summary#u1", stage.features]

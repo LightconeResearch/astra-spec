@@ -1,0 +1,20 @@
+# rule: SHORT_COMMIT
+# fails at: /analyses/up/commit
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+decisions:
+  model:
+    options:
+      rf: {}
+      svm: {}
+analyses:
+  up:
+    url: https://x/y
+    commit: main
+universes:
+  u:
+    decisions:
+      model: rf

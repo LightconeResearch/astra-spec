@@ -1,0 +1,21 @@
+# rule: INVALID_DECLARATION_SOURCE
+# fails at: /analyses/up
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+decisions:
+  model:
+    options:
+      rf: {}
+      svm: {}
+analyses:
+  up:
+    path: up
+    url: https://x/y
+    commit: "d1570f85f45af286e965bf70c451031763c5deee"
+universes:
+  u:
+    decisions:
+      model: rf
