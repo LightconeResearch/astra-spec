@@ -14,6 +14,7 @@ prefixes:
   astra: https://w3id.org/astra/
   linkml: https://w3id.org/linkml/
   oa: http://www.w3.org/ns/oa#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
 
 default_prefix: astra
 default_range: string
@@ -34,10 +35,13 @@ classes:
     attributes:
       exact:
         required: true
+        slot_uri: oa:exact
         description: The passage, exactly as the cited work writes it.
       prefix:
+        slot_uri: oa:prefix
         description: The text that comes just before the passage.
       suffix:
+        slot_uri: oa:suffix
         description: The text that comes just after the passage.
 
   FragmentSelector:
@@ -48,6 +52,7 @@ classes:
     attributes:
       value:
         required: true
+        slot_uri: rdf:value
         description: >-
           The PDF fragment identifier (RFC 3778), without the leading `#`,
           such as `page=6`.
@@ -68,8 +73,9 @@ classes:
         range: reference
         description: >-
           A reference to the cited output, written as in an output's
-          `inputs`. Evidence citing an output built per universe pins it to
-          the universe its claim is about, such as `f1_score#svm_standard`.
+          `inputs`. It may pin the output to a universe, and should when the
+          output is built per universe: to the universe the claim is about,
+          such as `f1_score#svm_standard`.
       version:
         range: integer
         minimum_value: 1

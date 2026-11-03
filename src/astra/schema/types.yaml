@@ -33,7 +33,7 @@ types:
     typeof: string
     description: >-
       An id: a lowercase ASCII letter, then any number of lowercase ASCII
-      letters, digits and underscores, such as `seed_42`.
+      letters, ASCII digits (`0`–`9`) and underscores, such as `seed_42`.
     structured_pattern:
       syntax: '^{id}$(?!\n)'
       interpolated: true
@@ -105,6 +105,8 @@ types:
     typeof: string
     uri: xsd:dateTime
     description: >-
-      A UTC date and time to the millisecond, `YYYY-MM-DDTHH:MM:SS.sssZ`, such
-      as `2026-10-26T14:00:00.000Z`.
-    pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$(?!\\n)"
+      A date and time in UTC to the millisecond, written
+      `YYYY-MM-DDThh:mm:ss.sssZ` with each field in its range (month 01–12,
+      day 01–31, hour 00–23, minute and second 00–59), such as
+      `2026-10-26T14:00:00.000Z`.
+    pattern: "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$(?!\\n)"

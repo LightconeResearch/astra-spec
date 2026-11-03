@@ -17,7 +17,7 @@ HEX_64 = "0123456789abcdef" * 4
 # valid value plus a final "\n", which Python's `$` alone would let through.
 TABLE = {
     "id": (
-        ["a", "f1_score", "seed_42"],
+        ["a", "f1_score", "seed_42", "a_"],
         ["A", "1a", "_a", "rf-standard", "a.b", "", "séed", "a\n"],
     ),
     "address": (
@@ -34,7 +34,7 @@ TABLE = {
     ),
     "condition": (
         ["scaling.standard", "~scaling.standard", "~iris.random_seed.seed_42"],
-        ["scaling", "~~a.b", "!a.b", "~ a.b", "~scaling.standard\n"],
+        ["scaling", "~scaling", "a.~b", "~~a.b", "!a.b", "~ a.b", "~scaling.standard\n"],
     ),
     "commit_id": (
         [HEX_40, HEX_64],
@@ -55,13 +55,18 @@ TABLE = {
         ["0.1", "v0.1.0", "01.1.0", "0.1.0-rc1", "0.1.0\n"],
     ),
     "timestamp": (
-        ["2026-10-26T14:00:00.000Z"],
+        ["2026-10-26T14:00:00.000Z", "2026-12-31T23:59:59.999Z", "2026-01-01T00:00:00.000Z"],
         [
             "2026-10-26T14:00:00Z",
             "2026-10-26T14:00:00.000+00:00",
             "2026-10-26 14:00:00.000Z",
             "2026-10-26T14:00:00.0000Z",
             "2026-10-26T14:00:00.000Z\n",
+            "2026-13-01T00:00:00.000Z",
+            "2026-01-32T00:00:00.000Z",
+            "2026-01-01T24:00:00.000Z",
+            "2026-01-01T00:60:00.000Z",
+            "2026-01-01T00:00:60.000Z",
         ],
     ),
 }

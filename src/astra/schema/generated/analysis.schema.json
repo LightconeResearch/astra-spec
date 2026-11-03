@@ -37,7 +37,7 @@
           "type": "string"
         },
         "path": {
-          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml` and inside the repository of the root analysis. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), and has no control character; `..` segments are allowed.",
+          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml` and inside the repository of the root analysis. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), and has no ASCII control character (U+0000\u2013U+001F, U+007F); `..` segments are allowed.",
           "pattern": "^(?![/~])[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
           "type": "string"
         },
@@ -140,7 +140,7 @@
       ],
       "properties": {
         "artifact": {
-          "description": "A reference to the cited output, written as in an output's `inputs`. Evidence citing an output built per universe pins it to the universe its claim is about, such as `f1_score#svm_standard`.",
+          "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, and should when the output is built per universe: to the universe the claim is about, such as `f1_score#svm_standard`.",
           "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
           "type": "string"
         },
@@ -204,7 +204,7 @@
           "type": "string"
         },
         "path": {
-          "description": "The path of the input's file, relative to the folder of the `astra.yaml`. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), has no `..` segment or control character, and doesn't end in `/`.",
+          "description": "The path of the input's file, relative to the folder of the `astra.yaml`. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), has no `..` segment or ASCII control character (U+0000\u2013U+001F, U+007F), and doesn't end in `/`.",
           "pattern": "^(?![/~])(?!(?:[^\\x00-\\x1f\\x7f]*/)?\\.\\.(?:/|$))(?![^\\x00-\\x1f\\x7f]*/$)[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
           "type": "string"
         },
@@ -479,7 +479,7 @@
     },
     "Universe__identifier_optional": {
       "additionalProperties": false,
-      "description": "A universe: a selection of one option for every active decision of the analysis and of every analysis it drives. Its effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` applied on top.",
+      "description": "A universe: a selection of one option for every active decision of the analysis and of every analysis it drives. Its effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` written over it and every inherited selection of a decision that isn't active in the result dropped, so a universe that switches a decision on must set it.",
       "properties": {
         "decisions": {
           "additionalProperties": {
@@ -495,7 +495,7 @@
           "type": "object"
         },
         "derived_from": {
-          "description": "The id of another universe of the analysis. This universe inherits that universe's effective selection, with its own `decisions` applied on top, so it needs to give only the decisions it changes.",
+          "description": "The id of another universe of the analysis, whose effective selection this universe's effective selection is built on, so that this universe gives only the decisions it changes.",
           "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
           "type": "string"
         },
@@ -538,7 +538,7 @@
       "type": "object"
     },
     "container": {
-      "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
+      "description": "The default container for this analysis's recipes. Image names are pulled; file paths are built from source.",
       "type": "string"
     },
     "decisions": {
