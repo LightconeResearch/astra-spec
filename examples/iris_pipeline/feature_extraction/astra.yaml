@@ -1,0 +1,63 @@
+spec_version: "0.1.0"
+label: Feature extraction
+description: |
+  Learns a low-dimensional representation of the 4 Iris features. PCA
+  provides a linear, deterministic baseline; the MLP encoder trains a
+  small autoencoder (4-8-k-8-4) and keeps the bottleneck layer as the
+  representation. It reads the root's data and seed by address, and
+  emits the transformed features matrix and a feature-plot scatter.
+
+analyses:
+  iris:
+    path: ..
+
+decisions:
+  method:
+    label: Extraction method
+    rationale: >-
+      PCA is interpretable and deterministic; MLP encoder may capture
+      nonlinear structure
+    options:
+      pca:
+        label: PCA
+        description: Principal Component Analysis
+      mlp_encoder:
+        label: MLP encoder
+        description: Bottleneck layer of a small autoencoder (4-8-k-8-4)
+        incompatible_with: [n_components.three]
+
+  n_components:
+    label: Number of components
+    rationale: Dimensionality of the learned representation
+    options:
+      two:
+        label: "2"
+        description: Aggressive reduction, easy to visualize
+      three:
+        label: "3"
+        description: >-
+          Retains more variance but bottleneck is nearly input-sized for
+          the encoder
+
+outputs:
+  features:
+    type: data
+    format: npy
+    description: Transformed feature matrix (n_samples x n_components)
+    inputs: [iris.iris_data]
+    decisions: [method, n_components, iris.random_seed]
+    recipe:
+      command: >-
+        python src/extract.py --data {inputs.iris.iris_data}
+        --method {decisions.method}
+        --components {decisions.n_components}
+        --seed {decisions.iris.random_seed} --out {output}
+
+  feature_plot:
+    type: figure
+    format: png
+    description: Scatter plot of extracted features
+    inputs: [features]
+    decisions: [method, n_components]
+    recipe:
+      command: python src/plot.py --features {inputs.features} --out {output}

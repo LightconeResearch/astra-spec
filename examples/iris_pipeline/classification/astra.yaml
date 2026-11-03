@@ -1,0 +1,56 @@
+spec_version: "0.1.0"
+label: Classification
+description: |
+  Trains a classifier on the extracted features and evaluates its
+  accuracy on the held-out test set. The classifier algorithm (logistic
+  regression, SVM, or k-NN) is selectable. It reads its sibling's
+  features and the root's split in the universe being built, and emits
+  test-set predictions and an accuracy metric.
+
+analyses:
+  iris:
+    path: ..
+  feature_extraction:
+    path: ../feature_extraction
+
+decisions:
+  classifier:
+    label: Classifier
+    rationale: >-
+      Logistic regression is a strong linear baseline; SVM adds a
+      nonlinear kernel
+    options:
+      logistic:
+        label: Logistic regression
+        description: Multinomial logistic regression with L2 penalty
+      svm:
+        label: SVM
+        description: Support vector machine with radial basis function kernel
+      knn:
+        label: k-NN
+        description: k=5 nearest neighbors in the extracted feature space
+
+outputs:
+  predictions:
+    type: data
+    format: csv
+    description: Predicted class labels for the test set
+    inputs: [feature_extraction.features, iris.split]
+    decisions: [classifier]
+    recipe:
+      command: >-
+        python src/classify.py
+        --features {inputs.feature_extraction.features}
+        --split {inputs.iris.split} --classifier {decisions.classifier}
+        --out {output}
+
+  accuracy:
+    type: metric
+    format: json
+    description: Classification accuracy on held-out test set
+    inputs: [predictions]
+    decisions: [classifier]
+    recipe:
+      command: >-
+        python src/evaluate.py --predictions {inputs.predictions}
+        --out {output}
