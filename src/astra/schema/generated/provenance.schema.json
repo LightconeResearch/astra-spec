@@ -1,4 +1,5 @@
 {
+  "$comment": "provenance schema version 0.0.14",
   "$defs": {
     "Environment": {
       "additionalProperties": false,
@@ -59,45 +60,6 @@
       "title": "Generation",
       "type": "object"
     },
-    "ProvenanceRecord": {
-      "additionalProperties": false,
-      "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it.",
-      "properties": {
-        "address": {
-          "description": "The result as the analysis it belongs to addresses it: the output's id, after the ids of the declared analyses that lead to it, then `#` and the universe's id when the result is built in a universe, such as `subanalysis1.output1#u1`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
-          "type": "string"
-        },
-        "content_hash": {
-          "description": "The SHA-256 digest of the result's bytes.",
-          "pattern": "^sha256:[0-9a-f]{64}$(?!\\n)",
-          "type": "string"
-        },
-        "generated_by": {
-          "$ref": "#/$defs/Generation",
-          "description": "The run of the recipe that made the result."
-        },
-        "size": {
-          "description": "The size of the result, in bytes.",
-          "minimum": 0,
-          "type": "integer"
-        },
-        "spec_version": {
-          "description": "The version of the ASTRA specification the record follows, such as `0.1.0`.",
-          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)",
-          "type": "string"
-        }
-      },
-      "required": [
-        "spec_version",
-        "address",
-        "content_hash",
-        "size",
-        "generated_by"
-      ],
-      "title": "ProvenanceRecord",
-      "type": "object"
-    },
     "RecordedInput": {
       "additionalProperties": false,
       "description": "One of the output's inputs, as the recipe read it: the entry, and the content hash and size of what the recipe read through it.",
@@ -151,7 +113,6 @@
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "additionalProperties": false,
   "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it.",
-  "metamodel_version": "1.12.0",
   "properties": {
     "address": {
       "description": "The result as the analysis it belongs to addresses it: the output's id, after the ids of the declared analyses that lead to it, then `#` and the universe's id when the result is built in a universe, such as `subanalysis1.output1#u1`.",
@@ -186,6 +147,5 @@
     "generated_by"
   ],
   "title": "provenance",
-  "type": "object",
-  "version": "0.0.14"
+  "type": "object"
 }

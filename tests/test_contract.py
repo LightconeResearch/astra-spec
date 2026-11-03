@@ -11,6 +11,7 @@ from typing import Any
 
 import pytest
 from jsonschema import Draft201909Validator
+from jsonschema_specifications import REGISTRY
 
 from .conftest import GENERATED, REPO_ROOT, load_yaml
 
@@ -39,6 +40,15 @@ ONE_CLASS = re.compile(r"\[\^?(?:\\.|[^\\\]])+\]", re.DOTALL)
 
 DIALECT_ESCAPES = set("dDwWsSbBAZz")
 """Escapes that Python's `re` and ECMA-262 define differently, or that only one of them has."""
+
+STANDARD_KEYWORDS = {
+    keyword
+    for vocabulary in ("core", "applicator", "validation", "meta-data")
+    for keyword in REGISTRY.contents(f"https://json-schema.org/draft/2019-09/meta/{vocabulary}")["properties"]
+}
+"""The keywords of JSON Schema 2019-09's core, applicator, validation and meta-data vocabularies."""
+
+DEF_PREFIX = "#/$defs/"
 
 
 def load(name: str) -> dict[str, Any]:
@@ -104,6 +114,33 @@ def source_maps() -> set[tuple[str, str]]:
         for name, slot in source_slots(class_name).items()
         if slot.get("multivalued") and slot.get("inlined") and not slot.get("inlined_as_list")
     }
+
+
+def references(node: Any) -> set[str]:
+    """The name of every `$defs` entry that a `$ref` anywhere in `node` points to."""
+    return {
+        child["$ref"].removeprefix(DEF_PREFIX)
+        for _, child in nodes(node)
+        if isinstance(child.get("$ref"), str) and child["$ref"].startswith(DEF_PREFIX)
+    }
+
+
+def reachable(schema: dict) -> set[str]:
+    """The `$defs` entries that a `$ref` reaches from the root, directly or through other entries."""
+    found: set[str] = set()
+    todo = references({key: value for key, value in schema.items() if key != "$defs"})
+    while todo:
+        name = todo.pop()
+        found.add(name)
+        todo |= references(schema["$defs"][name]) - found
+    return found
+
+
+def item_type(items: dict, defs: dict) -> Any:
+    """The JSON type of a list's items, through their `$ref` if they have one."""
+    if "$ref" in items:
+        items = defs[items["$ref"].removeprefix(DEF_PREFIX)]
+    return items.get("type")
 
 
 def accepts_null(subschema: dict, defs: dict) -> bool:
@@ -226,3 +263,28 @@ def test_every_pattern_means_the_same_in_python_and_ecma_262(name):
 def test_each_schema_is_identified_by_its_own_file_uri():
     """Each JSON Schema's `$id` is its published URI, so the closed and open record schemas are distinct."""
     assert {name: load(name).get("$id") for name in ROOTS} == {name: NAMESPACE + name for name in ROOTS}
+
+
+@pytest.mark.parametrize("name", ROOTS)
+def test_top_level_holds_only_standard_keywords(name):
+    """No LinkML keyword at the top level, so strict validators (Ajv) compile the contract; the version is a comment."""
+    schema = load(name)
+    assert sorted(set(schema) - STANDARD_KEYWORDS) == []
+    assert re.fullmatch(r".* version [0-9]+\.[0-9]+\.[0-9]+", schema.get("$comment", ""))
+
+
+@pytest.mark.parametrize("name", ROOTS)
+def test_every_def_is_reachable_from_the_root(name):
+    schema = load(name)
+    assert sorted(set(schema["$defs"]) - reachable(schema)) == []
+
+
+@pytest.mark.parametrize("name", ROOTS)
+def test_lists_of_strings_hold_no_entry_twice(name):
+    """`uniqueItems` on every list of scalars, and on no list of objects (`DUPLICATE_ENTRY`)."""
+    schema = load(name)
+    lists = [(pointer, node) for pointer, node in nodes(schema) if node.get("type") == "array"]
+    assert lists
+    found = {pointer: node.get("uniqueItems") is True for pointer, node in lists}
+    expected = {pointer: item_type(node["items"], schema["$defs"]) != "object" for pointer, node in lists}
+    assert found == expected

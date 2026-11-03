@@ -9,7 +9,18 @@ own key. This generator instead:
 2. allows one written form per entry:
    - the compact form, when the class has its key and exactly one other slot:
      the entry is that slot's value;
-   - otherwise the object form: the entry is the object, without its key.
+   - otherwise the object form: the entry is the object, without its key. In a
+     closed schema the key is then written once, as the map key; an open one
+     lets an entry repeat it as a field it doesn't define.
+
+It also:
+
+3. adds ``uniqueItems`` to every multivalued slot of scalars, so that no list of
+   strings holds the same entry twice (lists of objects are left as they are);
+4. drops every ``$defs`` entry the root can't reach through ``$ref``, and keeps
+   only standard JSON Schema keywords at the top level: LinkML's
+   ``metamodel_version`` goes, and the schema's ``version`` moves into
+   ``$comment``.
 
 Through :func:`generate`, optional fields also reject null (``include_null=False``),
 and the schema's ``$id`` can be set, so that each generated file is identified
@@ -23,6 +34,9 @@ from pathlib import Path
 
 from linkml.generators.jsonschemagen import JsonSchema, JsonSchemaGenerator
 from linkml_runtime.linkml_model.meta import SlotDefinition
+
+DEF_PREFIX = "#/$defs/"
+"""How a `$ref` to an entry of the schema's `$defs` starts."""
 
 
 @dataclass
@@ -41,15 +55,25 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
             prop["propertyNames"] = JsonSchema({"type": "string"})
             prop["propertyNames"].add_keyword("pattern", key_pattern)
             prop["additionalProperties"] = self._entry_subschema(slot, key_slot)
+        if not omit_type and prop.is_array and getattr(slot, "range", None) not in self.schemaview.all_classes():
+            prop["uniqueItems"] = True
         return prop
 
     def after_generate_schema(self, schema, sv):
-        """Drop the key from each object-form entry definition, so the id is written once, as the key."""
+        """LinkML's schema, with the keys dropped from map entries, unreachable `$defs` pruned, the top level standard."""
+        schema = super().after_generate_schema(schema, sv)
+        top = schema.schema_
         for name, key in self._entry_keys.items():
-            entry = schema.schema_["$defs"][name]
+            entry = top["$defs"][name]
             del entry["properties"][key]
             if key in entry.get("required", []):
                 entry["required"].remove(key)
+        reached = _reachable_defs(top)
+        top["$defs"] = {name: definition for name, definition in top["$defs"].items() if name in reached}
+        top.pop("metamodel_version", None)
+        version = top.pop("version", None)
+        if version is not None:
+            top["$comment"] = f"{self.schema.name} schema version {version}"
         return schema
 
     def _map_key_slot(self, slot) -> SlotDefinition | None:
@@ -71,6 +95,31 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
         for ref in entry.get("anyOf", [entry]):
             self._entry_keys[ref["$ref"].removeprefix("#/$defs/")] = self.aliased_slot_name(key_slot)
         return entry
+
+
+def _references(node) -> set[str]:
+    """The names of the `$defs` entries that a `$ref` anywhere in `node` points to."""
+    if isinstance(node, list):
+        return set().union(*map(_references, node))
+    if not isinstance(node, dict):
+        return set()
+    found = set().union(*map(_references, node.values()))
+    ref = node.get("$ref")
+    if isinstance(ref, str) and ref.startswith(DEF_PREFIX):
+        found.add(ref.removeprefix(DEF_PREFIX))
+    return found
+
+
+def _reachable_defs(schema: dict) -> set[str]:
+    """The `$defs` entries of `schema` that its root reaches through `$ref`, directly or through other entries."""
+    defs = schema.get("$defs", {})
+    reached: set[str] = set()
+    todo = _references({key: value for key, value in schema.items() if key != "$defs"})
+    while todo:
+        name = todo.pop()
+        reached.add(name)
+        todo |= _references(defs[name]) - reached
+    return reached
 
 
 def generate(schema: str | Path, *, closed: bool = True, schema_id: str | None = None) -> dict:

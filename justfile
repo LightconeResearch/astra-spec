@@ -24,7 +24,6 @@ source_schema_dir := env_var_or_default("LINKML_SCHEMA_SOURCE_DIR", "")
 gen_doc_args := env_var_or_default("LINKML_GENERATORS_DOC_ARGS", "")
 
 # Directory variables
-dest := "project"
 schema_source_file := env_var_or_default("LINKML_SCHEMA_SOURCE_FILE", schema_name)
 source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 # Generators read from a staged copy under tmp/schema/ where the version is
@@ -67,7 +66,7 @@ update: _update-template _update-linkml
 
 # Clean all generated files
 [group('project management')]
-clean: _clean_project
+clean:
   rm -rf tmp
   rm -rf {{docdir}}/*.md
 
@@ -118,15 +117,15 @@ _docs-prep: gen-doc docs-install
 [group('model development')]
 test: check-generated _pytest lint
 
-# Generate the JSON Schemas and the JSON-LD contexts of the analysis document
-# and the provenance record (closed, and open for fields it doesn't know)
-# into `out`, from the staged (versioned) schema. Each JSON Schema's `$id` is
-# the URI of its own file, so the closed and open record schemas are distinct
+# Generate the JSON Schemas of the analysis document and the provenance record
+# (closed, and open for fields it doesn't know), and the record's JSON-LD
+# context, into `out`, from the staged (versioned) schema. Each JSON Schema's
+# `$id` is the URI of its own file, so the closed and open record schemas are
+# distinct
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned
   mkdir -p {{out}}
   uv run python tools/jsonschema_generator.py --id {{schema_namespace}}analysis.schema.json {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
-  uv run gen-jsonld-context {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.context.jsonld
   uv run python tools/jsonschema_generator.py --id {{schema_namespace}}provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
   uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
   uv run gen-jsonld-context {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
@@ -178,7 +177,7 @@ release version:
   git tag -a "v{{version}}" -m "Release v{{version}}"
   echo
   echo "Created commit and tag v{{version}}. Next steps:"
-  echo "  - git push && git push origin v{{version}}"
+  echo "  - git push --atomic origin HEAD v{{version}}"
   echo "  - the deploy-docs-on-tag workflow will publish the docs automatically"
 
 # Generate md documentation for the schema and add artifacts: both roots, the
@@ -252,7 +251,8 @@ _pytest:
 # Stage a versioned copy of every schema YAML under tmp/schema/. The version
 # is injected at build time so source files keep a stable placeholder and are
 # never mutated by `gen-doc`. Uses $RELEASE_VERSION when set,
-# otherwise falls back to the latest git tag.
+# otherwise falls back to the latest git tag. The directory is cleared first,
+# so a module that no longer exists isn't staged.
 _stage-versioned:
   #!/usr/bin/env bash
   set -euo pipefail
@@ -262,6 +262,7 @@ _stage-versioned:
     TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
     VERSION=${TAG#v}
   fi
+  rm -rf {{staged_schema_dir}}
   mkdir -p {{staged_schema_dir}}
   for f in {{source_schema_dir}}/*.yaml; do
     base=$(basename "$f")
@@ -277,8 +278,8 @@ _gen-yaml:
   -mkdir -p {{distrib_schema_path}}
   uv run gen-yaml {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
 
-# Publish the committed contract, the JSON Schemas and JSON-LD contexts of
-# `gen-schema`, beside the merged model. Copied, not regenerated: stock
+# Publish the committed contract, the JSON Schemas and the record's JSON-LD
+# context of `gen-schema`, beside the merged model. Copied, not regenerated: stock
 # `gen-json-schema` would publish a second, weaker schema (design D1). Any
 # other .json or .jsonld there is removed, so only the contract is published.
 _add-artifacts:
@@ -300,15 +301,6 @@ _git-commit:
 # Show git status
 _git-status:
   git status
-
-_clean_project:
-    #!{{shebang}}
-    import shutil, pathlib
-    # remove the generated project files
-    for d in pathlib.Path("{{dest}}").iterdir():
-        if d.is_dir():
-            print(f'removing "{d}"')
-            shutil.rmtree(d, ignore_errors=True)
 
 # ============== Include project-specific recipes ==============
 

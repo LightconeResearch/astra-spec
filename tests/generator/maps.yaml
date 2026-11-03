@@ -46,6 +46,14 @@ classes:
         minimum_cardinality: 1
       note:
         description: An optional string.
+      names:
+        description: A list of strings.
+        multivalued: true
+      listed_things:
+        description: A list of things, each written with its id.
+        range: Thing
+        multivalued: true
+        inlined_as_list: true
 
   Thing:
     description: A thing with a key and two other slots.

@@ -70,6 +70,15 @@ def test_required_maps_keep_one_entry(closed):
     assert failures(closed, {"required_things": {}}) == {"/required_things"}
 
 
+def test_lists_of_scalars_hold_no_entry_twice(closed):
+    assert failures(closed, document(names=["a", "b"])) == set()
+    assert failures(closed, document(names=["a", "a"])) == {"/names"}
+
+
+def test_lists_of_objects_may_repeat_an_item(closed):
+    assert failures(closed, document(listed_things=[{"id": "a"}, {"id": "a"}])) == set()
+
+
 def test_open_variant_allows_unknown_fields(closed, open_):
     assert failures(closed, document(extra=1)) == {""}
     assert failures(open_, document(extra=1)) == set()

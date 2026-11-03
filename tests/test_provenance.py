@@ -1,4 +1,4 @@
-"""The provenance record: its open variant, and its mapping onto PROV-O (design §3, §6, D4, D10)."""
+"""The provenance record: its open variant, and its mapping onto PROV-O (design §3, §6, D10)."""
 
 import json
 from pathlib import Path
@@ -64,9 +64,3 @@ def test_classes_map_onto_prov():
         "Environment": PROV + "Entity",
         "Runner": PROV + "SoftwareAgent",
     }
-
-
-def test_analysis_context_has_no_global_ids():
-    terms = context(GENERATED / "analysis.context.jsonld")
-    global_ids = [t for t, d in terms.items() if d == "@id" or (isinstance(d, dict) and d.get("@id") == "@id")]
-    assert global_ids == []

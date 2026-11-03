@@ -35,8 +35,9 @@ def test_wheel_ships_only_schema_artefacts(tmp_path):
 def test_wheel_ships_the_contract(tmp_path):
     names = set(built_wheel(tmp_path).namelist())
     contract = ["analysis.schema.json", "provenance.schema.json", "provenance.open.schema.json"]
-    contexts = ["analysis.context.jsonld", "provenance.context.jsonld"]
-    assert [f for f in contract + contexts if f"astra/schema/generated/{f}" not in names] == []
+    contexts = ["provenance.context.jsonld"]
+    shipped = sorted(n.removeprefix("astra/schema/generated/") for n in names if n.startswith("astra/schema/generated/"))
+    assert shipped == sorted(contract + contexts)
 
 
 def test_wheel_ships_the_sources(tmp_path):

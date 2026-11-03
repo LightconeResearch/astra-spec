@@ -1,184 +1,6 @@
 {
+  "$comment": "analysis schema version 0.0.14",
   "$defs": {
-    "Analysis": {
-      "additionalProperties": false,
-      "description": "An analysis: the files it reads, the artefacts it makes and the decisions it makes along the way. It is the content of an `astra.yaml` file.",
-      "properties": {
-        "analyses": {
-          "additionalProperties": {
-            "$ref": "#/$defs/AnalysisDeclaration__identifier_optional"
-          },
-          "description": "The other analyses this analysis uses, keyed by the id it addresses them by.",
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "container": {
-          "description": "Default container for recipes in this node. Image names are pulled; file paths are built from source.",
-          "type": "string"
-        },
-        "decisions": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Decision__identifier_optional"
-          },
-          "description": "The choices the analysis makes, keyed by id.",
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "description": {
-          "description": "What the analysis does, in free prose.",
-          "type": "string"
-        },
-        "findings": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Insight__identifier_optional"
-          },
-          "description": "What the analysis concludes, as insights keyed by id.",
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "inputs": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Input__identifier_optional"
-          },
-          "description": "The files the analysis reads, keyed by id.",
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "label": {
-          "description": "A short display name for the analysis.",
-          "type": "string"
-        },
-        "outputs": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Output__identifier_optional"
-          },
-          "description": "The artefacts the analysis makes, keyed by id. There is at least one.",
-          "minProperties": 1,
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "prior_insights": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Insight__identifier_optional"
-          },
-          "description": "What earlier work establishes and the analysis builds on, as insights keyed by id. Options cite them in their `insights`.",
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "spec_version": {
-          "description": "The version of the ASTRA specification the document is written against, such as `0.1.0`.",
-          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)",
-          "type": "string"
-        },
-        "tags": {
-          "description": "Keywords for grouping and finding the analysis.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "universes": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Universe__identifier_optional"
-          },
-          "description": "The universes of the analysis, keyed by id.",
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        }
-      },
-      "required": [
-        "spec_version",
-        "outputs"
-      ],
-      "title": "Analysis",
-      "type": "object"
-    },
-    "AnalysisDeclaration": {
-      "additionalProperties": false,
-      "description": "Another analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
-      "if": {
-        "properties": {
-          "url": {}
-        },
-        "required": [
-          "url"
-        ]
-      },
-      "oneOf": [
-        {
-          "properties": {
-            "path": {}
-          },
-          "required": [
-            "path"
-          ]
-        },
-        {
-          "properties": {
-            "url": {}
-          },
-          "required": [
-            "url"
-          ]
-        }
-      ],
-      "properties": {
-        "commit": {
-          "description": "The full id of the commit the declared analysis is read at. A declaration with a `url` has one; with a `path`, it declares the analysis at that path as it was at that commit.",
-          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)",
-          "type": "string"
-        },
-        "id": {
-          "description": "The id this analysis addresses the declared analysis by, written as its key in `analyses`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        },
-        "path": {
-          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml` and inside the repository of the root analysis. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), and has no control character; `..` segments are allowed.",
-          "pattern": "^(?![/~])[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
-          "type": "string"
-        },
-        "url": {
-          "description": "Where git fetches another repository from, as a remote: `scheme://\u2026`, such as `https://github.com/owner/analysis`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`. An analysis inside the root's repository is declared by `path`, and another repository on this machine by an explicit `file://` URL, such as `file:///srv/repo`; a bare word or a local path, such as `../repo` or `C:/repo`, is not a `url`.",
-          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z]:)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
-          "type": "string"
-        }
-      },
-      "required": [
-        "id"
-      ],
-      "then": {
-        "properties": {
-          "commit": {}
-        },
-        "required": [
-          "commit"
-        ]
-      },
-      "title": "AnalysisDeclaration",
-      "type": "object"
-    },
     "AnalysisDeclaration__identifier_optional": {
       "additionalProperties": false,
       "description": "Another analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
@@ -237,101 +59,6 @@
       "title": "AnalysisDeclaration",
       "type": "object"
     },
-    "Decision": {
-      "additionalProperties": false,
-      "description": "A choice the analysis makes between options, such as which estimator to use.",
-      "properties": {
-        "id": {
-          "description": "The decision's id, written as its key in `decisions`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        },
-        "label": {
-          "description": "A short display name for the decision.",
-          "type": "string"
-        },
-        "options": {
-          "additionalProperties": {
-            "$ref": "#/$defs/Option__identifier_optional"
-          },
-          "description": "The options the decision chooses between, keyed by id. There is at least one.",
-          "minProperties": 1,
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "rationale": {
-          "description": "Why the analysis makes this decision, in free prose.",
-          "type": "string"
-        },
-        "tags": {
-          "description": "Keywords for grouping and finding the decision.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "when": {
-          "description": "The conditions under which the decision is active. It is active only when every condition holds.",
-          "items": {
-            "pattern": "^(?:^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "id",
-        "options"
-      ],
-      "title": "Decision",
-      "type": "object"
-    },
-    "DecisionSelection": {
-      "additionalProperties": false,
-      "description": "The option a universe selects for one decision, written in the universe's `decisions` as `<decision>: <option>`, such as `model: svm`.",
-      "properties": {
-        "decision": {
-          "description": "The address of the decision, written as its key in the universe's `decisions`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
-          "type": "string"
-        },
-        "option": {
-          "description": "The id of the option selected for the decision.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "decision",
-        "option"
-      ],
-      "title": "DecisionSelection",
-      "type": "object"
-    },
-    "DecisionSelection__identifier_optional": {
-      "additionalProperties": false,
-      "description": "The option a universe selects for one decision, written in the universe's `decisions` as `<decision>: <option>`, such as `model: svm`.",
-      "properties": {
-        "decision": {
-          "description": "The address of the decision, written as its key in the universe's `decisions`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
-          "type": "string"
-        },
-        "option": {
-          "description": "The id of the option selected for the decision.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "option"
-      ],
-      "title": "DecisionSelection",
-      "type": "object"
-    },
     "Decision__identifier_optional": {
       "additionalProperties": false,
       "description": "A choice the analysis makes between options, such as which estimator to use.",
@@ -361,7 +88,8 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "when": {
           "description": "The conditions under which the decision is active. It is active only when every condition holds.",
@@ -369,7 +97,8 @@
             "pattern": "^(?:^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [
@@ -462,43 +191,6 @@
       "title": "FragmentSelector",
       "type": "object"
     },
-    "Input": {
-      "additionalProperties": false,
-      "description": "A file the analysis reads, committed with it and named by its path.",
-      "properties": {
-        "description": {
-          "description": "What the input's data is, in free prose.",
-          "type": "string"
-        },
-        "id": {
-          "description": "The input's id, written as its key in `inputs`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        },
-        "label": {
-          "description": "A short display name for the input.",
-          "type": "string"
-        },
-        "path": {
-          "description": "The path of the input's file, relative to the folder of the `astra.yaml`. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), has no `..` segment or control character, and doesn't end in `/`.",
-          "pattern": "^(?![/~])(?!(?:[^\\x00-\\x1f\\x7f]*/)?\\.\\.(?:/|$))(?![^\\x00-\\x1f\\x7f]*/$)[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
-          "type": "string"
-        },
-        "tags": {
-          "description": "Keywords for grouping and finding the input.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "id",
-        "path"
-      ],
-      "title": "Input",
-      "type": "object"
-    },
     "Input__identifier_optional": {
       "additionalProperties": false,
       "description": "A file the analysis reads, committed with it and named by its path.",
@@ -521,62 +213,14 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [
         "path"
       ],
       "title": "Input",
-      "type": "object"
-    },
-    "Insight": {
-      "additionalProperties": false,
-      "description": "A claim backed by evidence: as a prior insight, what earlier work establishes and the analysis builds on; as a finding, what the analysis concludes.",
-      "properties": {
-        "claim": {
-          "description": "What the insight asserts, in one or two sentences.",
-          "type": "string"
-        },
-        "description": {
-          "description": "The reasoning behind the claim, in free prose.",
-          "type": "string"
-        },
-        "evidence": {
-          "description": "What the claim rests on, as a list. There is at least one.",
-          "items": {
-            "$ref": "#/$defs/Evidence"
-          },
-          "minItems": 1,
-          "type": "array"
-        },
-        "id": {
-          "description": "The insight's id, written as its key in `prior_insights` or `findings`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        },
-        "label": {
-          "description": "A short display name for the insight.",
-          "type": "string"
-        },
-        "scope": {
-          "description": "The conditions under which the claim holds, in free prose.",
-          "type": "string"
-        },
-        "tags": {
-          "description": "Keywords for grouping and finding the insight.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "id",
-        "claim",
-        "evidence"
-      ],
-      "title": "Insight",
       "type": "object"
     },
     "Insight__identifier_optional": {
@@ -612,7 +256,8 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [
@@ -620,66 +265,6 @@
         "evidence"
       ],
       "title": "Insight",
-      "type": "object"
-    },
-    "Option": {
-      "additionalProperties": false,
-      "description": "One of the options a decision chooses between.",
-      "properties": {
-        "description": {
-          "description": "What the option is, in free prose.",
-          "type": "string"
-        },
-        "excluded": {
-          "description": "Why the option is ruled out, as a reason that is not blank. An option with a reason is excluded: no universe selects it.",
-          "pattern": "[^\\x00-\\x20\\x7f]",
-          "type": "string"
-        },
-        "id": {
-          "description": "The option's id, written as its key in `options`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        },
-        "incompatible_with": {
-          "description": "The options that are never selected together with this option.",
-          "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "insights": {
-          "description": "The ids of the prior insights that support the option.",
-          "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "label": {
-          "description": "A short display name for the option.",
-          "type": "string"
-        },
-        "requires": {
-          "description": "The options that are also selected whenever this option is.",
-          "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "tags": {
-          "description": "Keywords for grouping and finding the option.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "id"
-      ],
-      "title": "Option",
       "type": "object"
     },
     "Option__identifier_optional": {
@@ -701,7 +286,8 @@
             "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "insights": {
           "description": "The ids of the prior insights that support the option.",
@@ -709,7 +295,8 @@
             "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "label": {
           "description": "A short display name for the option.",
@@ -721,88 +308,20 @@
             "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "tags": {
           "description": "Keywords for grouping and finding the option.",
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [],
       "title": "Option",
-      "type": "object"
-    },
-    "Output": {
-      "additionalProperties": false,
-      "description": "An artefact the analysis makes, such as a metric, a figure or a table: what it is, what it is made from, and how.",
-      "properties": {
-        "decisions": {
-          "description": "The addresses of the decisions the output depends on: a different option for any of them can give a different result.",
-          "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "description": {
-          "description": "What the output is, in free prose.",
-          "type": "string"
-        },
-        "format": {
-          "description": "How the output's artefact is encoded, as a lowercase token: the file extension it is written with, without the leading dot, such as `png`, `csv` or `parquet`. Any token that matches the pattern is a format.",
-          "pattern": "^[a-z0-9][a-z0-9_.+-]*$(?!\\n)",
-          "type": "string"
-        },
-        "id": {
-          "description": "The output's id, written as its key in `outputs`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        },
-        "inputs": {
-          "description": "What the output is made from, in order: references to inputs and outputs, each of which can be pinned to a universe with `#`.",
-          "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "label": {
-          "description": "A short display name for the output.",
-          "type": "string"
-        },
-        "recipe": {
-          "$ref": "#/$defs/Recipe",
-          "description": "How the output is made."
-        },
-        "tags": {
-          "description": "Keywords for grouping and finding the output.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "type": {
-          "$ref": "#/$defs/OutputType",
-          "description": "The kind of artefact the output is."
-        },
-        "when": {
-          "description": "The conditions under which the output is active. It is active only when every condition holds.",
-          "items": {
-            "pattern": "^(?:^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "id",
-        "type",
-        "format"
-      ],
-      "title": "Output",
       "type": "object"
     },
     "OutputType": {
@@ -827,7 +346,8 @@
             "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "description": {
           "description": "What the output is, in free prose.",
@@ -844,7 +364,8 @@
             "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "label": {
           "description": "A short display name for the output.",
@@ -859,7 +380,8 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         },
         "type": {
           "$ref": "#/$defs/OutputType",
@@ -871,7 +393,8 @@
             "pattern": "^(?:^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [
@@ -954,55 +477,6 @@
       "title": "TextQuoteSelector",
       "type": "object"
     },
-    "Universe": {
-      "additionalProperties": false,
-      "description": "A universe: a selection of one option for every active decision of the analysis and of every analysis it drives. Its effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` applied on top.",
-      "properties": {
-        "decisions": {
-          "additionalProperties": {
-            "description": "The id of the option selected for the decision.",
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-            "type": "string"
-          },
-          "description": "The options the universe selects, as `<decision>: <option>`. Each key is the id of a decision of the analysis or, for a decision of an analysis it drives, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `stage.method`.",
-          "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "derived_from": {
-          "description": "The id of another universe of the analysis. This universe inherits that universe's effective selection, with its own `decisions` applied on top, so it needs to give only the decisions it changes.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        },
-        "description": {
-          "description": "What the universe is, in free prose.",
-          "type": "string"
-        },
-        "id": {
-          "description": "The universe's id, written as its key in `universes`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
-          "type": "string"
-        },
-        "label": {
-          "description": "A short display name for the universe. It is not inherited through `derived_from`.",
-          "type": "string"
-        },
-        "tags": {
-          "description": "Keywords for grouping and finding the universe. They are not inherited through `derived_from`.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "id"
-      ],
-      "title": "Universe",
-      "type": "object"
-    },
     "Universe__identifier_optional": {
       "additionalProperties": false,
       "description": "A universe: a selection of one option for every active decision of the analysis and of every analysis it drives. Its effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` applied on top.",
@@ -1038,7 +512,8 @@
           "items": {
             "type": "string"
           },
-          "type": "array"
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [],
@@ -1050,7 +525,6 @@
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "additionalProperties": false,
   "description": "An analysis: the files it reads, the artefacts it makes and the decisions it makes along the way. It is the content of an `astra.yaml` file.",
-  "metamodel_version": "1.12.0",
   "properties": {
     "analyses": {
       "additionalProperties": {
@@ -1141,7 +615,8 @@
       "items": {
         "type": "string"
       },
-      "type": "array"
+      "type": "array",
+      "uniqueItems": true
     },
     "universes": {
       "additionalProperties": {
@@ -1160,6 +635,5 @@
     "outputs"
   ],
   "title": "analysis",
-  "type": "object",
-  "version": "0.0.14"
+  "type": "object"
 }
