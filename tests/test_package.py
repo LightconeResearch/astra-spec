@@ -32,6 +32,19 @@ def test_wheel_ships_only_schema_artefacts(tmp_path):
     assert not [n for n in names if n.endswith(".py")]
 
 
+def test_wheel_ships_the_contract(tmp_path):
+    names = set(built_wheel(tmp_path).namelist())
+    contract = ["analysis.schema.json", "provenance.schema.json", "provenance.open.schema.json"]
+    contexts = ["analysis.context.jsonld", "provenance.context.jsonld"]
+    assert [f for f in contract + contexts if f"astra/schema/generated/{f}" not in names] == []
+
+
+def test_wheel_ships_the_sources(tmp_path):
+    names = set(built_wheel(tmp_path).namelist())
+    modules = ["types", "analysis", "insight", "provenance"]
+    assert [m for m in modules if f"astra/schema/{m}.yaml" not in names] == []
+
+
 def test_metadata_has_no_runtime_dependencies(tmp_path):
     wheel = built_wheel(tmp_path)
     (metadata,) = [n for n in wheel.namelist() if n.endswith(".dist-info/METADATA")]

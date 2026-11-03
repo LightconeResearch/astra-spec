@@ -113,9 +113,9 @@ docs-clean:
 
 _docs-prep: gen-doc docs-install
 
-# Run all tests
+# Run all tests: the generated files are current, pytest, and the schema lints clean
 [group('model development')]
-test: check-generated _pytest
+test: check-generated _pytest lint
 
 # Generate the JSON Schemas and the JSON-LD contexts of the analysis document
 # and the provenance record (closed, and open for fields it doesn't know)
@@ -272,10 +272,13 @@ _gen-yaml:
   -mkdir -p {{distrib_schema_path}}
   uv run gen-yaml {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
 
-# Generate JSON Schema and JSON-LD context into the distribution schema path
+# Publish the committed contract, the JSON Schemas and JSON-LD contexts of
+# `gen-schema`, beside the merged model. Copied, not regenerated: stock
+# `gen-json-schema` would publish a second, weaker schema (design D1). Any
+# other .json or .jsonld there is removed, so only the contract is published.
 _add-artifacts:
-  uv run gen-json-schema {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.schema.json
-  uv run gen-jsonld-context {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.context.jsonld
+  rm -f {{distrib_schema_path}}/*.json {{distrib_schema_path}}/*.jsonld
+  cp {{source_schema_dir}}/generated/* {{distrib_schema_path}}/
 
 # Initialize git repository
 _git-init:
