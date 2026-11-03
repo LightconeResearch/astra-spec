@@ -1,0 +1,191 @@
+{
+  "$defs": {
+    "Environment": {
+      "additionalProperties": true,
+      "description": "The environment a recipe ran in, named by an IRI.",
+      "properties": {
+        "iri": {
+          "description": "An absolute IRI naming exactly that environment, enough for its runner, at the version the record gives, to recreate it. It need not resolve online: a `urn:` IRI or a scheme of the runner's own will do, such as `urn:example-runner:env:sha256:\u2026`.",
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\x00-\\x20\\x7f]+$(?!\\n)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "iri"
+      ],
+      "title": "Environment",
+      "type": "object"
+    },
+    "Generation": {
+      "additionalProperties": true,
+      "description": "A run of an output's recipe: the commit it ran from, what it read, the environment it ran in and the runner that ran it.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the git commit the recipe ran from. It pins every file of the code and every `astra.yaml`, an analysis in a submodule through the commit the submodule is pinned at.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)",
+          "type": "string"
+        },
+        "environment": {
+          "$ref": "#/$defs/Environment",
+          "description": "The environment the recipe ran in."
+        },
+        "finished": {
+          "description": "When the recipe finished, in UTC to the millisecond, such as `2026-10-26T14:00:02.000Z`.",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$(?!\\n)",
+          "type": "string"
+        },
+        "inputs": {
+          "description": "What the recipe read: one item for each entry of the output's `inputs`, in the same order.",
+          "items": {
+            "$ref": "#/$defs/RecordedInput"
+          },
+          "type": "array"
+        },
+        "runner": {
+          "$ref": "#/$defs/Runner",
+          "description": "The runner that ran the recipe."
+        },
+        "started": {
+          "description": "When the recipe started, in UTC to the millisecond, such as `2026-10-26T14:00:00.000Z`.",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$(?!\\n)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commit",
+        "environment",
+        "runner"
+      ],
+      "title": "Generation",
+      "type": "object"
+    },
+    "ProvenanceRecord": {
+      "additionalProperties": true,
+      "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it.",
+      "properties": {
+        "address": {
+          "description": "The result as the analysis it belongs to addresses it: the output's id, after the ids of the declared analyses that lead to it, then `#` and the universe's id when the result is built in a universe, such as `subanalysis1.output1#u1`.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
+          "type": "string"
+        },
+        "content_hash": {
+          "description": "The SHA-256 digest of the result's bytes.",
+          "pattern": "^sha256:[0-9a-f]{64}$(?!\\n)",
+          "type": "string"
+        },
+        "generated_by": {
+          "$ref": "#/$defs/Generation",
+          "description": "The run of the recipe that made the result."
+        },
+        "size": {
+          "description": "The size of the result, in bytes.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "spec_version": {
+          "description": "The version of the ASTRA specification the record follows, such as `0.1.0`.",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "spec_version",
+        "address",
+        "content_hash",
+        "size",
+        "generated_by"
+      ],
+      "title": "ProvenanceRecord",
+      "type": "object"
+    },
+    "RecordedInput": {
+      "additionalProperties": true,
+      "description": "One of the output's inputs, as the recipe read it: the entry, and the content hash and size of what the recipe read through it.",
+      "properties": {
+        "content_hash": {
+          "description": "The SHA-256 digest of what the recipe read through the entry: another output's result, or the file an input names.",
+          "pattern": "^sha256:[0-9a-f]{64}$(?!\\n)",
+          "type": "string"
+        },
+        "entry": {
+          "description": "The entry exactly as the output's `inputs` lists it in the `astra.yaml`, such as `root.data`.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
+          "type": "string"
+        },
+        "size": {
+          "description": "The size of what the recipe read through the entry, in bytes.",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "entry",
+        "content_hash",
+        "size"
+      ],
+      "title": "RecordedInput",
+      "type": "object"
+    },
+    "Runner": {
+      "additionalProperties": true,
+      "description": "The software that ran the recipe and wrote the record.",
+      "properties": {
+        "id": {
+          "description": "The runner's name, ideally unique (an IRI, say), such as `example-runner`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "The runner's version, such as `1.2.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ],
+      "title": "Runner",
+      "type": "object"
+    }
+  },
+  "$id": "https://w3id.org/astra/provenance",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": true,
+  "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it.",
+  "metamodel_version": "1.12.0",
+  "properties": {
+    "address": {
+      "description": "The result as the analysis it belongs to addresses it: the output's id, after the ids of the declared analyses that lead to it, then `#` and the universe's id when the result is built in a universe, such as `subanalysis1.output1#u1`.",
+      "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
+      "type": "string"
+    },
+    "content_hash": {
+      "description": "The SHA-256 digest of the result's bytes.",
+      "pattern": "^sha256:[0-9a-f]{64}$(?!\\n)",
+      "type": "string"
+    },
+    "generated_by": {
+      "$ref": "#/$defs/Generation",
+      "description": "The run of the recipe that made the result."
+    },
+    "size": {
+      "description": "The size of the result, in bytes.",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "spec_version": {
+      "description": "The version of the ASTRA specification the record follows, such as `0.1.0`.",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)",
+      "type": "string"
+    }
+  },
+  "required": [
+    "spec_version",
+    "address",
+    "content_hash",
+    "size",
+    "generated_by"
+  ],
+  "title": "provenance",
+  "type": "object",
+  "version": "0.0.14"
+}

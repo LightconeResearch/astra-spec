@@ -117,13 +117,17 @@ _docs-prep: gen-doc docs-install
 [group('model development')]
 test: check-generated _pytest
 
-# Generate the JSON Schema and the JSON-LD context of the analysis document
+# Generate the JSON Schemas and the JSON-LD contexts of the analysis document
+# and the provenance record (closed, and open for fields it doesn't know)
 # into `out`, from the staged (versioned) schema
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned
   mkdir -p {{out}}
   uv run python tools/jsonschema_generator.py {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
   uv run gen-jsonld-context {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.context.jsonld
+  uv run python tools/jsonschema_generator.py {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
+  uv run python tools/jsonschema_generator.py --not-closed {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
+  uv run gen-jsonld-context {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
 
 # Check that the committed generated files are what `gen-schema` makes now
 [group('model development')]
