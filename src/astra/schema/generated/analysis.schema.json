@@ -186,8 +186,8 @@
           "type": "string"
         },
         "path": {
-          "description": "The path of the input's file, relative to the folder of the `astra.yaml`. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), has no `..` segment and doesn't end in `/`.",
-          "pattern": "^(?![/~])(?!.*(^|/)\\.\\.(/|$))(?!.*\\\\)(?!.*/$).+$(?!\\n)",
+          "description": "The path of the input's file, relative to the folder of the `astra.yaml`. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), has no `..` segment or control character, and doesn't end in `/`.",
+          "pattern": "^(?![/~])(?!(?:[^\\x00-\\x1f\\x7f]*/)?\\.\\.(?:/|$))(?![^\\x00-\\x1f\\x7f]*/$)[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
           "type": "string"
         },
         "tags": {
@@ -218,8 +218,8 @@
           "type": "string"
         },
         "path": {
-          "description": "The path of the input's file, relative to the folder of the `astra.yaml`. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), has no `..` segment and doesn't end in `/`.",
-          "pattern": "^(?![/~])(?!.*(^|/)\\.\\.(/|$))(?!.*\\\\)(?!.*/$).+$(?!\\n)",
+          "description": "The path of the input's file, relative to the folder of the `astra.yaml`. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), has no `..` segment or control character, and doesn't end in `/`.",
+          "pattern": "^(?![/~])(?!(?:[^\\x00-\\x1f\\x7f]*/)?\\.\\.(?:/|$))(?![^\\x00-\\x1f\\x7f]*/$)[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
           "type": "string"
         },
         "tags": {
@@ -246,7 +246,7 @@
         },
         "excluded": {
           "description": "Why the option is ruled out, as a reason that is not blank. An option with a reason is excluded: no universe selects it.",
-          "pattern": "\\S",
+          "pattern": "[^\\x00-\\x20\\x7f]",
           "type": "string"
         },
         "id": {
@@ -306,7 +306,7 @@
         },
         "excluded": {
           "description": "Why the option is ruled out, as a reason that is not blank. An option with a reason is excluded: no universe selects it.",
-          "pattern": "\\S",
+          "pattern": "[^\\x00-\\x20\\x7f]",
           "type": "string"
         },
         "incompatible_with": {

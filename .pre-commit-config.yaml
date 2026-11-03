@@ -8,9 +8,13 @@ repos:
       - id: check-yaml
         # A duplicate key is this fixture's point: it fails at parse.
         exclude: ^tests/data/invalid/Analysis-101-duplicate-output\.yaml$
+      # Generated files are checked against a fresh generation instead
+      # (`just check-generated`), so these hooks leave them as generated.
       - id: end-of-file-fixer
+        exclude: ^src/astra/schema/generated/
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
+        exclude: ^src/astra/schema/generated/
 
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.37.0

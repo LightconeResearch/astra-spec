@@ -151,11 +151,12 @@ classes:
         description: Keywords for grouping and finding the input.
       path:
         required: true
-        pattern: '^(?![/~])(?!.*(^|/)\.\.(/|$))(?!.*\\)(?!.*/$).+$(?!\n)'
+        pattern: '^(?![/~])(?!(?:[^\x00-\x1f\x7f]*/)?\.\.(?:/|$))(?![^\x00-\x1f\x7f]*/$)[^\x00-\x1f\x7f\\]+$(?!\n)'
         description: >-
           The path of the input's file, relative to the folder of the
           `astra.yaml`. It doesn't start with `/` or `~`, separates folders
-          with `/` (never `\`), has no `..` segment and doesn't end in `/`.
+          with `/` (never `\`), has no `..` segment or control character, and
+          doesn't end in `/`.
 
   Output:
     description: >-
@@ -271,7 +272,7 @@ classes:
         description: >-
           The options that are never selected together with this option.
       excluded:
-        pattern: '\S'
+        pattern: '[^\x00-\x20\x7f]'
         description: >-
           Why the option is ruled out, as a reason that is not blank. An
           option with a reason is excluded: no universe selects it.
