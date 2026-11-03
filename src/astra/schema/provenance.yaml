@@ -143,6 +143,8 @@ classes:
         range: uriorcurie
         required: true
         pattern: '^[A-Za-z][A-Za-z0-9+.-]*:[^\x00-\x20\x7f]+$(?!\n)'
+        annotations:
+          rule: INVALID_VALUE
         description: >-
           An absolute IRI naming exactly that environment, enough for its
           runner, at the version the record gives, to recreate it. It need not

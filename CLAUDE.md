@@ -11,7 +11,7 @@ The ASTRA schema is written in LinkML, in four modules under `src/astra/schema/`
 
 The LinkML descriptions are the normative definitions of the fields: the field reference (`docs/elements/`) is generated from them, and the specification links to it rather than restating fields. Write each description in one or two sentences, in the present tense, saying what the field is and what it takes. Descriptions carry no history: no "no longer", "was" or "replaces".
 
-**`docs/specification.md`** is the normative specification. It carries the concepts, the grammars and the rule catalogue (its §9: every rule, with a code, a layer, a level and a source). It changes whenever a rule or a concept does: a new or changed rule goes into the catalogue, and the section that explains it links to the code.
+**`docs/specification.md`** is the normative specification. It carries the concepts, the grammars and the rule catalogue (its §9: every rule, with a code, a layer, a level and a source). It changes whenever a rule or a concept does: a new or changed rule goes into the catalogue, and the section that explains it links to the code. §9 stays hand-written, and its four rule tables are also data: `generated/rules.json` is extracted from them (see below), so keep their headings and columns as they are.
 
 Schema conventions (the contract tests check the maps and the patterns):
 
@@ -30,10 +30,24 @@ The JSON Schemas generated from the LinkML sources are the contract: what valida
 - `provenance.schema.json` — a record, closed
 - `provenance.open.schema.json` — a record, open (for checkers reading records of a newer version)
 - `provenance.context.jsonld` — the record's JSON-LD context, mapping its terms onto PROV-O. There is no context for `astra.yaml`: LinkML's flat context would give its id-keyed maps a wrong RDF reading
+- `rules.json` — the rule catalogue (design D13): `rules`, every rule of the specification's §9 in order (`code`, `layer`, `level`, `statement`, `source`, and `status` in the check layer), and `errors`, the code of every keyword of the three JSON Schemas that can report an error, keyed by its absolute keyword location (`<$id>#<JSON Pointer>`). The tests check fixtures through it, as astra-tools and astra-typescript do
 
 After any change to a schema module, run `just gen-schema` and commit the regenerated `src/astra/schema/generated/` with the change. Never edit these files by hand. `just check-generated` regenerates into `tmp/` and fails on any difference from what is committed; it is part of `just test` and CI. The generators stamp the latest git tag's version into each JSON Schema's `$comment`, so the drift check needs the tags fetched.
 
 The JSON Schemas are built by **`tools/jsonschema_generator.py`**, a small extension of LinkML's `JsonSchemaGenerator` (dev-only, LinkML pinned in the dev group). It adds `propertyNames` with the key's pattern to every id-keyed map and allows one written form per map entry: an object without its key, or, for a keyed class with exactly one other slot, the compact form, that slot's value (in this schema only `DecisionSelection`, so `Universe.decisions` is `<decision>: <option>`). It also adds `uniqueItems` to every list of strings, drops every `$defs` entry the root can't reach, and keeps only standard JSON Schema keywords at the top level: LinkML's `metamodel_version` goes, and the schema version moves into `$comment`. The record's JSON-LD context comes from stock `gen-jsonld-context`.
+
+`rules.json` is built by **`tools/rules.py`**, from the specification and the generated JSON Schemas with their LinkML sources; never edit it, and never write §9 from it. Its extractor reads §9 with `markdown-it-py` (dev-only, never regular expressions) and is strict: a malformed row, a repeated code, a missing or unknown column, an unknown layer or level, or a rule whose RFC 2119 keyword contradicts its level fails `just gen-schema`. The error map walks each JSON Schema and fails on any keyword it can't give a code, and on any code that isn't a schema-layer rule of §9.
+
+**Codes on constraints.** Each constraint in the LinkML sources names the rule it enforces with one annotation key, `rule`: `annotations: {rule: INVALID_COMMIT}`. It goes where the constraint is defined:
+
+- on a type, for its pattern (`commit_id` → `INVALID_COMMIT`);
+- on a slot, for the pattern the slot writes itself (`Input.path` → `INVALID_PATH`). A slot that writes its own pattern must have one; a slot that takes its type's pattern may have one, which then wins over the type's (`DecisionSelection.decision`, a map key: a bad key is `INVALID_ID` whatever its type);
+- on a class rule (`rules:` entry), for its `if`/`then`;
+- on each branch of an `exactly_one_of`, the same code on every branch: LinkML 1.12.1 can't annotate the `exactly_one_of` list itself.
+
+Keywords whose code never varies take a default instead: `required` outside a rule (`MISSING_FIELD`), `additionalProperties: false` (`UNKNOWN_FIELD`), `type` (`WRONG_TYPE`), `minProperties`/`minItems` (`EMPTY_COLLECTION`), `uniqueItems` (`DUPLICATE_ENTRY`), `enum`/`minimum` (`INVALID_VALUE`). The annotations don't reach the JSON Schemas.
+
+**To add or change a rule:** edit its row in §9 of `docs/specification.md`; for a schema-layer rule, annotate the constraint that enforces it (above); then run `just gen-schema` and commit `generated/rules.json` with the change. A new schema-layer code also needs an invalid fixture.
 
 The package ships only artefacts: the LinkML sources and `generated/`, as the namespace package `astra.schema` (plus `astra/docs/llms.txt`). There are no Python files under `src/astra/` and no runtime dependencies; build-time Python lives in `tools/`.
 
@@ -48,7 +62,7 @@ Fixtures are whole documents in `tests/data/valid/` and `tests/data/invalid/`, n
 # fails at: <location>  a JSON Pointer, `(root)` for the document, or `parse`
 ```
 
-The test asserts that the fixture fails for the right reason: the validator reports errors at that location and nowhere else (a `oneOf`/`anyOf` error at an ancestor aside), with a JSON Schema keyword the rule implies (`SCHEMA_KEYWORDS` in `tests/conftest.py`), and a `parse` fixture raises its code's loader error (`PARSE_ERRORS`). Every parse- and schema-layer code in the catalogue has at least one invalid fixture. Fixtures that fail at parse (a duplicate key, malformed YAML, a `%YAML` directive other than 1.2) are kept out of the repository's YAML linters, through lists kept by hand: add each new one to `check-yaml`'s `exclude` in `.pre-commit-config.yaml` and to `ignore` in `.yamllint.yaml`. Every `astra.yaml` under `examples/`, and every whole document among the specification's examples, must also validate.
+The test asserts that the fixture fails for the right reason: the validator reports errors at that location and nowhere else (a `oneOf`/`anyOf` error at an ancestor aside), and `rules.json` gives those errors the fixture's rule, through each error's absolute keyword location (`absolute_keyword_location` in `tests/conftest.py` resolves the `$ref`s that `jsonschema`'s `schema_path` runs through); a `parse` fixture raises its code's loader error (`PARSE_ERRORS`). Every parse- and schema-layer code in the catalogue has at least one invalid fixture. Fixtures that fail at parse (a duplicate key, malformed YAML, a `%YAML` directive other than 1.2) are kept out of the repository's YAML linters, through lists kept by hand: add each new one to `check-yaml`'s `exclude` in `.pre-commit-config.yaml` and to `ignore` in `.yamllint.yaml`. Every `astra.yaml` under `examples/`, and every whole document among the specification's examples, must also validate.
 
 ## Documentation versioning (mike)
 
@@ -82,8 +96,9 @@ just release X.Y.Z    # Regenerate the contract with the version, update CITATIO
 ## Repository Layout
 
 - `src/astra/schema/` — LinkML schema sources: `types.yaml`, `analysis.yaml`, `insight.yaml`, `provenance.yaml` (edit these)
-- `src/astra/schema/generated/` — The generated contract: the JSON Schemas and the record's JSON-LD context (regenerate with `just gen-schema`, commit, never edit)
+- `src/astra/schema/generated/` — The generated contract: the JSON Schemas, the record's JSON-LD context and `rules.json` (regenerate with `just gen-schema`, commit, never edit)
 - `tools/jsonschema_generator.py` — The JSON Schema generator extension
+- `tools/rules.py` — Builds `rules.json`: the §9 extractor and the error map
 - `docs/` — Documentation source (rendered with [Zensical](https://zensical.org/); config in `zensical.toml`)
 - `docs/specification.md` — The normative ASTRA specification
 - `docs/index.md` — Landing page (clean, MCP-style with card grid nav)

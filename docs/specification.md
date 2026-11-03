@@ -1063,28 +1063,39 @@ The check layer is the only one laid out differently, with that extra
 column, because breaking one of its rules changes what a result is, not
 whether a file is valid.
 
+**The catalogue as data.** The rules are extracted from this section into
+`rules.json` (§10), so its tables are a format that tools parse, not only
+text to read. A layer's rules are the one table under its heading (`parse
+and schema`, `validator`, `check` and `runner`, in that order) whose header
+has a Code column, and its columns are found by the names in its header:
+Code, Level, Rule and Source, with Layer in the parse and schema table and
+Status when broken in the check table. Each row is one rule and fills every
+column. Its Code is one code span, used by no other row; its Layer is
+`parse` or `schema`; its Level is `MUST`, `SHOULD` or `MAY`; and its Rule
+uses no RFC 2119 keyword in capitals of another level. A table that breaks
+any of this is an error in this specification, and no `rules.json` is made
+from it.
+
 ### parse and schema
 
-Every rule here is a `MUST`.
-
-| Code | Layer | Rule | Source |
-|---|---|---|---|
-| `INVALID_SYNTAX` | parse | Every `astra.yaml` is well-formed YAML 1.2 under the core schema (with no `%YAML` directive other than 1.2), and every record is well-formed JSON | §3, 0005 |
-| `DUPLICATE_KEY` | parse | Every key of a map is distinct. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, §4 |
-| `INVALID_ID` | schema | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | §4 |
-| `INVALID_REFERENCE` | schema | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
-| `MISSING_FIELD` | schema | Every required field is present: `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact`, `FragmentSelector.value`, and the record's (§8) | 0004, 0005, 0006, tidy-up |
-| `UNKNOWN_FIELD` | schema | Every field is one the schema defines | §10 |
-| `EMPTY_COLLECTION` | schema | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry | 0004, `main` |
-| `INVALID_DECLARATION_SOURCE` | schema | A declaration has exactly one of `path` and `url` | 0007 |
-| `URL_WITHOUT_COMMIT` | schema | A declaration with a `url` has a `commit` | 0007 |
-| `INVALID_COMMIT` | schema | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007 |
-| `INVALID_PATH` | schema | A declaration's `path` is relative (no leading `/` or `~`), `/`-separated, with no backslash and no ASCII control character. An input's `path` is the same, and also has no `..` segment and doesn't end in `/` | 0004, 0006 |
-| `BLANK_EXCLUDED` | schema | An option's `excluded` reason is not blank | tidy-up |
-| `INVALID_EVIDENCE_SOURCE` | schema | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
-| `WRONG_TYPE` | schema | Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails) | §4, §10 |
-| `DUPLICATE_ENTRY` | schema | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | §4 |
-| `INVALID_VALUE` | schema | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, #73 |
+| Code | Layer | Level | Rule | Source |
+|---|---|---|---|---|
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is well-formed YAML 1.2 under the core schema (with no `%YAML` directive other than 1.2), and every record is well-formed JSON | §3, 0005 |
+| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, §4 |
+| `INVALID_ID` | schema | MUST | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | §4 |
+| `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
+| `MISSING_FIELD` | schema | MUST | Every required field is present: `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact`, `FragmentSelector.value`, and the record's (§8) | 0004, 0005, 0006, tidy-up |
+| `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | §10 |
+| `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry | 0004, `main` |
+| `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |
+| `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` | 0007 |
+| `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007 |
+| `INVALID_PATH` | schema | MUST | A declaration's `path` is relative (no leading `/` or `~`), `/`-separated, with no backslash and no ASCII control character. An input's `path` is the same, and also has no `..` segment and doesn't end in `/` | 0004, 0006 |
+| `BLANK_EXCLUDED` | schema | MUST | An option's `excluded` reason is not blank | tidy-up |
+| `INVALID_EVIDENCE_SOURCE` | schema | MUST | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
+| `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails) | §4, §10 |
+| `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | §4 |
+| `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, #73 |
 
 ### validator
 
@@ -1147,18 +1158,17 @@ status.
 | `absent` | Anything else is at the default place, nothing or a stand-in included |
 | `modified` | Reported only by tooling that recognises stand-ins (`MAY`): the stand-in names another hash, or the file is plainly not a stand-in and doesn't match |
 
-**Rules.** Every rule here is a `MUST`, except where the table says
-otherwise.
+**Rules.**
 
-| Code | Rule | Status when broken | Source |
-|---|---|---|---|
-| `MISSING_RECORD` | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once) in the analysis it belongs to | `missing` | 0005 §1 |
-| `INVALID_RECORD` | Every record is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, §8 |
-| `MISPLACED_RECORD` | Every record's `address` names the result whose record is kept where it is | `missing` | 0005 §1 |
-| `MISSING_RECORD_INPUTS` | Every record has exactly one `inputs` item for each entry its output lists, matched by `entry` (their order carries no meaning) | `missing` | 0005 §2 |
-| `STALE_RESULT` | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, its inputs' content, or the results it reads | `stale` | 0005 §4 |
-| `ABSENT_RESULT` | Every result's recorded bytes are at its default place (`SHOULD`) | `absent`, or `modified` | 0005 §1 |
-| `STALE_EVIDENCE` | Every evidence citing a result cites an unchanged one | the cited result's status | 0005 §5 |
+| Code | Level | Rule | Status when broken | Source |
+|---|---|---|---|---|
+| `MISSING_RECORD` | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once) in the analysis it belongs to | `missing` | 0005 §1 |
+| `INVALID_RECORD` | MUST | Every record is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, §8 |
+| `MISPLACED_RECORD` | MUST | Every record's `address` names the result whose record is kept where it is | `missing` | 0005 §1 |
+| `MISSING_RECORD_INPUTS` | MUST | Every record has exactly one `inputs` item for each entry its output lists, matched by `entry` (their order carries no meaning) | `missing` | 0005 §2 |
+| `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, its inputs' content, or the results it reads | `stale` | 0005 §4 |
+| `ABSENT_RESULT` | SHOULD | Every result's recorded bytes are at its default place | `absent`, or `modified` | 0005 §1 |
+| `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status | 0005 §5 |
 
 The results of an analysis from a commit that are read or cited are checked
 by the same rules, through their records at the declared commit (0007
@@ -1189,8 +1199,9 @@ The schema is written in [LinkML](https://linkml.io/), in
 `provenance.yaml` (the record). Their descriptions are the normative
 definitions of the fields, published as the
 [schema reference](elements/index.md). These artefacts are generated from
-them, into `src/astra/schema/generated/`, and each is published at
-`https://w3id.org/astra/` followed by its file name:
+them (and `rules.json` also from §9), into `src/astra/schema/generated/`,
+and each is published at `https://w3id.org/astra/` followed by its file
+name:
 
 | File | URI | What it is |
 |---|---|---|
@@ -1198,6 +1209,7 @@ them, into `src/astra/schema/generated/`, and each is published at
 | `provenance.schema.json` | `https://w3id.org/astra/provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
 | `provenance.open.schema.json` | `https://w3id.org/astra/provenance.open.schema.json` | the same schema, open: it allows fields it doesn't define |
 | `provenance.context.jsonld` | `https://w3id.org/astra/provenance.context.jsonld` | the JSON-LD context of a record |
+| `rules.json` | `https://w3id.org/astra/rules.json` | the rule catalogue of §9, with the code of every error the JSON Schemas can report |
 
 Each JSON Schema's `$id` is its URI, so the closed and open record schemas are
 distinct resources. Its top level holds only standard JSON Schema keywords, so
@@ -1218,6 +1230,84 @@ language agree.
 reading a record of a newer version than its own validates the record against
 it, and so ignores the fields that version adds
 ([`INVALID_RECORD`](#check)).
+
+**The rule catalogue.** `rules.json` is derived from this specification and
+the schema, never written by hand, so that every tool reports the same code
+for the same error and words each rule the same way. It holds:
+
+- `rules`: one entry per rule of §9, in §9's order. Each has its `code`;
+  its `layer` (`parse`, `schema`, `validator`, `check` or `runner`); its
+  `level` (`MUST`, `SHOULD` or `MAY`); its `statement`, the Rule cell as
+  inline Markdown with each link reduced to its text; its `source`; and, for
+  a rule of the check layer, its `status`, the status a result gets when it
+  is broken.
+- `errors`: the code of every keyword of the three JSON Schemas that can
+  report an error, keyed by the keyword's absolute keyword location, as JSON
+  Schema 2019-09 defines it: the schema's `$id`, `#`, and the JSON Pointer to
+  the keyword once every `$ref` is resolved. Each code is a schema-layer
+  rule's. The parse-layer codes have no entry, because loaders report them,
+  not schemas; nor does the open variant's `additionalProperties`, which
+  fails on nothing.
+- `$comment`: the version of the schema it was made from.
+
+In the schema's sources, each constraint names the rule it enforces: a
+pattern by its type or field, a class rule or an exactly-one-of by itself.
+The keywords whose code never varies take a default: `required` outside such
+a rule (`MISSING_FIELD`), `additionalProperties` (`UNKNOWN_FIELD`), `type`
+(`WRONG_TYPE`), `minProperties` and `minItems` (`EMPTY_COLLECTION`),
+`uniqueItems` (`DUPLICATE_ENTRY`), and `enum` and `minimum`
+(`INVALID_VALUE`). An abridged `rules.json`:
+
+```json
+{
+  "$comment": "ASTRA rule catalogue, schema version 0.1.0",
+  "errors": {
+    "https://w3id.org/astra/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/properties/commit/pattern": "INVALID_COMMIT",
+    "https://w3id.org/astra/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/then/required": "URL_WITHOUT_COMMIT",
+    "https://w3id.org/astra/analysis.schema.json#/properties/outputs/propertyNames/pattern": "INVALID_ID"
+  },
+  "rules": [
+    {
+      "code": "INVALID_COMMIT",
+      "layer": "schema",
+      "level": "MUST",
+      "source": "0007",
+      "statement": "Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits"
+    },
+    {
+      "code": "ABSENT_RESULT",
+      "layer": "check",
+      "level": "SHOULD",
+      "source": "0005 §1",
+      "statement": "Every result's recorded bytes are at its default place",
+      "status": "`absent`, or `modified`"
+    }
+  ]
+}
+```
+
+**From an error to its code.** A tool that reports the catalogue's codes
+looks up the absolute keyword location of each error its validator reports
+in `errors`. Every error a validator reports for these schemas has an entry,
+the errors that say why a `oneOf` failed included. What validators give is
+the path they took to the keyword, which passes through `$ref`s, so a tool
+needs one step to get the location:
+
+- **Python's `jsonschema`.** An error's `absolute_schema_path` runs through
+  each `$ref` without naming it (and leaves out the `if` of a failing
+  `then`). Follow it from the schema's root: wherever the next step isn't in
+  the subschema reached, take that subschema's `$ref` first, and go on from
+  the reference's target, whose JSON Pointer replaces the path so far. The
+  location is the schema's `$id`, `#`, and the pointer reached.
+- **Ajv.** An error's `schemaPath` is relative to the part of the schema
+  Ajv compiled the keyword in. A `$ref` target that Ajv inlines is written
+  as its reference (`#/$defs/…`), but one it compiles on its own, as it does
+  any target with a `$ref` of its own, starts again from `#`. So
+  `schemaPath` is not always the location. Compile with the option
+  `verbose: true` instead: an error's `parentSchema` is then the subschema
+  that holds the failing keyword, and the location is the schema's `$id`,
+  `#`, the JSON Pointer of that subschema in the schema (found by walking
+  the schema once), `/` and the error's `keyword`.
 
 **RDF.** `provenance.context.jsonld` maps a record's terms onto
 [W3C PROV-O](https://www.w3.org/TR/prov-o/), with ASTRA's own, where PROV has

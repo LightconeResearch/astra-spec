@@ -24,6 +24,9 @@ imports:
 # The id grammar, written once: the structured patterns below are built from it.
 # Every pattern ends in `$(?!\n)`, because Python's `$` also matches before a
 # final newline and ECMA-262's does not.
+#
+# Each pattern names the rule it enforces, a code of the specification's §9,
+# in a `rule` annotation: `rules.json` maps its errors to that code.
 settings:
   id: "[a-z][a-z0-9_]*"
 
@@ -37,6 +40,8 @@ types:
     structured_pattern:
       syntax: '^{id}$(?!\n)'
       interpolated: true
+    annotations:
+      rule: INVALID_ID
 
   address:
     typeof: string
@@ -47,6 +52,8 @@ types:
     structured_pattern:
       syntax: '^{id}(\.{id})*$(?!\n)'
       interpolated: true
+    annotations:
+      rule: INVALID_REFERENCE
 
   reference:
     typeof: string
@@ -57,6 +64,8 @@ types:
     structured_pattern:
       syntax: '^{id}(\.{id})*(#{id})?$(?!\n)'
       interpolated: true
+    annotations:
+      rule: INVALID_REFERENCE
 
   option_reference:
     typeof: string
@@ -68,6 +77,8 @@ types:
     structured_pattern:
       syntax: '^{id}(\.{id})+$(?!\n)'
       interpolated: true
+    annotations:
+      rule: INVALID_REFERENCE
 
   condition:
     typeof: string
@@ -78,6 +89,8 @@ types:
     structured_pattern:
       syntax: '^~?{id}(\.{id})+$(?!\n)'
       interpolated: true
+    annotations:
+      rule: INVALID_REFERENCE
 
   commit_id:
     typeof: string
@@ -85,6 +98,8 @@ types:
       A full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64
       (SHA-256).
     pattern: "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)"
+    annotations:
+      rule: INVALID_COMMIT
 
   content_hash:
     typeof: string
@@ -92,6 +107,8 @@ types:
       A SHA-256 digest of content: `sha256:` followed by 64 lowercase
       hexadecimal digits.
     pattern: "^sha256:[0-9a-f]{64}$(?!\\n)"
+    annotations:
+      rule: INVALID_VALUE
 
   spec_version:
     typeof: string
@@ -100,6 +117,8 @@ types:
       non-negative integers without leading zeros, joined by `.`, such as
       `0.1.0`.
     pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)"
+    annotations:
+      rule: INVALID_VALUE
 
   timestamp:
     typeof: string
@@ -110,3 +129,5 @@ types:
       day 01–31, hour 00–23, minute and second 00–59), such as
       `2026-10-26T14:00:00.000Z`.
     pattern: "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$(?!\\n)"
+    annotations:
+      rule: INVALID_VALUE

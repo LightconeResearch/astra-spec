@@ -67,6 +67,8 @@ classes:
     attributes:
       doi:
         pattern: '^10\.[0-9]{4,}/[^\x00-\x20\x7f]+$(?!\n)'
+        annotations:
+          rule: INVALID_VALUE
         description: >-
           The DOI of the cited work, such as `10.48550/arXiv.1706.03762`.
       artifact:
@@ -91,15 +93,23 @@ classes:
         inlined: true
         description: >-
           The place in the cited work the claim rests on, such as `page=6`.
+    # LinkML can't annotate the exactly_one_of list itself, so each branch
+    # names the code, the same one.
     exactly_one_of:
       - slot_conditions:
           doi:
             required: true
+        annotations:
+          rule: INVALID_EVIDENCE_SOURCE
       - slot_conditions:
           artifact:
             required: true
+        annotations:
+          rule: INVALID_EVIDENCE_SOURCE
     rules:
       - description: Evidence without a `doi` has no `version`.
+        annotations:
+          rule: INVALID_EVIDENCE_SOURCE
         preconditions:
           slot_conditions:
             doi:

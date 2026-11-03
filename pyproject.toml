@@ -63,6 +63,7 @@ dev = [
     "jsonschema>=4.23",
     "ruamel.yaml>=0.18",
     "pytest>=8",
+    "markdown-it-py>=3",
 ]
 docs = [
     "zensical>=0.0.33; python_version >= '3.10'",

@@ -1,11 +1,13 @@
-"""The fixture harness: YAML 1.2 loading, the generated validators and the fixture headers (design §9)."""
+"""The fixture harness: YAML 1.2 loading, the generated validators, `rules.json` and the fixture headers (design §9)."""
 
+import functools
 import json
 import re
 from pathlib import Path
 from typing import Any
+from urllib.parse import urldefrag, urljoin
 
-from jsonschema import Draft201909Validator
+from jsonschema import Draft201909Validator, ValidationError
 from ruamel.yaml import YAML
 from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError, SafeConstructor
 from ruamel.yaml.error import YAMLError
@@ -27,24 +29,6 @@ PARSE_ERRORS: dict[str, type[Exception]] = {
     "DUPLICATE_KEY": DuplicateKeyError,
 }
 """Each parse-layer code, with the loader error a fixture breaking it raises (any loader error, for `INVALID_SYNTAX`)."""
-
-SCHEMA_KEYWORDS: dict[str, set[str]] = {
-    "INVALID_ID": {"pattern", "propertyNames"},
-    "INVALID_REFERENCE": {"pattern"},
-    "MISSING_FIELD": {"required"},
-    "UNKNOWN_FIELD": {"additionalProperties"},
-    "EMPTY_COLLECTION": {"minProperties", "minItems"},
-    "INVALID_DECLARATION_SOURCE": {"oneOf", "not"},
-    "URL_WITHOUT_COMMIT": {"required"},
-    "INVALID_COMMIT": {"pattern"},
-    "INVALID_PATH": {"pattern"},
-    "BLANK_EXCLUDED": {"pattern"},
-    "INVALID_EVIDENCE_SOURCE": {"oneOf", "not"},
-    "WRONG_TYPE": {"type"},
-    "DUPLICATE_ENTRY": {"uniqueItems"},
-    "INVALID_VALUE": {"pattern", "enum", "minimum"},
-}
-"""Each schema-layer code, with the JSON Schema keywords whose errors break it (design §9, Ruling R24)."""
 
 COMBINATORS = {"oneOf", "anyOf"}
 """Keywords whose error at an ancestor of the place a fixture fails at is allowed: they report what fails inside them."""
@@ -173,28 +157,73 @@ def validator(root: str, *, closed: bool = True) -> Draft201909Validator:
     return Draft201909Validator(schema)
 
 
+@functools.cache
+def rules_catalogue() -> dict[str, Any]:
+    """The committed `rules.json`: the rules of the specification's §9, and the error map of the JSON Schemas."""
+    return json.loads((GENERATED / "rules.json").read_text(encoding="utf-8"))
+
+
+def _escape(part: Any) -> str:
+    """`part` as a JSON Pointer reference token."""
+    return str(part).replace("~", "~0").replace("/", "~1")
+
+
 def _pointer(path) -> str:
     """The JSON Pointer for a path of keys and indices, or `(root)` for the document."""
     if not path:
         return "(root)"
-    return "".join(
-        "/" + str(part).replace("~", "~0").replace("/", "~1") for part in path
-    )
+    return "".join("/" + _escape(part) for part in path)
+
+
+def absolute_keyword_location(v: Draft201909Validator, error: ValidationError) -> str:
+    """The absolute keyword location of `error`: the URI of the schema resource, `#`, and the JSON Pointer to the keyword.
+
+    That is the keyword's place once every `$ref` is resolved, as JSON Schema 2019-09 defines it and as `rules.json`
+    keys its error map. `jsonschema`'s `absolute_schema_path` runs through `$ref`s without naming them (and leaves out
+    an `if` before its `then`), so it is followed from the root: wherever its next step isn't in the subschema reached,
+    that subschema's `$ref` is taken first, and the location starts again from the reference's target.
+    """
+    root = v.schema
+    uri = root["$id"]
+    node: Any = root
+    pointer: list[Any] = []
+    parent = None
+    for part in error.absolute_schema_path:
+        while isinstance(node, dict) and part not in node and "$ref" in node:
+            uri, fragment = urldefrag(urljoin(uri, node["$ref"]))
+            if uri != root["$id"] or not fragment.startswith("/"):
+                raise ValueError(
+                    f"{node['$ref']}: not a JSON Pointer into {root['$id']}"
+                )
+            pointer = [
+                token.replace("~1", "/").replace("~0", "~")
+                for token in fragment.split("/")[1:]
+            ]
+            node = root
+            for token in pointer:
+                node = node[token]
+        parent, node = node, node[part]
+        pointer.append(part)
+    if parent is not error.schema:
+        raise ValueError(
+            f"{list(error.absolute_schema_path)} doesn't lead to the subschema that failed"
+        )
+    return uri + "#" + "".join("/" + _escape(part) for part in pointer)
 
 
 def errors(v: Draft201909Validator, doc: Any) -> set[tuple[str, str, bool]]:
-    """`(pointer, keyword, explains)` for every error `v` reports for `doc`, and for every error in each one's context.
+    """`(pointer, location, explains)` for every error `v` reports for `doc`, and for every error in each one's context.
 
-    `explains` is true for an error in the context of an error at the same pointer: it says why a branch of that
-    combinator failed, rather than failing on its own.
+    `location` is the error's absolute keyword location. `explains` is true for an error in the context of an error
+    at the same pointer: it says why a branch of that combinator failed, rather than failing on its own.
     """
     found = set()
     for error in v.iter_errors(doc):
         outer = _pointer(error.absolute_path)
-        found.add((outer, error.validator, False))
+        found.add((outer, absolute_keyword_location(v, error), False))
         for e in error.context:
             pointer = _pointer(e.absolute_path)
-            found.add((pointer, e.validator, pointer == outer))
+            found.add((pointer, absolute_keyword_location(v, e), pointer == outer))
     return found
 
 

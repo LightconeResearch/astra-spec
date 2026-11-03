@@ -118,10 +118,11 @@ _docs-prep: gen-doc docs-install
 test: check-generated _pytest lint
 
 # Generate the JSON Schemas of the analysis document and the provenance record
-# (closed, and open for fields it doesn't know), and the record's JSON-LD
-# context, into `out`, from the staged (versioned) schema. Each JSON Schema's
-# `$id` is the URI of its own file, so the closed and open record schemas are
-# distinct
+# (closed, and open for fields it doesn't know), the record's JSON-LD context
+# and the rule catalogue, into `out`, from the staged (versioned) schema. Each
+# JSON Schema's `$id` is the URI of its own file, so the closed and open record
+# schemas are distinct. `rules.json` holds the rules extracted from the
+# specification's §9, and the code of each JSON Schema keyword that can fail
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned
   mkdir -p {{out}}
@@ -129,6 +130,7 @@ gen-schema out="src/astra/schema/generated": _stage-versioned
   uv run python tools/jsonschema_generator.py --id {{schema_namespace}}provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
   uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
   uv run gen-jsonld-context {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
+  uv run python tools/rules.py docs/specification.md {{staged_schema_dir}}/analysis.yaml {{staged_schema_dir}}/provenance.yaml --schemas {{out}}/analysis.schema.json {{out}}/provenance.schema.json {{out}}/provenance.open.schema.json > {{out}}/rules.json
 
 # Check that the committed generated files are what `gen-schema` makes now
 [group('model development')]
@@ -278,8 +280,8 @@ _gen-yaml:
   -mkdir -p {{distrib_schema_path}}
   uv run gen-yaml {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
 
-# Publish the committed contract, the JSON Schemas and the record's JSON-LD
-# context of `gen-schema`, beside the merged model. Copied, not regenerated: stock
+# Publish the committed contract, the JSON Schemas, the record's JSON-LD
+# context and `rules.json` of `gen-schema`, beside the merged model. Copied, not regenerated: stock
 # `gen-json-schema` would publish a second, weaker schema (design D1). Any
 # other .json or .jsonld there is removed, so only the contract is published.
 _add-artifacts:

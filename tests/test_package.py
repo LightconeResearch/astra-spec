@@ -46,12 +46,13 @@ def test_wheel_ships_the_contract(tmp_path):
         "provenance.open.schema.json",
     ]
     contexts = ["provenance.context.jsonld"]
+    catalogue = ["rules.json"]
     shipped = sorted(
         n.removeprefix("astra/schema/generated/")
         for n in names
         if n.startswith("astra/schema/generated/")
     )
-    assert shipped == sorted(contract + contexts)
+    assert shipped == sorted(contract + contexts + catalogue)
 
 
 def test_wheel_ships_the_sources(tmp_path):
