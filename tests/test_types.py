@@ -13,39 +13,46 @@ HARNESS = REPO_ROOT / "tests" / "generator" / "types_harness.yaml"
 HEX_40 = "0123456789abcdef0123456789abcdef01234567"
 HEX_64 = "0123456789abcdef" * 4
 
-# Each type: the values it accepts, then the values it rejects.
+# Each type: the values it accepts, then the values it rejects. Each type rejects a
+# valid value plus a final "\n", which Python's `$` alone would let through.
 TABLE = {
     "id": (
         ["a", "f1_score", "seed_42"],
-        ["A", "1a", "_a", "rf-standard", "a.b", "", "séed"],
+        ["A", "1a", "_a", "rf-standard", "a.b", "", "séed", "a\n"],
     ),
     "address": (
         ["a", "iris.random_seed", "a.b.c"],
-        ["a.", ".a", "a..b", "a#u", "A.b"],
+        ["a.", ".a", "a..b", "a#u", "A.b", "iris.random_seed\n"],
     ),
     "reference": (
         ["f1_score", "f1_score#rf_standard", "classification.accuracy#baseline"],
-        ["a#", "#u", "a#u#v", "a#U", "a.b#u.v"],
+        ["a#", "#u", "a#u#v", "a#U", "a.b#u.v", "f1_score#rf_standard\n"],
     ),
     "option_reference": (
         ["scaling.standard", "iris.random_seed.seed_42"],
-        ["scaling", "~scaling.standard", "a.b#u"],
+        ["scaling", "~scaling.standard", "a.b#u", "scaling.standard\n"],
     ),
     "condition": (
         ["scaling.standard", "~scaling.standard", "~iris.random_seed.seed_42"],
-        ["scaling", "~~a.b", "!a.b", "~ a.b"],
+        ["scaling", "~~a.b", "!a.b", "~ a.b", "~scaling.standard\n"],
     ),
     "commit_id": (
         [HEX_40, HEX_64],
-        [HEX_40[:7], HEX_40 + "a", HEX_40.upper(), "main"],
+        [HEX_40[:7], HEX_40 + "a", HEX_40.upper(), "main", HEX_40 + "\n"],
     ),
     "content_hash": (
         ["sha256:" + HEX_64],
-        [HEX_64, "sha1:" + HEX_40, "sha256:" + HEX_64.upper(), "sha256:" + HEX_64[:63]],
+        [
+            HEX_64,
+            "sha1:" + HEX_40,
+            "sha256:" + HEX_64.upper(),
+            "sha256:" + HEX_64[:63],
+            "sha256:" + HEX_64 + "\n",
+        ],
     ),
     "spec_version": (
         ["0.1.0", "1.12.3", "10.0.0"],
-        ["0.1", "v0.1.0", "01.1.0", "0.1.0-rc1"],
+        ["0.1", "v0.1.0", "01.1.0", "0.1.0-rc1", "0.1.0\n"],
     ),
     "timestamp": (
         ["2026-10-26T14:00:00.000Z"],
@@ -54,6 +61,7 @@ TABLE = {
             "2026-10-26T14:00:00.000+00:00",
             "2026-10-26 14:00:00.000Z",
             "2026-10-26T14:00:00.0000Z",
+            "2026-10-26T14:00:00.000Z\n",
         ],
     ),
 }

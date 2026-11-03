@@ -20,7 +20,9 @@ default_range: string
 imports:
   - linkml:types
 
-# The id grammar, which the structured patterns below are built from.
+# The id grammar, written once: the structured patterns below are built from it.
+# Every pattern ends in `$(?!\n)`, because Python's `$` also matches before a
+# final newline and ECMA-262's does not.
 settings:
   id: "[a-z][a-z0-9_]*"
 
@@ -31,7 +33,9 @@ types:
     description: >-
       An id: a lowercase ASCII letter, then any number of lowercase ASCII
       letters, digits and underscores, such as `seed_42`.
-    pattern: "^[a-z][a-z0-9_]*$"
+    structured_pattern:
+      syntax: '^{id}$(?!\n)'
+      interpolated: true
 
   address:
     typeof: string
@@ -40,7 +44,7 @@ types:
       it, if any, then the element's own id, joined by `.`, such as
       `iris.random_seed`.
     structured_pattern:
-      syntax: '^{id}(\.{id})*$'
+      syntax: '^{id}(\.{id})*$(?!\n)'
       interpolated: true
 
   reference:
@@ -50,7 +54,7 @@ types:
       universe id, which pins the reference to that universe, such as
       `f1_score#rf_standard`.
     structured_pattern:
-      syntax: '^{id}(\.{id})*(#{id})?$'
+      syntax: '^{id}(\.{id})*(#{id})?$(?!\n)'
       interpolated: true
 
   option_reference:
@@ -61,7 +65,7 @@ types:
       `iris.random_seed.seed_42` is the option `seed_42` of the decision
       `random_seed` of the declared analysis `iris`.
     structured_pattern:
-      syntax: '^{id}(\.{id})+$'
+      syntax: '^{id}(\.{id})+$(?!\n)'
       interpolated: true
 
   condition:
@@ -71,7 +75,7 @@ types:
       when that option is selected; with `~` it holds when that option is not
       selected.
     structured_pattern:
-      syntax: '^~?{id}(\.{id})+$'
+      syntax: '^~?{id}(\.{id})+$(?!\n)'
       interpolated: true
 
   commit_id:
@@ -79,14 +83,14 @@ types:
     description: >-
       A full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64
       (SHA-256).
-    pattern: "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    pattern: "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)"
 
   content_hash:
     typeof: string
     description: >-
       A SHA-256 digest of content: `sha256:` followed by 64 lowercase
       hexadecimal digits.
-    pattern: "^sha256:[0-9a-f]{64}$"
+    pattern: "^sha256:[0-9a-f]{64}$(?!\\n)"
 
   spec_version:
     typeof: string
@@ -94,11 +98,11 @@ types:
       A version of the ASTRA specification, `MAJOR.MINOR.PATCH`: three
       non-negative integers without leading zeros, joined by `.`, such as
       `0.1.0`.
-    pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)"
 
   timestamp:
     typeof: string
     description: >-
       A UTC date and time to the millisecond, `YYYY-MM-DDTHH:MM:SS.sssZ`, such
       as `2026-10-26T14:00:00.000Z`.
-    pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$(?!\\n)"
