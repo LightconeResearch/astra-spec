@@ -22,7 +22,9 @@ such as `DIGIT`. Patterns are regular expressions, written as §4 says.
 **Rules.** Section 9 states every rule that a tool checks or keeps, each
 with a code, such as [`MISSING_DECISION`](#validator). The other sections
 explain what the rules are about and link to their codes. The two
-recommendations no tool can check are stated where they apply (§7, §8).
+recommendations no tool can check are stated where they apply (§7, §8), and
+the two duties of a runner that no tool can check after the runner's rules
+(§9).
 
 **Fields.** Every class of the format has a page in the
 [schema reference](elements/index.md), generated from the schema, whose
@@ -159,21 +161,29 @@ run in that directory. The paths of its inputs and declarations are relative
 to the folder of the `astra.yaml` and separate folders with `/` (§5, §7).
 
 **`astra.yaml`** is YAML 1.2 ([YAML](https://yaml.org/spec/1.2.2/)), read
-strictly:
+strictly, under the core schema only
+([`INVALID_SYNTAX`](#parse-and-schema)):
 
-- a key written twice in one map makes the file invalid
-  ([`DUPLICATE_KEY`](#parse-and-schema));
-- a plain scalar is read by YAML 1.2's core schema, so `yes`, `no`, `on` and
-  `off` are strings, and valid ids;
-- a plain scalar that looks like a number is a number: an all-digit commit id
-  is read as an integer, and a version such as `1.2` as a float. Commit ids
-  and versions are therefore written quoted, as in `commit: "0dbb615a…"` and
-  `spec_version: "0.1.0"`. A number where a string belongs fails as
+- a `%YAML` directive other than `%YAML 1.2` makes the file invalid
+  ([`INVALID_SYNTAX`](#parse-and-schema)), and so does a key written twice in
+  one map ([`DUPLICATE_KEY`](#parse-and-schema));
+- the core schema's only types are strings, nulls, booleans, integers and
+  floats. `yes`, `no`, `on` and `off` are strings, and valid ids. Timestamps
+  and merge keys are not types: an unquoted date, such as `2026-10-26`, is a
+  string, and `<<` is an ordinary key, so in an entry it is a field the
+  schema doesn't define ([`UNKNOWN_FIELD`](#parse-and-schema));
+- `true` and `false` are booleans and `null` is a null (as are the core
+  schema's other spellings of them, such as `True` and `~`), and a plain
+  scalar that looks like a number is a number: an all-digit commit id is read
+  as an integer, and a version such as `1.2` as a float. They are therefore
+  quoted when meant as ids or strings, as in `"true": {}`, and so are commit
+  ids and versions, as in `commit: "0dbb615a…"` and `spec_version: "0.1.0"`.
+  A value of another type than its field takes fails as
   [`WRONG_TYPE`](#parse-and-schema).
 
-**Records** are JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)). A
-record is read as one document, as `astra.yaml` is, by the same parse and
-schema rules.
+**Records** are JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)),
+well-formed ([`INVALID_SYNTAX`](#parse-and-schema)). A record is read as one
+document, as `astra.yaml` is, by the same parse and schema rules.
 
 **Every document** holds only the fields its schema defines
 ([`UNKNOWN_FIELD`](#parse-and-schema)), each with the JSON type the field
@@ -225,7 +235,7 @@ is `iris.random_seed.seed_42`.
 A value that doesn't take its type's form fails: a map key or an `id` as
 [`INVALID_ID`](#parse-and-schema), any other address, reference, option
 reference or condition as [`INVALID_REFERENCE`](#parse-and-schema), a commit
-id as [`SHORT_COMMIT`](#parse-and-schema), and the others as
+id as [`INVALID_COMMIT`](#parse-and-schema), and the others as
 [`INVALID_VALUE`](#parse-and-schema).
 
 ### Patterns
@@ -256,7 +266,9 @@ unique within their map because keys are
 meaning. A map's entries are objects, except those of `Universe.decisions`,
 each of which is the id of the option selected (`model: svm`)
 ([`WRONG_TYPE`](#parse-and-schema)). Lists hold only what is a list: an
-insight's `evidence`, a record's `inputs`, and lists of strings.
+insight's `evidence`, a record's `inputs`, and lists of strings. No list of
+strings holds the same entry twice ([`DUPLICATE_ENTRY`](#parse-and-schema)),
+so an output lists each of its inputs, decisions and conditions once.
 
 Every id has the one grammar `id`, and no id is reserved: an address's kind
 comes from the field it is written in, so an element can be called `inputs`.
@@ -361,8 +373,8 @@ back.
 
 An [Output](elements/Output.md) is an artefact the analysis makes. It has a
 `type`, one of [OutputType](elements/OutputType.md) (`metric`, `figure`,
-`table`, `data`, `report`), and a `format`
-([`MISSING_FIELD`](#parse-and-schema)). The `format` is how the artefact is
+`table`, `data`, `report`: [`INVALID_VALUE`](#parse-and-schema)), and a
+`format` ([`MISSING_FIELD`](#parse-and-schema)). The `format` is how the artefact is
 encoded, as a lowercase token, `^[a-z0-9][a-z0-9_.+-]*$`: the file extension
 it is written with, without the leading dot, such as `png`, `csv` or
 `parquet` ([`INVALID_VALUE`](#parse-and-schema)). Any token of that form is a
@@ -385,7 +397,8 @@ No output depends on itself, directly or through others
 
 A [Recipe](elements/Recipe.md) has a `command`, and the context it runs in:
 `resources` ([Resources](elements/Resources.md)), the CPUs, memory, time,
-disk and GPUs it asks for, and `container`, an image name, which is pulled,
+disk and GPUs it asks for (`cpus` at least 0 and `gpus` at least 1:
+[`INVALID_VALUE`](#parse-and-schema)), and `container`, an image name, which is pulled,
 or the path of a Containerfile, which is built. `Analysis.container` is the
 default container of the analysis's recipes. A recipe runs in its analysis's
 directory.
@@ -503,12 +516,12 @@ whose `value` is a PDF fragment identifier
 ([RFC 3778](https://www.rfc-editor.org/rfc/rfc3778)) without the `#`, such
 as `page=6`.
 
-Evidence isn't built in a universe. It MAY pin the output it cites, and
-SHOULD when that output is built per universe
-([`UNPINNED_EVIDENCE`](#validator)): the claim is then about one universe's
-result, and the pin says which. The pin names a universe as one in
-`Output.inputs` does (§7), so a finding about results a driver builds belongs
-in the driver's `astra.yaml`. Evidence citing a result is checked through
+Evidence isn't built in a universe. Citing an output built per universe, it
+may pin it, and should ([`UNPINNED_EVIDENCE`](#validator)): the claim is then
+about one universe's result, and the pin says which. A pin on an output built
+once is redundant ([`REDUNDANT_PIN`](#validator)). The pin names a universe as
+one in `Output.inputs` does (§7), so a finding about results a driver builds
+belongs in the driver's `astra.yaml`. Evidence citing a result is checked through
 that result's record (§8).
 
 ## 6. Universes
@@ -643,7 +656,7 @@ the URL leads to a valid analysis is the validator's to tell
 [`MISSING_DECLARED_ANALYSIS`](#validator),
 [`DECLARED_ANALYSIS_INVALID`](#validator)).
 
-**`commit`** is a full commit id ([`SHORT_COMMIT`](#parse-and-schema)): a
+**`commit`** is a full commit id ([`INVALID_COMMIT`](#parse-and-schema)): a
 branch moves, a tag can be moved or name another commit in a fork or a
 mirror, and a shortened id can become ambiguous as a repository grows. A
 declaration with a `commit` declares an analysis from a commit (below).
@@ -711,9 +724,10 @@ pin, and every decision of another analysis:
   ([`NOT_BUILT_IN_UNIVERSE`](#validator));
 - in the file of the analysis whose universe is being built, it is reached
   through a declaration that analysis drives
-  ([`UNDRIVEN_DECLARATION`](#validator));
-- an output read without a pin is active in the universe being built
-  ([`INPUT_NOT_BUILT`](#validator)).
+  ([`UNDRIVEN_DECLARATION`](#validator)).
+
+And every output read without a pin, of the analysis itself or of another, is
+active in the universe being built ([`INPUT_NOT_BUILT`](#validator)).
 
 A pin `#u` names, when its reference goes through a driven declaration, the
 universe `u` of the driver, and otherwise the universe `u` of the analysis
@@ -745,7 +759,7 @@ A declaration with a `commit` names an **analysis from a commit**: the
 declared analysis as it was at that commit. With a `url`, it is the analysis
 at the top level of that repository at the commit. With a `path`, it is the
 analysis at that path at the commit, which the repository has
-([`COMMIT_NOT_FOUND`](#validator)) and which SHOULD be an ancestor of the
+([`COMMIT_NOT_FOUND`](#validator)) and which should be an ancestor of the
 commit the declaration is in ([`COMMIT_NOT_ANCESTOR`](#validator)). It is
 read from the local repository or, when the declaring analysis is itself read
 from a remote, from that remote. Every rule of this specification applies to
@@ -949,14 +963,14 @@ result belongs to, and writes the bytes to their default place
 ([`UNRECORDED_RESULT`](#runner)). It runs only committed code: while the
 repository has changes other than the results and records it writes, it
 refuses to run ([`UNCOMMITTED_CHANGES`](#runner)). It records each recipe's
-environment as an IRI that it can recreate at its version, and SHOULD let
-someone see what the environment holds, as PROV for example
-([`UNRECREATABLE_ENVIRONMENT`](#runner)). It builds an output only when every
+environment as an IRI that it can recreate at its version
+([`UNRECREATABLE_ENVIRONMENT`](#runner)), and should let someone see what that
+environment holds, as PROV for example. It builds an output only when every
 result the output reads is `unchanged` and its bytes can be got and are the
 recorded ones ([`STALE_INPUT`](#runner)). A recipe reads files and results
-only through its output's inputs, which a runner MAY enforce
-([`UNDECLARED_READ`](#runner)): anything else it uses is pinned by the commit
-or is part of the environment.
+only through its output's inputs ([`UNDECLARED_READ`](#runner)): anything else
+it uses is pinned by the commit or is part of the environment. A runner may
+enforce this, with a sandbox say.
 
 A record names the commit its recipe ran from, so it is committed in a later
 commit. That commit adds only records and results, so it makes nothing
@@ -1183,11 +1197,12 @@ them, into `src/astra/schema/generated/`, and each is published at
 | `analysis.schema.json` | `https://w3id.org/astra/analysis.schema.json` | the JSON Schema of `astra.yaml`, rooted at `Analysis` |
 | `provenance.schema.json` | `https://w3id.org/astra/provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
 | `provenance.open.schema.json` | `https://w3id.org/astra/provenance.open.schema.json` | the same schema, open: it allows fields it doesn't define |
-| `analysis.context.jsonld` | `https://w3id.org/astra/analysis.context.jsonld` | the JSON-LD context of `astra.yaml` |
 | `provenance.context.jsonld` | `https://w3id.org/astra/provenance.context.jsonld` | the JSON-LD context of a record |
 
 Each JSON Schema's `$id` is its URI, so the closed and open record schemas are
-distinct resources.
+distinct resources. Its top level holds only standard JSON Schema keywords, so
+that strict validators (such as Ajv) compile it, and the version of the schema
+it was generated from is in its `$comment`.
 
 **The contract.** `analysis.schema.json` is the contract for `astra.yaml`: a
 document breaks no schema rule exactly when a JSON Schema draft 2019-09
@@ -1204,17 +1219,20 @@ reading a record of a newer version than its own validates the record against
 it, and so ignores the fields that version adds
 ([`INVALID_RECORD`](#check)).
 
-**RDF.** The JSON-LD contexts map each document's fields to RDF terms, with
-ASTRA's own in the `https://w3id.org/astra/` namespace. Converted to RDF
-through the schema and `provenance.context.jsonld`, a record is
-[W3C PROV-O](https://www.w3.org/TR/prov-o/): the record is a `prov:Entity`
-that `prov:wasGeneratedBy` its `generated_by`, a `prov:Activity`, which
-`prov:used` its inputs and its environment and `prov:wasAssociatedWith` its
-runner, a `prov:SoftwareAgent`. The run's `started` and `finished` are
-`prov:startedAtTime` and `prov:endedAtTime`, the runner's `version` is
-`schema:softwareVersion`, and the environment's IRI is its `@id`. The
-evidence selectors are W3C Web Annotation's `oa:TextQuoteSelector` and
-`oa:FragmentSelector`.
+**RDF.** `provenance.context.jsonld` maps a record's terms onto
+[W3C PROV-O](https://www.w3.org/TR/prov-o/), with ASTRA's own, where PROV has
+none, in the `https://w3id.org/astra/` namespace. The types of a record's
+nodes come from the schema's class URIs, through LinkML's RDF conversion of
+the record, not from the plain JSON-LD. Converted to RDF that way, a record is
+PROV-O: the record is a `prov:Entity` that `prov:wasGeneratedBy` its
+`generated_by`, a `prov:Activity`, which `prov:used` its inputs and its
+environment and `prov:wasAssociatedWith` its runner, a `prov:SoftwareAgent`.
+The run's `started` and `finished` are `prov:startedAtTime` and
+`prov:endedAtTime`, the runner's `version` is `schema:softwareVersion`, and
+the environment's IRI is its `@id`. No RDF reading of `astra.yaml` is
+published yet. In the schema, the evidence selectors are W3C Web
+Annotation's `oa:TextQuoteSelector` (with `oa:exact`, `oa:prefix` and
+`oa:suffix`) and `oa:FragmentSelector` (with `rdf:value`).
 
 **The package.** The `astra-spec` Python package holds the LinkML sources and
 these artefacts, as the namespace package `astra.schema`, read through
