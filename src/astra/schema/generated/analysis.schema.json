@@ -138,8 +138,8 @@
           "type": "string"
         },
         "url": {
-          "description": "Where git fetches another repository from, as a remote: `scheme://\u2026`, such as `https://github.com/owner/analysis`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`. Anything local is a `path`.",
-          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
+          "description": "Where git fetches another repository from, as a remote: `scheme://\u2026`, such as `https://github.com/owner/analysis`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`. A repository on this machine is declared by `path`, or explicitly as a `file://` URL, such as `file:///srv/repo`; a bare word or a local path, such as `../repo` or `C:/repo`, is not a `url`.",
+          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z]:)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
           "type": "string"
         }
       },
@@ -198,8 +198,8 @@
           "type": "string"
         },
         "url": {
-          "description": "Where git fetches another repository from, as a remote: `scheme://\u2026`, such as `https://github.com/owner/analysis`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`. Anything local is a `path`.",
-          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
+          "description": "Where git fetches another repository from, as a remote: `scheme://\u2026`, such as `https://github.com/owner/analysis`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`. A repository on this machine is declared by `path`, or explicitly as a `file://` URL, such as `file:///srv/repo`; a bare word or a local path, such as `../repo` or `C:/repo`, is not a `url`.",
+          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z]:)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
           "type": "string"
         }
       },
