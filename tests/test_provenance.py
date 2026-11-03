@@ -49,6 +49,8 @@ def test_context_maps_the_record_onto_prov():
         "finished": "prov:endedAtTime",
         "version": "schema:softwareVersion",
     }
+    times = ["started", "finished"]
+    assert {time: terms[time].get("@type") for time in times} == dict.fromkeys(times, "xsd:dateTime")
     assert terms["iri"] == "@id"
 
 

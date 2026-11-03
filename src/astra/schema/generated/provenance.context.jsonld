@@ -19,6 +19,7 @@
          "@id": "prov:used"
       },
       "finished": {
+         "@type": "xsd:dateTime",
          "@id": "prov:endedAtTime"
       },
       "inputs": {
@@ -30,6 +31,7 @@
          "@id": "prov:wasAssociatedWith"
       },
       "started": {
+         "@type": "xsd:dateTime",
          "@id": "prov:startedAtTime"
       },
       "address": {

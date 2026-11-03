@@ -13,6 +13,7 @@ license: https://creativecommons.org/licenses/by/4.0/
 prefixes:
   astra: https://w3id.org/astra/
   linkml: https://w3id.org/linkml/
+  xsd: http://www.w3.org/2001/XMLSchema#
 
 default_prefix: astra
 default_range: string
@@ -102,6 +103,7 @@ types:
 
   timestamp:
     typeof: string
+    uri: xsd:dateTime
     description: >-
       A UTC date and time to the millisecond, `YYYY-MM-DDTHH:MM:SS.sssZ`, such
       as `2026-10-26T14:00:00.000Z`.
