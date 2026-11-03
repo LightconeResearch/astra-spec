@@ -13,6 +13,7 @@ from jsonschema_generator import generate
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = REPO_ROOT / "tests" / "generator" / "maps.yaml"
 CLI = REPO_ROOT / "tools" / "jsonschema_generator.py"
+SCHEMA_ID = "https://example.org/maps.schema.json"
 
 
 @pytest.fixture(scope="module")
@@ -74,12 +75,22 @@ def test_open_variant_allows_unknown_fields(closed, open_):
     assert failures(open_, document(extra=1)) == set()
 
 
+def test_schema_id_sets_the_id():
+    assert generate(SCHEMA)["$id"] == "https://example.org/maps"
+    assert generate(SCHEMA, schema_id=SCHEMA_ID)["$id"] == SCHEMA_ID
+
+
 def test_cli_writes_the_same_schema():
-    for flags, is_closed in [([], True), (["--not-closed"], False)]:
+    cases = [
+        ([], {"closed": True}),
+        (["--not-closed"], {"closed": False}),
+        (["--id", SCHEMA_ID], {"closed": True, "schema_id": SCHEMA_ID}),
+    ]
+    for flags, options in cases:
         result = subprocess.run(
             [sys.executable, str(CLI), str(SCHEMA), *flags],
             capture_output=True,
             text=True,
             check=True,
         )
-        assert result.stdout == json.dumps(generate(SCHEMA, closed=is_closed), indent=2) + "\n"
+        assert result.stdout == json.dumps(generate(SCHEMA, **options), indent=2) + "\n"

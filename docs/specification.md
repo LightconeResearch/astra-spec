@@ -404,10 +404,12 @@ its placeholders before running it:
 In `{inputs.<entry>}` and `{decisions.<entry>}`, `<entry>` is an entry of the
 output's `inputs` or `decisions` exactly as written, dots and `#` included:
 `{inputs.classification.accuracy#baseline}`, `{decisions.iris.random_seed}`.
-Two pins of one output are two entries, each with its own placeholder. A
-placeholder naming an entry the output doesn't list breaks
-[`UNDECLARED_TEMPLATE_REF`](#validator). A recipe reads files and results
-only through its output's inputs ([`UNDECLARED_READ`](#runner)).
+Two pins of one output are two entries, each with its own placeholder. Any
+other placeholder breaks [`UNDECLARED_TEMPLATE_REF`](#validator): one naming
+an entry the output doesn't list, such as `{inputs.data}` when `data` isn't
+among its `inputs`, or one of none of these forms, such as `{foo}`. A recipe
+reads files and results only through its output's inputs
+([`UNDECLARED_READ`](#runner)).
 
 ### Decisions and options
 
@@ -1074,7 +1076,7 @@ Every rule here is a `MUST`.
 | `UNRESOLVED_ADDRESS` | MUST | Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact` | 0004 |
 | `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003 |
 | `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | `main` |
-| `UNDECLARED_TEMPLATE_REF` | MUST | Every recipe placeholder names an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
+| `UNDECLARED_TEMPLATE_REF` | MUST | Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
 | `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (today, an input and an output, both of which `Output.inputs` takes) | §4 |
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the repository of the root | 0004 |
 | `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` | 0004, 0007 |
@@ -1174,6 +1176,9 @@ them, into `src/astra/schema/generated/`, and each is published at
 | `provenance.open.schema.json` | `https://w3id.org/astra/provenance.open.schema.json` | the same schema, open: it allows fields it doesn't define |
 | `analysis.context.jsonld` | `https://w3id.org/astra/analysis.context.jsonld` | the JSON-LD context of `astra.yaml` |
 | `provenance.context.jsonld` | `https://w3id.org/astra/provenance.context.jsonld` | the JSON-LD context of a record |
+
+Each JSON Schema's `$id` is its URI, so the closed and open record schemas are
+distinct resources.
 
 **The contract.** `analysis.schema.json` is the contract for `astra.yaml`: a
 document breaks no schema rule exactly when a JSON Schema draft 2019-09

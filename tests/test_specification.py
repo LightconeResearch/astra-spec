@@ -3,12 +3,14 @@
 import re
 from collections import Counter
 
-from .conftest import REPO_ROOT, fixture_header, fixtures
+from .conftest import REPO_ROOT, fixture_header, fixtures, load_yaml
 
 SPECIFICATION = REPO_ROOT / "docs" / "specification.md"
 CONFORMANCE = "## 9. Conformance"
 LAYERS = ["parse and schema", "validator", "check", "runner"]
 _ROW = re.compile(r"\| `([A-Z][A-Z_]*)` \|")
+_REFERENCE_LINK = re.compile(r"\]\(elements/([^)#]+)\.md(?:#[^)]*)?\)")
+SCHEMA_MODULES = [REPO_ROOT / "src" / "astra" / "schema" / f"{name}.yaml" for name in ("types", "analysis", "insight", "provenance")]
 
 
 def catalogue() -> dict[str, list[str]]:
@@ -51,3 +53,21 @@ def test_every_fixture_rule_is_in_the_catalogue():
 def test_every_schema_rule_has_a_fixture():
     rules = {fixture_header(path)[0] for path in fixtures("invalid")}
     assert sorted(set(catalogue()["parse and schema"]) - rules) == []
+
+
+def reference_pages() -> set[str]:
+    """The pages `gen-doc` makes for the schema's elements: each class and enum by its name, each type in UpperCamelCase."""
+    pages = {"index"}
+    for path in SCHEMA_MODULES:
+        module = load_yaml(path)
+        pages.update(module.get("classes") or {})
+        pages.update(module.get("enums") or {})
+        pages.update("".join(part[:1].upper() + part[1:] for part in name.split("_")) for name in module.get("types") or {})
+    return pages
+
+
+def test_reference_links_name_schema_classes():
+    """Every `elements/<Class>.md` link names a class, enum or type of the four schema modules (or the index)."""
+    linked = set(_REFERENCE_LINK.findall(SPECIFICATION.read_text(encoding="utf-8")))
+    assert linked
+    assert sorted(linked - reference_pages()) == []

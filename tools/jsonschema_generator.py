@@ -11,7 +11,9 @@ own key. This generator instead:
      the entry is that slot's value;
    - otherwise the object form: the entry is the object, without its key.
 
-Through :func:`generate`, optional fields also reject null (``include_null=False``).
+Through :func:`generate`, optional fields also reject null (``include_null=False``),
+and the schema's ``$id`` can be set, so that each generated file is identified
+by its own URI.
 """
 
 import argparse
@@ -71,18 +73,25 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
         return entry
 
 
-def generate(schema: str | Path, *, closed: bool = True) -> dict:
-    """The JSON Schema for the LinkML `schema`: closed unless `closed` is false; optional fields reject null."""
+def generate(schema: str | Path, *, closed: bool = True, schema_id: str | None = None) -> dict:
+    """The JSON Schema for the LinkML `schema`: closed unless `closed` is false; optional fields reject null.
+
+    Its `$id` is `schema_id` if given, otherwise the LinkML schema's own id, as LinkML sets it.
+    """
     generator = AstraJsonSchemaGenerator(str(schema), include_null=False, not_closed=not closed)
-    return json.loads(generator.serialize())
+    result = json.loads(generator.serialize())
+    if schema_id is not None:
+        result["$id"] = schema_id
+    return result
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Write the JSON Schema for a LinkML schema to stdout.")
     parser.add_argument("schema", type=Path, help="the LinkML schema (YAML)")
     parser.add_argument("--not-closed", action="store_true", help="allow fields the schema does not declare")
+    parser.add_argument("--id", metavar="URI", dest="schema_id", help="the `$id` of the JSON Schema (default: the schema's id)")
     args = parser.parse_args(argv)
-    print(json.dumps(generate(args.schema, closed=not args.not_closed), indent=2))
+    print(json.dumps(generate(args.schema, closed=not args.not_closed, schema_id=args.schema_id), indent=2))
 
 
 if __name__ == "__main__":

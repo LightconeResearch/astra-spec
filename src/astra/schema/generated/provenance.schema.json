@@ -35,7 +35,7 @@
           "type": "string"
         },
         "inputs": {
-          "description": "What the recipe read: one item for each entry of the output's `inputs`, in the same order.",
+          "description": "What the recipe read: one item for each entry the output's `inputs` lists, matched by `entry`; the order of the items carries no meaning.",
           "items": {
             "$ref": "#/$defs/RecordedInput"
           },
@@ -147,7 +147,7 @@
       "type": "object"
     }
   },
-  "$id": "https://w3id.org/astra/provenance",
+  "$id": "https://w3id.org/astra/provenance.schema.json",
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "additionalProperties": false,
   "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it.",

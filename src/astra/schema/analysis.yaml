@@ -120,8 +120,9 @@ classes:
             {output}             the path the result is written to
             {{ and }}            a literal { and }
 
-          Every placeholder names an entry of the output's `inputs` or
-          `decisions`.
+          Every placeholder takes one of these forms, and the <entry> of an
+          {inputs.<entry>} or {decisions.<entry>} is an entry of the output's
+          `inputs` or `decisions`, exactly as written.
       resources:
         range: Resources
         inlined: true
@@ -363,10 +364,10 @@ classes:
           `scheme://…`, such as `https://github.com/owner/analysis`, or
           `[user@]host:path`, such as `git@github.com:owner/repo`. The
           declared analysis is the one at the top level of that repository,
-          at `commit`. A repository on this machine is declared by `path`, or
-          explicitly as a `file://` URL, such as `file:///srv/repo`; a bare
-          word or a local path, such as `../repo` or `C:/repo`, is not a
-          `url`.
+          at `commit`. An analysis inside the root's repository is declared
+          by `path`, and another repository on this machine by an explicit
+          `file://` URL, such as `file:///srv/repo`; a bare word or a local
+          path, such as `../repo` or `C:/repo`, is not a `url`.
       commit:
         range: commit_id
         description: >-

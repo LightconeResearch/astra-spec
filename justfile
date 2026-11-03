@@ -33,6 +33,7 @@ source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 staged_schema_dir := "tmp/schema"
 staged_schema_path := staged_schema_dir / schema_source_file + ".yaml"
 docdir := "docs/elements"  # Directory for generated documentation
+schema_namespace := "https://w3id.org/astra/"  # Each JSON Schema's $id is this, then its file name
 distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
 
 # ============== Project recipes ==============
@@ -119,14 +120,15 @@ test: check-generated _pytest lint
 
 # Generate the JSON Schemas and the JSON-LD contexts of the analysis document
 # and the provenance record (closed, and open for fields it doesn't know)
-# into `out`, from the staged (versioned) schema
+# into `out`, from the staged (versioned) schema. Each JSON Schema's `$id` is
+# the URI of its own file, so the closed and open record schemas are distinct
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned
   mkdir -p {{out}}
-  uv run python tools/jsonschema_generator.py {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
+  uv run python tools/jsonschema_generator.py --id {{schema_namespace}}analysis.schema.json {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
   uv run gen-jsonld-context {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.context.jsonld
-  uv run python tools/jsonschema_generator.py {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
-  uv run python tools/jsonschema_generator.py --not-closed {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
+  uv run python tools/jsonschema_generator.py --id {{schema_namespace}}provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
+  uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
   uv run gen-jsonld-context {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
 
 # Check that the committed generated files are what `gen-schema` makes now
@@ -179,10 +181,13 @@ release version:
   echo "  - git push && git push origin v{{version}}"
   echo "  - the deploy-docs-on-tag workflow will publish the docs automatically"
 
-# Generate md documentation for the schema and add artifacts
+# Generate md documentation for the schema and add artifacts: both roots, the
+# analysis document and the provenance record, in one run (`--include`), so
+# that the slots the two share get one page each, rather than one run
+# overwriting the other's
 [group('model development')]
 gen-doc: _stage-versioned _gen-yaml && _add-artifacts
-  uv run gen-doc {{gen_doc_args}} -d {{docdir}} {{staged_schema_path}}
+  uv run gen-doc {{gen_doc_args}} --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
 
 # ============== Migrations recipes for Copier ==============
 

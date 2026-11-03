@@ -25,6 +25,9 @@ ROOTS = {
 
 CLOSED = ["analysis.schema.json", "provenance.schema.json"]
 
+NAMESPACE = "https://w3id.org/astra/"
+"""Where every artefact is published, under its own file name (design §3)."""
+
 ANNOTATIONS = {"description", "title"}
 """Keywords that annotate a subschema without constraining it."""
 
@@ -218,3 +221,8 @@ def test_every_pattern_means_the_same_in_python_and_ecma_262(name):
     assert patterns
     problems = {pattern: pattern_problems(pattern) for pattern in sorted(patterns)}
     assert {pattern: found for pattern, found in problems.items() if found} == {}
+
+
+def test_each_schema_is_identified_by_its_own_file_uri():
+    """Each JSON Schema's `$id` is its published URI, so the closed and open record schemas are distinct."""
+    assert {name: load(name).get("$id") for name in ROOTS} == {name: NAMESPACE + name for name in ROOTS}

@@ -81,8 +81,9 @@ classes:
         inlined_as_list: true
         slot_uri: prov:used
         description: >-
-          What the recipe read: one item for each entry of the output's
-          `inputs`, in the same order.
+          What the recipe read: one item for each entry the output's `inputs`
+          lists, matched by `entry`; the order of the items carries no
+          meaning.
       environment:
         range: Environment
         inlined: true
