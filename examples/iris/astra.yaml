@@ -60,11 +60,15 @@ outputs:
   model_comparison:
     type: table
     format: csv
-    description: Accuracy by model and preprocessing combination
-    inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
+    description: >-
+      Accuracy of the baseline (random forest) against svm_focused (SVM)
+    inputs:
+      - accuracy#baseline
+      - accuracy#svm_focused
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/compare.py --a {inputs.accuracy#baseline}
+        --b {inputs.accuracy#svm_focused} --out {output}
 
   conclusion:
     type: report
