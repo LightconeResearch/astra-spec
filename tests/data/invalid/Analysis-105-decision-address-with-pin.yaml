@@ -1,0 +1,13 @@
+# rule: INVALID_REFERENCE
+# fails at: /outputs/result/decisions/0
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    decisions: ["d#u"]
+decisions:
+  d:
+    options:
+      a: {}
+      b: {}

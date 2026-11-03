@@ -1,0 +1,7 @@
+# rule: INVALID_ID
+# fails at: /outputs
+spec_version: "0.1.0"
+outputs:
+  Result:
+    type: metric
+    format: json

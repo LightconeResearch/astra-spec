@@ -6,6 +6,8 @@ repos:
     hooks:
       - id: check-toml
       - id: check-yaml
+        # A duplicate key is this fixture's point: it fails at parse.
+        exclude: ^tests/data/invalid/Analysis-101-duplicate-output\.yaml$
       - id: end-of-file-fixer
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]

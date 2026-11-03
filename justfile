@@ -115,16 +115,32 @@ _docs-prep: gen-doc docs-install
 
 # Run all tests
 [group('model development')]
-test: _pytest
+test: check-generated _pytest
+
+# Generate the JSON Schema and the JSON-LD context of the analysis document
+# into `out`, from the staged (versioned) schema
+[group('model development')]
+gen-schema out="src/astra/schema/generated": _stage-versioned
+  mkdir -p {{out}}
+  uv run python tools/jsonschema_generator.py {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
+  uv run gen-jsonld-context {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.context.jsonld
+
+# Check that the committed generated files are what `gen-schema` makes now
+[group('model development')]
+check-generated:
+  rm -rf tmp/generated-check
+  just gen-schema tmp/generated-check
+  diff -r tmp/generated-check src/astra/schema/generated
 
 # Run linting
 [group('model development')]
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
-# Tag a new release: updates CITATION.cff, commits it, and creates an
-# annotated git tag. Schema YAMLs are not mutated — generators inject the
-# version from $RELEASE_VERSION at build time. After pushing the tag, the
+# Tag a new release: regenerates the generated schema artefacts with the new
+# version, updates CITATION.cff, commits both, and creates an annotated git
+# tag. Schema YAMLs are not mutated — generators inject the version from
+# $RELEASE_VERSION at build time. After pushing the tag, the
 # `Deploy versioned docs on tag` workflow will publish the docs automatically.
 [group('model development')]
 release version:
@@ -146,6 +162,8 @@ release version:
     echo "Error: CITATION.cff is missing." >&2
     exit 1
   fi
+  RELEASE_VERSION="{{version}}" just gen-schema
+  git add src/astra/schema/generated
   today=$(date -u +%Y-%m-%d)
   sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
   sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff

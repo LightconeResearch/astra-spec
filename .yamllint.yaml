@@ -2,6 +2,10 @@
 
 extends: default
 
+# A duplicate key is this fixture's point: it fails at parse.
+ignore: |
+  tests/data/invalid/Analysis-101-duplicate-output.yaml
+
 rules:
   document-start: disable  # Don't check if document has a start marker (---).
   line-length:

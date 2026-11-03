@@ -1,0 +1,12 @@
+# rule: WRONG_TYPE
+# fails at: /decisions/d/options/a
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+decisions:
+  d:
+    options:
+      a:
+      b: {}

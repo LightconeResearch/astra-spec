@@ -1,0 +1,7 @@
+# rule: WRONG_TYPE
+# fails at: /outputs
+spec_version: "0.1.0"
+outputs:
+  - id: result
+    type: metric
+    format: json

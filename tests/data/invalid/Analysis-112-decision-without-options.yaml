@@ -1,0 +1,10 @@
+# rule: MISSING_FIELD
+# fails at: /decisions/d
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+decisions:
+  d:
+    label: D

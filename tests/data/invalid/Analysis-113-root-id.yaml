@@ -1,0 +1,8 @@
+# rule: UNKNOWN_FIELD
+# fails at: (root)
+spec_version: "0.1.0"
+id: x
+outputs:
+  result:
+    type: metric
+    format: json

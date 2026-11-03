@@ -1,0 +1,8 @@
+# rule: WRONG_TYPE
+# fails at: /tags
+spec_version: "0.1.0"
+tags: classification
+outputs:
+  result:
+    type: metric
+    format: json
