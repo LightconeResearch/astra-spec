@@ -8,9 +8,9 @@ Example ASTRA analyses. An analysis is a directory with an `astra.yaml`, and eve
 A single analysis: Iris classification with decisions for feature scaling, model
 selection, test split and random seed, and the constraints between them
 (`requires`, `incompatible_with`). The data is an output built once, whose recipe
-loads it. Two universes are declared in the file, `svm_focused` as a change to
-`baseline` (`derived_from`), and `model_comparison`, built once, compares them
-through pinned inputs (`accuracy#baseline`, `accuracy#svm_focused`).
+loads it. Two universes are declared in the file: `baseline`, and `svm_focused`
+as a change to it (`derived_from`). The output `model_comparison`, built once,
+compares them through pinned inputs (`accuracy#baseline`, `accuracy#svm_focused`).
 
 ## iris_pipeline/
 

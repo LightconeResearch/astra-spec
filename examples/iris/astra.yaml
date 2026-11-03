@@ -24,11 +24,15 @@ outputs:
   trained_output:
     type: data
     format: pkl
-    description: Best performing classifier
+    description: The classifier trained in each universe
     inputs: [iris_data]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/train.py
+      command: >-
+        python src/train.py --data {inputs.iris_data}
+        --scaling {decisions.scaling} --model {decisions.model}
+        --test-size {decisions.test_size} --seed {decisions.random_seed}
+        --out {output}
 
   accuracy:
     type: metric
@@ -37,7 +41,9 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --model {inputs.trained_output}
+        --metric accuracy --out {output}
 
   f1_score:
     type: metric
@@ -46,7 +52,9 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --model {inputs.trained_output}
+        --metric f1 --out {output}
 
   confusion_matrix:
     type: figure
@@ -55,7 +63,9 @@ outputs:
     inputs: [trained_output]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --model {inputs.trained_output}
+        --metric confusion_matrix --out {output}
 
   model_comparison:
     type: table
@@ -78,7 +88,9 @@ outputs:
       application
     inputs: [trained_output]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --model {inputs.trained_output}
+        --report --out {output}
 
 decisions:
   scaling:
