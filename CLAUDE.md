@@ -9,7 +9,7 @@ The ASTRA schema is written in LinkML, in four modules under `src/astra/schema/`
 - **`insight.yaml`** — insights and evidence, with the W3C Web Annotation selectors.
 - **`provenance.yaml`** — the provenance record of a result (`tree_root: ProvenanceRecord`), mapped onto PROV-O.
 
-The LinkML descriptions are the normative definitions of the fields: the field reference (`docs/elements/`) is generated from them, and the specification links to it rather than restating fields. Write each description in one or two sentences, in the present tense, saying what the field is and what it takes.
+The LinkML descriptions are the normative definitions of the fields: the field reference (`docs/elements/`) is generated from them, and the specification links to it rather than restating fields. Write each description in one or two sentences, in the present tense, saying what the field is and what it takes. Descriptions carry no history: no "no longer", "was" or "replaces".
 
 **`docs/specification.md`** is the normative specification. It carries the concepts, the grammars and the rule catalogue (its §9: every rule, with a code, a layer, a level and a source). It changes whenever a rule or a concept does: a new or changed rule goes into the catalogue, and the section that explains it links to the code.
 
@@ -29,17 +29,17 @@ The JSON Schemas generated from the LinkML sources are the contract: what valida
 - `analysis.schema.json` — `astra.yaml`, closed
 - `provenance.schema.json` — a record, closed
 - `provenance.open.schema.json` — a record, open (for checkers reading records of a newer version)
-- `analysis.context.jsonld`, `provenance.context.jsonld` — the JSON-LD contexts
+- `provenance.context.jsonld` — the record's JSON-LD context, mapping its terms onto PROV-O. There is no context for `astra.yaml`: LinkML's flat context would give its id-keyed maps a wrong RDF reading
 
-After any change to a schema module, run `just gen-schema` and commit the regenerated `src/astra/schema/generated/` with the change. Never edit these files by hand. `just check-generated` regenerates into `tmp/` and fails on any difference from what is committed; it is part of `just test` and CI. The generators stamp the latest git tag's version into the files, so the drift check needs the tags fetched.
+After any change to a schema module, run `just gen-schema` and commit the regenerated `src/astra/schema/generated/` with the change. Never edit these files by hand. `just check-generated` regenerates into `tmp/` and fails on any difference from what is committed; it is part of `just test` and CI. The generators stamp the latest git tag's version into each JSON Schema's `$comment`, so the drift check needs the tags fetched.
 
-The JSON Schemas are built by **`tools/jsonschema_generator.py`**, a small extension of LinkML's `JsonSchemaGenerator` (dev-only, LinkML pinned in the dev group). It adds `propertyNames` with the key's pattern to every id-keyed map and allows one written form per map entry: an object without its key, or, for `Universe.decisions`, the compact `<decision>: <option>`. The JSON-LD contexts come from stock `gen-jsonld-context`.
+The JSON Schemas are built by **`tools/jsonschema_generator.py`**, a small extension of LinkML's `JsonSchemaGenerator` (dev-only, LinkML pinned in the dev group). It adds `propertyNames` with the key's pattern to every id-keyed map and allows one written form per map entry: an object without its key, or, for a keyed class with exactly one other slot, the compact form, that slot's value (in this schema only `DecisionSelection`, so `Universe.decisions` is `<decision>: <option>`). It also adds `uniqueItems` to every list of strings, drops every `$defs` entry the root can't reach, and keeps only standard JSON Schema keywords at the top level: LinkML's `metamodel_version` goes, and the schema version moves into `$comment`. The record's JSON-LD context comes from stock `gen-jsonld-context`.
 
 The package ships only artefacts: the LinkML sources and `generated/`, as the namespace package `astra.schema` (plus `astra/docs/llms.txt`). There are no Python files under `src/astra/` and no runtime dependencies; build-time Python lives in `tools/`.
 
 ## Tests
 
-`just test` runs the drift check (`check-generated`), pytest and `linkml-lint`. Everything is validated as a consumer would: a plain `jsonschema` Draft 2019-09 validator against the committed generated schemas, with YAML loaded as YAML 1.2 by ruamel.yaml's safe loader (never PyYAML, never LinkML's validators or Python models).
+`just test` runs the drift check (`check-generated`), pytest and `linkml-lint`. Everything is validated as a consumer would: a plain `jsonschema` Draft 2019-09 validator against the committed generated schemas, with YAML loaded as YAML 1.2 under the core schema only, by ruamel.yaml's safe loader restricted in `tests/conftest.py` (no timestamps or merge keys, no tags beyond the core schema's, no `%YAML` but 1.2; never PyYAML, never LinkML's validators or Python models).
 
 Fixtures are whole documents in `tests/data/valid/` and `tests/data/invalid/`, named `<Root>-<nnn>-<what>.yaml` with `<Root>` `Analysis` or `ProvenanceRecord`. Each invalid fixture is a minimal valid document with one thing broken, and starts with exactly two comment lines:
 
@@ -48,7 +48,7 @@ Fixtures are whole documents in `tests/data/valid/` and `tests/data/invalid/`, n
 # fails at: <location>  a JSON Pointer, `(root)` for the document, or `parse`
 ```
 
-The test asserts that the validator reports an error at that location. Every schema-layer code in the catalogue has at least one invalid fixture. Fixtures with a duplicate key fail at parse and are excluded from pre-commit's `check-yaml`. Every `astra.yaml` under `examples/` must also validate.
+The test asserts that the fixture fails for the right reason: the validator reports errors at that location and nowhere else (a `oneOf`/`anyOf` error at an ancestor aside), with a JSON Schema keyword the rule implies (`SCHEMA_KEYWORDS` in `tests/conftest.py`), and a `parse` fixture raises its code's loader error (`PARSE_ERRORS`). Every parse- and schema-layer code in the catalogue has at least one invalid fixture. Fixtures that fail at parse (a duplicate key, malformed YAML, a `%YAML` directive other than 1.2) are kept out of the repository's YAML linters, through lists kept by hand: add each new one to `check-yaml`'s `exclude` in `.pre-commit-config.yaml` and to `ignore` in `.yamllint.yaml`. Every `astra.yaml` under `examples/`, and every whole document among the specification's examples, must also validate.
 
 ## Documentation versioning (mike)
 
@@ -57,7 +57,7 @@ The whole docs site is versioned with [mike](https://github.com/squidfunk/mike) 
 Release flow:
 
 1. `just release X.Y.Z` — regenerates the contract with the release version (`RELEASE_VERSION=X.Y.Z just gen-schema`), updates `CITATION.cff`, commits both (`src/astra/schema/generated/` and `CITATION.cff`), and creates an annotated tag. Does not push. Schema YAMLs are *not* mutated: they keep the placeholder `version: 0.0.0`, and the generators read a staged copy under `tmp/schema/` with the version injected, from `$RELEASE_VERSION` or else the latest git tag.
-2. `git push && git push origin vX.Y.Z` — review then push. The `Deploy versioned docs on tag` GitHub Actions workflow runs `mike deploy --push --update-aliases X.Y.Z latest` automatically.
+2. `git push --atomic origin HEAD vX.Y.Z` — review, then push the commit and the tag together. The `Deploy versioned docs on tag` GitHub Actions workflow runs `mike deploy --push --update-aliases X.Y.Z latest` automatically.
 
 For a manual deploy (e.g. backfilling a tag), `just docs-deploy X.Y.Z` runs the same `mike deploy` locally.
 
@@ -82,7 +82,7 @@ just release X.Y.Z    # Regenerate the contract with the version, update CITATIO
 ## Repository Layout
 
 - `src/astra/schema/` — LinkML schema sources: `types.yaml`, `analysis.yaml`, `insight.yaml`, `provenance.yaml` (edit these)
-- `src/astra/schema/generated/` — The generated contract: JSON Schemas and JSON-LD contexts (regenerate with `just gen-schema`, commit, never edit)
+- `src/astra/schema/generated/` — The generated contract: the JSON Schemas and the record's JSON-LD context (regenerate with `just gen-schema`, commit, never edit)
 - `tools/jsonschema_generator.py` — The JSON Schema generator extension
 - `docs/` — Documentation source (rendered with [Zensical](https://zensical.org/); config in `zensical.toml`)
 - `docs/specification.md` — The normative ASTRA specification
