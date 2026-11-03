@@ -1,0 +1,12 @@
+# rule: INVALID_ID
+# fails at: /findings
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+findings:
+  séed:
+    claim: C
+    evidence:
+      - artifact: result

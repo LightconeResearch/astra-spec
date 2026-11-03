@@ -1,0 +1,10 @@
+# rule: MISSING_FIELD
+# fails at: /findings/f
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+findings:
+  f:
+    claim: C

@@ -34,6 +34,17 @@
           "description": "What the analysis does, in free prose.",
           "type": "string"
         },
+        "findings": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Insight__identifier_optional"
+          },
+          "description": "What the analysis concludes, as insights keyed by id.",
+          "propertyNames": {
+            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "type": "string"
+          },
+          "type": "object"
+        },
         "inputs": {
           "additionalProperties": {
             "$ref": "#/$defs/Input__identifier_optional"
@@ -55,6 +66,17 @@
           },
           "description": "The artefacts the analysis makes, keyed by id. There is at least one.",
           "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "prior_insights": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Insight__identifier_optional"
+          },
+          "description": "What earlier work establishes and the analysis builds on, as insights keyed by id. Options cite them in their `insights`.",
           "propertyNames": {
             "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
             "type": "string"
@@ -356,6 +378,90 @@
       "title": "Decision",
       "type": "object"
     },
+    "Evidence": {
+      "additionalProperties": false,
+      "description": "What a claim rests on: a published work, cited by its `doi`, or an output, cited as an `artifact`. It has exactly one of the two, and a `version` only with a `doi`.",
+      "if": {
+        "not": {
+          "required": [
+            "doi"
+          ]
+        },
+        "properties": {
+          "doi": {}
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "doi": {}
+          },
+          "required": [
+            "doi"
+          ]
+        },
+        {
+          "properties": {
+            "artifact": {}
+          },
+          "required": [
+            "artifact"
+          ]
+        }
+      ],
+      "properties": {
+        "artifact": {
+          "description": "A reference to the cited output, written as in an output's `inputs`. Evidence citing an output built per universe pins it to the universe its claim is about, such as `f1_score#svm_standard`.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
+          "type": "string"
+        },
+        "doi": {
+          "description": "The DOI of the cited work, such as `10.48550/arXiv.1706.03762`.",
+          "pattern": "^10\\.[0-9]{4,}/[^\\x00-\\x20\\x7f]+$(?!\\n)",
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/FragmentSelector",
+          "description": "The place in the cited work the claim rests on, such as `page=6`."
+        },
+        "quote": {
+          "$ref": "#/$defs/TextQuoteSelector",
+          "description": "The passage of the cited work the claim rests on."
+        },
+        "version": {
+          "description": "The version of the cited work, counted from 1, such as `2` for the second version of an arXiv paper.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "then": {
+        "not": {
+          "required": [
+            "version"
+          ]
+        },
+        "properties": {
+          "version": {}
+        }
+      },
+      "title": "Evidence",
+      "type": "object"
+    },
+    "FragmentSelector": {
+      "additionalProperties": false,
+      "description": "A place in a PDF, given as a PDF fragment identifier (RFC 3778), such as `page=6`.",
+      "properties": {
+        "value": {
+          "description": "The PDF fragment identifier (RFC 3778), without the leading `#`, such as `page=6`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "FragmentSelector",
+      "type": "object"
+    },
     "Input": {
       "additionalProperties": false,
       "description": "A file the analysis reads, committed with it and named by its path.",
@@ -422,6 +528,98 @@
         "path"
       ],
       "title": "Input",
+      "type": "object"
+    },
+    "Insight": {
+      "additionalProperties": false,
+      "description": "A claim backed by evidence: as a prior insight, what earlier work establishes and the analysis builds on; as a finding, what the analysis concludes.",
+      "properties": {
+        "claim": {
+          "description": "What the insight asserts, in one or two sentences.",
+          "type": "string"
+        },
+        "description": {
+          "description": "The reasoning behind the claim, in free prose.",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "What the claim rests on, as a list. There is at least one.",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "id": {
+          "description": "The insight's id, written as its key in `prior_insights` or `findings`.",
+          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+          "type": "string"
+        },
+        "label": {
+          "description": "A short display name for the insight.",
+          "type": "string"
+        },
+        "scope": {
+          "description": "The conditions under which the claim holds, in free prose.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the insight.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "claim",
+        "evidence"
+      ],
+      "title": "Insight",
+      "type": "object"
+    },
+    "Insight__identifier_optional": {
+      "additionalProperties": false,
+      "description": "A claim backed by evidence: as a prior insight, what earlier work establishes and the analysis builds on; as a finding, what the analysis concludes.",
+      "properties": {
+        "claim": {
+          "description": "What the insight asserts, in one or two sentences.",
+          "type": "string"
+        },
+        "description": {
+          "description": "The reasoning behind the claim, in free prose.",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "What the claim rests on, as a list. There is at least one.",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "label": {
+          "description": "A short display name for the insight.",
+          "type": "string"
+        },
+        "scope": {
+          "description": "The conditions under which the claim holds, in free prose.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the insight.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "claim",
+        "evidence"
+      ],
+      "title": "Insight",
       "type": "object"
     },
     "Option": {
@@ -733,6 +931,29 @@
       "title": "Resources",
       "type": "object"
     },
+    "TextQuoteSelector": {
+      "additionalProperties": false,
+      "description": "A passage of the cited work, quoted exactly, with the text just before and after it to tell it apart where the same words occur more than once.",
+      "properties": {
+        "exact": {
+          "description": "The passage, exactly as the cited work writes it.",
+          "type": "string"
+        },
+        "prefix": {
+          "description": "The text that comes just before the passage.",
+          "type": "string"
+        },
+        "suffix": {
+          "description": "The text that comes just after the passage.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exact"
+      ],
+      "title": "TextQuoteSelector",
+      "type": "object"
+    },
     "Universe": {
       "additionalProperties": false,
       "description": "A universe: a selection of one option for every active decision of the analysis and of every analysis it drives. Its effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` applied on top.",
@@ -861,6 +1082,17 @@
       "description": "What the analysis does, in free prose.",
       "type": "string"
     },
+    "findings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Insight__identifier_optional"
+      },
+      "description": "What the analysis concludes, as insights keyed by id.",
+      "propertyNames": {
+        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "type": "string"
+      },
+      "type": "object"
+    },
     "inputs": {
       "additionalProperties": {
         "$ref": "#/$defs/Input__identifier_optional"
@@ -882,6 +1114,17 @@
       },
       "description": "The artefacts the analysis makes, keyed by id. There is at least one.",
       "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "prior_insights": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Insight__identifier_optional"
+      },
+      "description": "What earlier work establishes and the analysis builds on, as insights keyed by id. Options cite them in their `insights`.",
       "propertyNames": {
         "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
         "type": "string"

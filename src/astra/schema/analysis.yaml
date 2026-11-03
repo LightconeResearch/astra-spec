@@ -21,6 +21,7 @@ default_range: string
 imports:
   - linkml:types
   - types
+  - insight
 
 # ==========================================================================
 # Enumerations
@@ -443,6 +444,18 @@ classes:
         multivalued: true
         inlined: true
         description: The universes of the analysis, keyed by id.
+      prior_insights:
+        range: Insight
+        multivalued: true
+        inlined: true
+        description: >-
+          What earlier work establishes and the analysis builds on, as
+          insights keyed by id. Options cite them in their `insights`.
+      findings:
+        range: Insight
+        multivalued: true
+        inlined: true
+        description: What the analysis concludes, as insights keyed by id.
       container:
         description: >-
           Default container for recipes in this node.

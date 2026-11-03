@@ -1,0 +1,13 @@
+# rule: INVALID_EVIDENCE_SOURCE
+# fails at: /findings/f/evidence/0
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+findings:
+  f:
+    claim: C
+    evidence:
+      - doi: 10.1234/x
+        artifact: result
