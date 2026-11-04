@@ -139,6 +139,13 @@ check-generated:
   just gen-schema tmp/generated-check
   diff -r tmp/generated-check src/astra/schema/generated
 
+# Check that Ajv compiles the three committed JSON Schemas under `strict: true`,
+# with the Ajv pinned in tools/ajv/ (needs node and npm; CI runs it)
+[group('model development')]
+check-ajv:
+  npm ci --prefix tools/ajv --no-audit --no-fund
+  node tools/ajv/check.mjs src/astra/schema/generated/analysis.schema.json src/astra/schema/generated/provenance.schema.json src/astra/schema/generated/provenance.open.schema.json
+
 # Run linting
 [group('model development')]
 lint:

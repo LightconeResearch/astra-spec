@@ -1279,7 +1279,7 @@ a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
   "$comment": "ASTRA rule catalogue, schema version 0.1.0",
   "errors": {
     "https://w3id.org/astra/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/properties/commit/pattern": "INVALID_COMMIT",
-    "https://w3id.org/astra/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/then/required": "URL_WITHOUT_COMMIT",
+    "https://w3id.org/astra/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/allOf/1/then/required": "URL_WITHOUT_COMMIT",
     "https://w3id.org/astra/analysis.schema.json#/properties/outputs/propertyNames/pattern": "INVALID_ID"
   },
   "rules": [
@@ -1311,8 +1311,8 @@ names the keyword that failed, either an assertion (such as `pattern`,
 including those that say why a `oneOf` failed. A validator that writes one
 of JSON Schema's standard output formats also lists the applicators above
 an error (`properties`, `items`, `$ref`, an `additionalProperties` that
-holds a schema, `then`). Those have no entry; a tool maps the innermost
-errors.
+holds a schema, `allOf`, `then`). Those have no entry; a tool maps the
+innermost errors.
 
 What a validator gives with an error is the path it took to the keyword,
 through `$ref`s, so a tool needs one step to get the location. In both

@@ -381,3 +381,65 @@ def test_lists_of_strings_hold_no_entry_twice(name):
         for pointer, node in lists
     }
     assert found == expected
+
+
+CHECK_KEYWORDS = {"oneOf", "anyOf", "not", "if", "then", "else"}
+"""Keywords that would hold a class-level check outside the `allOf` that guards each one."""
+
+
+def fields_read(node: Any) -> set[str]:
+    """The fields of the object that a check's subschema `node` reads: those it names in `properties` or `required`."""
+    if not isinstance(node, dict):
+        return set()
+    found = set(node.get("properties", {})) | set(node.get("required", []))
+    for keyword in ("not", "if", "then", "else"):
+        found |= fields_read(node.get(keyword))
+    for keyword in ("oneOf", "anyOf", "allOf"):
+        for sub in node.get(keyword, []):
+            found |= fields_read(sub)
+    return found
+
+
+@pytest.mark.parametrize("name", ROOTS)
+def test_every_class_check_is_guarded_by_the_types_it_reads(name):
+    """Each class-level check is an `allOf` member whose `if` requires an object and the type of each field it reads.
+
+    So a value of the wrong type is reported by its `type` alone, and no check adds a second code for it (F079, F119).
+    """
+    schema = load(name)
+    classes = {"(root)": schema, **schema["$defs"]}
+    unguarded = [
+        f"{owner}/{keyword}"
+        for owner, definition in classes.items()
+        for keyword in CHECK_KEYWORDS & definition.keys()
+    ]
+    assert unguarded == []
+    wrong = []
+    for owner, definition in classes.items():
+        for index, member in enumerate(definition.get("allOf", [])):
+            guard = member.get("if", {})
+            expected = {
+                field: {"type": definition["properties"][field]["type"]}
+                for field in fields_read(member)
+            }
+            typed = {
+                field: {"type": sub.get("type")}
+                for field, sub in guard.get("properties", {}).items()
+            }
+            if (
+                set(member) != {"if", "then"}
+                or guard.get("type") != "object"
+                or typed != expected
+            ):
+                wrong.append(f"{owner}/allOf/{index}")
+    assert wrong == []
+
+
+@pytest.mark.parametrize("name", ROOTS)
+def test_each_required_has_its_fields_beside_it(name):
+    """Every `required` names only fields in a `properties` beside it, as Ajv's `strictRequired` (`strict: true`) wants."""
+    assert [
+        pointer
+        for pointer, node in nodes(load(name))
+        if set(node.get("required", [])) - set(node.get("properties", {}))
+    ] == []

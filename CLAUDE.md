@@ -34,7 +34,7 @@ The JSON Schemas generated from the LinkML sources are the contract: what valida
 
 After any change to a schema module, run `just gen-schema` and commit the regenerated `src/astra/schema/generated/` with the change. Never edit these files by hand. `just check-generated` regenerates into `tmp/` and fails on any difference from what is committed; it is part of `just test` and CI. The generators stamp the latest git tag's version into each JSON Schema's `$comment`, so the drift check needs the tags fetched.
 
-The JSON Schemas are built by **`tools/jsonschema_generator.py`**, a small extension of LinkML's `JsonSchemaGenerator` (dev-only, LinkML pinned in the dev group). It adds `propertyNames` with the key's pattern to every id-keyed map and allows one written form per map entry: an object without its key, or, for a keyed class with exactly one other slot, the compact form, that slot's value (in this schema only `DecisionSelection`, so `Universe.decisions` is `<decision>: <option>`). It also adds `uniqueItems` to every list of strings, drops every `$defs` entry the root can't reach, and keeps only standard JSON Schema keywords at the top level: LinkML's `metamodel_version` goes, and the schema version moves into `$comment`. The record's JSON-LD context comes from stock `gen-jsonld-context`.
+The JSON Schemas are built by **`tools/jsonschema_generator.py`**, a small extension of LinkML's `JsonSchemaGenerator` (dev-only, LinkML pinned in the dev group). It adds `propertyNames` with the key's pattern to every id-keyed map and allows one written form per map entry: an object without its key, or, for a keyed class with exactly one other slot, the compact form, that slot's value (in this schema only `DecisionSelection`, so `Universe.decisions` is `<decision>: <option>`). It also adds `uniqueItems` to every list of strings, drops every `$defs` entry the root can't reach, and keeps only standard JSON Schema keywords at the top level: LinkML's `metamodel_version` goes, and the schema version moves into `$comment`. Last, it moves each class-level check (the `oneOf` of an `exactly_one_of`, then each class rule's `if`/`then`) into its own member of `allOf`, guarded by an `if` that the value is an object and each field the check reads has its JSON type: a check is skipped only where a `type` keyword already fails, so no verdict changes and a value of the wrong type is `WRONG_TYPE` alone. Each `required` in a check has its fields in a `properties` beside it, inside a `not` too, so that Ajv compiles the schemas under `strict: true`: `just check-ajv` checks it, with the Ajv pinned in `tools/ajv/`, and CI runs it. The record's JSON-LD context comes from stock `gen-jsonld-context`.
 
 `rules.json` is built by **`tools/rules.py`**, from the specification and the generated JSON Schemas with their LinkML sources; never edit it, and never write §9 from it. Its extractor reads §9 with `markdown-it-py` (dev-only, never regular expressions) and is strict, enforcing what §9's "The catalogue as data" paragraph says: a subsection other than the four, a rule table (one with a Code column) outside them, a malformed row, a repeated code, a missing or unknown column, an unknown layer or level, a rule whose RFC 2119 keyword contradicts its level, or a cell whose Markdown can't be rebuilt from its tokens fails `just gen-schema`. The error map walks each JSON Schema and fails on any keyword it can't give a code, on any code that isn't a schema-layer rule of §9, and on any `rule` annotation that gives no keyword its code.
 
@@ -42,8 +42,8 @@ The JSON Schemas are built by **`tools/jsonschema_generator.py`**, a small exten
 
 - on a type, for its pattern (`commit_id` → `INVALID_COMMIT`);
 - on a slot, for the pattern the slot writes itself (`Input.path` → `INVALID_PATH`). A slot that writes its own pattern must have one; a slot that takes its type's pattern may have one, which then wins over the type's (`DecisionSelection.decision`, a map key: a bad key is `INVALID_ID` whatever its type);
-- on a class rule (`rules:` entry), for its `if`/`then`;
-- on each branch of an `exactly_one_of`, the same code on every branch: LinkML 1.12.1 can't annotate the `exactly_one_of` list itself.
+- on a class rule (`rules:` entry), for the `if` and the `then` of its `allOf` member;
+- on each branch of an `exactly_one_of`, the same code on every branch (its `allOf` member's `if`, `oneOf` and branches take it): LinkML 1.12.1 can't annotate the `exactly_one_of` list itself.
 
 Every `rule` annotation must give some keyword its code: one on a class, an enum, a type no slot uses, or a slot with no pattern fails the build. Keywords whose code never varies take a default instead: `required` outside a rule (`MISSING_FIELD`); `additionalProperties: false` (`UNKNOWN_FIELD`); `type` (`WRONG_TYPE`), except on a map key, which takes the key's code; `minProperties`/`minItems` of 1 (`EMPTY_COLLECTION`; any other minimum has no code and fails the build); `uniqueItems` (`DUPLICATE_ENTRY`); `enum`/`minimum` (`INVALID_VALUE`). The annotations don't reach the JSON Schemas.
 
@@ -53,7 +53,7 @@ The package ships only artefacts: the LinkML sources and `generated/`, as the na
 
 ## Tests
 
-`just test` runs the drift check (`check-generated`), pytest and `linkml-lint`. Everything is validated as a consumer would: a plain `jsonschema` Draft 2019-09 validator against the committed generated schemas, with YAML loaded as YAML 1.2 under the core schema only, by ruamel.yaml's safe loader restricted in `tests/conftest.py` (no timestamps or merge keys, no tags beyond the core schema's, no `%YAML` but 1.2; never PyYAML, never LinkML's validators or Python models).
+`just test` runs the drift check (`check-generated`), pytest and `linkml-lint`; `just check-ajv` (in CI, and wherever node is installed) compiles the three JSON Schemas with the pinned Ajv under `strict: true`. Everything is validated as a consumer would: a plain `jsonschema` Draft 2019-09 validator against the committed generated schemas, with YAML loaded as YAML 1.2 under the core schema only, by ruamel.yaml's safe loader restricted in `tests/conftest.py` (no timestamps or merge keys, no tags beyond the core schema's, no `%YAML` but 1.2; never PyYAML, never LinkML's validators or Python models).
 
 Fixtures are whole documents in `tests/data/valid/` and `tests/data/invalid/`, named `<Root>-<nnn>-<what>.yaml` with `<Root>` `Analysis` or `ProvenanceRecord`. Each invalid fixture is a minimal valid document with one thing broken, and starts with exactly two comment lines:
 
@@ -87,6 +87,7 @@ Schema artifacts (`docs/schema/*.{yaml,json,jsonld}`) are versioned along with t
 just test             # Drift check of the generated files, pytest, and linkml-lint
 just gen-schema       # Regenerate the contract into src/astra/schema/generated/ (commit it)
 just check-generated  # Fail if the committed generated files differ from a fresh generation
+just check-ajv        # Compile the three JSON Schemas with the pinned Ajv under strict: true (needs node)
 just lint             # Lint the schema (linkml-lint)
 just gen-doc          # Generate the field reference (docs/elements/) and docs/schema/
 just docs-serve       # Build and preview docs locally with live reload
@@ -99,6 +100,7 @@ just release X.Y.Z    # Regenerate the contract with the version, update CITATIO
 - `src/astra/schema/generated/` — The generated contract: the JSON Schemas, the record's JSON-LD context and `rules.json` (regenerate with `just gen-schema`, commit, never edit)
 - `tools/jsonschema_generator.py` — The JSON Schema generator extension
 - `tools/rules.py` — Builds `rules.json`: the §9 extractor and the error map
+- `tools/ajv/` — A pinned Ajv (`package.json`, `package-lock.json`) and `check.mjs`, for `just check-ajv`
 - `docs/` — Documentation source (rendered with [Zensical](https://zensical.org/); config in `zensical.toml`)
 - `docs/specification.md` — The normative ASTRA specification
 - `docs/index.md` — Landing page (clean, MCP-style with card grid nav)

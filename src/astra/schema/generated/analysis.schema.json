@@ -3,33 +3,66 @@
   "$defs": {
     "AnalysisDeclaration__identifier_optional": {
       "additionalProperties": false,
-      "description": "Another analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
-      "if": {
-        "properties": {
-          "url": {}
-        },
-        "required": [
-          "url"
-        ]
-      },
-      "oneOf": [
+      "allOf": [
         {
-          "properties": {
-            "path": {}
+          "if": {
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
           },
-          "required": [
-            "path"
-          ]
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "path": {}
+                },
+                "required": [
+                  "path"
+                ]
+              },
+              {
+                "properties": {
+                  "url": {}
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            ]
+          }
         },
         {
-          "properties": {
-            "url": {}
+          "if": {
+            "properties": {
+              "commit": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "type": "object"
           },
-          "required": [
-            "url"
-          ]
+          "then": {
+            "properties": {
+              "commit": {}
+            },
+            "required": [
+              "commit"
+            ]
+          }
         }
       ],
+      "description": "Another analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
       "properties": {
         "commit": {
           "description": "The full id of the commit the declared analysis is read at. A declaration with a `url` has one; with a `path`, it declares the analysis at that path as it was at that commit.",
@@ -46,14 +79,6 @@
           "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z]:)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
           "type": "string"
         }
-      },
-      "then": {
-        "properties": {
-          "commit": {}
-        },
-        "required": [
-          "commit"
-        ]
       },
       "title": "AnalysisDeclaration",
       "type": "object"
@@ -108,35 +133,73 @@
     },
     "Evidence": {
       "additionalProperties": false,
-      "description": "What a claim rests on: a published work, cited by its `doi`, or an output, cited as an `artifact`. It has exactly one of the two, and a `version` only with a `doi`.",
-      "if": {
-        "not": {
-          "required": [
-            "doi"
-          ]
-        },
-        "properties": {
-          "doi": {}
-        }
-      },
-      "oneOf": [
+      "allOf": [
         {
-          "properties": {
-            "doi": {}
+          "if": {
+            "properties": {
+              "artifact": {
+                "type": "string"
+              },
+              "doi": {
+                "type": "string"
+              }
+            },
+            "type": "object"
           },
-          "required": [
-            "doi"
-          ]
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "doi": {}
+                },
+                "required": [
+                  "doi"
+                ]
+              },
+              {
+                "properties": {
+                  "artifact": {}
+                },
+                "required": [
+                  "artifact"
+                ]
+              }
+            ]
+          }
         },
         {
-          "properties": {
-            "artifact": {}
+          "if": {
+            "not": {
+              "properties": {
+                "doi": {}
+              },
+              "required": [
+                "doi"
+              ]
+            },
+            "properties": {
+              "doi": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
           },
-          "required": [
-            "artifact"
-          ]
+          "then": {
+            "not": {
+              "properties": {
+                "version": {}
+              },
+              "required": [
+                "version"
+              ]
+            }
+          }
         }
       ],
+      "description": "What a claim rests on: a published work, cited by its `doi`, or an output, cited as an `artifact`. It has exactly one of the two, and a `version` only with a `doi`.",
       "properties": {
         "artifact": {
           "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, and should when the output is built per universe: to the universe the claim is about, such as `f1_score#svm_standard`.",
@@ -160,16 +223,6 @@
           "description": "The version of the cited work, counted from 1, such as `2` for the second version of an arXiv paper.",
           "minimum": 1,
           "type": "integer"
-        }
-      },
-      "then": {
-        "not": {
-          "required": [
-            "version"
-          ]
-        },
-        "properties": {
-          "version": {}
         }
       },
       "title": "Evidence",

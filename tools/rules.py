@@ -9,9 +9,11 @@
   (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it enforces. The code
   comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type or slot that
   defines a pattern, on a class rule, on each branch of an ``exactly_one_of``), or, for the keywords whose code never
-  varies, from a default. A map's keys take their key's code for both their ``type`` and their ``pattern``. Every such
-  keyword has exactly one code, every code is a schema-layer rule of §9, and every ``rule`` annotation gives some
-  keyword its code.
+  varies, from a default. A map's keys take their key's code for both their ``type`` and their ``pattern``. A class's
+  checks (its exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the
+  keywords of its ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does. Every such keyword
+  has exactly one code, every code is a schema-layer rule of §9, and every ``rule`` annotation gives some keyword its
+  code.
 """
 
 import argparse
@@ -410,17 +412,43 @@ class _ErrorMap:
             elif keyword == "properties":
                 for field, sub in value.items():
                     self.value(sub, [*here, field], name, self.slot(name, field, here))
-            elif keyword == "oneOf":
-                self.exactly_one_of(value, here, name)
-            elif keyword in ("if", "then", "else"):
-                code = self.class_rule(name, here)
-                if keyword == "if":
-                    # Nothing inside an `if` is reported, only the `if` itself (by Ajv, when its `then` fails).
-                    self.add(here, code)
-                else:
-                    self.condition(value, here, code)
+            elif keyword == "allOf":
+                self.checks(value, here, name)
             else:
                 raise self.unknown(pointer, keyword)
+
+    def checks(self, members: list[dict], pointer: list[Any], cls: str) -> None:
+        """A class's checks, each a guarded member of `allOf` (the generator's step 5): its exactly-one-of first, if it
+        has one, then its class rules, in order.
+
+        Each member is `{if, then}`. Its `if` takes the check's code, since Ajv reports it when the `then` fails, but
+        nothing inside it does: it only guards the check. The keywords of its `then` that can fail take the code too.
+        """
+        codes = (
+            [self.exactly_one_of_code(cls, pointer)]
+            if self.view.get_class(cls).exactly_one_of
+            else []
+        ) + self.class_rules(cls, pointer)
+        if len(members) != len(codes):
+            raise ValueError(
+                f"{self.location(pointer)}: {len(members)} checks, but {cls} has {len(codes)}"
+            )
+        for index, (member, code) in enumerate(zip(members, codes)):
+            here = [*pointer, index]
+            if set(member) - METADATA != {"if", "then"}:
+                raise ValueError(
+                    f"{self.location(here)}: a check is a member with an `if` and a `then` only"
+                )
+            self.add([*here, "if"], code)
+            then = member["then"]
+            if index == 0 and self.view.get_class(cls).exactly_one_of:
+                if set(then) - METADATA != {"oneOf"}:
+                    raise ValueError(
+                        f"{self.location([*here, 'then'])}: {cls}'s exactly_one_of is a `then` with a `oneOf` only"
+                    )
+                self.exactly_one_of(then["oneOf"], [*here, "then", "oneOf"], cls)
+            else:
+                self.condition(then, [*here, "then"], code)
 
     def enum(self, node: dict, pointer: list[Any]) -> None:
         for keyword in node:
@@ -490,21 +518,12 @@ class _ErrorMap:
     def exactly_one_of(
         self, branches: list[dict], pointer: list[Any], cls: str
     ) -> None:
-        expressions = self.view.get_class(cls).exactly_one_of
-        if len(expressions) != len(branches):
+        if len(self.view.get_class(cls).exactly_one_of) != len(branches):
             raise ValueError(f"{self.location(pointer)}: not {cls}'s exactly_one_of")
-        codes = [_annotation(expression) for expression in expressions]
-        if None in codes or len(set(codes)) != 1:
-            raise ValueError(
-                f"{self.location(pointer)}: each branch of {cls}'s exactly_one_of must name the same code"
-                f" in a {ANNOTATION!r} annotation, not {codes}"
-            )
-        self.used.update(
-            ("exactly_one_of", cls, str(index)) for index in range(len(expressions))
-        )
-        self.add(pointer, codes[0])
+        code = self.exactly_one_of_code(cls, pointer)
+        self.add(pointer, code)
         for index, branch in enumerate(branches):
-            self.condition(branch, [*pointer, index], codes[0])
+            self.condition(branch, [*pointer, index], code)
 
     # From the schema to LinkML.
 
@@ -526,25 +545,37 @@ class _ErrorMap:
             )
         return others[0]
 
-    def class_rule(self, cls: str, pointer: list[Any]) -> str:
-        """The code of the one class rule LinkML writes as the class's `if`/`then`/`else`."""
-        rules = [
-            (ancestor, index, rule)
-            for ancestor in self.view.class_ancestors(cls)
-            for index, rule in enumerate(self.view.get_class(ancestor).rules or [])
-        ]
-        if len(rules) != 1 or rules[0][2].bidirectional:
+    def exactly_one_of_code(self, cls: str, pointer: list[Any]) -> str:
+        """The code of `cls`'s exactly_one_of, which each of its branches names, the same one."""
+        expressions = self.view.get_class(cls).exactly_one_of
+        codes = [_annotation(expression) for expression in expressions]
+        if None in codes or len(set(codes)) != 1:
             raise ValueError(
-                f"{self.location(pointer)}: {cls} must have one class rule, not bidirectional"
+                f"{self.location(pointer)}: each branch of {cls}'s exactly_one_of must name the same code"
+                f" in a {ANNOTATION!r} annotation, not {codes}"
             )
-        ((ancestor, index, rule),) = rules
-        code = _annotation(rule)
-        if code is None:
-            raise ValueError(
-                f"{self.location(pointer)}: {cls}'s class rule has no {ANNOTATION!r} annotation"
-            )
-        self.used.add(("rule", ancestor, str(index)))
-        return code
+        self.used.update(
+            ("exactly_one_of", cls, str(index)) for index in range(len(expressions))
+        )
+        return codes[0]
+
+    def class_rules(self, cls: str, pointer: list[Any]) -> list[str]:
+        """The code of each class rule of `cls` and its ancestors, in the order LinkML writes them; none bidirectional."""
+        codes = []
+        for ancestor in self.view.class_ancestors(cls):
+            for index, rule in enumerate(self.view.get_class(ancestor).rules or []):
+                if rule.bidirectional:
+                    raise ValueError(
+                        f"{self.location(pointer)}: {cls}'s class rules can't be bidirectional"
+                    )
+                code = _annotation(rule)
+                if code is None:
+                    raise ValueError(
+                        f"{self.location(pointer)}: {cls}'s class rule has no {ANNOTATION!r} annotation"
+                    )
+                self.used.add(("rule", ancestor, str(index)))
+                codes.append(code)
+        return codes
 
     def pattern_code(self, cls: str, slot: Any, pointer: list[Any]) -> str:
         """The code of a slot's pattern: the slot's annotation, or else that of the type the pattern comes from.

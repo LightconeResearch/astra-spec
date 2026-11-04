@@ -461,15 +461,21 @@ CODES = {
     ANALYSIS + DECLARATION + "/properties/url/pattern": "INVALID_VALUE",
     RECORD + "/$defs/Environment/properties/iri/pattern": "INVALID_VALUE",
     OPEN + "/$defs/Environment/properties/iri/pattern": "INVALID_VALUE",
-    # Class rules and exactly-one-of
-    ANALYSIS + DECLARATION + "/oneOf": "INVALID_DECLARATION_SOURCE",
-    ANALYSIS + DECLARATION + "/oneOf/0/required": "INVALID_DECLARATION_SOURCE",
-    ANALYSIS + DECLARATION + "/oneOf/1/required": "INVALID_DECLARATION_SOURCE",
-    ANALYSIS + DECLARATION + "/if": "URL_WITHOUT_COMMIT",
-    ANALYSIS + DECLARATION + "/then/required": "URL_WITHOUT_COMMIT",
-    ANALYSIS + "/$defs/Evidence/oneOf": "INVALID_EVIDENCE_SOURCE",
-    ANALYSIS + "/$defs/Evidence/if": "INVALID_EVIDENCE_SOURCE",
-    ANALYSIS + "/$defs/Evidence/then/not": "INVALID_EVIDENCE_SOURCE",
+    # Class rules and exactly-one-of, each a guarded member of `allOf`: the exactly-one-of first, then the rule
+    ANALYSIS + DECLARATION + "/allOf/0/if": "INVALID_DECLARATION_SOURCE",
+    ANALYSIS + DECLARATION + "/allOf/0/then/oneOf": "INVALID_DECLARATION_SOURCE",
+    ANALYSIS
+    + DECLARATION
+    + "/allOf/0/then/oneOf/0/required": "INVALID_DECLARATION_SOURCE",
+    ANALYSIS
+    + DECLARATION
+    + "/allOf/0/then/oneOf/1/required": "INVALID_DECLARATION_SOURCE",
+    ANALYSIS + DECLARATION + "/allOf/1/if": "URL_WITHOUT_COMMIT",
+    ANALYSIS + DECLARATION + "/allOf/1/then/required": "URL_WITHOUT_COMMIT",
+    ANALYSIS + "/$defs/Evidence/allOf/0/if": "INVALID_EVIDENCE_SOURCE",
+    ANALYSIS + "/$defs/Evidence/allOf/0/then/oneOf": "INVALID_EVIDENCE_SOURCE",
+    ANALYSIS + "/$defs/Evidence/allOf/1/if": "INVALID_EVIDENCE_SOURCE",
+    ANALYSIS + "/$defs/Evidence/allOf/1/then/not": "INVALID_EVIDENCE_SOURCE",
     # Defaults
     ANALYSIS + "/required": "MISSING_FIELD",
     ANALYSIS + "/$defs/Output__identifier_optional/required": "MISSING_FIELD",
@@ -627,19 +633,17 @@ def scratch_schema(tmp_path, text: str) -> tuple[dict, SchemaView]:
 def test_scratch_schema_has_its_codes(tmp_path):
     error_map = build_error_map(*scratch_schema(tmp_path, SCRATCH))
     base = "https://example.org/scratch#"
-    assert {
-        "/properties/name/pattern": error_map[base + "/properties/name/pattern"],
-        "/oneOf": error_map[base + "/oneOf"],
-        "/oneOf/1/required": error_map[base + "/oneOf/1/required"],
-        "/if": error_map[base + "/if"],
-        "/then/required": error_map[base + "/then/required"],
-    } == {
+    expected = {
         "/properties/name/pattern": "INVALID_ID",
-        "/oneOf": "INVALID_DECLARATION_SOURCE",
-        "/oneOf/1/required": "INVALID_DECLARATION_SOURCE",
-        "/if": "URL_WITHOUT_COMMIT",
-        "/then/required": "URL_WITHOUT_COMMIT",
+        "/allOf/0/if": "INVALID_DECLARATION_SOURCE",
+        "/allOf/0/then/oneOf": "INVALID_DECLARATION_SOURCE",
+        "/allOf/0/then/oneOf/1/required": "INVALID_DECLARATION_SOURCE",
+        "/allOf/1/if": "URL_WITHOUT_COMMIT",
+        "/allOf/1/then/required": "URL_WITHOUT_COMMIT",
     }
+    assert {pointer: error_map.get(base + pointer) for pointer in expected} == expected
+    # Nothing inside an `if` has a code: it only guards its check.
+    assert [location for location in error_map if "/if/" in location] == []
 
 
 @pytest.mark.parametrize("old, new, message", UNCODED.values(), ids=UNCODED)
@@ -763,17 +767,17 @@ DOCUMENT = {
 }
 
 LOCATED = {
-    "oneOf and its branches": (
+    "oneOf and its branches, in an allOf member's then": (
         {**DOCUMENT, "analyses": {"a": {}}},
         {
-            ("/analyses/a", ANALYSIS + DECLARATION + "/oneOf"),
-            ("/analyses/a", ANALYSIS + DECLARATION + "/oneOf/0/required"),
-            ("/analyses/a", ANALYSIS + DECLARATION + "/oneOf/1/required"),
+            ("/analyses/a", ANALYSIS + DECLARATION + "/allOf/0/then/oneOf"),
+            ("/analyses/a", ANALYSIS + DECLARATION + "/allOf/0/then/oneOf/0/required"),
+            ("/analyses/a", ANALYSIS + DECLARATION + "/allOf/0/then/oneOf/1/required"),
         },
     ),
-    "then, after an if": (
+    "then, after an if, in an allOf member": (
         {**DOCUMENT, "analyses": {"a": {"url": "https://example.org/repo"}}},
-        {("/analyses/a", ANALYSIS + DECLARATION + "/then/required")},
+        {("/analyses/a", ANALYSIS + DECLARATION + "/allOf/1/then/required")},
     ),
     "then/not, in a list item": (
         {
@@ -782,7 +786,15 @@ LOCATED = {
                 "f": {"claim": "c", "evidence": [{"artifact": "o", "version": 2}]}
             },
         },
-        {("/findings/f/evidence/0", ANALYSIS + "/$defs/Evidence/then/not")},
+        {("/findings/f/evidence/0", ANALYSIS + "/$defs/Evidence/allOf/1/then/not")},
+    ),
+    "a declaration that isn't an object, its checks skipped": (
+        {**DOCUMENT, "analyses": {"a": "../a"}},
+        {("/analyses/a", ANALYSIS + DECLARATION + "/type")},
+    ),
+    "a field of the wrong type, its checks skipped": (
+        {**DOCUMENT, "analyses": {"a": {"path": "a", "url": None}}},
+        {("/analyses/a/url", ANALYSIS + DECLARATION + "/properties/url/type")},
     ),
     "a map's propertyNames": (
         {**DOCUMENT, "outputs": {"O": {"type": "metric", "format": "csv"}}},

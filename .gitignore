@@ -9,6 +9,8 @@
 # The justfile's scratch space: the staged, versioned schema (tmp/schema/) and
 # the drift check's fresh generation (tmp/generated-check/)
 tmp/
+# The pinned Ajv's install, for `just check-ajv` (tools/ajv/)
+tools/ajv/node_modules/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -58,3 +58,14 @@ jobs:
 
       - name: Run test suite
         run: just test
+
+      # https://github.com/actions/setup-node
+      - name: Set up Node
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "24"
+
+      # The contract compiles under Ajv's `strict: true`, as spec §10 says
+      # strict validators compile it.
+      - name: Compile the JSON Schemas with Ajv in strict mode
+        run: just check-ajv
