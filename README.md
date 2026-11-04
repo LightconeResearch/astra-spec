@@ -79,7 +79,7 @@ src/astra/
   schema/       # LinkML schema source (edit these)
   datamodel/    # Generated Python datamodel (do not edit directly)
 docs/           # Documentation source (Zensical → astra-spec.org)
-tests/data/    # Valid/invalid YAML fixtures
+tests/data/    # Valid/invalid fixtures: astra.yaml files and records
 project/        # Multi-language bindings (Python, TS, JSON Schema, JSON-LD, OWL, Java)
 ```
 

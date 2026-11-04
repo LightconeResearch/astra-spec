@@ -23,6 +23,7 @@ from .conftest import (
     REPO_ROOT,
     fixture_header,
     fixtures,
+    load_json,
     load_yaml,
     load_yaml_text,
     rules_catalogue,
@@ -153,7 +154,7 @@ def examples() -> list[Example]:
         )
         text = token.content
         document = (
-            json.loads(text) if _language(token) == "json" else load_yaml_text(text)
+            load_json(text) if _language(token) == "json" else load_yaml_text(text)
         )
         found.append(Example(token.map[0] + 1, _language(token), marker, document))
     return found

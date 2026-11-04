@@ -6,15 +6,17 @@ Why is read from `rules.json`, as a tool reads it: each error's absolute keyword
 from pathlib import Path
 
 import pytest
-from ruamel.yaml.error import YAMLError
 
 from .conftest import (
     DATA,
+    PARSE_ERRORS,
     errors,
     fixture_header,
     fixtures,
+    header_file,
     load_document,
-    load_yaml,
+    load_fixture,
+    load_json,
     parse_code,
     rules_catalogue,
     validator,
@@ -36,19 +38,20 @@ def layer_of(code: str) -> str | None:
 def check_invalid_fixture(path: Path) -> None:
     """Assert that the fixture at `path` fails exactly as its header says.
 
-    A parse fixture's loader error has its rule's code (`parse_code`), and the fixture has no `# also:` line. A
-    schema fixture's errors are reported at `fails at`, where `rules.json` gives them its rule, and nowhere else but
-    at the pointer of its `# also:` line, if it has one, where they must be reported too, with that line's code. A
-    key that isn't a string is an `INVALID_ID` error at its map: `load_document` reports it and leaves its entry out,
-    so it isn't found through `rules.json`, and the validator checks the rest of the document (spec §3).
+    A record (`.json`) is read by `load_json`, and its header is in its sidecar (`header_file`). A parse fixture's
+    loader error has its rule's code (`parse_code`), and the fixture has no `# also:` line. A schema fixture's errors
+    are reported at `fails at`, where `rules.json` gives them its rule, and nowhere else but at the pointer of its
+    `# also:` line, if it has one, where they must be reported too, with that line's code. A key of an `astra.yaml`
+    that isn't a string is an `INVALID_ID` error at its map: `load_document` reports it and leaves its entry out, so
+    it isn't found through `rules.json`, and the validator checks the rest of the document (spec §3).
     """
     rule, fails_at, also = fixture_header(path)
     if fails_at == "parse":
         assert layer_of(rule) == "parse", f"{rule} is not a parse-layer code"
         assert also is None, "a parse fixture has no '# also:' line"
         try:
-            load_yaml(path)
-        except YAMLError as error:
+            load_fixture(path)
+        except PARSE_ERRORS as error:
             code = parse_code(error)
         else:
             code = None
@@ -64,7 +67,9 @@ def check_invalid_fixture(path: Path) -> None:
         assert also_at != fails_at, "'# also:' names the place it fails at"
         expected[also_at] = also_code
     error_map = rules_catalogue()["errors"]
-    document, left_out = load_document(path)
+    document, left_out = (
+        (load_json(path), []) if path.suffix == ".json" else load_document(path)
+    )
     found = errors(validator(root_of(path)), document)
     assert sorted({location for _, location, _ in found} - error_map.keys()) == []
     keys = {(pointer, "INVALID_ID") for pointer, _ in left_out}
@@ -88,13 +93,34 @@ def check_invalid_fixture(path: Path) -> None:
 def test_valid_fixture(path):
     v = validator(root_of(path))
     assert [
-        f"{list(e.absolute_path)}: {e.message}" for e in v.iter_errors(load_yaml(path))
+        f"{list(e.absolute_path)}: {e.message}"
+        for e in v.iter_errors(load_fixture(path))
     ] == []
 
 
 @pytest.mark.parametrize("path", fixtures("invalid"), ids=lambda path: path.stem)
 def test_invalid_fixture(path):
     check_invalid_fixture(path)
+
+
+SUFFIXES = {"Analysis": ".yaml", "ProvenanceRecord": ".json"}
+"""The file suffix of each fixture root: an `astra.yaml` is YAML, a record JSON (spec §3)."""
+
+
+def test_every_fixture_is_written_as_its_kind_of_file():
+    """Every file in the fixture folders is an `astra.yaml` (`.yaml`), a record (`.json`), or a record's header
+    sidecar (`.header`) beside its record, and every invalid record has one."""
+    problems = []
+    for kind in ("valid", "invalid"):
+        for path in sorted((DATA / kind).iterdir()):
+            if path.suffix == ".header":
+                if not path.with_suffix(".json").is_file():
+                    problems.append(f"{kind}/{path.name}: no record beside it")
+            elif SUFFIXES.get(root_of(path)) != path.suffix:
+                problems.append(f"{kind}/{path.name}: not a {root_of(path)} fixture")
+            elif kind == "invalid" and not header_file(path).is_file():
+                problems.append(f"{kind}/{path.name}: no header sidecar")
+    assert problems == []
 
 
 # --- The check itself: it fails a fixture whose header says less, or other, than what fails ---
@@ -164,6 +190,47 @@ def test_check_rejects_a_fixture_whose_header_is_wrong(tmp_path, name):
     path.write_text(MISLABELLED[name], encoding="utf-8")
     with pytest.raises(AssertionError):
         check_invalid_fixture(path)
+
+
+_RECORD_201 = DATA / "invalid" / "ProvenanceRecord-201-no-content-hash.json"
+
+MISLABELLED_RECORDS = {
+    "repeated-name-headed-syntax": (
+        "# rule: INVALID_SYNTAX\n# fails at: parse\n",
+        '{"spec_version": "0.1.0", "spec_version": "0.1.0"}\n',
+    ),
+    "comment-headed-duplicate-key": (
+        "# rule: DUPLICATE_KEY\n# fails at: parse\n",
+        '// a comment\n{"spec_version": "0.1.0"}\n',
+    ),
+    "schema-break-headed-parse": (
+        "# rule: INVALID_SYNTAX\n# fails at: parse\n",
+        _RECORD_201.read_text(encoding="utf-8"),
+    ),
+    "schema-break-at-another-place": (
+        "# rule: MISSING_FIELD\n# fails at: /generated_by\n",
+        _RECORD_201.read_text(encoding="utf-8"),
+    ),
+}
+"""Scratch records, each a `(header, record)`, whose header doesn't say exactly how they fail: a repeated name is
+DUPLICATE_KEY, a comment INVALID_SYNTAX, and record 201 parses, and fails at `(root)`."""
+
+
+@pytest.mark.parametrize("name", MISLABELLED_RECORDS)
+def test_check_rejects_a_record_whose_header_is_wrong(tmp_path, name):
+    header, record = MISLABELLED_RECORDS[name]
+    path = tmp_path / f"ProvenanceRecord-901-{name}.json"
+    path.write_text(record, encoding="utf-8")
+    path.with_suffix(".header").write_text(header, encoding="utf-8")
+    with pytest.raises(AssertionError):
+        check_invalid_fixture(path)
+
+
+def test_a_record_without_its_header_sidecar_is_an_error(tmp_path):
+    path = tmp_path / "ProvenanceRecord-901-no-header.json"
+    path.write_text(_RECORD_201.read_text(encoding="utf-8"), encoding="utf-8")
+    with pytest.raises(ValueError, match="header file"):
+        fixture_header(path)
 
 
 def test_check_accepts_the_second_error_its_also_line_declares(tmp_path):

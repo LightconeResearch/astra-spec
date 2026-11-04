@@ -276,14 +276,14 @@
       "layer": "parse",
       "level": "MUST",
       "source": "0005, tidy-up, §3",
-      "statement": "Every `astra.yaml` is a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; every record is well-formed JSON; and in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range"
+      "statement": "Every `astra.yaml` is a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark"
     },
     {
       "code": "DUPLICATE_KEY",
       "layer": "parse",
       "level": "MUST",
       "source": "0003, 0004, tidy-up, §3, §4",
-      "statement": "Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.)"
+      "statement": "Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.)"
     },
     {
       "code": "INVALID_ID",
@@ -633,8 +633,8 @@
       "code": "INVALID_RECORD",
       "layer": "check",
       "level": "MUST",
-      "source": "0005 §2, tidy-up, §8",
-      "statement": "The record at each planned result's place is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's",
+      "source": "0005 §2, tidy-up, §3, §8",
+      "statement": "The record at each planned result's place breaks no parse rule, and no schema rule against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's",
       "status": "`missing`"
     },
     {

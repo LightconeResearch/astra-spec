@@ -80,7 +80,7 @@ Rules are enforced in five layers, set apart by what each one sees:
 
 | Layer | Enforced by | Sees |
 |---|---|---|
-| **parse** | a YAML 1.2 loader under the core schema, plus §3's checks | one file's text |
+| **parse** | a YAML 1.2 loader under the core schema, plus §3's checks (`astra.yaml`), or a strict JSON parser (records, §3) | one file's text |
 | **schema** | the generated JSON Schema | one file's data |
 | **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git; no results |
 | **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git; records and results |
@@ -95,7 +95,8 @@ Four roles conform to this specification:
   analysis is valid when it breaks none of their `MUST`s.
 - A **checker** reads an analysis, every `astra.yaml` of its stack and git,
   and its records and results, and gives each planned result its statuses by
-  the check rules (§8).
+  the check rules (§8). A record that breaks a parse or schema rule leaves its
+  result `missing` ([`INVALID_RECORD`](#check)).
 - A **runner** runs recipes and writes each result's bytes and record. It
   conforms when it keeps the runner rules.
 
@@ -237,9 +238,31 @@ strictly, under the core schema only
   Any other surrogate escape makes the file invalid
   ([`INVALID_SYNTAX`](#parse-and-schema)).
 
-**Records** are JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)),
-well-formed ([`INVALID_SYNTAX`](#parse-and-schema)). A record is one JSON
-value, checked by the same schema rules.
+**Records** are JSON text ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259))
+in UTF-8, read strictly ([`INVALID_SYNTAX`](#parse-and-schema)):
+
+- a record uses only JSON's forms: a comment, a trailing comma, a single
+  quote, `NaN`, `Infinity` or YAML makes it invalid
+  ([`INVALID_SYNTAX`](#parse-and-schema));
+- a record starts with no byte order mark
+  ([`INVALID_SYNTAX`](#parse-and-schema)). RFC 8259 §8.1 forbids writing one
+  but lets a parser ignore one; a checker refuses it, as `JSON.parse` does, so
+  that every checker reads a record alike;
+- a name written twice in one object makes the record invalid
+  ([`DUPLICATE_KEY`](#parse-and-schema)). Names are compared once their
+  escapes are read, so `"a"` and `"\u0061"` are one name. RFC 8259 §4 doesn't
+  forbid a repeated name, and Python's `json.loads` and JavaScript's
+  `JSON.parse` keep the last of two, so a checker needs a parser that reports
+  one (§10);
+- its strings and numbers are those of every document (below): a number
+  beyond a double's range (`1e400`) and the escape of a lone surrogate
+  (`"\ud800"`) make it invalid ([`INVALID_SYNTAX`](#parse-and-schema)), and an
+  escaped pair, `"\ud83d\ude00"`, is one character.
+
+A record is one JSON value, checked by the same schema rules. A record that
+breaks a parse or schema rule leaves its result `missing`: a checker reports
+[`INVALID_RECORD`](#check), with each code the record breaks as its reason
+(§9, §10).
 
 **Every document** holds only the fields its schema defines
 ([`UNKNOWN_FIELD`](#parse-and-schema)), each with the JSON type the field
@@ -1243,7 +1266,7 @@ What breaking a rule leads to depends on the layer:
 
 | Layer | When a rule is broken |
 |---|---|
-| parse, schema, validator | A broken `MUST` is reported as an **error** and makes the file invalid; a broken `SHOULD` is reported as a **warning**, and the file stays valid |
+| parse, schema, validator | A broken `MUST` is reported as an **error** and makes the file invalid (a checker reports a record's as a reason of [`INVALID_RECORD`](#check)); a broken `SHOULD` is reported as a **warning**, and the file stays valid |
 | check | Nothing fails. The code is reported and **the result gets a status**, given in the check table's extra column, *Status when broken* |
 | runner | The runner doesn't conform. Where a rule says the runner refuses, it reports the code |
 
@@ -1293,8 +1316,8 @@ A table that breaks any of this is an error in this specification, and no
 
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; every record is well-formed JSON; and in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range | 0005, tidy-up, §3 |
-| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, tidy-up, §3, §4 |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark | 0005, tidy-up, §3 |
+| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, tidy-up, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key is a string, and matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
 | `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main |
@@ -1356,6 +1379,13 @@ The extra column, **Status when broken**, is the status a result, or evidence
 citing it, gets when the rule doesn't hold. A result for which every rule
 holds is `unchanged` and `present`.
 
+A record is a document, read by the parse and schema rules (§3). A checker
+doesn't report a record's breach of one of them as an error of its own: the
+record breaks `INVALID_RECORD`, so its result is `missing`, and the checker
+reports `INVALID_RECORD` with each code the record breaks as its reason, the
+parser's (`INVALID_SYNTAX` or `DUPLICATE_KEY`) or the one `rules.json` gives
+the schema error (§10).
+
 **Statuses.** A checker gives every planned result two statuses, one for its
 record (`unchanged`, `stale` or `missing`) and one for its bytes (`present`
 or `absent`). Evidence citing a result gets that result's first status.
@@ -1364,7 +1394,7 @@ or `absent`). Evidence citing a result gets that result's first status.
 |---|---|
 | `unchanged` | The result has a valid record where its address says, and `STALE_RESULT` holds |
 | `stale` | The result has a valid record where its address says, and `STALE_RESULT` doesn't hold. The checker says what changed |
-| `missing` | The result has no valid record where its address says: `MISSING_RECORD`, `INVALID_RECORD`, `MISPLACED_RECORD` or `MISSING_RECORD_INPUTS` doesn't hold |
+| `missing` | The result has no valid record where its address says: `MISSING_RECORD`, `INVALID_RECORD` (including a record that breaks a parse or schema rule), `MISPLACED_RECORD` or `MISSING_RECORD_INPUTS` doesn't hold |
 | `present` | The bytes at the result's default place hash to the record's `content_hash` and have its `size` |
 | `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
 
@@ -1373,7 +1403,7 @@ or `absent`). Evidence citing a result gets that result's first status.
 | Code | Level | Rule | Status when broken | Source |
 |---|---|---|---|---|
 | `MISSING_RECORD` | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once) in the analysis it belongs to | `missing` | 0005 §1 |
-| `INVALID_RECORD` | MUST | The record at each planned result's place is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, tidy-up, §8 |
+| `INVALID_RECORD` | MUST | The record at each planned result's place breaks no parse rule, and no schema rule against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, tidy-up, §3, §8 |
 | `MISPLACED_RECORD` | MUST | The record at each planned result's place names that result in its `address` | `missing` | 0005 §1 |
 | `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
 | `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
@@ -1549,6 +1579,13 @@ equal subschemas sit in different places:
   the location. With `verbose: true`, an error's `parentSchema` is the
   subschema, and its `keyword` the keyword.
 
+A checker maps a record's errors the same way, through the record schema it
+reads the record by, closed or open. It doesn't report them as errors of
+their own: it reports [`INVALID_RECORD`](#check) for the record's result, with
+the code of each error as its reason, and with the parser's code
+([`INVALID_SYNTAX`](#parse-and-schema) or
+[`DUPLICATE_KEY`](#parse-and-schema)) for a record that fails at parse (§3).
+
 **Reading `astra.yaml`.** The parse layer is a YAML 1.2 loader under the
 core schema, plus §3's checks, and a stock loader that calls itself YAML 1.2
 is not always one. ruamel.yaml's safe loader and js-yaml's `CORE_SCHEMA`
@@ -1595,6 +1632,25 @@ valid id `"true"`, and keep only one of `true` and `"true"` in one map.
 instead a function that compares them as §3 does: by tag (resolved from a
 plain scalar's `source` by the table, since `yaml` keeps none) and canonical
 form. Then `1` and `1.0` are two keys, and `? [a]` written twice is one.
+
+**Reading records.** The parse layer for a record is a JSON parser that
+refuses what RFC 8259 leaves to the parser (§3), and neither stock parser is
+one. Python's `json.loads` reads `NaN`, `Infinity` and `-Infinity`, keeps the
+last of two repeated names, reads `1e400` as an infinity, and reads the
+escape of a lone surrogate as that surrogate; given bytes, it also skips a
+byte order mark and reads UTF-16 and UTF-32. So a tool decodes the bytes
+itself, as UTF-8 that raises on any other byte, refuses a leading U+FEFF, and
+passes `json.loads` an `object_pairs_hook` that refuses a repeated name, a
+`parse_constant` that refuses whatever it is given, and a `parse_float` and a
+`parse_int` that refuse a number beyond a double's range; then it walks the
+value, refusing a string that holds a surrogate. In JavaScript, `JSON.parse`
+refuses `NaN` and a byte order mark, but keeps the last of two repeated
+names, reads `1e400` as `Infinity` and keeps a lone surrogate, and
+`TextDecoder` skips a byte order mark and replaces bytes that aren't UTF-8
+unless it is made with `{fatal: true, ignoreBOM: true}`. So a tool decodes
+with those options, refuses a leading U+FEFF, parses with a parser that
+reports a repeated name, and refuses a number that isn't `Number.isFinite`
+and a string that isn't `isWellFormed()`.
 
 **RDF.** A record's RDF is what the
 [JSON-LD 1.1](https://www.w3.org/TR/json-ld11-api/) toRdf algorithm gives for

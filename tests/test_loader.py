@@ -1,4 +1,5 @@
-"""The harness's YAML loader: YAML 1.2.2 under the core schema only (design §9, Ruling R19).
+"""The harness's loaders: an `astra.yaml` as YAML 1.2.2 under the core schema only (design §9, Ruling R19), and a
+record as strict JSON (spec §3).
 
 `tests/yaml-test-suite/` holds the error cases of yaml-test-suite (https://github.com/yaml/yaml-test-suite, MIT,
 see its LICENSE), each case's `in.yaml` at its id, from the release `data-2022-01-17` (commit 6e6c296a): the 94
@@ -15,8 +16,11 @@ from ruamel.yaml.scanner import ScannerError
 
 from .conftest import (
     REPO_ROOT,
+    DuplicateNameError,
+    JSONError,
     error_pointers,
     load_document,
+    load_json,
     load_yaml,
     parse_code,
     validator,
@@ -546,3 +550,111 @@ def test_an_escape_beyond_unicode_is_a_yaml_error(load, escape, cause):
 
 def test_the_last_code_point_is_read(load):
     assert load('a: "\\U0010FFFF"\n') == {"a": "\U0010ffff"}
+
+
+# --- Records: RFC 8259 JSON text in UTF-8 with no byte order mark, and distinct names (spec §3) ---
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        '{"a": 1, "a": 1}',
+        '{"a": 1, "\\u0061": 2}',
+        '{"x": [{"a": 1, "b": 2, "a": 3}]}',
+    ],
+)
+def test_a_name_written_twice_in_a_record_is_a_duplicate_key(text):
+    """`json.loads` keeps the last of two names; the harness refuses the second, comparing names once their escapes
+    are read."""
+    with pytest.raises(DuplicateNameError) as raised:
+        load_json(text)
+    assert parse_code(raised.value) == "DUPLICATE_KEY"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "",
+        '{"a": 1,}',
+        "[1, 2,]",
+        '{"a": 1} // a comment',
+        '{"a": 1 /* a comment */}',
+        '{"a": 1} # a comment',
+        "{'a': 1}",
+        '{"a": 0x2DC}',
+        '{"a": +1}',
+        '{"a": .5}',
+        '{"a": 01}',
+        "{a: 1}",
+        "a: 1\n",
+        '{"a": 1}\n{"b": 2}',
+        '{"a": "tab\there"}',
+        '{"a": 1}\u00a0',
+        '{"a": NaN}',
+        '{"a": Infinity}',
+        '{"a": -Infinity}',
+        '{"a": 1e400}',
+        '{"a": -1e400}',
+        '{"a": 1' + "0" * 399 + "}",
+        '{"a": 1' + "0" * 4999 + "}",
+        '{"a": "\\ud800"}',
+        '{"a": "\\udc80"}',
+        '{"a": "\\ude00\\ud83d"}',
+        '{"\\ud800": 1}',
+        '[{"a": ["x", "\\udfff"]}]',
+        "\ufeff{}",
+    ],
+)
+def test_text_that_isnt_a_records_json_is_invalid_syntax(text):
+    """Anything but RFC 8259's forms (YAML's included), a number beyond a double's range, a lone surrogate, as a
+    value or a name, and a byte order mark."""
+    with pytest.raises(JSONError) as raised:
+        load_json(text)
+    assert not isinstance(raised.value, DuplicateNameError)
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+@pytest.mark.parametrize(
+    "data", [b'{"a": "\xe9t\xe9"}', b'{"a": "\xed\xa0\x80"}', b"\xff\xfe{\x00}\x00"]
+)
+def test_a_record_that_isnt_utf_8_is_invalid_syntax(tmp_path, data):
+    """Latin-1, an encoded surrogate and UTF-16 are not UTF-8."""
+    path = tmp_path / "record.json"
+    path.write_bytes(data)
+    with pytest.raises(JSONError) as raised:
+        load_json(path)
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+@pytest.mark.parametrize(
+    "text, value",
+    [
+        (
+            ' \t\r\n{"a": [1, 2.5, true, false, null]}\n',
+            {"a": [1, 2.5, True, False, None]},
+        ),
+        ('{"a": 1e-400}', {"a": 0.0}),
+        ('{"a": 1e308}', {"a": 1e308}),
+        ('{"a": 1' + "0" * 308 + "}", {"a": 10**308}),
+        ('{"a": 9007199254740993}', {"a": 9007199254740993}),
+        ('{"a": "\\ud83d\\ude00"}', {"a": "\U0001f600"}),
+        ('{"a": "\U0001f600 \u00e9t\u00e9"}', {"a": "\U0001f600 \u00e9t\u00e9"}),
+        ('{"a": 1, "A": 2}', {"a": 1, "A": 2}),
+        ("1", 1),
+    ],
+)
+def test_a_records_json_is_read(text, value):
+    """JSON's white space, numbers within a double's range read exactly, an escaped surrogate pair as one character,
+    and names that differ only in case as two. Any JSON value is read: the schema checks it is an object."""
+    loaded = load_json(text)
+    assert loaded == value
+    assert [type(x) for x in _leaves(loaded)] == [type(x) for x in _leaves(value)]
+
+
+def _leaves(value):
+    """The scalars of a JSON value, in order."""
+    if isinstance(value, dict):
+        return [leaf for item in value.values() for leaf in _leaves(item)]
+    if isinstance(value, list):
+        return [leaf for item in value for leaf in _leaves(item)]
+    return [value]

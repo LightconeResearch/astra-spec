@@ -1,0 +1,2 @@
+# Whether the day of a time exists in its month isn't checked, so 30 February
+# is valid.

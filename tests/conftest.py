@@ -1,4 +1,5 @@
-"""The fixture harness: YAML 1.2 loading, the generated validators, `rules.json` and the fixture headers (design §9)."""
+"""The fixture harness: YAML 1.2 and strict JSON loading, the generated validators, `rules.json` and the fixture headers
+(design §9)."""
 
 import functools
 import json
@@ -34,9 +35,27 @@ PARSE_CODES = {"INVALID_SYNTAX", "DUPLICATE_KEY"}
 """The parse-layer codes `parse_code` gives."""
 
 
-def parse_code(error: YAMLError) -> str:
-    """The parse-layer code of a loader error: `DUPLICATE_KEY` for a repeated key, `INVALID_SYNTAX` for any other."""
-    return "DUPLICATE_KEY" if isinstance(error, DuplicateKeyError) else "INVALID_SYNTAX"
+class JSONError(ValueError):
+    """A record's text that breaks a parse rule (spec §3), as `load_json` reads it."""
+
+
+class DuplicateNameError(JSONError):
+    """An object of a record with a name written twice (spec §3)."""
+
+
+PARSE_ERRORS = (YAMLError, JSONError)
+"""What the loaders raise for a file that breaks a parse rule: `load_document` a `YAMLError`, `load_json` a
+`JSONError`."""
+
+
+def parse_code(error: YAMLError | JSONError) -> str:
+    """The parse-layer code of a loader error: `DUPLICATE_KEY` for a repeated key or name, `INVALID_SYNTAX` for any
+    other."""
+    return (
+        "DUPLICATE_KEY"
+        if isinstance(error, (DuplicateKeyError, DuplicateNameError))
+        else "INVALID_SYNTAX"
+    )
 
 
 _TAG = "tag:yaml.org,2002:"
@@ -475,6 +494,119 @@ def load_yaml_text(text: str) -> Any:
     return _without_left_out_keys(load_document(text))
 
 
+_DOUBLE_DIGITS = 309
+"""The most digits an integer within a double's range can have: the greatest double is about 1.8 × 10^308."""
+
+
+def _json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """An object of a record, from its names and values in order; a name written twice raises `DuplicateNameError`."""
+    found: dict[str, Any] = {}
+    for name, value in pairs:
+        if name in found:
+            raise DuplicateNameError(
+                f"found the name {name!r} twice in one object: a record's names are distinct"
+            )
+        found[name] = value
+    return found
+
+
+def _json_constant(text: str) -> Any:
+    """`NaN`, `Infinity` or `-Infinity`, which `json.loads` reads but RFC 8259 has no form for: always raises."""
+    raise JSONError(f"found {text}: RFC 8259 JSON has no such number")
+
+
+def _json_float(text: str) -> float:
+    """A number with a fraction or an exponent; one beyond a double's range, which rounds to infinity, raises."""
+    number = float(text)
+    if not math.isfinite(number):
+        raise JSONError(
+            f"{text!r} is beyond a double's range: it has no JSON form a record takes"
+        )
+    return number
+
+
+def _json_int(text: str) -> int:
+    """An integer, read exactly; one beyond a double's range, which a double rounds to infinity, raises.
+
+    Its digits are counted first, since Python refuses to convert an integer of more than 4300 digits.
+    """
+    if len(text.lstrip("-")) <= _DOUBLE_DIGITS:
+        number = int(text)
+        try:
+            float(number)
+        except OverflowError:
+            pass
+        else:
+            return number
+    raise JSONError(
+        f"{text[:20]}… is beyond a double's range: it has no JSON form a record takes"
+    )
+
+
+def _refuse_lone_surrogates(value: Any) -> None:
+    """Raise `JSONError` if a string of `value`, a name included, holds a surrogate (U+D800-U+DFFF).
+
+    `json.loads` joins an escaped surrogate pair into one character, so any surrogate left is a lone one, which has no
+    JSON form (spec §3). Strict UTF-8 can't encode one, so raw text can't hold it: it comes only from an escape.
+    """
+    todo = [value]
+    while todo:
+        node = todo.pop()
+        if isinstance(node, dict):
+            todo.extend(node)
+            todo.extend(node.values())
+        elif isinstance(node, list):
+            todo.extend(node)
+        elif isinstance(node, str):
+            try:
+                node.encode("utf-8")
+            except UnicodeEncodeError as error:
+                raise JSONError(
+                    f"found the lone surrogate U+{ord(node[error.start]):04X}: a string holding one has no JSON form"
+                ) from None
+
+
+def load_json(source: Path | str) -> Any:
+    """The record in `source`, a file or a text, read as spec §3 reads a record: RFC 8259 JSON text in UTF-8 with no
+    byte order mark, and with distinct names; raises a `JSONError` if it isn't one.
+
+    A file's bytes are decoded as UTF-8, strictly, and a byte order mark at the start is refused, though RFC 8259 §8.1
+    lets a parser ignore one. The text is read by `json.loads`, which takes only JSON's forms (no comment, trailing
+    comma, single quote or YAML block form), except for what the hooks refuse: `NaN`, `Infinity` and `-Infinity`
+    (`parse_constant`); a name written twice in one object, of which `json.loads` keeps the last, raises
+    `DuplicateNameError` (`object_pairs_hook`), names being compared once their escapes are read, so `"a"` and
+    `"\\u0061"` are one name; and a number beyond a double's range (`1e400`, an integer of 400 digits), which
+    `json.loads` reads as an infinity or an exact integer (`parse_float`, `parse_int`). An escaped surrogate pair is
+    one character, as `json.loads` reads it, so `"\\uD83D\\uDE00"` is U+1F600; any other surrogate (`"\\uD800"`) is
+    refused by a walk over the value read, names included. A `RecursionError` (a record nested too deep) is left as it
+    is.
+    """
+    data = source.read_bytes() if isinstance(source, Path) else source.encode("utf-8")
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise JSONError(f"found bytes that aren't UTF-8: {error}") from None
+    if text.startswith("\ufeff"):
+        raise JSONError("found a byte order mark: a record starts without one")
+    try:
+        value = json.loads(
+            text,
+            object_pairs_hook=_json_object,
+            parse_constant=_json_constant,
+            parse_float=_json_float,
+            parse_int=_json_int,
+        )
+    except json.JSONDecodeError as error:
+        raise JSONError(f"found text that isn't RFC 8259 JSON: {error}") from None
+    _refuse_lone_surrogates(value)
+    return value
+
+
+def load_fixture(path: Path) -> Any:
+    """The document of the fixture at `path`: a record (`.json`) by `load_json`, an `astra.yaml` by `load_yaml`."""
+    return load_json(path) if path.suffix == ".json" else load_yaml(path)
+
+
 @functools.cache
 def validator(root: str, *, closed: bool = True) -> Draft201909Validator:
     """A validator for documents rooted at `root`, from the committed schema (its open variant if not `closed`).
@@ -563,14 +695,23 @@ def error_pointers(v: Draft201909Validator, doc: Any) -> set[str]:
     return {pointer for pointer, _, _ in errors(v, doc)}
 
 
+def header_file(path: Path) -> Path:
+    """The file holding the header of the fixture at `path`: the fixture itself, or for a record (`.json`), which can't
+    hold a comment, its sidecar `<stem>.header`."""
+    return path.with_suffix(".header") if path.suffix == ".json" else path
+
+
 def fixture_header(path: Path) -> tuple[str, str, tuple[str, str] | None]:
-    """`(rule, fails_at, also)` from an invalid fixture's header.
+    """`(rule, fails_at, also)` from an invalid fixture's header, at the start of `header_file(path)`.
 
     The header is two comment lines, `# rule: <CODE>` and `# fails at: <location>`, then optionally a third,
     `# also: <CODE> at <pointer>`: a second error the fixture's one break brings. `also` is that line's
     `(code, pointer)`, or None. A third line that is a comment must be an `# also:` line.
     """
-    lines = path.read_text(encoding="utf-8").splitlines()[:3]
+    header = header_file(path)
+    if not header.is_file():
+        raise ValueError(f"{path.name}: its header file {header.name} is missing")
+    lines = header.read_text(encoding="utf-8").splitlines()[:3]
     rule = _RULE_LINE.fullmatch(lines[0]) if lines else None
     fails_at = _FAILS_AT_LINE.fullmatch(lines[1]) if len(lines) > 1 else None
     if rule is None or fails_at is None:
@@ -589,5 +730,5 @@ def fixture_header(path: Path) -> tuple[str, str, tuple[str, str] | None]:
 
 
 def fixtures(kind: str) -> list[Path]:
-    """The fixtures of `kind` (`valid` or `invalid`), sorted."""
-    return sorted((DATA / kind).glob("*.yaml"))
+    """The fixtures of `kind` (`valid` or `invalid`), sorted: each `astra.yaml` (`.yaml`) and record (`.json`)."""
+    return sorted([*(DATA / kind).glob("*.yaml"), *(DATA / kind).glob("*.json")])

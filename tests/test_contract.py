@@ -16,7 +16,7 @@ from jsonschema_specifications import REGISTRY
 from referencing import Registry
 from referencing.jsonschema import DRAFT201909
 
-from .conftest import DATA, GENERATED, REPO_ROOT, load_yaml
+from .conftest import DATA, GENERATED, REPO_ROOT, load_fixture, load_yaml
 
 SOURCES = REPO_ROOT / "src" / "astra" / "schema"
 
@@ -40,7 +40,7 @@ STAMP = re.compile(rf".* version ({VERSION})")
 
 MINIMAL = {
     "Analysis": DATA / "valid" / "Analysis-001-minimal.yaml",
-    "ProvenanceRecord": DATA / "valid" / "ProvenanceRecord-003-minimal.yaml",
+    "ProvenanceRecord": DATA / "valid" / "ProvenanceRecord-003-minimal.json",
 }
 """A minimal valid document of each root."""
 
@@ -404,7 +404,7 @@ def test_two_minor_versions_are_held_side_by_side(name):
         for stamped in copies.values()
     )
     assert {minor: registry.contents(c["$id"]) for minor, c in copies.items()} == copies
-    document = load_yaml(MINIMAL[ROOTS[name]])
+    document = load_fixture(MINIMAL[ROOTS[name]])
     messages = {
         minor: [
             error.message

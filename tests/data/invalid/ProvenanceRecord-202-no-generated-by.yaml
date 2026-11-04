@@ -1,6 +1,0 @@
-# rule: MISSING_FIELD
-# fails at: (root)
-spec_version: "0.1.0"
-address: "subanalysis1.output1#u1"
-content_hash: "sha256:7af13cf14f96106b729279ec96430c5b115437053c29aeca4ff70b95770fb83e"
-size: 732

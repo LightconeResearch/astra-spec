@@ -24,7 +24,7 @@ from .conftest import (
     REPO_ROOT,
     error_pointers,
     fixtures,
-    load_yaml,
+    load_json,
     validator,
 )
 from .test_specification import EXAMPLE_ROOTS, WHOLE_EXAMPLES
@@ -39,9 +39,9 @@ PREFIXES = ("astra", "linkml", "prov", "schema", "xsd")
 
 
 def invalid_fixture(number: str) -> Any:
-    """The document of the one invalid fixture `ProvenanceRecord-<number>-….yaml`."""
-    (path,) = (DATA / "invalid").glob(f"ProvenanceRecord-{number}-*.yaml")
-    return load_yaml(path)
+    """The document of the one invalid fixture `ProvenanceRecord-<number>-….json`."""
+    (path,) = (DATA / "invalid").glob(f"ProvenanceRecord-{number}-*.json")
+    return load_json(path)
 
 
 def context(path: Path) -> dict[str, Any]:
@@ -59,7 +59,7 @@ def test_unknown_field_passes_the_open_variant():
     "where", [("generated_by",), ("generated_by", "runner")], ids=".".join
 )
 def test_unknown_nested_field_passes_only_the_open_variant(where):
-    record = copy.deepcopy(load_yaml(DATA / "valid" / "ProvenanceRecord-001-full.yaml"))
+    record = copy.deepcopy(load_json(DATA / "valid" / "ProvenanceRecord-001-full.json"))
     target = record
     for field in where:
         target = target[field]
@@ -199,7 +199,7 @@ def as_rdf(record: dict[str, Any]) -> Graph:
 def records() -> dict[str, Any]:
     """Every valid record fixture, and every record among the specification's examples, by name."""
     found = {
-        path.stem: load_yaml(path)
+        path.stem: load_json(path)
         for path in fixtures("valid")
         if path.name.startswith("ProvenanceRecord-")
     }
