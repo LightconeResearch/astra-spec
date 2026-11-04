@@ -54,11 +54,15 @@ doesn't restate them.
 **Versions.** Every analysis document and every record states, in
 `spec_version`, the version of this specification it is written against, as
 `MAJOR.MINOR.PATCH`: three non-negative integers without leading zeros, such
-as `0.1.0` ([`INVALID_VALUE`](#parse-and-schema)). A validator reads each
+as `0.1.0` ([`INVALID_VALUE`](#parse-and-schema)). A patch release never
+changes what is valid: a document or a record is valid under `X.Y.Z` exactly
+when it is valid under every other `X.Y` version. So one schema of
+`astra.yaml` and one of a record serve each minor version, and a validator
+that reads one version of it reads them all
+([`UNSUPPORTED_SPEC_VERSION`](#validator)). A validator reads each
 `astra.yaml` by the version it states
-([`UNSUPPORTED_SPEC_VERSION`](#validator)). This specification fixes only the
-form of a version. What one version promises about another, and which
-versions a schema accepts, is left to ASTRA's versioning policy.
+([`UNSUPPORTED_SPEC_VERSION`](#validator)). What a minor or major version
+promises about another is left to ASTRA's versioning policy.
 
 ## 2. Overview
 
@@ -1301,21 +1305,30 @@ The schema is written in [LinkML](https://linkml.io/), in
 definitions of the fields, published as the
 [schema reference](elements/index.md). These artefacts are generated from
 them (and `rules.json` also from §9), into `src/astra/schema/generated/`,
-and each is published at `https://w3id.org/astra/` followed by its file
-name:
+and each is published at `https://w3id.org/astra/`, its minor version (`0.1`
+for every 0.1.x) and `/`, followed by its file name:
 
 | File | URI | What it is |
 |---|---|---|
-| `analysis.schema.json` | `https://w3id.org/astra/analysis.schema.json` | the JSON Schema of `astra.yaml`, rooted at `Analysis` |
-| `provenance.schema.json` | `https://w3id.org/astra/provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
-| `provenance.open.schema.json` | `https://w3id.org/astra/provenance.open.schema.json` | the same schema, open: it allows fields it doesn't define |
-| `provenance.context.jsonld` | `https://w3id.org/astra/provenance.context.jsonld` | the JSON-LD context of a record |
-| `rules.json` | `https://w3id.org/astra/rules.json` | the rule catalogue of §9, with the code of every error the JSON Schemas can report |
+| `analysis.schema.json` | `https://w3id.org/astra/0.1/analysis.schema.json` | the JSON Schema of `astra.yaml`, rooted at `Analysis` |
+| `provenance.schema.json` | `https://w3id.org/astra/0.1/provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
+| `provenance.open.schema.json` | `https://w3id.org/astra/0.1/provenance.open.schema.json` | the same schema, open: it allows fields it doesn't define |
+| `provenance.context.jsonld` | `https://w3id.org/astra/0.1/provenance.context.jsonld` | the JSON-LD context of a record |
+| `rules.json` | `https://w3id.org/astra/0.1/rules.json` | the rule catalogue of §9, with the code of every error the JSON Schemas can report |
 
-Each JSON Schema's `$id` is its URI, so the closed and open record schemas are
-distinct resources. Its top level holds only standard JSON Schema keywords, so
-that strict validators (such as Ajv) compile it, and the version of the schema
-it was generated from is in its `$comment`.
+Each JSON Schema's `$id` is its URI. So the closed and open record schemas are
+distinct resources, and so are the schemas of two minor versions, which a
+checker can hold side by side. The patches of one minor version share each
+URI: a patch release never changes what is valid (§1), so the URI names one
+schema whichever patch's file a tool holds, and a tool keeps the latest. A
+pre-release is `X.Y.Z` followed by `aN`, `bN` or `rcN`, such as `0.1.0rc1`.
+It is a candidate for `X.Y.Z`: its URIs carry its whole version
+(`https://w3id.org/astra/0.1.0rc1/analysis.schema.json`), and the documents it
+checks state `X.Y.Z`. `https://w3id.org/astra/` followed by a file name alone
+redirects to the latest release's file and is no schema's `$id`. A JSON
+Schema's top level holds only standard JSON Schema keywords, so that strict
+validators (such as Ajv) compile it, and the version of the release it was
+generated from is in its `$comment`.
 
 **The contract.** `analysis.schema.json` is the contract for `astra.yaml`: a
 document breaks no schema rule exactly when a JSON Schema draft 2019-09
@@ -1346,11 +1359,12 @@ for the same error and words each rule the same way. It holds:
 - `errors`: the code of every keyword of the three JSON Schemas that can
   report an error, keyed by the keyword's absolute keyword location, as JSON
   Schema 2019-09 defines it: the schema's `$id`, `#`, and the JSON Pointer to
-  the keyword once every `$ref` is resolved. Each code is a schema-layer
-  rule's. The parse-layer codes have no entry, because loaders and §3's
-  checks report them, not schemas; nor does the open variant's
-  `additionalProperties`, which fails on nothing.
-- `$comment`: the version of the schema it was made from.
+  the keyword once every `$ref` is resolved. So each key names its minor
+  version, through `$id`. Each code is a schema-layer rule's. The
+  parse-layer codes have no entry, because loaders and §3's checks report
+  them, not schemas; nor does the open variant's `additionalProperties`,
+  which fails on nothing.
+- `$comment`: the version of the release it was made from.
 
 In the schema's sources, each constraint names the rule it enforces: a
 pattern by its type or field, a class rule or an exactly-one-of by itself.
@@ -1366,9 +1380,9 @@ a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
 {
   "$comment": "ASTRA rule catalogue, schema version 0.1.0",
   "errors": {
-    "https://w3id.org/astra/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/properties/commit/pattern": "INVALID_COMMIT",
-    "https://w3id.org/astra/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/allOf/1/then/required": "URL_WITHOUT_COMMIT",
-    "https://w3id.org/astra/analysis.schema.json#/properties/outputs/propertyNames/pattern": "INVALID_ID"
+    "https://w3id.org/astra/0.1/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/properties/commit/pattern": "INVALID_COMMIT",
+    "https://w3id.org/astra/0.1/analysis.schema.json#/$defs/AnalysisDeclaration__identifier_optional/allOf/1/then/required": "URL_WITHOUT_COMMIT",
+    "https://w3id.org/astra/0.1/analysis.schema.json#/properties/outputs/propertyNames/pattern": "INVALID_ID"
   },
   "rules": [
     {

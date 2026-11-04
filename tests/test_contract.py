@@ -3,6 +3,7 @@
 Design §3 and §9, D3 and D12; the patterns, Rulings R5 and R7.
 """
 
+import copy
 import functools
 import json
 import re
@@ -12,8 +13,10 @@ from typing import Any
 import pytest
 from jsonschema import Draft201909Validator
 from jsonschema_specifications import REGISTRY
+from referencing import Registry
+from referencing.jsonschema import DRAFT201909
 
-from .conftest import GENERATED, REPO_ROOT, load_yaml
+from .conftest import DATA, GENERATED, REPO_ROOT, load_yaml
 
 SOURCES = REPO_ROOT / "src" / "astra" / "schema"
 
@@ -27,7 +30,19 @@ ROOTS = {
 CLOSED = ["analysis.schema.json", "provenance.schema.json"]
 
 NAMESPACE = "https://w3id.org/astra/"
-"""Where every artefact is published, under its own file name (design §3)."""
+"""Where every artefact is published, under the series of its version and its own file name (design §3)."""
+
+VERSION = r"[0-9]+\.[0-9]+\.[0-9]+(?:(?:a|b|rc)[0-9]+)?|dev"
+"""A version a generated file is stamped with: a release `X.Y.Z`, a pre-release (`0.1.0rc1`), or `dev`."""
+
+STAMP = re.compile(rf".* version ({VERSION})")
+"""A `$comment` stamped with a version, which it ends with."""
+
+MINIMAL = {
+    "Analysis": DATA / "valid" / "Analysis-001-minimal.yaml",
+    "ProvenanceRecord": DATA / "valid" / "ProvenanceRecord-003-minimal.yaml",
+}
+"""A minimal valid document of each root."""
 
 ANNOTATIONS = {"description", "title"}
 """Keywords that annotate a subschema without constraining it."""
@@ -342,21 +357,64 @@ def test_the_pattern_guard_exempts_a_dollar_in_a_lookahead():
     assert pattern_problems(pattern) == []
 
 
+def series(version: str) -> str:
+    """The series of a stamped `version` (spec §10): `X.Y` for a release `X.Y.Z`, otherwise the whole version."""
+    release = re.fullmatch(r"([0-9]+\.[0-9]+)\.[0-9]+", version)
+    return release[1] if release else version
+
+
 def test_each_schema_is_identified_by_its_own_file_uri():
-    """Each JSON Schema's `$id` is its published URI, so the closed and open record schemas are distinct."""
-    assert {name: load(name).get("$id") for name in ROOTS} == {
-        name: NAMESPACE + name for name in ROOTS
-    }
+    """Each JSON Schema's `$id` is its published URI: the namespace, the series of the version in its `$comment`, `/`
+    and its file name. So the closed and open record schemas are distinct, and so are two minor versions."""
+    ids, expected = {}, {}
+    for name in ROOTS:
+        schema = load(name)
+        stamp = STAMP.fullmatch(schema.get("$comment", ""))
+        assert stamp, f"{name}: no version in its $comment"
+        ids[name] = schema.get("$id")
+        expected[name] = NAMESPACE + series(stamp[1]) + "/" + name
+    assert ids == expected
 
 
 @pytest.mark.parametrize("name", ROOTS)
 def test_top_level_holds_only_standard_keywords(name):
-    """No LinkML keyword at the top level, so strict validators (Ajv) compile the contract; the version is a comment."""
+    """No LinkML keyword at the top level, so strict validators (Ajv) compile the contract; the version is a comment,
+    which ends in a release `X.Y.Z`, a pre-release or `dev`."""
     schema = load(name)
     assert sorted(set(schema) - STANDARD_KEYWORDS) == []
-    assert re.fullmatch(
-        r".* version [0-9]+\.[0-9]+\.[0-9]+", schema.get("$comment", "")
+    assert STAMP.fullmatch(schema.get("$comment", ""))
+
+
+@pytest.mark.parametrize("name", ROOTS)
+def test_two_minor_versions_are_held_side_by_side(name):
+    """Copies of a schema stamped `0.1` and `0.2` go into one `referencing` registry, and each URI resolves to its own
+    copy: the `0.2` copy requires one more field, and only a `$ref` to it reports that field missing (spec §10)."""
+    schema = load(name)
+    copies = {}
+    for minor, extra in (("0.1", []), ("0.2", ["added_in_0_2"])):
+        stamped = copy.deepcopy(schema)
+        stamped["$id"] = f"{NAMESPACE}{minor}/{name}"
+        stamped["$comment"] = re.sub(
+            f"(?:{VERSION})$", f"{minor}.0", schema["$comment"]
+        )
+        stamped["required"] = [*schema.get("required", []), *extra]
+        copies[minor] = stamped
+    registry = Registry().with_resources(
+        (stamped["$id"], DRAFT201909.create_resource(stamped))
+        for stamped in copies.values()
     )
+    assert {minor: registry.contents(c["$id"]) for minor, c in copies.items()} == copies
+    document = load_yaml(MINIMAL[ROOTS[name]])
+    messages = {
+        minor: [
+            error.message
+            for error in Draft201909Validator(
+                {"$ref": stamped["$id"]}, registry=registry
+            ).iter_errors(document)
+        ]
+        for minor, stamped in copies.items()
+    }
+    assert messages == {"0.1": [], "0.2": ["'added_in_0_2' is a required property"]}
 
 
 @pytest.mark.parametrize("name", ROOTS)

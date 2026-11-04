@@ -30,7 +30,6 @@ from .conftest import (
 
 SPECIFICATION = REPO_ROOT / "docs" / "specification.md"
 SOURCES = REPO_ROOT / "src" / "astra" / "schema"
-NAMESPACE = "https://w3id.org/astra/"
 SCHEMAS = {
     "analysis.schema.json": "analysis",
     "provenance.schema.json": "provenance",
@@ -38,13 +37,18 @@ SCHEMAS = {
 }
 """Each generated JSON Schema, with the LinkML module it is generated from."""
 
-ANALYSIS = NAMESPACE + "analysis.schema.json#"
-RECORD = NAMESPACE + "provenance.schema.json#"
-OPEN = NAMESPACE + "provenance.open.schema.json#"
-
 
 def load(name: str) -> dict[str, Any]:
     return json.loads((GENERATED / name).read_text(encoding="utf-8"))
+
+
+ANALYSIS = load("analysis.schema.json")["$id"] + "#"
+RECORD = load("provenance.schema.json")["$id"] + "#"
+OPEN = load("provenance.open.schema.json")["$id"] + "#"
+"""Where the error map's keys start for each schema: its committed `$id`, which names its series, and `#`."""
+
+VERSION = r"[0-9]+\.[0-9]+\.[0-9]+(?:(?:a|b|rc)[0-9]+)?|dev"
+"""A version a generated file is stamped with: a release `X.Y.Z`, a pre-release (`0.1.0rc1`), or `dev`."""
 
 
 def specification() -> str:
@@ -392,7 +396,7 @@ def test_a_quoted_rule_table_reads_as_the_same_rules(table):
 def test_rules_json_has_its_three_parts():
     catalogue = rules_catalogue()
     assert sorted(catalogue) == ["$comment", "errors", "rules"]
-    assert re.fullmatch(r".* version [0-9]+\.[0-9]+\.[0-9]+", catalogue["$comment"])
+    assert re.fullmatch(rf".* version (?:{VERSION})", catalogue["$comment"])
 
 
 def test_rules_json_has_every_rule_of_section_9_in_order():
@@ -500,7 +504,7 @@ def test_every_keyword_that_can_fail_has_one_code(name):
 
 
 def test_error_map_covers_only_the_three_schemas():
-    ids = tuple(NAMESPACE + name + "#" for name in SCHEMAS)
+    ids = tuple(load(name)["$id"] + "#" for name in SCHEMAS)
     assert [
         location
         for location in rules_catalogue()["errors"]

@@ -9,12 +9,14 @@ import pytest
 from jsonschema import Draft201909Validator
 from linkml.generators.jsonschemagen import JsonSchemaGenerator
 
-from jsonschema_generator import generate
+from jsonschema_generator import generate, series
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = REPO_ROOT / "tests" / "generator" / "maps.yaml"
 CLI = REPO_ROOT / "tools" / "jsonschema_generator.py"
 SCHEMA_ID = "https://example.org/maps.schema.json"
+SERIES_ID = "https://example.org/{series}/maps.schema.json"
+"""An `$id` with the placeholder for the series of the schema's version."""
 
 
 @pytest.fixture(scope="module")
@@ -95,11 +97,66 @@ def test_schema_id_sets_the_id():
     assert generate(SCHEMA, schema_id=SCHEMA_ID)["$id"] == SCHEMA_ID
 
 
+@pytest.mark.parametrize(
+    ("version", "expected"),
+    [
+        ("0.1.3", "0.1"),
+        ("0.1.0", "0.1"),
+        ("10.20.30", "10.20"),
+        ("0.1.0rc1", "0.1.0rc1"),
+        ("0.2.0a1", "0.2.0a1"),
+        ("1.0.0b2", "1.0.0b2"),
+        ("dev", "dev"),
+    ],
+)
+def test_the_series_of_a_version(version, expected):
+    """`X.Y` for a release `X.Y.Z`, the whole version for a pre-release, and `dev` for `dev` (spec §10)."""
+    assert series(version) == expected
+
+
+@pytest.mark.parametrize(
+    "version",
+    ["0.1", "0.0.0-x", "0.1.0-rc.1", "0.1.0.dev1", "v0.1.0", "0.1.0rc", "Dev", ""],
+)
+def test_a_version_with_no_series_fails(version):
+    with pytest.raises(ValueError, match="has no series"):
+        series(version)
+
+
+def staged(tmp_path: Path, version: str) -> Path:
+    """A copy of the scratch schema with `version` in place of its placeholder, as `just gen-schema` stages it."""
+    text = SCHEMA.read_text(encoding="utf-8")
+    assert "\nversion: 0.0.0\n" in text
+    path = tmp_path / f"maps-{version or 'none'}.yaml"
+    path.write_text(
+        text.replace("\nversion: 0.0.0\n", f"\nversion: {version}\n"), encoding="utf-8"
+    )
+    return path
+
+
+@pytest.mark.parametrize(
+    ("version", "expected"),
+    [("0.1.3", "0.1"), ("0.1.0rc1", "0.1.0rc1"), ("dev", "dev")],
+)
+def test_the_id_takes_the_series_of_the_schemas_version(tmp_path, version, expected):
+    schema = generate(staged(tmp_path, version), schema_id=SERIES_ID)
+    assert schema["$id"] == f"https://example.org/{expected}/maps.schema.json"
+    assert schema["$comment"] == f"maps schema version {version}"
+
+
+@pytest.mark.parametrize("version", ["0.1", "0.0.0-x"])
+def test_an_id_with_a_series_fails_for_a_version_with_none(tmp_path, version):
+    with pytest.raises(ValueError, match="has no series"):
+        generate(staged(tmp_path, version), schema_id=SERIES_ID)
+    assert generate(staged(tmp_path, version), schema_id=SCHEMA_ID)["$id"] == SCHEMA_ID
+
+
 def test_cli_writes_the_same_schema():
     cases = [
         ([], {"closed": True}),
         (["--not-closed"], {"closed": False}),
         (["--id", SCHEMA_ID], {"closed": True, "schema_id": SCHEMA_ID}),
+        (["--id", SERIES_ID], {"closed": True, "schema_id": SERIES_ID}),
     ]
     for flags, options in cases:
         result = subprocess.run(

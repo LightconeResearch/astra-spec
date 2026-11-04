@@ -32,7 +32,10 @@ source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 staged_schema_dir := "tmp/schema"
 staged_schema_path := staged_schema_dir / schema_source_file + ".yaml"
 docdir := "docs/elements"  # Directory for generated documentation
-schema_namespace := "https://w3id.org/astra/"  # Each JSON Schema's $id is this, then its file name
+# Each JSON Schema's $id is this, the series of the version it is generated
+# with (X.Y for a release X.Y.Z, a pre-release's whole version, or dev), `/`,
+# then its file name
+schema_namespace := "https://w3id.org/astra/"
 distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
 
 # ============== Project recipes ==============
@@ -79,11 +82,15 @@ site: gen-doc
 docs: _docs-prep
   uv run zensical build
 
-# Deploy a versioned snapshot of the docs to gh-pages via mike, updating
-# the named alias (default: latest). Run after `just release`.
+# Deploy a versioned snapshot of the docs to gh-pages via mike, moving each
+# alias named after the version to it: a release X.Y.Z moves X.Y and latest,
+# a pre-release none. The tag workflow runs it after `just release`. It runs
+# only at the commit tagged vX.Y.Z (`_at-tag`), before it builds anything: the
+# site publishes the checkout's committed contract (`_add-artifacts`), and
+# only the tagged commit holds the release's, while main holds `dev`.
 [group('documentation')]
-docs-deploy version alias='latest': _docs-prep
-  uv run mike deploy --push --update-aliases {{version}} {{alias}}
+docs-deploy version *aliases: (_at-tag version) _docs-prep
+  uv run mike deploy --push --update-aliases {{version}} {{aliases}}
 
 [group('documentation')]
 docs-set-default alias='latest':
@@ -120,15 +127,17 @@ test: check-generated _pytest lint
 # Generate the JSON Schemas of the analysis document and the provenance record
 # (closed, and open for fields it doesn't know), the record's JSON-LD context
 # and the rule catalogue, into `out`, from the staged (versioned) schema. Each
-# JSON Schema's `$id` is the URI of its own file, so the closed and open record
-# schemas are distinct. `rules.json` holds the rules extracted from the
+# JSON Schema's `$id` is the URI of its own file under its series (`{series}`,
+# filled in by the generator: `0.1` for every 0.1.x, a pre-release's whole
+# version, or `dev`), so the closed and open record schemas are distinct, and
+# so are two minor versions. `rules.json` holds the rules extracted from the
 # specification's §9, and the code of each JSON Schema keyword that can fail
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned
   mkdir -p {{out}}
-  uv run python tools/jsonschema_generator.py --id {{schema_namespace}}analysis.schema.json {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
-  uv run python tools/jsonschema_generator.py --id {{schema_namespace}}provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
-  uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
+  uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/analysis.schema.json {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
+  uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
+  uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}{series}/provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
   uv run gen-jsonld-context {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
   uv run python tools/rules.py docs/specification.md {{staged_schema_dir}}/analysis.yaml {{staged_schema_dir}}/provenance.yaml --schemas {{out}}/analysis.schema.json {{out}}/provenance.schema.json {{out}}/provenance.open.schema.json > {{out}}/rules.json
 
@@ -153,17 +162,24 @@ lint:
 
 # Tag a new release: regenerates the generated schema artefacts with the new
 # version, updates CITATION.cff, commits both, and creates an annotated git
-# tag. Schema YAMLs are not mutated — generators inject the version from
-# $RELEASE_VERSION at build time. After pushing the tag, the
+# tag; then regenerates them as `dev` and commits that, so that only the
+# tagged commit holds the version. The version is X.Y.Z, or a pre-release:
+# X.Y.Z followed by aN, bN or rcN (PEP 440's normal form, which the wheel
+# takes from the tag). A patch release never changes what is valid, so when
+# the version's minor already has a release (from 0.1 on), the regenerated
+# files are compared with its greatest release (`tools/check_patch.py`) before
+# anything is committed. Schema YAMLs are not mutated — generators inject the
+# version from $RELEASE_VERSION at build time. After pushing the tag, the
 # `Deploy versioned docs on tag` workflow will publish the docs automatically.
 [group('model development')]
 release version:
   #!/usr/bin/env bash
   set -euo pipefail
-  if ! [[ "{{version}}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "Error: version must be X.Y.Z (got '{{version}}')" >&2
+  if ! [[ "{{version}}" =~ ^([0-9]+)\.([0-9]+)\.[0-9]+((a|b|rc)[0-9]+)?$ ]]; then
+    echo "Error: version must be X.Y.Z, or X.Y.Z followed by aN, bN or rcN (got '{{version}}')" >&2
     exit 1
   fi
+  minor="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "Error: working tree is not clean. Commit or stash changes first." >&2
     exit 1
@@ -177,6 +193,14 @@ release version:
     exit 1
   fi
   RELEASE_VERSION="{{version}}" just gen-schema
+  if [[ "${minor}" != "0.0" ]]; then
+    previous=$(git tag --list "v${minor}.*" --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
+    if [[ -n "${previous}" ]] && ! uv run python tools/check_patch.py "${previous}"; then
+      git checkout -- src/astra/schema/generated
+      echo "Error: v{{version}} changes what is valid since ${previous}; that waits for the next minor version." >&2
+      exit 1
+    fi
+  fi
   git add src/astra/schema/generated
   today=$(date -u +%Y-%m-%d)
   sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
@@ -184,8 +208,11 @@ release version:
   git add CITATION.cff
   git commit -m "Release v{{version}}"
   git tag -a "v{{version}}" -m "Release v{{version}}"
+  RELEASE_VERSION=dev just gen-schema
+  git add src/astra/schema/generated
+  git commit -m "Back to dev after v{{version}}"
   echo
-  echo "Created commit and tag v{{version}}. Next steps:"
+  echo "Created the tagged commit v{{version}}, then a commit back to dev. Next steps:"
   echo "  - git push --atomic origin HEAD v{{version}}"
   echo "  - the deploy-docs-on-tag workflow will publish the docs automatically"
 
@@ -259,17 +286,24 @@ _pytest:
 
 # Stage a versioned copy of every schema YAML under tmp/schema/. The version
 # is injected at build time so source files keep a stable placeholder and are
-# never mutated by `gen-doc`. Uses $RELEASE_VERSION when set,
-# otherwise falls back to the latest git tag. The directory is cleared first,
-# so a module that no longer exists isn't staged.
+# never mutated by `gen-doc`. Uses $RELEASE_VERSION when set, otherwise the
+# tag at HEAD without its `v`, otherwise `dev`: between releases, and in a
+# clone without tags, the files are stamped `dev`. It must be X.Y.Z, X.Y.Z
+# followed by aN, bN or rcN, or dev. The directory is cleared first, so a
+# module that no longer exists isn't staged.
 _stage-versioned:
   #!/usr/bin/env bash
   set -euo pipefail
   if [[ -n "${RELEASE_VERSION:-}" ]]; then
     VERSION="${RELEASE_VERSION}"
-  else
-    TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+  elif TAG=$(git describe --tags --exact-match --match 'v[0-9]*' 2>/dev/null); then
     VERSION=${TAG#v}
+  else
+    VERSION=dev
+  fi
+  if ! [[ "${VERSION}" =~ ^([0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?|dev)$ ]]; then
+    echo "Error: the version must be X.Y.Z, X.Y.Z followed by aN, bN or rcN, or dev (got '${VERSION}')" >&2
+    exit 1
   fi
   rm -rf {{staged_schema_dir}}
   mkdir -p {{staged_schema_dir}}
@@ -281,6 +315,15 @@ _stage-versioned:
       cp "$f" "{{staged_schema_dir}}/${base}"
     fi
   done
+
+# Fail unless HEAD is the commit tagged v<version>.
+_at-tag version:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [[ "$(git rev-parse -q --verify "refs/tags/v{{version}}^{commit}")" != "$(git rev-parse HEAD)" ]]; then
+    echo "Error: HEAD is not at the tag v{{version}}. Deploy from a checkout of it: git checkout v{{version}}" >&2
+    exit 1
+  fi
 
 # Add the merged model to docs/schema.
 _gen-yaml:

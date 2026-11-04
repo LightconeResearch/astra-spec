@@ -32,7 +32,9 @@ The JSON Schemas generated from the LinkML sources are the contract: what valida
 - `provenance.context.jsonld` — the record's JSON-LD context, mapping its terms onto PROV-O. There is no context for `astra.yaml`: LinkML's flat context would give its id-keyed maps a wrong RDF reading
 - `rules.json` — the rule catalogue (design D13): `rules`, every rule of the specification's §9 in order (`code`, `layer`, `level`, `statement`, `source`, and `status` in the check layer), and `errors`, the code of every keyword of the three JSON Schemas that can report an error, keyed by its absolute keyword location (`<$id>#<JSON Pointer>`). The tests check fixtures through it, as astra-tools and astra-typescript do
 
-After any change to a schema module, run `just gen-schema` and commit the regenerated `src/astra/schema/generated/` with the change. Never edit these files by hand. `just check-generated` regenerates into `tmp/` and fails on any difference from what is committed; it is part of `just test` and CI. The generators stamp the latest git tag's version into each JSON Schema's `$comment`, so the drift check needs the tags fetched.
+Each JSON Schema's `$id` is `https://w3id.org/astra/`, the series of the version it was generated with, `/` and its file name. The series is `X.Y` for a release `X.Y.Z` (every patch of a minor version shares its ids: a patch release never changes what is valid), a pre-release's whole version (`0.1.0rc1`), or `dev` between releases. The generator fills in the `{series}` placeholder of `--id`, and `rules.json`'s keys take the series through `$id`.
+
+After any change to a schema module, run `just gen-schema` and commit the regenerated `src/astra/schema/generated/` with the change. Never edit these files by hand. `just check-generated` regenerates into `tmp/` and fails on any difference from what is committed; it is part of `just test` and CI. The generators stamp the version into each JSON Schema's `$comment` and `rules.json`'s, and its series into each `$id`: `$RELEASE_VERSION` when set, otherwise the tag at HEAD, otherwise `dev`. So main holds `dev`, and the drift check needs the tags fetched only at a tagged commit.
 
 The JSON Schemas are built by **`tools/jsonschema_generator.py`**, a small extension of LinkML's `JsonSchemaGenerator` (dev-only, LinkML pinned in the dev group). It adds `propertyNames` with the key's pattern to every id-keyed map and allows one written form per map entry: an object without its key, or, for a keyed class with exactly one other slot, the compact form, that slot's value (in this schema only `DecisionSelection`, so `Universe.decisions` is `<decision>: <option>`). It also adds `uniqueItems` to every list of strings, drops every `$defs` entry the root can't reach, and keeps only standard JSON Schema keywords at the top level: LinkML's `metamodel_version` goes, and the schema version moves into `$comment`. Last, it moves each class-level check (the `oneOf` of an `exactly_one_of`, then each class rule's `if`/`then`) into its own member of `allOf`, guarded by an `if` that the value is an object and each field the check reads has its JSON type: a check is skipped only where a `type` keyword already fails, so no verdict changes and a value of the wrong type is `WRONG_TYPE` alone. Each `required` in a check has its fields in a `properties` beside it, inside a `not` too, so that Ajv compiles the schemas under `strict: true`: `just check-ajv` checks it, with the Ajv pinned in `tools/ajv/`, and CI runs it. The record's JSON-LD context comes from stock `gen-jsonld-context`.
 
@@ -81,16 +83,16 @@ The whole docs site is versioned with [mike](https://github.com/squidfunk/mike) 
 
 Release flow:
 
-1. `just release X.Y.Z` — regenerates the contract with the release version (`RELEASE_VERSION=X.Y.Z just gen-schema`), updates `CITATION.cff`, commits both (`src/astra/schema/generated/` and `CITATION.cff`), and creates an annotated tag. Does not push. Schema YAMLs are *not* mutated: they keep the placeholder `version: 0.0.0`, and the generators read a staged copy under `tmp/schema/` with the version injected, from `$RELEASE_VERSION` or else the latest git tag.
-2. `git push --atomic origin HEAD vX.Y.Z` — review, then push the commit and the tag together. The `Deploy versioned docs on tag` GitHub Actions workflow runs `mike deploy --push --update-aliases X.Y.Z latest` automatically.
+1. `just release X.Y.Z` — regenerates the contract with the release version (`RELEASE_VERSION=X.Y.Z just gen-schema`), updates `CITATION.cff`, commits both (`src/astra/schema/generated/` and `CITATION.cff`), and creates an annotated tag; then regenerates the contract as `dev` and commits it ("Back to dev after vX.Y.Z"), so that only the tagged commit holds the version. Does not push. The version may be a pre-release, `X.Y.Z` followed by `aN`, `bN` or `rcN` (PEP 440's normal form, so the tag `v0.1.0rc1`, the wheel and the `$id`s agree); its ids carry its whole version, and the documents it checks still state `spec_version: "0.1.0"`. A patch release never changes what is valid: when the version's minor already has a release (from 0.1 on), `tools/check_patch.py` compares the regenerated JSON Schemas (descriptions, titles and comments aside) and `rules.json`'s `errors` (keys and codes) with that minor's greatest release, and the release fails before it commits on any other difference. Schema YAMLs are *not* mutated: they keep the placeholder `version: 0.0.0`, and the generators read a staged copy under `tmp/schema/` with the version injected, from `$RELEASE_VERSION`, else the tag at HEAD, else `dev`.
+2. `git push --atomic origin HEAD vX.Y.Z` — review, then push the two commits and the tag together. The `Deploy versioned docs on tag` GitHub Actions workflow deploys the docs automatically: a release `X.Y.Z` at `/X.Y.Z/`, moving the aliases `X.Y` and `latest` (`mike deploy --push --update-aliases X.Y.Z X.Y latest`); a pre-release at its own version, moving none. A GitHub release marked as a pre-release still publishes to PyPI, where pip skips it unless asked.
 
-For a manual deploy (e.g. backfilling a tag), `just docs-deploy X.Y.Z` runs the same `mike deploy` locally.
+For a manual deploy (e.g. backfilling a tag), `just docs-deploy X.Y.Z X.Y latest` (or `just docs-deploy 0.1.0rc1` for a pre-release), run at a checkout of the tag `vX.Y.Z`, runs the same `mike deploy` locally. It refuses at any other commit, since the site publishes the checkout's committed contract and main holds `dev`; a dispatch of the workflow checks out the tag of its version for the same reason.
 
 First-time setup: after the first deploy, run `just docs-set-default latest` once so the bare site root redirects to `/latest/`.
 
 Hosting: mike pushes to `gh-pages`. The hosting platform (Cloudflare Pages, GitHub Pages, etc.) must be configured to serve from `gh-pages`, not `main`. Without this, `mike deploy` runs successfully but the site doesn't pick up versioned URLs in production.
 
-Schema artifacts (`docs/schema/*.{yaml,json,jsonld}`) are versioned along with the rest of the site: `just gen-doc` writes the merged LinkML model there and copies in the committed contract from `src/astra/schema/generated/`. Machine consumers should resolve them via the canonical `https://w3id.org/astra/...` URI (which redirects to a hosted location), or pin to `astra-spec.org/X.Y.Z/schema/...`.
+Schema artifacts (`docs/schema/*.{yaml,json,jsonld}`) are versioned along with the rest of the site: `just gen-doc` writes the merged LinkML model there and copies in the committed contract from `src/astra/schema/generated/`. Machine consumers should resolve them via the canonical `https://w3id.org/astra/X.Y/...` URI of their minor version (which redirects to the `X.Y` alias's `schema/`, the latest patch's files), or pin to `astra-spec.org/X.Y/schema/...` for a minor version, or `astra-spec.org/X.Y.Z/schema/...` for one release.
 
 ## Key Commands
 
@@ -102,7 +104,7 @@ just check-ajv        # Compile the three JSON Schemas with the pinned Ajv under
 just lint             # Lint the schema (linkml-lint)
 just gen-doc          # Generate the field reference (docs/elements/) and docs/schema/
 just docs-serve       # Build and preview docs locally with live reload
-just release X.Y.Z    # Regenerate the contract with the version, update CITATION.cff, commit and tag
+just release X.Y.Z    # Regenerate the contract with the version (patch guard), update CITATION.cff, commit, tag, back to dev
 ```
 
 ## Repository Layout
@@ -111,6 +113,7 @@ just release X.Y.Z    # Regenerate the contract with the version, update CITATIO
 - `src/astra/schema/generated/` — The generated contract: the JSON Schemas, the record's JSON-LD context and `rules.json` (regenerate with `just gen-schema`, commit, never edit)
 - `tools/jsonschema_generator.py` — The JSON Schema generator extension
 - `tools/rules.py` — Builds `rules.json`: the §9 extractor and the error map
+- `tools/check_patch.py` — The patch guard of `just release`: a patch changes nothing valid since its minor's greatest release
 - `tools/ajv/` — A pinned Ajv (`package.json`, `package-lock.json`) and `check.mjs`, for `just check-ajv`
 - `docs/` — Documentation source (rendered with [Zensical](https://zensical.org/); config in `zensical.toml`)
 - `docs/specification.md` — The normative ASTRA specification

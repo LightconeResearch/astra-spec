@@ -18,6 +18,7 @@ from markdown_it.token import Token
 from rules import extract_rules
 
 from .conftest import (
+    GENERATED,
     PARSE_CODES,
     REPO_ROOT,
     fixture_header,
@@ -242,10 +243,29 @@ def test_every_fragment_is_valid_over_the_stub(example):
     ] == []
 
 
+EXCERPT_LOCATION = re.compile(
+    r"(https://w3id\.org/astra/[0-9]+\.[0-9]+/([a-z.]+\.schema\.json))(#.*)", re.DOTALL
+)
+"""An error-map key as the specification writes it: the namespace, a minor version, `/`, a schema's file name, `#` and
+a JSON Pointer."""
+
+
+def committed_location(key: str) -> str | None:
+    """The excerpt's error-map `key` with the committed file's series in place of its minor version, which differs
+    between releases (`dev/` on main), or None if `key` isn't written as the specification writes one."""
+    match = EXCERPT_LOCATION.fullmatch(key)
+    if match is None or not (GENERATED / match[2]).is_file():
+        return None
+    return (
+        json.loads((GENERATED / match[2]).read_text(encoding="utf-8"))["$id"] + match[3]
+    )
+
+
 @pytest.mark.parametrize("example", EXCERPTS, ids=_id)
 def test_the_rules_excerpt_is_a_subset_of_the_generated_file(example):
-    """Each `errors` entry of the excerpt is one of the committed `rules.json`; each rule equals the committed rule with
-    its code, and they come in catalogue order. Its `$comment` is left out: the version stamped in it varies."""
+    """Each `errors` entry of the excerpt is one of the committed `rules.json`, once its key takes the committed series;
+    each rule equals the committed rule with its code, and they come in catalogue order. Its `$comment` is left out: the
+    version stamped in it varies."""
     excerpt, generated = example.document, rules_catalogue()
     assert isinstance(excerpt, dict)
     assert sorted(excerpt.keys() - {"$comment"} - {"errors", "rules"}) == []
@@ -253,7 +273,7 @@ def test_the_rules_excerpt_is_a_subset_of_the_generated_file(example):
     assert {
         key: code
         for key, code in errors.items()
-        if generated["errors"].get(key) != code
+        if generated["errors"].get(committed_location(key)) != code
     } == {}
     order = [rule["code"] for rule in generated["rules"]]
     by_code = dict(zip(order, generated["rules"]))

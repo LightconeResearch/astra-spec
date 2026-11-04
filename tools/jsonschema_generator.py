@@ -37,11 +37,15 @@ It also:
 
 Through :func:`generate`, optional fields also reject null (``include_null=False``),
 and the schema's ``$id`` can be set, so that each generated file is identified
-by its own URI.
+by its own URI. In that ``$id``, ``{series}`` stands for the series of the
+schema's version (:func:`series`): ``X.Y`` for a release ``X.Y.Z``, so that
+every patch of a minor version shares its URIs, the whole version for a
+pre-release such as ``0.1.0rc1``, and ``dev`` between releases.
 """
 
 import argparse
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -51,6 +55,18 @@ from linkml_runtime.linkml_model.meta import SlotDefinition
 
 DEF_PREFIX = "#/$defs/"
 """How a `$ref` to an entry of the schema's `$defs` starts."""
+
+SERIES = "{series}"
+"""The placeholder in a schema's `$id` for the series of its version."""
+
+RELEASE = re.compile(r"([0-9]+\.[0-9]+)\.[0-9]+")
+"""A release's version, `X.Y.Z`, whose series is `X.Y`."""
+
+PRE_RELEASE = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+(?:a|b|rc)[0-9]+")
+"""A pre-release's version, `X.Y.Z` then `aN`, `bN` or `rcN` (PEP 440's normal form), its own series."""
+
+DEV = "dev"
+"""The version, and the series, of what is built between releases."""
 
 
 @dataclass
@@ -301,18 +317,34 @@ def _reachable_defs(schema: dict) -> set[str]:
     return reached
 
 
+def series(version: str) -> str:
+    """The series of `version`, which a schema's `$id` carries: `X.Y` for a release `X.Y.Z`, the whole version for a
+    pre-release (`0.1.0rc1`), and `dev` for `dev`. Any other version raises `ValueError`."""
+    if version == DEV or PRE_RELEASE.fullmatch(version):
+        return version
+    release = RELEASE.fullmatch(version)
+    if release:
+        return release[1]
+    raise ValueError(
+        f"version {version!r} has no series: it isn't X.Y.Z, X.Y.Z followed by aN, bN or rcN, or {DEV!r}"
+    )
+
+
 def generate(
     schema: str | Path, *, closed: bool = True, schema_id: str | None = None
 ) -> dict:
     """The JSON Schema for the LinkML `schema`: closed unless `closed` is false; optional fields reject null.
 
-    Its `$id` is `schema_id` if given, otherwise the LinkML schema's own id, as LinkML sets it.
+    Its `$id` is `schema_id` if given, with `{series}` replaced by the series of the LinkML schema's version, otherwise
+    the LinkML schema's own id, as LinkML sets it.
     """
     generator = AstraJsonSchemaGenerator(
         str(schema), include_null=False, not_closed=not closed
     )
     result = json.loads(generator.serialize())
     if schema_id is not None:
+        if SERIES in schema_id:
+            schema_id = schema_id.replace(SERIES, series(str(generator.schema.version)))
         result["$id"] = schema_id
     return result
 
@@ -331,7 +363,8 @@ def main(argv: list[str] | None = None) -> None:
         "--id",
         metavar="URI",
         dest="schema_id",
-        help="the `$id` of the JSON Schema (default: the schema's id)",
+        help="the `$id` of the JSON Schema, in which `{series}` stands for the series of the schema's version: X.Y "
+        "for a release X.Y.Z, the whole version for a pre-release, `dev` for `dev` (default: the schema's id)",
     )
     args = parser.parse_args(argv)
     print(

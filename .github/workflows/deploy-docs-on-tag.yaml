@@ -7,7 +7,7 @@ on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to deploy (without leading v), e.g. 0.0.9"
+        description: "Version to deploy (without leading v), e.g. 0.1.0 or 0.1.0rc1"
         required: true
 
 permissions: {}
@@ -25,9 +25,14 @@ jobs:
 
     steps:
       # https://github.com/actions/checkout
+      # A dispatch checks out the tag of its version, not the ref picked in
+      # the Actions UI: the site publishes the checkout's committed contract,
+      # and only the tagged commit holds the release's (main holds `dev`).
+      # `just docs-deploy` refuses anywhere else.
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.version && format('refs/tags/v{0}', inputs.version) || github.ref }}
           fetch-depth: 0  # mike needs full history to update gh-pages
 
       # https://github.com/astral-sh/setup-uv
@@ -55,17 +60,34 @@ jobs:
           git config user.name  github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
 
-      - name: Resolve version
+      # A release X.Y.Z deploys at /X.Y.Z/ and moves the aliases X.Y and
+      # latest: X.Y serves the latest patch's schema/ files, which is where
+      # https://w3id.org/astra/X.Y/ redirects. A pre-release (X.Y.Z followed
+      # by aN, bN or rcN) deploys at its own version and moves none.
+      - name: Resolve version and aliases
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ -n "${{ inputs.version }}" ]]; then
-            VERSION="${{ inputs.version }}"
+          if [[ -n "${INPUT_VERSION}" ]]; then
+            VERSION="${INPUT_VERSION}"
           else
             VERSION="${GITHUB_REF_NAME#v}"
           fi
+          if [[ "${VERSION}" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
+            ALIASES="${BASH_REMATCH[1]} latest"
+          elif [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(a|b|rc)[0-9]+$ ]]; then
+            ALIASES=""
+          else
+            echo "::error::not a release or a pre-release version: ${VERSION}"
+            exit 1
+          fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "aliases=${ALIASES}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy versioned docs to gh-pages
         env:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
-        run: just docs-deploy "${{ steps.version.outputs.version }}" latest
+          ALIASES: ${{ steps.version.outputs.aliases }}
+        # ALIASES is left unquoted so that each alias is its own argument.
+        run: just docs-deploy "${RELEASE_VERSION}" ${ALIASES}

@@ -31,7 +31,8 @@ jobs:
         with:
           persist-credentials: false
           # `just test` checks the generated files, so `_stage-versioned`
-          # needs the tags to inject the version they were generated with.
+          # needs the tag at HEAD, if there is one, to inject the version
+          # they were generated with (`dev` otherwise).
           fetch-depth: 0
           fetch-tags: true
 
