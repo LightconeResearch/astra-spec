@@ -237,6 +237,21 @@ MALFORMED = {
         "| `LOOSE_PIN` | Should |",
         r"LOOSE_PIN.*Should",
     ),
+    "MAY row in the parse and schema table": (
+        "| `BAD_ID` | schema | MUST |",
+        "| `BAD_ID` | schema | MAY |",
+        r"BAD_ID.*a MAY row is allowed only in the runner table",
+    ),
+    "MAY row in the validator table": (
+        "| `LOOSE_PIN` | SHOULD |",
+        "| `LOOSE_PIN` | MAY |",
+        r"LOOSE_PIN.*a MAY row is allowed only in the runner table",
+    ),
+    "MAY row in the check table": (
+        "| `NO_RECORD` | MUST |",
+        "| `NO_RECORD` | MAY |",
+        r"NO_RECORD.*a MAY row is allowed only in the runner table",
+    ),
     "keyword contradicts level": (
         "No reference to an output built once has a pin",
         "No reference to an output built once MUST have a pin",

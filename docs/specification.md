@@ -79,7 +79,7 @@ Rules are enforced in five layers, set apart by what each one sees:
 | **parse** | any strict YAML 1.2 loader | one file's text |
 | **schema** | the generated JSON Schema | one file's data |
 | **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git; no results |
-| **check** | a results checker | records and results |
+| **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git; records and results |
 | **runner** | whatever runs recipes | its own actions |
 
 Four roles conform to this specification:
@@ -89,8 +89,9 @@ Four roles conform to this specification:
 - A **validator** reads an analysis, every `astra.yaml` of its stack and git,
   and reports every parse, schema and validator rule the analysis breaks. An
   analysis is valid when it breaks none of their `MUST`s.
-- A **checker** reads an analysis's records and results, and gives each
-  planned result its statuses by the check rules (§8).
+- A **checker** reads an analysis, every `astra.yaml` of its stack and git,
+  and its records and results, and gives each planned result its statuses by
+  the check rules (§8).
 - A **runner** runs recipes and writes each result's bytes and record. It
   conforms when it keeps the runner rules.
 
@@ -826,10 +827,10 @@ and no checkout is needed. Only these are read:
   without their contents;
 - the bytes of each result or input file that a recipe reads.
 
-Where a tool keeps what it read is the tool's choice, and validators and
-runners can work offline from what they kept. None of it is part of the
-declaring analysis's code, and none of it is a change to the declaring
-analysis's repository that stops a runner from running
+Where a tool keeps what it read is the tool's choice, and validators,
+checkers and runners can work offline from what they kept. None of it is
+part of the declaring analysis's code, and none of it is a change to the
+declaring analysis's repository that stops a runner from running
 ([`UNCOMMITTED_CHANGES`](#runner)).
 
 **Validity.** The declared analysis, with everything it declares, is valid
@@ -1094,7 +1095,8 @@ is broken is always in a column of its own.** This is true in every layer:
   run. It is in the present tense, and its subject is what the rule is about
   ("A declaration has …", "Every pin names …", "No output …"). It never says
   what happens when it is broken.
-- **Level:** `MUST`, `SHOULD` or `MAY` (RFC 2119), applied to that sentence.
+- **Level:** `MUST`, `SHOULD` or `MAY` (RFC 2119), applied to that sentence,
+  and `MAY` only in the runner table.
 - **Code:** names what is wrong when the rule is broken. It is what a tool
   reports.
 - **Source:** the RFC section, or the section of this specification that
@@ -1117,13 +1119,19 @@ What breaking a rule leads to depends on the layer:
 
 | Layer | When a rule is broken |
 |---|---|
-| parse, schema, validator | The file fails: the code is reported as an **error** for a `MUST` and as a **warning** for a `SHOULD` |
+| parse, schema, validator | A broken `MUST` is reported as an **error** and makes the file invalid; a broken `SHOULD` is reported as a **warning**, and the file stays valid |
 | check | Nothing fails. The code is reported and **the result gets a status**, given in the check table's extra column, *Status when broken* |
 | runner | The runner doesn't conform. Where a rule says the runner refuses, it reports the code |
 
 The check layer is the only one laid out differently, with that extra
-column, because breaking one of its rules changes what a result is, not
-whether a file is valid.
+column, because breaking one of its rules changes what a result is. A parse,
+schema or validator rule decides whether a file is valid, and only through
+its `MUST`s.
+
+A `MAY` row states what a tool may do. Leaving it out breaks nothing and
+makes no tool non-conforming. The code is what a tool that does it reports.
+Only the runner table, whose rules are about a tool's own actions, can have
+`MAY` rows.
 
 **The catalogue as data.** The rules are extracted from this section into
 `rules.json` (§10), so its tables are a format that tools parse, not only
@@ -1140,10 +1148,10 @@ text to read:
 - **Rows.** Each row is one rule, with one cell per column and none empty.
   Its Code is one code span holding a capital letter, then capitals, digits
   and underscores (`[A-Z][A-Z0-9_]*`), and no other row has it. Its Layer is
-  `parse` or `schema`, and its Level `MUST`, `SHOULD` or `MAY`. Its Rule
-  uses no RFC 2119 keyword in capitals of another level, in its text, in a
-  code span, or as the Rule cell reads once rendered (`MU*ST*` reads as
-  `MUST`).
+  `parse` or `schema`, and its Level `MUST`, `SHOULD` or, in the runner table
+  only, `MAY`. Its Rule uses no RFC 2119 keyword in capitals of another
+  level, in its text, in a code span, or as the Rule cell reads once rendered
+  (`MU*ST*` reads as `MUST`).
 - **Cells** hold only text, code spans, emphasis, links and inline HTML.
   `rules.json` records a cell as Markdown rebuilt from what it parses to,
   with each link reduced to its text, so the rebuilt Markdown must parse the

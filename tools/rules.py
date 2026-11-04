@@ -6,11 +6,11 @@
   tables with a Markdown parser (markdown-it-py). Extraction is strict, enforcing §9's "The catalogue as data": no
   ``## 9. Conformance`` heading, or more than one; a subsection other than the four, a missing or repeated one, or
   one out of their order; a rule table outside them, or a subsection without exactly one; a missing, unknown or
-  repeated column; a row that doesn't write one cell per column (counted on its source line,
-  blockquote markers aside); an empty cell; a Code cell that isn't one code span holding a code, or a code already
-  used; an unknown layer or level; a rule whose RFC 2119 keyword contradicts its level, in its text, in a code span or
-  as the cell reads once rendered; a cell holding anything but text, code spans, emphasis, links and inline HTML; or a
-  cell whose Markdown can't be rebuilt from its tokens, is an error.
+  repeated column; a row that doesn't write one cell per column (counted on its source line, blockquote markers
+  aside); an empty cell; a Code cell that isn't one code span holding a code, or a code already used; an unknown layer
+  or level, or a ``MAY`` row outside the runner table; a rule whose RFC 2119 keyword contradicts its level, in its
+  text, in a code span or as the cell reads once rendered; a cell holding anything but text, code spans, emphasis,
+  links and inline HTML; or a cell whose Markdown can't be rebuilt from its tokens, is an error.
 - ``errors``: for each keyword of the generated JSON Schemas that can report an error, its absolute keyword location
   (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it enforces. The code
   comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type or slot that
@@ -53,6 +53,9 @@ LAYERS = {"parse and schema": {"parse", "schema"}}
 """The layers a subsection's Layer column may name; a subsection without one is its own layer."""
 
 LEVELS = {"MUST", "SHOULD", "MAY"}
+
+MAY_TABLE = "runner"
+"""The one subsection whose rule table may have `MAY` rows: its rules are about a tool's own actions."""
 
 KEYWORDS = {
     "MUST": "MUST",
@@ -364,6 +367,10 @@ def extract_rules(markdown: str) -> list[dict]:
             if level not in LEVELS:
                 raise row.error(
                     f"unknown level {level!r}: a level is MUST, SHOULD or MAY"
+                )
+            if level == "MAY" and heading != MAY_TABLE:
+                raise row.error(
+                    f"a MAY row is allowed only in the {MAY_TABLE} table"
                 )
             statement = cell["Rule"].children or []
             for keyword in _keywords(_text(statement)) + _keywords(
