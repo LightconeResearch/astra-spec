@@ -1,0 +1,12 @@
+# rule: INVALID_SYNTAX
+# fails at: parse
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    tags: &survey [survey]
+  summary:
+    type: metric
+    format: json
+    tags: *survey

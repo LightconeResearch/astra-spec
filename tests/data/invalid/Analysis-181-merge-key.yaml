@@ -1,11 +1,8 @@
 # rule: UNKNOWN_FIELD
-# fails at: /outputs/copy
+# fails at: /outputs/result
 spec_version: "0.1.0"
 outputs:
-  result: &base
-    type: metric
-    format: json
-  copy:
-    <<: *base
+  result:
+    <<: {type: metric}
     type: metric
     format: json

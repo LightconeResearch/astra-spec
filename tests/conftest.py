@@ -10,9 +10,10 @@ from typing import Any
 
 from jsonschema import Draft201909Validator, ValidationError
 from ruamel.yaml import YAML
-from ruamel.yaml.composer import Composer
+from ruamel.yaml.composer import Composer, ComposerError
 from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError, SafeConstructor
 from ruamel.yaml.error import YAMLError
+from ruamel.yaml.events import AliasEvent
 from ruamel.yaml.nodes import MappingNode, ScalarNode, SequenceNode
 from ruamel.yaml.reader import Reader
 from ruamel.yaml.resolver import VersionedResolver
@@ -184,10 +185,30 @@ class _CoreSchemaResolver(VersionedResolver):
 
 
 class _CoreSchemaComposer(Composer):
-    """ruamel.yaml's composer, giving a scalar tagged `!` the tag `!!str`, as YAML 1.2.2 does (§6.9.1).
+    """ruamel.yaml's composer, refusing every anchor and alias (spec §3), and giving a scalar tagged `!` the tag
+    `!!str`, as YAML 1.2.2 does (§6.9.1).
 
-    ruamel.yaml resolves such a scalar as if it were plain, so that `! 12` would be 12.
+    An anchor or an alias raises `ComposerError`: a file uses neither, so an entry is written out in full. ruamel.yaml
+    resolves a scalar tagged `!` as if it were plain, so that `! 12` would be 12.
     """
+
+    def compose_node(self, parent: Any, index: Any) -> Any:
+        event = self.parser.peek_event()
+        if isinstance(event, AliasEvent):
+            raise ComposerError(
+                None,
+                None,
+                f"found the alias *{event.anchor}: a file uses no alias",
+                event.start_mark,
+            )
+        if event.anchor is not None:
+            raise ComposerError(
+                None,
+                None,
+                f"found the anchor &{event.anchor}: a file uses no anchor",
+                event.start_mark,
+            )
+        return super().compose_node(parent, index)
 
     def compose_scalar_node(self, anchor: Any) -> Any:
         event = self.parser.peek_event()
@@ -218,7 +239,7 @@ class _CoreSchemaConstructor(SafeConstructor):
         canonical_keys = set()
         mapping: dict[Any, Any] = {}
         for key_node, value_node in node.value:
-            canonical = self._canonical(key_node, ())
+            canonical = self._canonical(key_node)
             if canonical in canonical_keys:
                 raise DuplicateKeyError(
                     "while constructing a mapping",
@@ -247,23 +268,20 @@ class _CoreSchemaConstructor(SafeConstructor):
             mapping[key] = self.construct_object(value_node, deep=deep)
         return mapping
 
-    def _canonical(self, node: Any, path: tuple) -> Any:
-        """`node` as YAML compares nodes: its tag, and its canonical form (a scalar's value, a collection's nodes)."""
-        if any(node is ancestor for ancestor in path):
-            raise ConstructorError(
-                None, None, "found a key that holds itself", node.start_mark
-            )
+    def _canonical(self, node: Any) -> Any:
+        """`node` as YAML compares nodes: its tag, and its canonical form (a scalar's value, a collection's nodes).
+
+        With no alias, a node holds no node twice, so the recursion ends.
+        """
         if isinstance(node, ScalarNode):
             value = self.construct_object(node, deep=True)
             if isinstance(value, float) and math.isnan(value):
                 value = ".nan"
             return node.tag, value
-        path = (*path, node)
         if isinstance(node, SequenceNode):
-            return node.tag, tuple(self._canonical(item, path) for item in node.value)
+            return node.tag, tuple(self._canonical(item) for item in node.value)
         return node.tag, frozenset(
-            (self._canonical(key, path), self._canonical(value, path))
-            for key, value in node.value
+            (self._canonical(key), self._canonical(value)) for key, value in node.value
         )
 
     def _core_scalar(self, node: Any, name: str) -> str:
@@ -332,8 +350,10 @@ def load_yaml(path: Path) -> Any:
 
     A plain scalar is a null, a bool, an int or a float only in its core-schema form, and a string otherwise (so
     timestamps and `1_000` are strings); a scalar tagged `!` is a string; `<<` is an ordinary key; a tag outside the
-    core schema (`!!set`, `!!binary`, `!!omap`, `!!timestamp`, a local tag) and a `%YAML` directive other than 1.2
-    are errors. Two keys of a map that are equal YAML nodes, with the same tag and canonical form, raise
+    core schema (`!!set`, `!!binary`, `!!omap`, `!!timestamp`, a local tag), a core tag on a node of another kind or
+    a scalar of another form (`!!seq x`, `!!bool yes`) and a `%YAML` directive other than 1.2 are errors. An anchor,
+    an alias and a second document raise `ComposerError`; a file with no document (empty, or only comments) is
+    None. Two keys of a map that are equal YAML nodes, with the same tag and canonical form, raise
     `DuplicateKeyError` (keys that are distinct nodes but one Python value, such as `1` and `true`, raise
     `ConstructorError`). Text YAML 1.2.2 makes ill-formed raises a `YAMLError` even where ruamel.yaml would read it:
     a comment glued to a token, an under-indented line of a flow collection or a quoted scalar, `[-]`, `!<!>`, and

@@ -7,9 +7,10 @@ repos:
       - id: check-toml
       - id: check-yaml
         # Failing at parse (a duplicate key, malformed YAML, a %YAML 1.1
-        # directive) is the point of these fixtures and of the yaml-test-suite
-        # error cases. Keep in step with .yamllint.yaml.
-        exclude: ^tests/(data/invalid/Analysis-(101-duplicate-output|146-duplicate-universe|182-malformed-yaml|183-yaml-1-1-directive|192-comment-glued-to-a-scalar|193-flow-line-not-indented|194-escape-beyond-unicode)\.yaml|yaml-test-suite/.*)$
+        # directive, a local tag, a second document) is the point of these
+        # fixtures and of the yaml-test-suite error cases. Keep in step with
+        # .yamllint.yaml.
+        exclude: ^tests/(data/invalid/Analysis-(101-duplicate-output|146-duplicate-universe|182-malformed-yaml|183-yaml-1-1-directive|192-comment-glued-to-a-scalar|193-flow-line-not-indented|194-escape-beyond-unicode|201-local-tag|204-second-document)\.yaml|yaml-test-suite/.*)$
       # Generated files are checked against a fresh generation instead
       # (`just check-generated`), and the yaml-test-suite error cases are kept
       # byte for byte as vendored, so these hooks leave them as they are.

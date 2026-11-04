@@ -9,6 +9,7 @@ import math
 from pathlib import Path
 
 import pytest
+from ruamel.yaml.composer import ComposerError
 from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError
 from ruamel.yaml.error import YAMLError
 from ruamel.yaml.scanner import ScannerError
@@ -113,11 +114,16 @@ def test_a_core_tag_takes_only_its_core_form(load, text):
         load(text)
 
 
+@pytest.mark.parametrize(
+    "text", ["a: !!str [1]\n", "a: !!int {}\n", "a: !!seq x\n", "a: !!map x\n"]
+)
+def test_a_core_tag_is_on_a_node_of_its_kind(load, text):
+    with pytest.raises(ConstructorError):
+        load(text)
+
+
 def test_merge_key_is_an_ordinary_key(load):
-    assert load("base: &b {x: 1}\nother:\n  <<: *b\n") == {
-        "base": {"x": 1},
-        "other": {"<<": {"x": 1}},
-    }
+    assert load("other: {<<: {x: 1}}\n") == {"other": {"<<": {"x": 1}}}
 
 
 @pytest.mark.parametrize(
@@ -135,6 +141,61 @@ def test_merge_key_is_an_ordinary_key(load):
 def test_other_tags_are_errors(load, text):
     with pytest.raises(YAMLError):
         load(text)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "%TAG ! tag:yaml.org,2002:\n---\na: !str x\n",
+        "a: !<tag:yaml.org,2002:str> x\n",
+    ],
+)
+def test_a_tag_expanding_to_a_core_tag_is_allowed(load, text):
+    assert load(text) == {"a": "x"}
+
+
+def test_a_core_handle_expanding_elsewhere_is_an_error(load):
+    with pytest.raises(ConstructorError):
+        load("%TAG !! tag:example.com,2000:\n---\na: !!str x\n")
+
+
+@pytest.mark.parametrize(
+    "text, found",
+    [
+        ("a: &x 1\n", "anchor"),
+        ("a: &x [1]\n", "anchor"),
+        ("a: &x {b: 1}\n", "anchor"),
+        ("&k a: 1\n", "anchor"),
+        ("a: &x 1\nb: *x\n", "anchor"),
+        ("a: *x\n", "alias"),
+        ("a: [1, *x]\n", "alias"),
+    ],
+)
+def test_anchors_and_aliases_are_errors(load, text, found):
+    with pytest.raises(ComposerError, match=f"found the {found}"):
+        load(text)
+
+
+@pytest.mark.parametrize(
+    "text", ["a: 1\n---\n", "a: 1\n---\nb: 2\n", "---\na: 1\n...\n---\n", "---\n---\n"]
+)
+def test_a_second_document_is_an_error(load, text):
+    with pytest.raises(ComposerError, match="a single document"):
+        load(text)
+
+
+@pytest.mark.parametrize(
+    "text, value",
+    [
+        ("---\na: 1\n", {"a": 1}),
+        ("a: 1\n...\n", {"a": 1}),
+        ("---\na: 1\n...\n# c\n", {"a": 1}),
+        ("", None),
+        ("# c\n", None),
+    ],
+)
+def test_a_file_holds_at_most_one_document(load, text, value):
+    assert load(text) == value
 
 
 def test_yaml_1_2_directive_is_allowed(load):

@@ -174,6 +174,24 @@ strictly, under the core schema only
   YAML 1.2.2 accepts `%YAML 1.1`
   ([§6.8.1](https://yaml.org/spec/1.2.2/#681-yaml-directives)), so a tool
   checks the directive itself;
+- a file holds at most one document ([`INVALID_SYNTAX`](#parse-and-schema)):
+  a `---` after a document starts another, even with nothing after it. A file
+  with no document, empty or holding only comments, is null, and fails as
+  [`WRONG_TYPE`](#parse-and-schema);
+- a file uses no anchor (`&base`) and no alias (`*base`), so an entry is
+  written out in full ([`INVALID_SYNTAX`](#parse-and-schema));
+- a node's tag, with its handle expanded, is one of the core schema's,
+  `tag:yaml.org,2002:` followed by `str`, `int`, `float`, `bool`, `null`,
+  `seq` or `map` (written `!!str` and so on), on a node of its kind: `!!seq`
+  on a list, `!!map` on a map, `!!str` on any scalar, and each of the others
+  on a scalar that its row of
+  [YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)'s
+  table takes. So `!!float 1` is the float 1, and `!!bool yes` is invalid.
+  Any other tag, such as `!include`, `!!omap` or `!!timestamp`, makes the
+  file invalid ([`INVALID_SYNTAX`](#parse-and-schema)). A node tagged `!` is
+  a string, a list or a map, by its kind
+  ([YAML 1.2.2 §6.9.1](https://yaml.org/spec/1.2.2/#691-node-tags)), so
+  `! 12` is the string `"12"`;
 - a key written twice in one map makes the file invalid
   ([`DUPLICATE_KEY`](#parse-and-schema)). Two keys are the same when they are
   equal YAML nodes, with the same tag and canonical form
@@ -200,8 +218,8 @@ strictly, under the core schema only
   [`WRONG_TYPE`](#parse-and-schema).
 
 **Records** are JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)),
-well-formed ([`INVALID_SYNTAX`](#parse-and-schema)). A record is read as one
-document, as `astra.yaml` is, by the same parse and schema rules.
+well-formed ([`INVALID_SYNTAX`](#parse-and-schema)). A record is one JSON
+value, checked by the same schema rules.
 
 **Every document** holds only the fields its schema defines
 ([`UNKNOWN_FIELD`](#parse-and-schema)), each with the JSON type the field
@@ -1253,7 +1271,7 @@ A table that breaks any of this is an error in this specification, and no
 
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is well-formed YAML 1.2 under the core schema (with no `%YAML` directive other than 1.2), and every record is well-formed JSON | 0005, tidy-up, §3 |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's, and every record is well-formed JSON | 0005, tidy-up, §3 |
 | `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, tidy-up, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | tidy-up, main, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
@@ -1510,12 +1528,28 @@ resolve plain scalars by tables of their own, not by YAML 1.2.2 §10.3.2's:
 both read `1_000` as 1000 and `0b101` as 5, which the table leaves strings;
 ruamel.yaml also reads `2026-10-26` as a date, and js-yaml reads `-.5` as a
 string. In JavaScript, the `yaml` package follows the table under the options
-`{version: '1.2', schema: 'core', uniqueKeys: true, merge: false}`. It
-accepts `%YAML 1.1`, as YAML 1.2.2 requires, and every other version but 1.2
-with only a `BAD_DIRECTIVE` warning, leaving `doc.directives.yaml.version` at
-`'1.2'`. So a tool checks the directive itself: a
-`doc.directives.yaml.version` of `'1.1'`, or a `BAD_DIRECTIVE` warning on the
-`%YAML` line, makes the file invalid ([`INVALID_SYNTAX`](#parse-and-schema)).
+`{version: '1.2', schema: 'core', uniqueKeys: true, merge: false,
+resolveKnownTags: false}`. It accepts `%YAML 1.1`, as YAML 1.2.2 requires,
+and every other version but 1.2 with only a `BAD_DIRECTIVE` warning, leaving
+`doc.directives.yaml.version` at `'1.2'`. So a tool checks the directive
+itself: a `doc.directives.yaml.version` of `'1.1'`, or a `BAD_DIRECTIVE`
+warning on the `%YAML` line, makes the file invalid
+([`INVALID_SYNTAX`](#parse-and-schema)). By default `yaml` builds `!!omap`,
+`!!set`, `!!binary` and `!!timestamp` as YAML 1.1's types and merges at a
+`!!merge` key; under `resolveKnownTags: false` it builds a node with any tag
+outside the core schema as a string, a list or a map by its kind, as it does
+one tagged `!`, keeping the tag in `node.tag`, with a `TAG_RESOLVE_FAILED`
+warning. It reads anchors and aliases either way. So a
+JS loader refuses every anchor, every alias and every tag outside the core
+schema itself, walking the document with `visit`: every `Alias`, every node
+with an `anchor`, and every node whose `tag` is set and is neither `!` nor a
+core schema tag on a node of its kind makes the file invalid
+([`INVALID_SYNTAX`](#parse-and-schema)). The warning isn't that check: `yaml`
+also gives it, and leaves a string, for a core tag on a scalar whose form its
+own test doesn't take, so a tool reads an explicitly tagged scalar's source
+by its tag's row of the table too, refusing `!!int 1_000` and reading
+`!!float 1` as the float 1. `yaml` reports a second document itself
+(`MULTIPLE_DOCS`), and gives `null` for a file with none.
 
 **RDF.** A record's RDF is what the
 [JSON-LD 1.1](https://www.w3.org/TR/json-ld11-api/) toRdf algorithm gives for

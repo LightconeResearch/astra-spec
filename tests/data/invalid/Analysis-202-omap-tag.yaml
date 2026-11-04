@@ -1,0 +1,7 @@
+# rule: INVALID_SYNTAX
+# fails at: parse
+spec_version: "0.1.0"
+outputs: !!omap
+  - result:
+      type: metric
+      format: json
