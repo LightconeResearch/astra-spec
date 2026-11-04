@@ -69,7 +69,7 @@ CHECK = """\
 RUNNER_TABLE = """\
 | Code | Level | Rule | Source |
 |---|---|---|---|
-| `NO_SANDBOX` | MAY | A runner runs each recipe in a sandbox | `main` |
+| `NO_SANDBOX` | MAY | A runner runs each recipe in a sandbox | main |
 """
 
 RUNNER = "### runner\n\n" + RUNNER_TABLE + "\n"
@@ -159,7 +159,7 @@ def test_extracts_the_rule_tables_of_section_9():
             "layer": "runner",
             "level": "MAY",
             "statement": "A runner runs each recipe in a sandbox",
-            "source": "`main`",
+            "source": "main",
         },
     ]
 
@@ -189,7 +189,7 @@ MALFORMED = {
     "quoted row with an extra cell": (
         RUNNER,
         "### runner\n\n"
-        + quoted(RUNNER_TABLE.replace("| `main` |", "| `main` | x |"))
+        + quoted(RUNNER_TABLE.replace("| main |", "| main | x |"))
         + "\n",
         r"NO_SANDBOX.*it has 5 cells",
     ),
@@ -203,7 +203,7 @@ MALFORMED = {
         RUNNER,
         RUNNER.replace(
             "| Source |\n|---|---|---|---|", "| Source | Notes |\n|---|---|---|---|---|"
-        ).replace("| `main` |", "| `main` | none |"),
+        ).replace("| main |", "| main | none |"),
         r"### runner.*Notes",
     ),
     "repeated column": (
@@ -211,7 +211,7 @@ MALFORMED = {
         RUNNER.replace(
             "| Source |\n|---|---|---|---|",
             "| Source | Source |\n|---|---|---|---|---|",
-        ).replace("| `main` |", "| `main` | 0005 |"),
+        ).replace("| main |", "| main | 0005 |"),
         r"### runner.*'Source' is unknown or repeated",
     ),
     "no rule table": (
@@ -307,6 +307,37 @@ MALFORMED = {
         r"line 15: a rule table .* must be under one of §9's ### subsections",
     ),
     "no section 9": ("## 9. Conformance", "## 9. Rules", r"9\. Conformance"),
+    "source in a code span": (
+        "| §4, 0003 |",
+        "| §4, `0003` |",
+        r"BAD_ID.*Source cell holds a code_inline, but it must be plain text",
+    ),
+    "source as a link": (
+        "| 0005 §1 |",
+        "| [0005 §1](https://example.org/0005) |",
+        r"NO_RECORD.*Source cell holds a link_open, but it must be plain text",
+    ),
+    "source in emphasis": (
+        "| 0003 |\n\n### check",
+        "| *0003* |\n\n### check",
+        r"LOOSE_PIN.*Source cell holds a em_open, but it must be plain text",
+    ),
+    "unknown source token": ("| §4, 0003 |", "| §4, D5 |", r"BAD_ID.*Source.*'D5'"),
+    "RFC number not four digits": (
+        "| 0003 |\n\n### check",
+        "| 3 |\n\n### check",
+        r"LOOSE_PIN.*Source.*'3'",
+    ),
+    "RFC section without its sign": (
+        "| 0005 §1 |",
+        "| 0005 1 |",
+        r"NO_RECORD.*Source.*'0005 1'",
+    ),
+    "source tokens not separated by a comma and a space": (
+        "| §4, 0003 |",
+        "| §4; 0003 |",
+        r"BAD_ID.*Source.*'§4; 0003'",
+    ),
 }
 
 
@@ -328,6 +359,14 @@ def test_keywords_that_agree_with_the_level_are_allowed():
     )
     statements = [rule["statement"] for rule in extract_rules(text)]
     assert "A runner MAY run each recipe in a sandbox" in statements
+
+
+def test_every_form_of_source_token_is_allowed():
+    """An RFC number with or without its section, `tidy-up`, `main`, `#n` and `§n`, plain and separated by `, `."""
+    sources = "0005 §1, 0005 §3, 0004, tidy-up, main, #73, §4"
+    text = VALID.replace("| §4, 0003 |", f"| {sources} |")
+    (rule,) = [rule for rule in extract_rules(text) if rule["code"] == "BAD_ID"]
+    assert rule["source"] == sources
 
 
 QUOTED = {

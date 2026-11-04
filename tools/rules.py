@@ -9,8 +9,10 @@
   repeated column; a row that doesn't write one cell per column (counted on its source line, blockquote markers
   aside); an empty cell; a Code cell that isn't one code span holding a code, or a code already used; an unknown layer
   or level, or a ``MAY`` row outside the runner table; a rule whose RFC 2119 keyword contradicts its level, in its
-  text, in a code span or as the cell reads once rendered; a cell holding anything but text, code spans, emphasis,
-  links and inline HTML; or a cell whose Markdown can't be rebuilt from its tokens, is an error.
+  text, in a code span or as the cell reads once rendered; a Source cell that isn't plain text, or holds a token other
+  than an RFC number with an optional ``§n``, ``tidy-up``, ``main``, ``#n`` or ``§n``, the tokens separated by ``, ``;
+  a cell holding anything but text, code spans, emphasis, links and inline HTML; or a cell whose Markdown can't be
+  rebuilt from its tokens, is an error. Cells are read as CommonMark with GFM tables, as §9 says.
 - ``errors``: for each keyword of the generated JSON Schemas that can report an error, its absolute keyword location
   (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it enforces. The code
   comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type or slot that
@@ -56,6 +58,12 @@ LEVELS = {"MUST", "SHOULD", "MAY"}
 
 MAY_TABLE = "runner"
 """The one subsection whose rule table may have `MAY` rows: its rules are about a tool's own actions."""
+
+SOURCE_WORDS = {"tidy-up", "main"}
+"""The Source tokens that are words: the draft RFC *Settling the schema for v0.1*, and the specification before 0.1."""
+
+SOURCE_SEPARATOR = ", "
+"""What separates the tokens of a Source cell."""
 
 KEYWORDS = {
     "MUST": "MUST",
@@ -200,6 +208,45 @@ def _code(inline: Token, row: _Row) -> str:
             "the Code cell must be one code span holding a code, such as `INVALID_ID`"
         )
     return code
+
+
+def _number(text: str) -> bool:
+    """Whether `text` is one or more ASCII digits."""
+    return text != "" and text.isascii() and text.isdigit()
+
+
+def _section(text: str) -> bool:
+    """Whether `text` is a section, `§n`."""
+    return text[:1] == "§" and _number(text[1:])
+
+
+def _source_token(token: str) -> bool:
+    """Whether `token` is a Source token: an RFC number with an optional section (`0005`, `0005 §1`), `tidy-up`,
+    `main`, a pull request or issue of the specification's repository (`#73`), or a section of the specification
+    (`§4`)."""
+    if token in SOURCE_WORDS or _section(token):
+        return True
+    if token[:1] == "#":
+        return _number(token[1:])
+    rfc, space, section = token.partition(" ")
+    return len(rfc) == 4 and _number(rfc) and (not space or _section(section))
+
+
+def _source(inline: Token, row: _Row) -> None:
+    """Check a Source cell: plain text, its tokens separated by `, `, each a Source token."""
+    children = inline.children or []
+    for t in children:
+        if t.type != "text":
+            raise row.error(
+                f"its Source cell holds a {t.type}, but it must be plain text, never a code span"
+            )
+    text = "".join(t.content for t in children)
+    for token in text.split(SOURCE_SEPARATOR):
+        if not _source_token(token):
+            raise row.error(
+                f"its Source cell has {token!r}, which is not an RFC number with an optional §n, tidy-up, main,"
+                f" #n or §n, separated by {SOURCE_SEPARATOR!r}"
+            )
 
 
 def _keywords(text: str) -> list[str]:
@@ -380,6 +427,7 @@ def extract_rules(markdown: str) -> list[dict]:
                     raise row.error(
                         f"its rule says {keyword}, which contradicts its level, {level}"
                     )
+            _source(cell["Source"], row)
             if code in seen:
                 raise row.error(
                     f"the code {code} is already the code of the row at line {seen[code]}"

@@ -272,21 +272,21 @@
       "code": "INVALID_SYNTAX",
       "layer": "parse",
       "level": "MUST",
-      "source": "§3, 0005",
+      "source": "0005, tidy-up, §3",
       "statement": "Every `astra.yaml` is well-formed YAML 1.2 under the core schema (with no `%YAML` directive other than 1.2), and every record is well-formed JSON"
     },
     {
       "code": "DUPLICATE_KEY",
       "layer": "parse",
       "level": "MUST",
-      "source": "0003, 0004, §3, §4",
+      "source": "0003, 0004, tidy-up, §3, §4",
       "statement": "Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.)"
     },
     {
       "code": "INVALID_ID",
       "layer": "schema",
       "level": "MUST",
-      "source": "§4",
+      "source": "tidy-up, main, §4",
       "statement": "Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar"
     },
     {
@@ -300,21 +300,21 @@
       "code": "MISSING_FIELD",
       "layer": "schema",
       "level": "MUST",
-      "source": "0004, 0005, 0006, tidy-up",
+      "source": "0004, 0005, 0006, tidy-up, main",
       "statement": "Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size`"
     },
     {
       "code": "UNKNOWN_FIELD",
       "layer": "schema",
       "level": "MUST",
-      "source": "§10",
+      "source": "tidy-up, §10",
       "statement": "Every field is one the schema defines"
     },
     {
       "code": "EMPTY_COLLECTION",
       "layer": "schema",
       "level": "MUST",
-      "source": "0004, `main`",
+      "source": "0004, main",
       "statement": "`outputs`, `Decision.options` and `Insight.evidence` each have at least one entry"
     },
     {
@@ -335,14 +335,14 @@
       "code": "INVALID_COMMIT",
       "layer": "schema",
       "level": "MUST",
-      "source": "0007",
+      "source": "0007, tidy-up",
       "statement": "Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits"
     },
     {
       "code": "INVALID_PATH",
       "layer": "schema",
       "level": "MUST",
-      "source": "0004, 0006",
+      "source": "0004, 0006, tidy-up",
       "statement": "A declaration's `path` is relative (no leading `/` or `~`), `/`-separated, with no backslash and no ASCII control character. An input's `path` is the same, and also has no `..` segment and doesn't end in `/`"
     },
     {
@@ -363,21 +363,21 @@
       "code": "WRONG_TYPE",
       "layer": "schema",
       "level": "MUST",
-      "source": "§4, §10",
+      "source": "tidy-up, §4, §10",
       "statement": "Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails)"
     },
     {
       "code": "DUPLICATE_ENTRY",
       "layer": "schema",
       "level": "MUST",
-      "source": "§4",
+      "source": "tidy-up, §4",
       "statement": "No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`)"
     },
     {
       "code": "INVALID_VALUE",
       "layer": "schema",
       "level": "MUST",
-      "source": "0005, 0007, #73",
+      "source": "0005, 0007, tidy-up, main, #73",
       "statement": "Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1"
     },
     {
@@ -398,14 +398,14 @@
       "code": "UNKNOWN_OPTION",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003",
+      "source": "0003, 0004",
       "statement": "Every option named by a condition, option reference or selection is one of its decision's options"
     },
     {
       "code": "INVALID_INSIGHT_REF",
       "layer": "validator",
       "level": "MUST",
-      "source": "`main`",
+      "source": "main",
       "statement": "Every entry of `Option.insights` names a prior insight of the analysis"
     },
     {
@@ -419,7 +419,7 @@
       "code": "AMBIGUOUS_ID",
       "layer": "validator",
       "level": "MUST",
-      "source": "§4",
+      "source": "tidy-up, §4",
       "statement": "No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes)"
     },
     {
@@ -531,7 +531,7 @@
       "code": "EXCLUDED_OPTION_SELECTED",
       "layer": "validator",
       "level": "MUST",
-      "source": "`main`, tidy-up",
+      "source": "main, tidy-up",
       "statement": "No effective selection selects an excluded option"
     },
     {
@@ -637,7 +637,7 @@
       "code": "INVALID_RECORD",
       "layer": "check",
       "level": "MUST",
-      "source": "0005 §2, §8",
+      "source": "0005 §2, tidy-up, §8",
       "statement": "The record at each planned result's place is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's",
       "status": "`missing`"
     },

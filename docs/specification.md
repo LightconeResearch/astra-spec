@@ -1110,8 +1110,9 @@ is broken is always in a column of its own.** This is true in every layer:
   and `MAY` only in the runner table.
 - **Code:** names what is wrong when the rule is broken. It is what a tool
   reports.
-- **Source:** the RFC section, or the section of this specification that
-  explains the rule.
+- **Source:** every source of the rule, as plain comma-separated tokens:
+  the RFCs it comes from, and the section of this specification that
+  explains it.
 
 In the Source column, a number is an ASTRA RFC:
 [0003](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0003-cross-universe-artifact-references.md),
@@ -1121,10 +1122,12 @@ In the Source column, a number is an ASTRA RFC:
 [0007](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0007-analyses-in-other-repositories.md),
 followed by its section where one is given, as in `0005 §1`; two sections
 of one RFC are written with its number each time, as in `0005 §1, 0005 §3`.
-`tidy-up` is the draft schema tidy-up RFC, `main` a rule of the
-specification before version 0.1, `#73` an issue of the specification's
-repository, and a bare `§n`, with no RFC number before it, a section of this
-specification.
+`tidy-up` is the draft RFC *Settling the schema for v0.1*, `main` a rule of
+the specification before version 0.1,
+[`#73`](https://github.com/LightconeResearch/astra-spec/pull/73) a pull
+request of the specification's repository, and a bare `§n`, with no RFC
+number before it, a section of this specification. In a cell, the tokens are
+plain text, never code spans.
 
 What breaking a rule leads to depends on the layer:
 
@@ -1162,8 +1165,12 @@ text to read:
   `parse` or `schema`, and its Level `MUST`, `SHOULD` or, in the runner table
   only, `MAY`. Its Rule uses no RFC 2119 keyword in capitals of another
   level, in its text, in a code span, or as the Rule cell reads once rendered
-  (`MU*ST*` reads as `MUST`).
-- **Cells** hold only text, code spans, emphasis, links and inline HTML.
+  (`MU*ST*` reads as `MUST`). Its Source is plain text: tokens separated by a
+  comma and a space, each an RFC number with an optional `§n`, `tidy-up`,
+  `main`, `#n` or `§n`.
+- **Cells** are inline Markdown, as CommonMark with GFM tables reads them,
+  and the published page shows each cell as the same text. They hold only
+  text, code spans, emphasis, links and inline HTML.
   `rules.json` records a cell as Markdown rebuilt from what it parses to,
   with each link reduced to its text, so the rebuilt Markdown must parse the
   same way: an escape whose loss would change the cell, such as `\*` before
@@ -1176,22 +1183,22 @@ A table that breaks any of this is an error in this specification, and no
 
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is well-formed YAML 1.2 under the core schema (with no `%YAML` directive other than 1.2), and every record is well-formed JSON | §3, 0005 |
-| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, §3, §4 |
-| `INVALID_ID` | schema | MUST | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | §4 |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is well-formed YAML 1.2 under the core schema (with no `%YAML` directive other than 1.2), and every record is well-formed JSON | 0005, tidy-up, §3 |
+| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, tidy-up, §3, §4 |
+| `INVALID_ID` | schema | MUST | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | tidy-up, main, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
-| `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up |
-| `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | §10 |
-| `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry | 0004, `main` |
+| `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main |
+| `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | tidy-up, §10 |
+| `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry | 0004, main |
 | `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |
 | `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` | 0007 |
-| `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007 |
-| `INVALID_PATH` | schema | MUST | A declaration's `path` is relative (no leading `/` or `~`), `/`-separated, with no backslash and no ASCII control character. An input's `path` is the same, and also has no `..` segment and doesn't end in `/` | 0004, 0006 |
+| `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007, tidy-up |
+| `INVALID_PATH` | schema | MUST | A declaration's `path` is relative (no leading `/` or `~`), `/`-separated, with no backslash and no ASCII control character. An input's `path` is the same, and also has no `..` segment and doesn't end in `/` | 0004, 0006, tidy-up |
 | `BLANK_EXCLUDED` | schema | MUST | An option's `excluded` reason is not blank | tidy-up |
 | `INVALID_EVIDENCE_SOURCE` | schema | MUST | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
-| `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails) | §4, §10 |
-| `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | §4 |
-| `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, #73 |
+| `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails) | tidy-up, §4, §10 |
+| `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | tidy-up, §4 |
+| `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, tidy-up, main, #73 |
 
 ### validator
 
@@ -1199,10 +1206,10 @@ A table that breaks any of this is an error in this specification, and no
 |---|---|---|---|
 | `UNSUPPORTED_SPEC_VERSION` | MUST | Every `astra.yaml` in the stack has a `spec_version` the validator has the schema for (the file is then validated against that schema, by the schema layer) | 0007 §6 |
 | `UNRESOLVED_ADDRESS` | MUST | Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact` | 0004 |
-| `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003 |
-| `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | `main` |
+| `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003, 0004 |
+| `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | main |
 | `UNDECLARED_TEMPLATE_REF` | MUST | Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
-| `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | §4 |
+| `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | tidy-up, §4 |
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the repository of the root | 0004 |
 | `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` | 0004, 0007 |
 | `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit` names a commit the repository has | 0007 |
@@ -1218,7 +1225,7 @@ A table that breaks any of this is an error in this specification, and no
 | `INACTIVE_DECISION` | MUST | A universe itself sets only decisions whose `when` holds in its effective selection | 0003 |
 | `MISSING_REQUIRED_OPTION` | MUST | Every effective selection satisfies the `requires` of every option it selects | 0003 |
 | `INCOMPATIBLE_OPTIONS` | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects | 0003 |
-| `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | `main`, tidy-up |
+| `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | main, tidy-up |
 | `PARTIALLY_DRIVEN` | MUST | Every declaration is driven by all of the driver's universes or by none | 0004 |
 | `CONFLICTING_SELECTIONS` | MUST | Every spelling of one decision in a universe selects the same option | 0004 |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built | 0004 |
@@ -1236,9 +1243,9 @@ A table that breaks any of this is an error in this specification, and no
 ### check
 
 Read this table like the others: **the Rule column says what must hold**.
-The extra column, **Status when broken**, is what the result gets when the
-rule doesn't hold. A result for which every rule holds is `unchanged` and
-`present`.
+The extra column, **Status when broken**, is the status a result, or evidence
+citing it, gets when the rule doesn't hold. A result for which every rule
+holds is `unchanged` and `present`.
 
 **Statuses.** A checker gives every planned result two statuses, one for its
 record (`unchanged`, `stale` or `missing`) and one for its bytes (`present`
@@ -1257,7 +1264,7 @@ or `absent`). Evidence citing a result gets that result's first status.
 | Code | Level | Rule | Status when broken | Source |
 |---|---|---|---|---|
 | `MISSING_RECORD` | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once) in the analysis it belongs to | `missing` | 0005 §1 |
-| `INVALID_RECORD` | MUST | The record at each planned result's place is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, §8 |
+| `INVALID_RECORD` | MUST | The record at each planned result's place is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, tidy-up, §8 |
 | `MISPLACED_RECORD` | MUST | The record at each planned result's place names that result in its `address` | `missing` | 0005 §1 |
 | `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
 | `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
@@ -1331,10 +1338,11 @@ for the same error and words each rule the same way. It holds:
 
 - `rules`: one entry per rule of §9, in §9's order. Each has its `code`;
   its `layer` (`parse`, `schema`, `validator`, `check` or `runner`); its
-  `level` (`MUST`, `SHOULD` or `MAY`); its `statement`, the Rule cell as
-  inline Markdown with each link reduced to its text; its `source`; and, for
-  a rule of the check layer, its `status`, the status a result gets when it
-  is broken.
+  `level` (`MUST`, `SHOULD` or `MAY`); and its `statement`, its `source`
+  and, for a rule of the check layer, its `status`: the Rule, Source and
+  Status when broken cells, as inline CommonMark with each link reduced to
+  its text. A `status` is display text naming the status a result, or
+  evidence citing it, gets when the rule is broken, not a status token.
 - `errors`: the code of every keyword of the three JSON Schemas that can
   report an error, keyed by the keyword's absolute keyword location, as JSON
   Schema 2019-09 defines it: the schema's `$id`, `#`, and the JSON Pointer to
@@ -1367,7 +1375,7 @@ a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
       "code": "INVALID_COMMIT",
       "layer": "schema",
       "level": "MUST",
-      "source": "0007",
+      "source": "0007, tidy-up",
       "statement": "Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits"
     },
     {
