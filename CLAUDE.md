@@ -55,14 +55,23 @@ The package ships only artefacts: the LinkML sources and `generated/`, as the na
 
 `just test` runs the drift check (`check-generated`), pytest and `linkml-lint`; `just check-ajv` (in CI, and wherever node is installed) compiles the three JSON Schemas with the pinned Ajv under `strict: true`. Everything is validated as a consumer would: a plain `jsonschema` Draft 2019-09 validator against the committed generated schemas, with YAML loaded as YAML 1.2 under the core schema only, by ruamel.yaml's safe loader restricted in `tests/conftest.py` (no timestamps or merge keys, no tags beyond the core schema's, no `%YAML` but 1.2; never PyYAML, never LinkML's validators or Python models).
 
-Fixtures are whole documents in `tests/data/valid/` and `tests/data/invalid/`, named `<Root>-<nnn>-<what>.yaml` with `<Root>` `Analysis` or `ProvenanceRecord`. Each invalid fixture is a minimal valid document with one thing broken, and starts with exactly two comment lines:
+Fixtures are whole documents in `tests/data/valid/` and `tests/data/invalid/`, named `<Root>-<nnn>-<what>.yaml` with `<Root>` `Analysis` or `ProvenanceRecord` (it picks the schema) and `<nnn>` numbering from `001` for valid fixtures, from `101` for invalid `Analysis` fixtures and from `201` for invalid `ProvenanceRecord` fixtures. Each invalid fixture is a minimal valid document with one thing broken, and starts with two comment lines (and a third, `# also:`, where its one break brings a second error; see below):
 
 ```yaml
 # rule: <CODE>          a code from the specification's rule catalogue (§9)
 # fails at: <location>  a JSON Pointer, `(root)` for the document, or `parse`
 ```
 
-The test asserts that the fixture fails for the right reason: the validator reports errors at that location and nowhere else (a `oneOf`/`anyOf` error at an ancestor aside), and `rules.json` gives those errors the fixture's rule, through each error's absolute keyword location (`absolute_keyword_location` in `tests/conftest.py`: the JSON Pointer of `error.schema`, found in the schema by identity, then `/` and `error.validator`, since `jsonschema`'s `schema_path` runs through `$ref`s; spec §10 gives the same method for Ajv); a `parse` fixture raises its code's loader error (`PARSE_ERRORS`). Every parse- and schema-layer code in the catalogue has at least one invalid fixture. Fixtures that fail at parse (a duplicate key, malformed YAML, a `%YAML` directive other than 1.2) are kept out of the repository's YAML linters, through lists kept by hand: add each new one to `check-yaml`'s `exclude` in `.pre-commit-config.yaml` and to `ignore` in `.yamllint.yaml`. Every `astra.yaml` under `examples/`, and every whole document among the specification's examples, must also validate.
+The test (`check_invalid_fixture` in `tests/test_fixtures.py`) asserts that the fixture fails for the right reason: the validator reports errors at that location and nowhere else, and `rules.json` gives those errors the fixture's rule, through each error's absolute keyword location (`absolute_keyword_location` in `tests/conftest.py`: the JSON Pointer of `error.schema`, found in the schema by identity, then `/` and `error.validator`, since `jsonschema`'s `schema_path` runs through `$ref`s; spec §10 gives the same method for Ajv). A `parse` fixture's loader error must give exactly its code (`parse_code`: `DUPLICATE_KEY` for a repeated key, `INVALID_SYNTAX` for any other loader error). Where the one break also brings an error somewhere else, the fixture declares it in a third comment line, `# also: <CODE> at <pointer>`: the errors at that pointer must then be reported, and `rules.json` must give them that schema-layer code; no other second error is allowed, and a `parse` fixture has no `# also:` line. `jsonschema` reports each kind of error here:
+
+| What fails | Location |
+|---|---|
+| missing field, unknown field, `exactly_one_of`, class rule | the object |
+| bad map key, empty map | the map |
+| empty list, repeated entry | the list |
+| wrong value or wrong type | the value |
+
+Every parse- and schema-layer code in the catalogue has at least one invalid fixture. Fixtures that fail at parse (a duplicate key, malformed YAML, a `%YAML` directive other than 1.2) are kept out of the repository's YAML linters, through lists kept by hand: add each new one to `check-yaml`'s `exclude` in `.pre-commit-config.yaml` and to `ignore` in `.yamllint.yaml`. Every `astra.yaml` under `examples/`, and every whole document among the specification's examples, must also validate.
 
 ## Documentation versioning (mike)
 

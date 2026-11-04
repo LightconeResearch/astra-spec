@@ -21,17 +21,17 @@ DATA = REPO_ROOT / "tests" / "data"
 _SCHEMA_NAMES = {"Analysis": "analysis", "ProvenanceRecord": "provenance"}
 """Each fixture root, with the name of its generated schema."""
 
-_RULE_LINE = re.compile(r"# rule: ([A-Z][A-Z_]*)")
+_RULE_LINE = re.compile(r"# rule: ([A-Z][A-Z0-9_]*)")
 _FAILS_AT_LINE = re.compile(r"# fails at: (\(root\)|parse|(/[^/]*)+)")
+_ALSO_LINE = re.compile(r"# also: ([A-Z][A-Z0-9_]*) at (\(root\)|(/[^/]*)+)")
 
-PARSE_ERRORS: dict[str, type[Exception]] = {
-    "INVALID_SYNTAX": YAMLError,
-    "DUPLICATE_KEY": DuplicateKeyError,
-}
-"""Each parse-layer code, with the loader error a fixture breaking it raises (any loader error, for `INVALID_SYNTAX`)."""
+PARSE_CODES = {"INVALID_SYNTAX", "DUPLICATE_KEY"}
+"""The parse-layer codes `parse_code` gives."""
 
-COMBINATORS = {"oneOf", "anyOf"}
-"""Keywords whose error at an ancestor of the place a fixture fails at is allowed: they report what fails inside them."""
+
+def parse_code(error: YAMLError) -> str:
+    """The parse-layer code of a loader error: `DUPLICATE_KEY` for a repeated key, `INVALID_SYNTAX` for any other."""
+    return "DUPLICATE_KEY" if isinstance(error, DuplicateKeyError) else "INVALID_SYNTAX"
 
 
 _TAG = "tag:yaml.org,2002:"
@@ -235,23 +235,29 @@ def error_pointers(v: Draft201909Validator, doc: Any) -> set[str]:
     return {pointer for pointer, _, _ in errors(v, doc)}
 
 
-def is_ancestor(pointer: str, of: str) -> bool:
-    """Whether the JSON Pointer `pointer` names a strict ancestor of `of` (`(root)` is everything's)."""
-    if pointer == "(root)":
-        return of != "(root)"
-    return of.startswith(pointer + "/")
+def fixture_header(path: Path) -> tuple[str, str, tuple[str, str] | None]:
+    """`(rule, fails_at, also)` from an invalid fixture's header.
 
-
-def fixture_header(path: Path) -> tuple[str, str]:
-    """`(rule, fails_at)` from an invalid fixture's first two lines."""
-    lines = path.read_text(encoding="utf-8").splitlines()[:2]
+    The header is two comment lines, `# rule: <CODE>` and `# fails at: <location>`, then optionally a third,
+    `# also: <CODE> at <pointer>`: a second error the fixture's one break brings. `also` is that line's
+    `(code, pointer)`, or None. A third line that is a comment must be an `# also:` line.
+    """
+    lines = path.read_text(encoding="utf-8").splitlines()[:3]
     rule = _RULE_LINE.fullmatch(lines[0]) if lines else None
     fails_at = _FAILS_AT_LINE.fullmatch(lines[1]) if len(lines) > 1 else None
     if rule is None or fails_at is None:
         raise ValueError(
             f"{path.name}: lines 1-2 must be '# rule: <CODE>' and '# fails at: <location>'"
         )
-    return rule[1], fails_at[1]
+    also = None
+    if len(lines) > 2 and lines[2].startswith("#"):
+        match = _ALSO_LINE.fullmatch(lines[2])
+        if match is None:
+            raise ValueError(
+                f"{path.name}: a third comment line must be '# also: <CODE> at <pointer>'"
+            )
+        also = (match[1], match[2])
+    return rule[1], fails_at[1], also
 
 
 def fixtures(kind: str) -> list[Path]:

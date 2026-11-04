@@ -14,7 +14,7 @@ import pytest
 from rules import extract_rules
 
 from .conftest import (
-    PARSE_ERRORS,
+    PARSE_CODES,
     REPO_ROOT,
     fixture_header,
     fixtures,
@@ -62,9 +62,9 @@ def test_every_fixture_rule_is_in_the_catalogue():
 
 
 def test_harness_checks_every_parse_and_schema_code():
-    """Each parse code has its loader error, and each schema code a place in the schema that enforces it (R24, D13)."""
+    """Each parse code is one `parse_code` gives, and each schema code has a place in the schema that enforces it (R24, D13)."""
     enforced = set(rules_catalogue()["errors"].values())
-    assert (sorted(PARSE_ERRORS), sorted(enforced)) == (
+    assert (sorted(PARSE_CODES), sorted(enforced)) == (
         sorted(codes("parse")),
         sorted(codes("schema")),
     )
