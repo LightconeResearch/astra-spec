@@ -81,6 +81,28 @@ TABLE = {
             "2026-01-01T00:00:60.000Z",
         ],
     ),
+    "iri": (
+        [
+            "http://tools.ietf.org/rfc/rfc7111",
+            "urn:example-runner:env:sha256:5d1338d7",
+            "prov:env:1",
+            "https://example.org/caf%C3%A9#r%20s",
+            "https://example.org/café",
+        ],
+        [
+            "rfc7111",
+            "RFC 7111",
+            "1http://example.org",
+            "x:",
+            "urn:x<y>",
+            "urn:a b",
+            "urn:x#a#b",
+            "urn:x%zz",
+            "urn:a" + chr(0x202E) + "b",
+            "urn:a" + chr(0x85) + "b",
+            "http://tools.ietf.org/rfc/rfc7111\n",
+        ],
+    ),
 }
 
 CASES = [

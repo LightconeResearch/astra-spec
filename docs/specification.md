@@ -249,6 +249,7 @@ is `iris.random_seed.seed_42`.
 | [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits | `ProvenanceRecord.content_hash`, `RecordedInput.content_hash` |
 | [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros | `Analysis.spec_version`, `ProvenanceRecord.spec_version` |
 | [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, each field in its range; whether the day exists in its month, such as 30 February, isn't checked | `Generation.started`, `Generation.finished` |
+| [`iri`](elements/Iri.md) | an IRI ([RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)), never a CURIE: a scheme, `:`, then RFC 3987's characters, `%` only before two hex digits and at most one `#`; its structure (authority, port, IP literal) isn't checked | `Environment.iri`, `FragmentSelector.conforms_to` |
 
 A value that doesn't take its type's form fails: a map key or an `id` as
 [`INVALID_ID`](#parse-and-schema), any other address, reference, option
@@ -279,19 +280,21 @@ Above U+007F a class leaves out only what it names, so these fields take
 characters that aren't visible:
 
 - `Option.excluded` and `AnalysisDeclaration.url` take `[^\x00-\x20\x7f]`,
-  which admits every character above U+007F: non-ASCII spaces (U+00A0,
-  U+3000), format characters (U+200B, U+FEFF, U+202E), U+2028, U+2029 and the
-  C1 controls.
+  and `FragmentSelector.value` takes it less ``"#<>[\]^`{|}`` and `%` (which
+  it takes only to start a percent-encoding). Each admits every character
+  above U+007F: non-ASCII spaces (U+00A0, U+3000), format characters (U+200B,
+  U+FEFF, U+202E), U+2028, U+2029 and the C1 controls.
 - The suffix of an `Evidence.doi` takes `[^\x00-\x20\x7f-\x9f]` at either end
   and `[^\x00-\x1f\x7f-\x9f]` inside, which admit every character above
   U+009F: non-ASCII spaces anywhere, which a DOI may hold, and the characters
   that aren't graphic, which ISO 26324 leaves out of a DOI and no rule
   checks: format characters, U+2028, U+2029, private-use characters and
   noncharacters.
-- `Environment.iri` takes `[^\x00-\x20\x7f-\x9f]` less `<>"{}|\^`, the
-  backtick, `%` and `#` (which it takes only to start a percent-encoding and a
-  fragment) and the bidi formatting characters RFC 3987 §4.1 forbids (U+200E,
-  U+200F, U+202A–U+202E). Above U+009F it admits non-ASCII spaces, the other
+- An `iri` (`Environment.iri`, `FragmentSelector.conforms_to`) takes
+  `[^\x00-\x20\x7f-\x9f]` less `<>"{}|\^`, the backtick, `%` and `#`
+  (which it takes only to start a percent-encoding and a fragment) and the
+  bidi formatting characters RFC 3987 §4.1 forbids (U+200E, U+200F,
+  U+202A–U+202E). Above U+009F it admits non-ASCII spaces, the other
   format characters (U+200B, U+FEFF), U+2028 and U+2029, which RFC 3987
   allows, and characters it doesn't, such as noncharacters, and private-use
   characters outside a query.
@@ -562,10 +565,44 @@ claim rests on with W3C Web Annotation selectors: `quote`, a
 [TextQuoteSelector](elements/TextQuoteSelector.md)
 (`oa:TextQuoteSelector`), whose `exact` is the passage as the work or output
 writes it, with the `prefix` and `suffix` around it; and `location`, a
-[FragmentSelector](elements/FragmentSelector.md) (`oa:FragmentSelector`),
-whose `value` is a PDF fragment identifier
-([RFC 8118 §3](https://www.rfc-editor.org/rfc/rfc8118#section-3), which
-defers to ISO 32000-2) without the `#`, such as `page=6`; pages count from 1.
+[FragmentSelector](elements/FragmentSelector.md) (`oa:FragmentSelector`), the
+place in the work or output the claim rests on. For a `doi`, the cited
+resource is the work's full text. With both a `quote` and a `location`, the
+quote is sought within the location: the FragmentSelector is `oa:refinedBy`
+the TextQuoteSelector (§10).
+
+A location's `value` is a fragment identifier of the cited work or output,
+without the `#`. An optional `conforms_to` is the IRI of the specification
+of the fragment syntax `value` follows, as
+[Web Annotation §4.2.1](https://www.w3.org/TR/annotation-model/#fragment-selector)
+gives it:
+
+| Syntax | `conforms_to` | `value`, for example |
+|---|---|---|
+| CSV ([RFC 7111](https://www.rfc-editor.org/rfc/rfc7111)) | `http://tools.ietf.org/rfc/rfc7111` | `row=5-7` |
+| Plain text ([RFC 5147](https://www.rfc-editor.org/rfc/rfc5147)) | `http://tools.ietf.org/rfc/rfc5147` | `char=0,10` |
+| Image, audio or video ([Media Fragments](https://www.w3.org/TR/media-frags/)) | `http://www.w3.org/TR/media-frags/` | `xywh=50,50,640,480`, `t=10,20` |
+| HTML ([RFC 3236](https://www.rfc-editor.org/rfc/rfc3236)) | `http://tools.ietf.org/rfc/rfc3236` | `results` |
+| EPUB ([EPUB CFI](https://idpf.org/epub/linking/cfi/epub-cfi.html)) | `http://www.idpf.org/epub/linking/cfi/epub-cfi.html` | `epubcfi(/6/4!/4/10/2/1:1)` |
+
+Without `conforms_to`, `value` is a PDF fragment identifier as
+[RFC 8118 §3](https://www.rfc-editor.org/rfc/rfc8118#section-3) gives it
+(it defers to ISO 32000-2), such as `page=6`, with pages counted from 1; it
+can point at more than a page. Web Annotation names that syntax
+`http://tools.ietf.org/rfc/rfc3778`, after the RFC that RFC 8118 obsoletes.
+Writing that IRI means the same as writing none, and `value` is then read by
+RFC 8118. PDF parameters are joined with `&`, never with `#` as RFC 3778
+allowed, and a space or `"` in a value, as in `search=`, is percent-encoded:
+`page=6&search=%22label%20noise%22`.
+
+`value` is read by the syntax `conforms_to` names. A tool that knows that
+syntax may parse it; one that doesn't shows it as written. Whether `value`
+follows the syntax, and whether the syntax fits the cited work or output,
+isn't checked. The schema checks only its characters: `value` is non-empty
+and holds no ASCII space or control character, none of ``"#<>[\]^`{|}``, and
+`%` only before two hex digits; any other character is allowed
+([`INVALID_VALUE`](#parse-and-schema)). `conforms_to` is an
+[`iri`](elements/Iri.md) (§4, [`INVALID_VALUE`](#parse-and-schema)).
 
 Evidence isn't built in a universe. Citing an output built per universe, it
 may pin it, and should ([`UNPINNED_EVIDENCE`](#validator)): the claim is then
@@ -1231,7 +1268,7 @@ A table that breaks any of this is an error in this specification, and no
 | `INVALID_EVIDENCE_SOURCE` | schema | MUST | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
 | `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails) | tidy-up, §4, §10 |
 | `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | tidy-up, §4 |
-| `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, tidy-up, main, #73 |
+| `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, tidy-up, main, #73 |
 
 ### validator
 
@@ -1505,7 +1542,12 @@ in its month (§4), so a time such as 30 February converts to an ill-typed
 `xsd:dateTime`. No RDF reading of `astra.yaml` is published yet. In the
 schema, the evidence selectors are W3C Web Annotation's
 `oa:TextQuoteSelector` (with `oa:exact`, `oa:prefix` and `oa:suffix`) and
-`oa:FragmentSelector` (with `rdf:value`).
+`oa:FragmentSelector` (with `rdf:value` and `dcterms:conformsTo`). A
+location's `conforms_to` is its `dcterms:conformsTo`, whose object is the IRI
+it names, and a location without one reads as one with
+`http://tools.ietf.org/rfc/rfc3778`. With both a `quote` and a `location`,
+the location is the `oa:FragmentSelector` that is `oa:refinedBy` the quote's
+`oa:TextQuoteSelector`.
 
 **The package.** The `astra-spec` Python package holds the LinkML sources and
 these artefacts, as the namespace package `astra.schema`, read through

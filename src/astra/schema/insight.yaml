@@ -13,6 +13,7 @@ license: https://creativecommons.org/licenses/by/4.0/
 prefixes:
   astra: https://w3id.org/astra/
   linkml: https://w3id.org/linkml/
+  dcterms: http://purl.org/dc/terms/
   oa: http://www.w3.org/ns/oa#
   rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
 
@@ -47,16 +48,30 @@ classes:
 
   FragmentSelector:
     description: >-
-      A place in a PDF, given as a PDF fragment identifier (RFC 8118 §3), such
-      as `page=6`.
+      A place in the cited work or output, given as a fragment identifier in
+      the syntax `conforms_to` names, such as `row=5-7` in a CSV (RFC 7111).
+      Without `conforms_to`, it is a PDF fragment identifier (RFC 8118 §3),
+      such as `page=6`, with pages counted from 1.
     class_uri: oa:FragmentSelector
     attributes:
       value:
         required: true
         slot_uri: rdf:value
+        pattern: '^([^\x00-\x20\x7f"#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$(?!\n)'
+        annotations:
+          rule: INVALID_VALUE
         description: >-
-          The PDF fragment identifier (RFC 8118 §3), without the leading `#`,
-          such as `page=6`. Pages count from 1, so `page=6` is the sixth page.
+          The fragment identifier, without the leading `#`, such as `page=6`.
+          It is non-empty and holds no ASCII space or control character, none
+          of ``"#<>[\]^`{|}``, and `%` only before two hex digits.
+      conforms_to:
+        slot_uri: dcterms:conformsTo
+        range: iri
+        description: >-
+          The IRI of the specification of the fragment syntax `value` follows,
+          as W3C Web Annotation gives it, such as
+          `http://tools.ietf.org/rfc/rfc7111` for a CSV. Without it, `value` is
+          a PDF fragment identifier (RFC 8118).
 
   # --- Insights and evidence ---
 
@@ -90,7 +105,9 @@ classes:
       quote:
         range: TextQuoteSelector
         inlined: true
-        description: The passage of the cited work or output the claim rests on.
+        description: >-
+          The passage of the cited work or output the claim rests on. With a
+          `location`, the passage is sought within that place.
       location:
         range: FragmentSelector
         inlined: true

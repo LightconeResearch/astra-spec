@@ -49,3 +49,6 @@ classes:
       timestamp:
         description: A timestamp.
         range: timestamp
+      iri:
+        description: An IRI.
+        range: iri

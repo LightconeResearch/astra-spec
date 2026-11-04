@@ -47,6 +47,9 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Evidence/properties/version/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Evidence/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/FragmentSelector/additionalProperties": "UNKNOWN_FIELD",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/FragmentSelector/properties/conforms_to/pattern": "INVALID_VALUE",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/FragmentSelector/properties/conforms_to/type": "WRONG_TYPE",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/FragmentSelector/properties/value/pattern": "INVALID_VALUE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/FragmentSelector/properties/value/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/FragmentSelector/required": "MISSING_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/FragmentSelector/type": "WRONG_TYPE",
@@ -378,7 +381,7 @@
       "layer": "schema",
       "level": "MUST",
       "source": "0005, 0007, tidy-up, main, #73",
-      "statement": "Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1"
+      "statement": "Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1"
     },
     {
       "code": "UNSUPPORTED_SPEC_VERSION",
