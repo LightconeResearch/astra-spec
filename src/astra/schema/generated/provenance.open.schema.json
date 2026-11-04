@@ -71,7 +71,7 @@
         },
         "entry": {
           "description": "The entry exactly as the output's `inputs` lists it in the `astra.yaml`, such as `root.data`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
           "type": "string"
         },
         "size": {
@@ -116,7 +116,7 @@
   "properties": {
     "address": {
       "description": "The result as the analysis it belongs to addresses it: the output's id, after the ids of the declared analyses that lead to it, then `#` and the universe's id when the result is built in a universe, such as `subanalysis1.output1#u1`.",
-      "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
       "type": "string"
     },
     "content_hash": {

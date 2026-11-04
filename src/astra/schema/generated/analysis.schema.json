@@ -73,7 +73,7 @@
           "description": "The options the decision chooses between, keyed by id. There is at least one.",
           "minProperties": 1,
           "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
             "type": "string"
           },
           "type": "object"
@@ -93,7 +93,7 @@
         "when": {
           "description": "The conditions under which the decision is active. It is active only when every condition holds.",
           "items": {
-            "pattern": "^(?:^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
+            "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
             "type": "string"
           },
           "type": "array",
@@ -140,7 +140,7 @@
       "properties": {
         "artifact": {
           "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, and should when the output is built per universe: to the universe the claim is about, such as `f1_score#svm_standard`.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
           "type": "string"
         },
         "doi": {
@@ -282,7 +282,7 @@
         "incompatible_with": {
           "description": "The options that are never selected together with this option.",
           "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
             "type": "string"
           },
           "type": "array",
@@ -291,7 +291,7 @@
         "insights": {
           "description": "The ids of the prior insights that support the option.",
           "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
             "type": "string"
           },
           "type": "array",
@@ -304,7 +304,7 @@
         "requires": {
           "description": "The options that are also selected whenever this option is.",
           "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
             "type": "string"
           },
           "type": "array",
@@ -341,7 +341,7 @@
         "decisions": {
           "description": "The addresses of the decisions the output depends on: a different option for any of them can give a different result.",
           "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n)",
             "type": "string"
           },
           "type": "array",
@@ -359,7 +359,7 @@
         "inputs": {
           "description": "What the output is made from, in order: references to inputs and outputs, each of which can be pinned to a universe with `#`.",
           "items": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n))$",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
             "type": "string"
           },
           "type": "array",
@@ -388,7 +388,7 @@
         "when": {
           "description": "The conditions under which the output is active. It is active only when every condition holds.",
           "items": {
-            "pattern": "^(?:^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n))$",
+            "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
             "type": "string"
           },
           "type": "array",
@@ -482,19 +482,19 @@
         "decisions": {
           "additionalProperties": {
             "description": "The id of the option selected for the decision.",
-            "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+            "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
             "type": "string"
           },
           "description": "The options the universe selects, as `<decision>: <option>`. Each key is the id of a decision of the analysis or, for a decision of an analysis it drives, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `stage.method`.",
           "propertyNames": {
-            "pattern": "^(?:^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n))$",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n)",
             "type": "string"
           },
           "type": "object"
         },
         "derived_from": {
           "description": "The id of another universe of the analysis, whose effective selection this universe's effective selection is built on, so that this universe gives only the decisions it changes.",
-          "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+          "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
           "type": "string"
         },
         "description": {
@@ -529,7 +529,7 @@
       },
       "description": "The other analyses this analysis uses, keyed by the id it addresses them by.",
       "propertyNames": {
-        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
         "type": "string"
       },
       "type": "object"
@@ -544,7 +544,7 @@
       },
       "description": "The choices the analysis makes, keyed by id.",
       "propertyNames": {
-        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
         "type": "string"
       },
       "type": "object"
@@ -559,7 +559,7 @@
       },
       "description": "What the analysis concludes, as insights keyed by id.",
       "propertyNames": {
-        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
         "type": "string"
       },
       "type": "object"
@@ -570,7 +570,7 @@
       },
       "description": "The files the analysis reads, keyed by id.",
       "propertyNames": {
-        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
         "type": "string"
       },
       "type": "object"
@@ -586,7 +586,7 @@
       "description": "The artefacts the analysis makes, keyed by id. There is at least one.",
       "minProperties": 1,
       "propertyNames": {
-        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
         "type": "string"
       },
       "type": "object"
@@ -597,7 +597,7 @@
       },
       "description": "What earlier work establishes and the analysis builds on, as insights keyed by id. Options cite them in their `insights`.",
       "propertyNames": {
-        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
         "type": "string"
       },
       "type": "object"
@@ -621,7 +621,7 @@
       },
       "description": "The universes of the analysis, keyed by id.",
       "propertyNames": {
-        "pattern": "^(?:^[a-z][a-z0-9_]*$(?!\\n))$",
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
         "type": "string"
       },
       "type": "object"

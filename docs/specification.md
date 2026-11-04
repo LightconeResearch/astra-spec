@@ -242,10 +242,11 @@ id as [`INVALID_COMMIT`](#parse-and-schema), and the others as
 
 The schema checks these forms, and the others it checks, with regular
 expressions in the subset that ECMA-262 and Python's `re` share, so that a
-validator in either language accepts the same values. Every anchored pattern
-ends in `$(?!\n)`: Python's `$` also matches before a final newline and
-ECMA-262's doesn't, so without the lookahead `"a\n"`, which a YAML block
-scalar gives, would be an `id` in Python and not in JavaScript. For the same
+validator in either language accepts the same values. Every `$` outside a
+lookahead is written `$(?!\n)`, and every anchored pattern ends in one:
+Python's `$` also matches before a final newline and ECMA-262's doesn't, so
+without the lookahead `"a\n"`, which a YAML block scalar gives, would be an
+`id` in Python and not in JavaScript. For the same
 reason no pattern uses `.`, `\s`, `\S`, `\d`, `\w` or `\b`, which the two
 define differently (Python's `.` matches `\r`, and its `\s` includes
 U+001C–U+001F). Patterns use explicit classes instead: `[0-9]` for a digit,

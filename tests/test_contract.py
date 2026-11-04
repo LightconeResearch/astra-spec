@@ -41,6 +41,9 @@ ONE_CLASS = re.compile(r"\[\^?(?:\\.|[^\\\]])+\]", re.DOTALL)
 DIALECT_ESCAPES = {"d", "D", "w", "W", "s", "S", "b", "B", "A", "Z", "z"}
 """Escapes that Python's `re` and ECMA-262 define differently, or that only one of them has."""
 
+END = r"$(?!\n)"
+"""The end of a value in both Python's `re` and ECMA-262: Python's bare `$` also matches before a final newline."""
+
 STANDARD_KEYWORDS = {
     keyword
     for vocabulary in ("core", "applicator", "validation", "meta-data")
@@ -163,14 +166,22 @@ def accepts_null(subschema: dict, defs: dict) -> bool:
 
 
 def pattern_problems(pattern: str) -> list[str]:
-    """What in `pattern` Python's `re` and ECMA-262 could read differently; empty if nothing."""
+    """What in `pattern` Python's `re` and ECMA-262 could read differently; empty if nothing.
+
+    Every `$` outside a class or a lookahead must be written `$(?!\\n)`, in any
+    branch, and an anchored pattern must end in one. A `$` inside a lookahead is
+    exempt, so `Input.path`'s `(?:/|$)` is sound: it reads differently only on a
+    value ending in `\\n`, which the final `$(?!\\n)` rejects in both as long as
+    nothing before it matches a `\\n` (no class here admits a control).
+    """
     problems = []
     if pattern.startswith("^"):
-        if not pattern.endswith((r"$(?!\n)", r"$(?!\n))$")):
-            problems.append(r"anchored, but doesn't end in $(?!\n)")
+        if not pattern.endswith(END):
+            problems.append(rf"anchored, but doesn't end in {END}")
     elif not ONE_CLASS.fullmatch(pattern):
         problems.append("unanchored, but not a single bracketed class")
     in_class = False
+    groups: list[bool] = []  # For each group open at `i`, whether it is a lookahead.
     i = 0
     while i < len(pattern):
         char = pattern[i]
@@ -185,8 +196,15 @@ def pattern_problems(pattern: str) -> list[str]:
             in_class = True
         elif char == ".":
             problems.append("unescaped . outside a class")
-        elif pattern.startswith(("(?<", "(?P"), i):
-            problems.append(pattern[i : i + 3])
+        elif char == "(":
+            if pattern.startswith(("(?<", "(?P"), i):
+                problems.append(pattern[i : i + 3])
+            groups.append(pattern.startswith(("(?=", "(?!"), i))
+        elif char == ")":
+            if groups:
+                groups.pop()
+        elif char == "$" and not any(groups) and not pattern.startswith(END, i):
+            problems.append(rf"$ at {i} not written {END}")
         i += 1
     return problems
 
@@ -294,6 +312,34 @@ def test_every_pattern_means_the_same_in_python_and_ecma_262(name):
     assert patterns
     problems = {pattern: pattern_problems(pattern) for pattern in sorted(patterns)}
     assert {pattern: found for pattern, found in problems.items() if found} == {}
+
+
+@pytest.mark.parametrize(
+    ("pattern", "problems"),
+    [
+        # A bare `$` anywhere outside a lookahead, which Python's `re` matches before a final newline.
+        (
+            r"^(?:a|b$(?!\n))$",
+            [r"anchored, but doesn't end in $(?!\n)", r"$ at 15 not written $(?!\n)"],
+        ),
+        (r"^a$|^b$(?!\n)", [r"$ at 2 not written $(?!\n)"]),
+        (
+            r"^(?:a)$",
+            [r"anchored, but doesn't end in $(?!\n)", r"$ at 6 not written $(?!\n)"],
+        ),
+        (r"^(?:a|b)$(?!\n)", []),
+        (r"[^\x00-\x20\x7f]", []),
+    ],
+)
+def test_the_pattern_guard_checks_every_dollar(pattern, problems):
+    assert pattern_problems(pattern) == problems
+
+
+def test_the_pattern_guard_exempts_a_dollar_in_a_lookahead():
+    """`Input.path`'s pattern has a bare `$` in two lookaheads, which the guard lets through."""
+    pattern = source_slots("Input")["path"]["pattern"]
+    assert "(?:/|$)" in pattern and "/$)" in pattern
+    assert pattern_problems(pattern) == []
 
 
 def test_each_schema_is_identified_by_its_own_file_uri():

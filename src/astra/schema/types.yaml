@@ -25,6 +25,10 @@ imports:
 # Every pattern ends in `$(?!\n)`, because Python's `$` also matches before a
 # final newline and ECMA-262's does not.
 #
+# Each structured pattern's syntax is already anchored, so it sets
+# `partial_match: true`: without it LinkML wraps the syntax as `^(?:…)$`,
+# whose final bare `$` breaks the rule above.
+#
 # Each pattern names the rule it enforces, a code of the specification's §9,
 # in a `rule` annotation: `rules.json` maps its errors to that code.
 settings:
@@ -40,6 +44,7 @@ types:
     structured_pattern:
       syntax: '^{id}$(?!\n)'
       interpolated: true
+      partial_match: true
     annotations:
       rule: INVALID_ID
 
@@ -52,6 +57,7 @@ types:
     structured_pattern:
       syntax: '^{id}(\.{id})*$(?!\n)'
       interpolated: true
+      partial_match: true
     annotations:
       rule: INVALID_REFERENCE
 
@@ -64,6 +70,7 @@ types:
     structured_pattern:
       syntax: '^{id}(\.{id})*(#{id})?$(?!\n)'
       interpolated: true
+      partial_match: true
     annotations:
       rule: INVALID_REFERENCE
 
@@ -77,6 +84,7 @@ types:
     structured_pattern:
       syntax: '^{id}(\.{id})+$(?!\n)'
       interpolated: true
+      partial_match: true
     annotations:
       rule: INVALID_REFERENCE
 
@@ -89,6 +97,7 @@ types:
     structured_pattern:
       syntax: '^~?{id}(\.{id})+$(?!\n)'
       interpolated: true
+      partial_match: true
     annotations:
       rule: INVALID_REFERENCE
 
