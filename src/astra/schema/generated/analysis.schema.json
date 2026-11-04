@@ -207,8 +207,8 @@
           "type": "string"
         },
         "doi": {
-          "description": "The DOI of the cited work, such as `10.48550/arXiv.1706.03762`.",
-          "pattern": "^10\\.[0-9]{4,}/[^\\x00-\\x20\\x7f]+$(?!\\n)",
+          "description": "The DOI name of the cited work, under the `10` directory: `10.`, the registrant code, `/` and the suffix, such as `10.48550/arXiv.1706.03762`.",
+          "pattern": "^10\\.[0-9]+(\\.[0-9]+)*/[^\\x00-\\x20\\x7f-\\x9f]([^\\x00-\\x1f\\x7f-\\x9f]*[^\\x00-\\x20\\x7f-\\x9f])?$(?!\\n)",
           "type": "string"
         },
         "location": {

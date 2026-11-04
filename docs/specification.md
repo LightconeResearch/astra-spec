@@ -269,7 +269,9 @@ reason no pattern uses `.`, `\s`, `\S`, `\d`, `\w` or `\b`, which the two
 define differently (Python's `.` matches `\r`, and its `\s` includes
 U+001C–U+001F). Patterns use explicit classes instead: `[0-9]` for a digit,
 `[^\x00-\x20\x7f]` for a visible character (one outside U+0000–U+0020 and
-U+007F), and `[^\x00-\x1f\x7f]` for any character but an ASCII control.
+U+007F), `[^\x00-\x1f\x7f]` for any character but an ASCII control, and
+`[^\x00-\x20\x7f-\x9f]` and `[^\x00-\x1f\x7f-\x9f]` for the same two that
+also leave out the C1 controls (U+0080–U+009F).
 This specification writes patterns in a short form, for readability; the
 schema holds them in full.
 
@@ -524,7 +526,8 @@ An [Evidence](elements/Evidence.md) item cites exactly one of
 ([`INVALID_EVIDENCE_SOURCE`](#parse-and-schema)):
 
 - a published work, by its `doi`, such as `10.48550/arXiv.1706.03762`
-  (`10.`, four or more digits, `/`, then visible characters:
+  (`10.`, digit runs joined by `.`, `/`, then a suffix with no control
+  character and no space at either end:
   [`INVALID_VALUE`](#parse-and-schema)), with the work's `version`, counted
   from 1, when the work has versions, as an arXiv paper does;
 - an output, as an `artifact`: a reference written as in `Output.inputs`,

@@ -1,6 +1,7 @@
 # The option `rf` cites the prior insight `forests_resist_noise`, and the
 # finding pins its evidence to the universe `u1`, since `result` is built per
-# universe.
+# universe. The prior insight also cites a DOI whose registrant code has two
+# parts (an ISBN-A), and one with a space inside its suffix.
 spec_version: "0.1.0"
 outputs:
   result:
@@ -28,6 +29,8 @@ prior_insights:
           exact: "the forest lost less than one point of accuracy"
           suffix: " at 20% label noise."
         location: {value: "page=6"}
+      - doi: 10.978.8889637/173
+      - doi: "10.3929/ethz-a- 007549606"
 findings:
   rf_accuracy:
     label: Forest accuracy

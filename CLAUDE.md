@@ -16,7 +16,7 @@ The LinkML descriptions are the normative definitions of the fields: the field r
 Schema conventions (the contract tests check the maps and the patterns):
 
 - Every element referenced by id is an entry of a map keyed by its id. The class has a key slot, `id` with `key: true` and `range: id` (`DecisionSelection` is keyed by `decision`, an `address`), and the map is a `multivalued: true` + `inlined: true` slot. A list of objects is `multivalued: true` + `inlined_as_list: true`. Element ids are `key`s, never `identifier`s; `Environment.iri` is the only `identifier`.
-- Patterns stay in the subset ECMA-262 and Python's `re` share: every `$` outside a lookahead is written `$(?!\n)`, and every anchored pattern ends in one; patterns use explicit classes (`[0-9]`, `[^\x00-\x20\x7f]`, `[^\x00-\x1f\x7f]`) rather than `.`, `\s`, `\S`, `\d`, `\w` or `\b`. No lookbehind, named groups, `\A` or `\Z`.
+- Patterns stay in the subset ECMA-262 and Python's `re` share: every `$` outside a lookahead is written `$(?!\n)`, and every anchored pattern ends in one; patterns use explicit classes (`[0-9]`, `[^\x00-\x20\x7f]`, `[^\x00-\x1f\x7f]`, and `[^\x00-\x20\x7f-\x9f]` and `[^\x00-\x1f\x7f-\x9f]`, which also leave out the C1 controls) rather than `.`, `\s`, `\S`, `\d`, `\w` or `\b`. No lookbehind, named groups, `\A` or `\Z`.
 - A named type in `types.yaml` exists only if more than one field uses it; a pattern used once is written on its field.
 - Module headers keep the placeholder `version: 0.0.0` (see Release).
 
