@@ -1078,13 +1078,14 @@ text to read:
   Other tables, such as the check layer's statuses, are not read.
 - **Columns** are found by the names in a rule table's header: Code, Level,
   Rule and Source, with Layer in the parse and schema table and Status when
-  broken in the check table, and no others.
+  broken in the check table, each once, and no others.
 - **Rows.** Each row is one rule, with one cell per column and none empty.
   Its Code is one code span holding a capital letter, then capitals, digits
   and underscores (`[A-Z][A-Z0-9_]*`), and no other row has it. Its Layer is
   `parse` or `schema`, and its Level `MUST`, `SHOULD` or `MAY`. Its Rule
-  uses no RFC 2119 keyword in capitals, in its text or in a code span, of
-  another level.
+  uses no RFC 2119 keyword in capitals of another level, in its text, in a
+  code span, or as the Rule cell reads once rendered (`MU*ST*` reads as
+  `MUST`).
 - **Cells** hold only text, code spans, emphasis, links and inline HTML.
   `rules.json` records a cell as Markdown rebuilt from what it parses to,
   with each link reduced to its text, so the rebuilt Markdown must parse the

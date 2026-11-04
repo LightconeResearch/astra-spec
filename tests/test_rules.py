@@ -53,14 +53,32 @@ def specification() -> str:
 
 # --- The extractor, on small specifications ---
 
-RUNNER = """\
-### runner
+CHECK = """\
+### check
 
+| Status | Means |
+|---|---|
+| `missing` | The result has no record (`MAY`) |
+
+| Code | Level | Rule | Status when broken | Source |
+|---|---|---|---|---|
+| `NO_RECORD` | MUST | Every planned result has a record | `missing` | 0005 §1 |
+
+"""
+
+RUNNER_TABLE = """\
 | Code | Level | Rule | Source |
 |---|---|---|---|
 | `NO_SANDBOX` | MAY | A runner runs each recipe in a sandbox | `main` |
-
 """
+
+RUNNER = "### runner\n\n" + RUNNER_TABLE + "\n"
+
+
+def quoted(table: str, prefix: str = "> ") -> str:
+    """`table` in a blockquote: each of its lines after `prefix`."""
+    return "".join(prefix + line for line in table.splitlines(keepends=True))
+
 
 VALID = (
     """\
@@ -91,17 +109,8 @@ VALID = (
 |---|---|---|---|
 | `LOOSE_PIN` | SHOULD | No reference to an output built once has a pin | 0003 |
 
-### check
-
-| Status | Means |
-|---|---|
-| `missing` | The result has no record (`MAY`) |
-
-| Code | Level | Rule | Status when broken | Source |
-|---|---|---|---|---|
-| `NO_RECORD` | MUST | Every planned result has a record | `missing` | 0005 §1 |
-
 """
+    + CHECK
     + RUNNER
     + """\
 ## 10. After
@@ -177,6 +186,13 @@ MALFORMED = {
         "| No reference to an output built once has a pin |",
         r"LOOSE_PIN.*3 cells",
     ),
+    "quoted row with an extra cell": (
+        RUNNER,
+        "### runner\n\n"
+        + quoted(RUNNER_TABLE.replace("| `main` |", "| `main` | x |"))
+        + "\n",
+        r"NO_SANDBOX.*it has 5 cells",
+    ),
     "duplicate code": ("`NO_SANDBOX`", "`NO_RECORD`", r"NO_RECORD.*already"),
     "missing column": (
         "| Code | Level | Rule | Source |\n|---|---|---|---|\n| `LOOSE_PIN` | SHOULD | No reference to an output built once has a pin | 0003 |",
@@ -190,10 +206,23 @@ MALFORMED = {
         ).replace("| `main` |", "| `main` | none |"),
         r"### runner.*Notes",
     ),
+    "repeated column": (
+        RUNNER,
+        RUNNER.replace(
+            "| Source |\n|---|---|---|---|",
+            "| Source | Source |\n|---|---|---|---|---|",
+        ).replace("| `main` |", "| `main` | 0005 |"),
+        r"### runner.*'Source' is unknown or repeated",
+    ),
     "no rule table": (
         RUNNER,
         RUNNER.replace("| Code |", "| Name |"),
         r"### runner.*no rule table",
+    ),
+    "two rule tables in one subsection": (
+        RUNNER,
+        RUNNER + RUNNER_TABLE.replace("NO_SANDBOX", "EXTRA_RULE") + "\n",
+        r"### runner: has 2 rule tables, not one",
     ),
     "unknown layer": (
         "| `BAD_ID` | schema |",
@@ -202,6 +231,7 @@ MALFORMED = {
     ),
     "unknown layer heading": ("### runner", "### executor", r"executor"),
     "missing layer heading": (RUNNER, "", r"no ### runner"),
+    "subsections out of order": (CHECK + RUNNER, RUNNER + CHECK, r"in order"),
     "unknown level": (
         "| `LOOSE_PIN` | SHOULD |",
         "| `LOOSE_PIN` | Should |",
@@ -226,6 +256,31 @@ MALFORMED = {
         "Every planned result has a record |",
         "Every planned result has a [record](#a)SHOULD |",
         r"NO_RECORD.*SHOULD",
+    ),
+    **{
+        f"keyword split by {split}": (
+            "No reference to an output built once has a pin",
+            f"No reference to an output built once {written} have a pin",
+            r"LOOSE_PIN.*MUST",
+        )
+        for split, written in {
+            "intraword emphasis": "MU*ST*",
+            "a link on part of it": "[MU](#x)ST",
+            "a code span": "`MU`ST",
+            "empty inline HTML": "MU<span></span>ST",
+            "a soft hyphen": "MU&shy;ST",
+            "a zero-width space": "MU\u200bST",
+        }.items()
+    },
+    "escape lost when written back": (
+        "No reference to an output built once has a pin",
+        r"No reference to an \*output\* built once has a pin",
+        r"LOOSE_PIN.*Rule cell can't be written back",
+    ),
+    "image in a cell": (
+        "No reference to an output built once has a pin",
+        "No reference to an ![output](output.png) built once has a pin",
+        r"LOOSE_PIN.*Rule cell holds a image",
     ),
     "rule table outside a subsection": (
         "### parse and schema\n",
@@ -258,6 +313,23 @@ def test_keywords_that_agree_with_the_level_are_allowed():
     )
     statements = [rule["statement"] for rule in extract_rules(text)]
     assert "A runner MAY run each recipe in a sandbox" in statements
+
+
+QUOTED = {
+    "quoted": quoted(RUNNER_TABLE),
+    "quoted without a space": quoted(RUNNER_TABLE, ">"),
+    "indented and quoted": quoted(RUNNER_TABLE, "   > "),
+    "quoted twice": quoted(RUNNER_TABLE, "> > "),
+    "quoted in a list item": "1.  A list item\n\n" + quoted(RUNNER_TABLE, "    > "),
+}
+
+
+@pytest.mark.parametrize("table", QUOTED.values(), ids=QUOTED)
+def test_a_quoted_rule_table_reads_as_the_same_rules(table):
+    """A rule table in a blockquote is the same rules: its rows' cells are counted without the `>` markers."""
+    assert RUNNER in VALID
+    text = VALID.replace(RUNNER, "### runner\n\n" + table + "\n")
+    assert extract_rules(text) == extract_rules(VALID)
 
 
 # --- rules.json: the rules ---

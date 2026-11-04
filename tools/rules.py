@@ -3,8 +3,14 @@
 `rules.json` holds:
 
 - ``rules``: one entry per rule of the specification's ``## 9. Conformance``, in order, extracted from its four rule
-  tables with a Markdown parser (markdown-it-py). Extraction is strict: a malformed row, a repeated code, a missing
-  or unknown column, an unknown layer or level, or a rule whose RFC 2119 keyword contradicts its level is an error.
+  tables with a Markdown parser (markdown-it-py). Extraction is strict, enforcing §9's "The catalogue as data": no
+  ``## 9. Conformance`` heading, or more than one; a subsection other than the four, a missing or repeated one, or
+  one out of their order; a rule table outside them, or a subsection without exactly one; a missing, unknown or
+  repeated column; a row that doesn't write one cell per column (counted on its source line,
+  blockquote markers aside); an empty cell; a Code cell that isn't one code span holding a code, or a code already
+  used; an unknown layer or level; a rule whose RFC 2119 keyword contradicts its level, in its text, in a code span or
+  as the cell reads once rendered; a cell holding anything but text, code spans, emphasis, links and inline HTML; or a
+  cell whose Markdown can't be rebuilt from its tokens, is an error.
 - ``errors``: for each keyword of the generated JSON Schemas that can report an error, its absolute keyword location
   (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it enforces. The code
   comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type or slot that
@@ -19,6 +25,7 @@
 import argparse
 import json
 import sys
+import unicodedata
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
@@ -120,6 +127,16 @@ def _text(tokens: list[Token]) -> str:
     return " ".join(t.content for t in tokens if t.type in ("text", "code_inline"))
 
 
+def _rendered(tokens: list[Token]) -> str:
+    """The text of inline tokens as they render: their text and code spans run together, inline HTML left out.
+
+    So a keyword split by markup (`MU*ST*`, `[MU](#x)ST`, `` `MU`ST ``, `MU<span></span>ST`) is one word, as a reader
+    sees it. markdown-it has already decoded entities (`&shy;` is U+00AD), and `_keywords` drops the format
+    characters that don't show.
+    """
+    return "".join(t.content for t in tokens if t.type in ("text", "code_inline"))
+
+
 def _shape(tokens: list[Token]) -> list[tuple[str, str, str]]:
     """Inline tokens as `(type, content, markup)`, adjacent text merged, for comparing two parses."""
     shape: list[tuple[str, str, str]] = []
@@ -183,8 +200,13 @@ def _code(inline: Token, row: _Row) -> str:
 
 
 def _keywords(text: str) -> list[str]:
-    """The RFC 2119 keywords in `text`, as whole words (a word is letters, digits and underscores)."""
-    words = "".join(c if c.isalnum() or c == "_" else " " for c in text).split()
+    """The RFC 2119 keywords in `text`, as whole words (a word is letters, digits and underscores).
+
+    Format characters (Unicode category Cf, such as U+00AD SOFT HYPHEN and U+200B ZERO WIDTH SPACE) don't show, so
+    they are dropped first: `MU`, U+200B, `ST` is `MUST`.
+    """
+    shown = "".join(c for c in text if unicodedata.category(c) != "Cf")
+    words = "".join(c if c.isalnum() or c == "_" else " " for c in shown).split()
     return [word for word in words if word in KEYWORDS]
 
 
@@ -256,8 +278,18 @@ def _rows(table: list[Token]) -> tuple[list[str], list[tuple[int, list[Token]]]]
 
 
 def _source_cell_count(lines: list[str], line: int) -> int:
-    """How many cells the table row at `line` (1-based) writes, split as markdown-it splits it."""
-    cells = escapedSplit(lines[line - 1].strip())
+    """How many cells the table row at `line` (1-based) writes, split as markdown-it splits it.
+
+    The row is split without its container prefix, as CommonMark reads it: each blockquote marker `>`, with the
+    indentation before it and the space after it. The indentation is any run of spaces and tabs, not only up to 3, as
+    a list item's content may sit 4 columns in (`1.  `). A row's own text never starts with `>`, which would open a
+    blockquote and end the table. The count is made on the source line, not on markdown-it's cells: it pads a short
+    row and truncates a long one, so an extra cell would go unseen.
+    """
+    text = lines[line - 1].lstrip(" \t")
+    while text.startswith(">"):
+        text = text[1:].lstrip(" \t")
+    cells = escapedSplit(text.strip())
     if cells and cells[0] == "":
         cells.pop(0)
     if cells and cells[-1] == "":
@@ -334,7 +366,9 @@ def extract_rules(markdown: str) -> list[dict]:
                     f"unknown level {level!r}: a level is MUST, SHOULD or MAY"
                 )
             statement = cell["Rule"].children or []
-            for keyword in _keywords(_text(statement)):
+            for keyword in _keywords(_text(statement)) + _keywords(
+                _rendered(statement)
+            ):
                 if KEYWORDS[keyword] != level:
                     raise row.error(
                         f"its rule says {keyword}, which contradicts its level, {level}"
