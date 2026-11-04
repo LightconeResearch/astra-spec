@@ -37,12 +37,12 @@ doesn't restate them.
 |---|---|---|
 | analysis | a directory with an `astra.yaml` | §3 |
 | element | an input, output, decision, option, universe, declaration or insight of an analysis | §4 |
-| address | the name of an element, through the declarations that lead to it | §4 |
+| address | the name of an element other than an option, through the declarations that lead to it; an option is named by an option reference (§4) | §4 |
 | active | of a decision or an output, when every condition of its `when` holds | §5 |
 | universe | a selection of one option for every active decision | §6 |
 | effective selection | what a universe selects once `derived_from` is resolved | §6 |
-| built per universe, built once | whether an output has one result per universe or one in all | §6 |
-| pin | `#` and a universe id after a reference, which reads the output in that universe | §4 |
+| built per universe, built once | whether an output has one result in each universe where it is active, or one in all | §6 |
+| pin | `#` and a universe id ending a reference, after its address, which reads the output in that universe | §4 |
 | root | the analysis being validated or built | §7 |
 | analysis stack | the root and every analysis it declares, directly or through others | §7 |
 | driver, driven | in the root's universes, the root, and an analysis whose decisions they set through a declaration; the root is never driven | §7 |
@@ -225,7 +225,7 @@ is `iris.random_seed.seed_42`.
 
 | Type | Form | Used by |
 |---|---|---|
-| [`id`](elements/Id.md) | `id` | every map key except those of `Universe.decisions`, `Universe.derived_from`, `Option.insights`, the values of `Universe.decisions` |
+| [`id`](elements/Id.md) | `id` | every map key but those of `Universe.decisions`; also `Universe.derived_from`, `Option.insights` and the values of `Universe.decisions` |
 | [`address`](elements/Address.md) | `address` | `Output.decisions`, the keys of `Universe.decisions` |
 | [`reference`](elements/Reference.md) | `reference` | `Output.inputs`, `Evidence.artifact`, `ProvenanceRecord.address`, `RecordedInput.entry` |
 | [`option_reference`](elements/OptionReference.md) | `option-reference` | `Option.requires`, `Option.incompatible_with` |
@@ -283,8 +283,9 @@ takes both ([`AMBIGUOUS_ID`](#validator)).
 ### Addresses
 
 An address is read in the analysis whose `astra.yaml` it is written in. (In
-an option reference or a condition, the address is everything before the last
-segment, which is the option.) Every segment of an address but the last is
+an option reference, the address is the segments before the last, which is
+the option; a condition's leading `~` and a reference's `#` pin are not part
+of the address.) Every segment of an address but the last is
 the id of a declaration (§7): the first names an
 entry of that analysis's `analyses`, the next an entry of the declared
 analysis's `analyses`, and so on. The last segment is the id of an element of
@@ -668,8 +669,9 @@ mirror, and a shortened id can become ambiguous as a repository grows. A
 declaration with a `commit` declares an analysis from a commit (below).
 
 The same directory is the same analysis, whichever analysis declares it and
-by whatever id: it is read once, and built once per universe. Declarations by
-`path` alone can form cycles, such as an analysis declared by its parent that
+by whatever id: it is read once, and each of its results is made at most
+once, however many declarations reach it. Declarations by `path` alone can
+form cycles, such as an analysis declared by its parent that
 declares its parent with `..`, but outputs never depend on each other in a
 cycle ([`OUTPUT_CYCLE`](#validator)). A declaration with a `commit` is never
 part of a cycle, since a commit can only name earlier ones.
@@ -879,7 +881,8 @@ read or driven, and what a driver runs is the declared commit.
 
 A **result** is what a recipe made for one output in one universe, or once
 for an output built once. The results an analysis's outputs and universes
-call for are its **planned** results.
+call for are its **planned** results. An output plans no result in a universe
+where it is inactive (§5).
 
 A result belongs to the analysis whose universe it was built in. So what a
 driven analysis builds in its driver's universes belongs to the driver. The
@@ -1049,7 +1052,7 @@ match.
 
 Evidence citing a result gets the status of the result's record
 ([`STALE_EVIDENCE`](#check)), through the record its address names: the
-address, pinned when the output is built per universe, names exactly one
+reference, pinned when the output is built per universe, names exactly one
 result. A check covers the evidence of the analysis it is run on. The
 results of an analysis from a commit that are read or cited are checked by
 the same rules, through their records at the declared commit (§7).
