@@ -466,7 +466,8 @@ selects it ([`EXCLUDED_OPTION_SELECTED`](#validator)). It stays listed, so the
 analysis records what it considered and why it ruled it out. The reason
 contains a visible character, one outside U+0000–U+0020 and U+007F
 ([`BLANK_EXCLUDED`](#parse-and-schema)); `excluded: true` is not a reason
-([`WRONG_TYPE`](#parse-and-schema)).
+([`WRONG_TYPE`](#parse-and-schema)), while `excluded: no` or `off` is the
+reason `no` or `off` (§3), so the option is excluded.
 
 An option's `insights` are the ids of the prior insights that support it
 ([`INVALID_INSIGHT_REF`](#validator)).

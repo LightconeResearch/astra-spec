@@ -282,8 +282,9 @@ classes:
         annotations:
           rule: BLANK_EXCLUDED
         description: >-
-          Why the option is ruled out, as a reason that is not blank. An
-          option with a reason is excluded: no universe selects it.
+          Why the option is ruled out, as a reason that is not blank; any
+          string is a reason, `no` and `off` included. An option with a reason
+          is excluded: no universe selects it.
 
   # --- Universes ---
 

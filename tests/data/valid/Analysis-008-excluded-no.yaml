@@ -1,0 +1,21 @@
+# Under YAML 1.2, `no` and `off` are strings, so `excluded: no` is the reason
+# `no`: the option is excluded, and no universe selects it.
+# yamllint disable rule:truthy
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    decisions: [outliers]
+decisions:
+  outliers:
+    options:
+      keep: {}
+      drop:
+        excluded: no
+      clip:
+        excluded: off
+universes:
+  baseline:
+    decisions:
+      outliers: keep
