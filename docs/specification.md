@@ -362,7 +362,8 @@ and no ASCII control character (U+0000–U+001F, U+007F), and doesn't end in
   tooling recognises: a git-annex link or a Git LFS pointer at the path, or a
   DVC file beside it ([`MISSING_INPUT_FILE`](#validator)). The file, or what
   stands in for it, is tracked in git ([`INPUT_NOT_TRACKED`](#validator)).
-  How a large file's bytes are kept is the tooling's.
+  How a large file's bytes are kept is the tooling's. Something standing in
+  for the content isn't the content.
 
 `astra.yaml` holds no hash of an input. The record of each result that reads
 the input holds the hash of what it read (§8), so a change to the file makes
@@ -925,12 +926,16 @@ results/
   svm/accuracy.json
 ```
 
+A result is one file, which its recipe writes at `{output}`. An artefact of
+many files is written as an archive, or as several outputs.
+
 Records are tracked in git with the analysis, as its `astra.yaml` is, so they
 can be read whether or not the bytes are there. The bytes needn't stay at
 their default place ([`ABSENT_RESULT`](#check) is a `SHOULD`): git-annex or
 Git LFS, for example, keep them in a store and leave a link or a pointer
-standing in for them. Whatever is at a result's default place is its recorded
-bytes or something standing in for them.
+standing in for them. Anything else at the default place, something standing
+in for the bytes, other bytes or nothing, leaves the result's bytes `absent`
+([`ABSENT_RESULT`](#check)).
 
 ### What a record holds
 
@@ -1041,7 +1046,7 @@ if, since that commit, nothing has changed in ([`STALE_RESULT`](#check)):
   (`{inputs}` passes them in that order), its decisions, in any order (each
   reaches the recipe by name), and its format;
 - the options of its decisions;
-- the content of its inputs;
+- the content of its inputs, never what stands in for it;
 - the results it reads. A result made from a stale one is stale, and once that
   one is rebuilt, it is unchanged again if the rebuilt bytes are the same.
 
@@ -1061,10 +1066,9 @@ A checker gives every planned result two statuses ([check](#check)): one for
 its record, `unchanged`, `stale`, or `missing` when it has no valid record
 where its address says; and one for its bytes, `present` when the bytes at
 its default place have its record's hash and size, `absent` otherwise. Since
-the bytes can be kept elsewhere, `absent` is not an error. Only tooling that
-recognises stand-ins can tell that the bytes have been `modified`: a stand-in
-naming another hash, or a file that plainly isn't a stand-in and doesn't
-match.
+the bytes can be kept elsewhere, `absent` is not an error. A tool may report
+more about bytes that are `absent`, such as other bytes at the default place,
+but their status is `absent`.
 
 A checker reads records only through planned results: a record at no planned
 result's place gets no status, and no check rule applies to it.
@@ -1216,9 +1220,8 @@ rule doesn't hold. A result for which every rule holds is `unchanged` and
 `present`.
 
 **Statuses.** A checker gives every planned result two statuses, one for its
-record (`unchanged`, `stale` or `missing`) and one for its bytes (`present`,
-`absent` or `modified`). Evidence citing a result gets that result's first
-status.
+record (`unchanged`, `stale` or `missing`) and one for its bytes (`present`
+or `absent`). Evidence citing a result gets that result's first status.
 
 | Status | Means |
 |---|---|
@@ -1226,8 +1229,7 @@ status.
 | `stale` | The result has a valid record where its address says, and `STALE_RESULT` doesn't hold. The checker says what changed |
 | `missing` | The result has no valid record where its address says: `MISSING_RECORD`, `INVALID_RECORD`, `MISPLACED_RECORD` or `MISSING_RECORD_INPUTS` doesn't hold |
 | `present` | The bytes at the result's default place hash to the record's `content_hash` and have its `size` |
-| `absent` | Anything else is at the default place, nothing or a stand-in included |
-| `modified` | Reported only by tooling that recognises stand-ins (`MAY`): the stand-in names another hash, or the file is plainly not a stand-in and doesn't match |
+| `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
 
 **Rules.**
 
@@ -1237,8 +1239,8 @@ status.
 | `INVALID_RECORD` | MUST | The record at each planned result's place is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, §8 |
 | `MISPLACED_RECORD` | MUST | The record at each planned result's place names that result in its `address` | `missing` | 0005 §1 |
 | `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
-| `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, its inputs' content, or the results it reads | `stale` | 0005 §4 |
-| `ABSENT_RESULT` | SHOULD | Every result's recorded bytes are at its default place | `absent`, or `modified` | 0005 §1 |
+| `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
+| `ABSENT_RESULT` | SHOULD | Every result's recorded bytes are at its default place | `absent` | 0005 §1 |
 | `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status | 0005 §5 |
 
 The results of an analysis from a commit that are read or cited are checked
@@ -1353,7 +1355,7 @@ a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
       "level": "SHOULD",
       "source": "0005 §1",
       "statement": "Every result's recorded bytes are at its default place",
-      "status": "`absent`, or `modified`"
+      "status": "`absent`"
     }
   ]
 }

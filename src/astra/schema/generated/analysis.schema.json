@@ -405,7 +405,7 @@
           "type": "string"
         },
         "format": {
-          "description": "How the output's artefact is encoded, as a lowercase token: the file extension it is written with, without the leading dot, such as `png`, `csv` or `parquet`. Any token that matches the pattern is a format.",
+          "description": "How the output's artefact is encoded, as a lowercase token: the extension of its results' files, without the leading dot, such as `png`, `csv` or `parquet`. Any token that matches the pattern is a format.",
           "pattern": "^[a-z0-9][a-z0-9_.+-]*$(?!\\n)",
           "type": "string"
         },

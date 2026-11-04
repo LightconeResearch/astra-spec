@@ -662,7 +662,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "0005 §4",
-      "statement": "Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, its inputs' content, or the results it reads",
+      "statement": "Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads",
       "status": "`stale`"
     },
     {
@@ -671,7 +671,7 @@
       "level": "SHOULD",
       "source": "0005 §1",
       "statement": "Every result's recorded bytes are at its default place",
-      "status": "`absent`, or `modified`"
+      "status": "`absent`"
     },
     {
       "code": "STALE_EVIDENCE",

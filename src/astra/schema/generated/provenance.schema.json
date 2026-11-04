@@ -65,7 +65,7 @@
       "description": "One of the output's inputs, as the recipe read it: the entry, and the content hash and size of what the recipe read through it.",
       "properties": {
         "content_hash": {
-          "description": "The SHA-256 digest of what the recipe read through the entry: another output's result, or the file an input names.",
+          "description": "The SHA-256 digest of the content the recipe read through the entry, another output's result or the file an input names, never of something standing in for it.",
           "pattern": "^sha256:[0-9a-f]{64}$(?!\\n)",
           "type": "string"
         },
@@ -75,7 +75,7 @@
           "type": "string"
         },
         "size": {
-          "description": "The size of what the recipe read through the entry, in bytes.",
+          "description": "The size in bytes of the content the recipe read through the entry, never of something standing in for it.",
           "minimum": 0,
           "type": "integer"
         }
@@ -120,7 +120,7 @@
       "type": "string"
     },
     "content_hash": {
-      "description": "The SHA-256 digest of the result's bytes.",
+      "description": "The SHA-256 digest of the result's file, never of something standing in for it.",
       "pattern": "^sha256:[0-9a-f]{64}$(?!\\n)",
       "type": "string"
     },
@@ -129,7 +129,7 @@
       "description": "The run of the recipe that made the result."
     },
     "size": {
-      "description": "The size of the result, in bytes.",
+      "description": "The size of the result's file in bytes, never of something standing in for it.",
       "minimum": 0,
       "type": "integer"
     },

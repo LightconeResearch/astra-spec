@@ -188,8 +188,8 @@ classes:
         annotations:
           rule: INVALID_VALUE
         description: >-
-          How the output's artefact is encoded, as a lowercase token: the file
-          extension it is written with, without the leading dot, such as
+          How the output's artefact is encoded, as a lowercase token: the
+          extension of its results' files, without the leading dot, such as
           `png`, `csv` or `parquet`. Any token that matches the pattern is a
           format.
       inputs:
