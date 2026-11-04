@@ -363,7 +363,7 @@ entries of `Output.decisions` are addresses
 
 In YAML, `#` inside a token is literal, so `f1_score#svm` needs no quotes.
 After a space it starts a comment: `- f1_score #svm` is the plain reference
-`f1_score`, followed by a comment ([`PIN_LIKE_COMMENT`](#validator)).
+`f1_score`, followed by a comment. Write a pin with no space before its `#`.
 
 ### Report addresses
 
@@ -1308,7 +1308,6 @@ A table that breaks any of this is an error in this specification, and no
 | `REDUNDANT_PIN` | SHOULD | No reference to an output built once has a pin | 0003 |
 | `UNPINNED_EVIDENCE` | SHOULD | Every evidence citing an output built per universe pins it | 0003, 0004 |
 | `NO_UNIVERSES` | SHOULD | Every analysis with decisions, or with outputs built per universe, has universes, unless the root's universes drive it, or it consumes a decision | 0003, 0004 |
-| `PIN_LIKE_COMMENT` | SHOULD | No `inputs` entry has a line comment that looks like a pin (needs the source text) | 0003 |
 
 ### check
 
