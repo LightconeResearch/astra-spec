@@ -357,7 +357,7 @@ and no ASCII control character (U+0000–U+001F, U+007F), and doesn't end in
 - The file is inside the analysis's directory and outside every analysis
   within it, a directory with an `astra.yaml` of its own
   ([`INPUT_IN_ANOTHER_ANALYSIS`](#validator)). Another analysis reads it by
-  address (`root.data`), not by a path.
+  address (`iris.data`), not by a path.
 - What is committed is the file itself, or something standing in for it that
   tooling recognises: a git-annex link or a Git LFS pointer at the path, or a
   DVC file beside it ([`MISSING_INPUT_FILE`](#validator)). The file, or what
@@ -462,10 +462,10 @@ An option's `insights` are the ids of the prior insights that support it
 A decision or an output with a `when` is conditional. `when` is a list of
 conditions (§4). A condition `d.o` holds when the option `o` of
 the decision `d` is selected, and `~d.o` holds when it isn't; `d` can be a
-decision of a declared analysis, by its address (`root.a.a1`). The element is
-**active** when every one of its conditions holds, and an element without
-`when` is always active. Conditions are evaluated in the effective selection
-of the universe being built (§6).
+decision of a declared analysis, by its address, as in the condition
+`iris.random_seed.seed_42`. The element is **active** when every one of its
+conditions holds, and an element without `when` is always active. Conditions
+are evaluated in the effective selection of the universe being built (§6).
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -757,8 +757,8 @@ own universes ([`UNKNOWN_PIN_UNIVERSE`](#validator)). To read one of a driven
 analysis's own universes, the driver declares the same directory a second
 time, without driving that declaration:
 
-<!-- fragment: Analysis -->
 ```yaml
+spec_version: "0.1.0"
 analyses:
   inner: {path: stage/inner}            # the root's universes set inner.d
   inner_undriven: {path: stage/inner}   # never named in the root's universes
@@ -771,6 +771,10 @@ outputs:
     type: metric
     format: json
     inputs: [inner_undriven.result#v1]  # inner's own universe v1
+universes:
+  u1:
+    decisions:
+      inner.d: d1                       # a flat key: inner's decision d
 ```
 
 Without a pin, `inner_undriven.result` would be read in the root's universe
@@ -966,7 +970,7 @@ Every hash names its algorithm: `sha256:`, then the SHA-256 digest
     "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
     "inputs": [
       {
-        "entry": "root.data",
+        "entry": "iris.data",
         "content_hash": "sha256:549eeec2a96f853c662f95e730265f2e2b6fd840047ef2e5e487892a0ed5757e",
         "size": 10
       }

@@ -120,7 +120,7 @@ classes:
         required: true
         description: >-
           The entry exactly as the output's `inputs` lists it in the
-          `astra.yaml`, such as `root.data`.
+          `astra.yaml`, such as `iris.data`.
       content_hash:
         range: content_hash
         required: true
