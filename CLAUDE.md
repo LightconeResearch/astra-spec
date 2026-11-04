@@ -45,7 +45,7 @@ The JSON Schemas are built by **`tools/jsonschema_generator.py`**, a small exten
 - on a class rule (`rules:` entry), for its `if`/`then`;
 - on each branch of an `exactly_one_of`, the same code on every branch: LinkML 1.12.1 can't annotate the `exactly_one_of` list itself.
 
-Every `rule` annotation must give some keyword its code: one on a class, an enum, a type no slot uses, or a slot with no pattern fails the build. Keywords whose code never varies take a default instead: `required` outside a rule (`MISSING_FIELD`), `additionalProperties: false` (`UNKNOWN_FIELD`), `type` (`WRONG_TYPE`), `minProperties`/`minItems` (`EMPTY_COLLECTION`), `uniqueItems` (`DUPLICATE_ENTRY`), `enum`/`minimum` (`INVALID_VALUE`). The annotations don't reach the JSON Schemas.
+Every `rule` annotation must give some keyword its code: one on a class, an enum, a type no slot uses, or a slot with no pattern fails the build. Keywords whose code never varies take a default instead: `required` outside a rule (`MISSING_FIELD`); `additionalProperties: false` (`UNKNOWN_FIELD`); `type` (`WRONG_TYPE`), except on a map key, which takes the key's code; `minProperties`/`minItems` of 1 (`EMPTY_COLLECTION`; any other minimum has no code and fails the build); `uniqueItems` (`DUPLICATE_ENTRY`); `enum`/`minimum` (`INVALID_VALUE`). The annotations don't reach the JSON Schemas.
 
 **To add or change a rule:** edit its row in §9 of `docs/specification.md`; for a schema-layer rule, annotate the constraint that enforces it (above); then run `just gen-schema` and commit `generated/rules.json` with the change. A new schema-layer code also needs an invalid fixture.
 

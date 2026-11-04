@@ -1267,10 +1267,11 @@ for the same error and words each rule the same way. It holds:
 In the schema's sources, each constraint names the rule it enforces: a
 pattern by its type or field, a class rule or an exactly-one-of by itself.
 The keywords whose code never varies take a default: `required` outside such
-a rule (`MISSING_FIELD`), `additionalProperties` (`UNKNOWN_FIELD`), `type`
-(`WRONG_TYPE`), `minProperties` and `minItems` (`EMPTY_COLLECTION`),
-`uniqueItems` (`DUPLICATE_ENTRY`), and `enum` and `minimum`
-(`INVALID_VALUE`). An abridged `rules.json`:
+a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
+(`WRONG_TYPE`), except on a map key, which takes the key's code;
+`minProperties` and `minItems` of 1 (`EMPTY_COLLECTION`); `uniqueItems`
+(`DUPLICATE_ENTRY`); and `enum` and `minimum` (`INVALID_VALUE`). An abridged
+`rules.json`:
 
 ```json
 {

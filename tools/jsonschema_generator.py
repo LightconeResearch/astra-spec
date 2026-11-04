@@ -78,6 +78,10 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
             del entry["properties"][key]
             if key in entry.get("required", []):
                 entry["required"].remove(key)
+            if entry.get("required") == []:
+                # LinkML leaves `required` empty when the key was the entry's one required field; an empty `required`
+                # checks nothing (JSON Schema 2019-09 Validation §6.5.3), so it goes.
+                del entry["required"]
         reached = _reachable_defs(top)
         top["$defs"] = {
             name: definition

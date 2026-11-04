@@ -47,7 +47,6 @@
           "type": "string"
         }
       },
-      "required": [],
       "then": {
         "properties": {
           "commit": {}
@@ -320,7 +319,6 @@
           "uniqueItems": true
         }
       },
-      "required": [],
       "title": "Option",
       "type": "object"
     },
@@ -516,7 +514,6 @@
           "uniqueItems": true
         }
       },
-      "required": [],
       "title": "Universe",
       "type": "object"
     }

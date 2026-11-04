@@ -441,9 +441,10 @@ CODES = {
     RECORD + "/$defs/Generation/properties/started/pattern": "INVALID_VALUE",
     RECORD + "/$defs/Generation/properties/commit/pattern": "INVALID_COMMIT",
     RECORD + "/properties/address/pattern": "INVALID_REFERENCE",
-    # Map keys, whatever their key's type
+    # Map keys, whatever their key's type, and whatever the key's own type
     ANALYSIS + "/properties/outputs/propertyNames": "INVALID_ID",
     ANALYSIS + "/properties/outputs/propertyNames/pattern": "INVALID_ID",
+    ANALYSIS + "/properties/outputs/propertyNames/type": "INVALID_ID",
     ANALYSIS
     + "/$defs/Universe__identifier_optional/properties/decisions/propertyNames": "INVALID_ID",
     ANALYSIS
@@ -496,20 +497,44 @@ def test_open_variant_has_no_unknown_fields():
 
 
 def test_every_map_key_is_an_id():
-    """A map key that doesn't match its key's type is `INVALID_ID`, whatever that type (an `address` included)."""
+    """A map key that doesn't match its key's type is `INVALID_ID`, whatever that type (an `address` included), and so
+    is a key that isn't a string: every keyword under a `propertyNames` takes the key's code, its `type` too."""
     keys = {
         location: code
         for location, code in rules_catalogue()["errors"].items()
-        if location.endswith(("/propertyNames", "/propertyNames/pattern"))
+        if "/propertyNames" in location
     }
     expected = {
         schema["$id"] + "#" + pointer
         for schema in map(load, SCHEMAS)
         for pointer in reporting_keywords(schema)
-        if pointer.endswith(("/propertyNames", "/propertyNames/pattern"))
+        if "/propertyNames" in pointer
     }
     assert sorted(keys) == sorted(expected)
+    assert any(location.endswith("/propertyNames/type") for location in keys)
     assert {code for code in keys.values()} == {"INVALID_ID"}
+
+
+def schema_objects(node: Any, pointer: str = "") -> Iterator[tuple[str, dict]]:
+    """`(pointer, object)` for every object in the schema `node`, the root included."""
+    if isinstance(node, dict):
+        yield pointer, node
+        for key, child in node.items():
+            yield from schema_objects(child, pointer + json_pointer([key]))
+    elif isinstance(node, list):
+        for index, child in enumerate(node):
+            yield from schema_objects(child, pointer + json_pointer([index]))
+
+
+@pytest.mark.parametrize("name", SCHEMAS)
+def test_no_schema_has_an_empty_required(name):
+    """An empty `required` checks nothing, so no schema keeps one and the error map gives none a code."""
+    empty = [
+        pointer
+        for pointer, node in schema_objects(load(name))
+        if node.get("required") == []
+    ]
+    assert empty == []
 
 
 def test_catalogue_is_built_from_the_sources():
@@ -622,6 +647,66 @@ def test_a_constraint_without_a_code_fails(tmp_path, old, new, message):
     assert old in SCRATCH
     with pytest.raises(ValueError, match=message):
         build_error_map(*scratch_schema(tmp_path, SCRATCH.replace(old, new, 1)))
+
+
+MINIMUMS = {
+    "of a list": (
+        [
+            (
+                "        description: Its commit.\n",
+                (
+                    "        description: Its commit.\n      tags:\n        multivalued: true\n"
+                    "        minimum_cardinality: {n}\n"
+                ),
+            )
+        ],
+        "/properties/tags/minItems",
+    ),
+    "of a map": (
+        [
+            (
+                "classes:\n",
+                (
+                    "classes:\n  Part:\n    attributes:\n      id:\n        key: true\n"
+                    "        pattern: '^[a-z]+$'\n        annotations:\n          rule: INVALID_ID\n"
+                    "      size:\n        range: integer\n"
+                ),
+            ),
+            (
+                "        description: Its commit.\n",
+                (
+                    "        description: Its commit.\n      parts:\n        range: Part\n"
+                    "        multivalued: true\n        inlined: true\n        minimum_cardinality: {n}\n"
+                ),
+            ),
+        ],
+        "/properties/parts/minProperties",
+    ),
+}
+"""A minimum number of entries on the scratch schema: each edit of SCRATCH it takes, with `{n}` the minimum, and the
+keyword it becomes."""
+
+
+def with_minimum(edits: list[tuple[str, str]], n: int) -> str:
+    text = SCRATCH
+    for old, new in edits:
+        assert old in text
+        text = text.replace(old, new.format(n=n), 1)
+    return text
+
+
+@pytest.mark.parametrize("edits, keyword", MINIMUMS.values(), ids=MINIMUMS)
+def test_a_minimum_of_one_is_empty_collection(tmp_path, edits, keyword):
+    error_map = build_error_map(*scratch_schema(tmp_path, with_minimum(edits, 1)))
+    assert error_map["https://example.org/scratch#" + keyword] == "EMPTY_COLLECTION"
+
+
+@pytest.mark.parametrize("edits, keyword", MINIMUMS.values(), ids=MINIMUMS)
+def test_a_minimum_above_one_fails(tmp_path, edits, keyword):
+    """`EMPTY_COLLECTION` says "at least one entry", so a minimum of 2 has no code, and the build fails on it."""
+    schema_and_view = scratch_schema(tmp_path, with_minimum(edits, 2))
+    with pytest.raises(ValueError, match=re.escape(keyword) + ": no code"):
+        build_catalogue(specification(), [schema_and_view])
 
 
 UNUSED = {

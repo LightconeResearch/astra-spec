@@ -9,8 +9,9 @@
   (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it enforces. The code
   comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type or slot that
   defines a pattern, on a class rule, on each branch of an ``exactly_one_of``), or, for the keywords whose code never
-  varies, from a default. Every such keyword has exactly one code, every code is a schema-layer rule of §9, and every
-  ``rule`` annotation gives some keyword its code.
+  varies, from a default. A map's keys take their key's code for both their ``type`` and their ``pattern``. Every such
+  keyword has exactly one code, every code is a schema-layer rule of §9, and every ``rule`` annotation gives some
+  keyword its code.
 """
 
 import argparse
@@ -67,7 +68,14 @@ DEFAULTS = {
     "minimum": "INVALID_VALUE",
 }
 """The keywords whose code never varies, with that code. Also `required` outside a rule (`MISSING_FIELD`) and
-`additionalProperties: false` (`UNKNOWN_FIELD`)."""
+`additionalProperties: false` (`UNKNOWN_FIELD`).
+
+Two take their default only where it is what they check. A map key's `type` takes the key's code, as its `pattern`
+does. `minProperties` and `minItems` take `EMPTY_COLLECTION` ("at least one entry") only with a value of 1 (see
+`ONE_ENTRY`): any other minimum has no code, as `maxItems` has none."""
+
+ONE_ENTRY = {"minProperties", "minItems"}
+"""The keywords whose default, `EMPTY_COLLECTION`, holds only when their value is 1."""
 
 METADATA = {"$comment", "$id", "$schema", "description", "title"}
 """Keywords that never report an error."""
@@ -429,6 +437,8 @@ class _ErrorMap:
             here = [*pointer, keyword]
             if keyword in METADATA or keyword == "$ref":
                 continue  # A `$ref`'s target is walked as its own `$defs` entry.
+            if keyword in ONE_ENTRY and value != 1:
+                raise self.unknown(pointer, keyword)
             if keyword in DEFAULTS:
                 self.add(here, DEFAULTS[keyword])
             elif keyword == "pattern":
@@ -438,8 +448,9 @@ class _ErrorMap:
             elif keyword == "propertyNames":
                 key = self.view.get_identifier_slot(slot.range, use_key=True)
                 key_slot = self.view.induced_slot(key.name, slot.range)
-                self.add(here, self.pattern_code(slot.range, key_slot, here))
-                self.value(value, here, slot.range, key_slot)
+                code = self.pattern_code(slot.range, key_slot, here)
+                self.add(here, code)
+                self.key(value, here, code)
             elif keyword == "additionalProperties" and isinstance(value, dict):
                 # A map's entries: the object form refers to the entry's class; the compact form is its other slot.
                 if "$ref" in value:
@@ -448,6 +459,15 @@ class _ErrorMap:
                     self.value(value, here, slot.range, self.compact_slot(slot, here))
             else:
                 raise self.unknown(pointer, keyword)
+
+    def key(self, node: dict, pointer: list[Any], code: str) -> None:
+        """A map's keys: their `type` and `pattern` both take the key's code, since either fails on a key that isn't one."""
+        for keyword in node:
+            if keyword in METADATA:
+                continue
+            if keyword not in ("type", "pattern"):
+                raise self.unknown(pointer, keyword)
+            self.add([*pointer, keyword], code)
 
     # Inside a class rule or an exactly-one-of branch, every keyword that can report an error takes the rule's code.
 
