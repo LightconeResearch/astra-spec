@@ -45,7 +45,7 @@ doesn't restate them.
 | pin | `#` and a universe id after a reference, which reads the output in that universe | §4 |
 | root | the analysis being validated or built | §7 |
 | analysis stack | the root and every analysis it declares, directly or through others | §7 |
-| driver, driven | an analysis whose universes set another's decisions, and that other | §7 |
+| driver, driven | in the root's universes, the root, and an analysis whose decisions they set through a declaration; the root is never driven | §7 |
 | consuming | using another analysis's element by address, without driving it | §7 |
 | analysis from a commit | a declared analysis as it was at a given commit | §7 |
 | result | what a recipe made for one output in one universe, or once | §8 |
@@ -613,8 +613,8 @@ its recipe has no `{decisions.<entry>}` placeholder
 An analysis with no decisions, whose outputs read only what is the same in
 every universe, needs no universes. One with decisions, or with outputs built
 per universe, but no universes has none of its own to build those outputs in.
-That is expected when it is driven or consumes a decision (§7), and is
-otherwise warned about ([`NO_UNIVERSES`](#validator)).
+That is expected when the root's universes drive it or it consumes a decision
+(§7), and is otherwise warned about ([`NO_UNIVERSES`](#validator)).
 
 ### Which universe a reference reads
 
@@ -682,6 +682,11 @@ declares, directly or through other declared analyses. A validator reads
 every `astra.yaml` of the stack, each by the `spec_version` it states
 ([`UNSUPPORTED_SPEC_VERSION`](#validator)).
 
+The universes being built are the root's. In them the root is the driver and
+is never driven, even when a declaration in its stack leads back to it.
+Another analysis's universe is used only where a pin names it. That analysis
+is then its driver, and what is built there belongs to it (§8).
+
 ### Driving and consuming
 
 An analysis uses the elements of another in two ways.
@@ -708,8 +713,10 @@ that declaration.
   set under either spelling (`stage.inner.d` or `inner.d`). Every spelling
   of one decision in a universe selects the same option
   ([`CONFLICTING_SELECTIONS`](#validator)).
-- A driven analysis's own universes aren't used. Each universe being built
-  has one driver.
+- In the root's universes, a driven analysis's own universes don't set its
+  decisions. A pin in its own file, or through an undriven declaration,
+  still reads one of them (below). Each universe being built has one driver,
+  the analysis whose universe it is.
 
 Driving leaves an analysis able to stand alone, and consuming a decision ties
 the outputs that use it to the decision's analysis. By convention, a
@@ -874,12 +881,14 @@ A **result** is what a recipe made for one output in one universe, or once
 for an output built once. The results an analysis's outputs and universes
 call for are its **planned** results.
 
-A result belongs to the analysis whose universe it was built in, so the
-results of a driven analysis belong to its driver. The result of an output
-built once belongs to the analysis whose output it is. In that analysis, the
-result's **name** is the output's id after the ids of the declarations that
-lead to it (`subanalysis1.output1`), and its **address** is the name followed,
-for a result built in a universe, by `#` and the universe's id
+A result belongs to the analysis whose universe it was built in. So what a
+driven analysis builds in its driver's universes belongs to the driver. The
+result of an output built once belongs to the analysis whose output it is. In
+that analysis, the result's **name** is the output's id after the ids of the
+declarations its universe is pushed through (`subanalysis1.output1`): driven
+ones, never an undriven one, since a pin through an undriven declaration
+names that analysis's own universe (§7). Its **address** is the name
+followed, for a result built in a universe, by `#` and the universe's id
 (`subanalysis1.output1#u1`). The address is the record's `address`.
 
 ### Where records and bytes go
@@ -895,8 +904,8 @@ Both are worked out from the result's address. A record is the record only
 of the result its `address` names ([`MISSING_RECORD`](#check),
 [`MISPLACED_RECORD`](#check)). The runner writes the bytes to their default
 place ([`UNRECORDED_RESULT`](#runner)) and tells the recipe where to write
-through `{output}`, so a driven analysis's recipes write into the driver's
-results. For the analysis of §2:
+through `{output}`, so a driven analysis's recipes write what they build in
+the driver's universes into the driver's results. For the analysis of §2:
 
 ```text
 .astra/records/
@@ -1174,7 +1183,7 @@ A table that breaks any of this is an error in this specification, and no
 | `OUTPUT_CYCLE` | MUST | No output depends on itself, directly or through others | 0004 |
 | `REDUNDANT_PIN` | SHOULD | No reference to an output built once has a pin | 0003 |
 | `UNPINNED_EVIDENCE` | SHOULD | Every evidence citing an output built per universe pins it | 0003, 0004 |
-| `NO_UNIVERSES` | SHOULD | Every analysis with decisions, or with outputs built per universe, has universes, unless it is driven or consumes a decision | 0003, 0004 |
+| `NO_UNIVERSES` | SHOULD | Every analysis with decisions, or with outputs built per universe, has universes, unless the root's universes drive it, or it consumes a decision | 0003, 0004 |
 | `PIN_LIKE_COMMENT` | SHOULD | No `inputs` entry has a line comment that looks like a pin (needs the source text) | 0003 |
 
 ### check

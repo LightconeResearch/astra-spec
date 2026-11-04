@@ -616,7 +616,7 @@
       "layer": "validator",
       "level": "SHOULD",
       "source": "0003, 0004",
-      "statement": "Every analysis with decisions, or with outputs built per universe, has universes, unless it is driven or consumes a decision"
+      "statement": "Every analysis with decisions, or with outputs built per universe, has universes, unless the root's universes drive it, or it consumes a decision"
     },
     {
       "code": "PIN_LIKE_COMMENT",
