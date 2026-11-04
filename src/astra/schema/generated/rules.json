@@ -469,7 +469,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0006",
-      "statement": "An input's `path` names a file, or something standing in for one"
+      "statement": "An input's `path` names a file, or something the validator recognises as standing in for one (§5)"
     },
     {
       "code": "INPUT_NOT_TRACKED",

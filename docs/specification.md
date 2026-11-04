@@ -358,12 +358,14 @@ and no ASCII control character (U+0000–U+001F, U+007F), and doesn't end in
   within it, a directory with an `astra.yaml` of its own
   ([`INPUT_IN_ANOTHER_ANALYSIS`](#validator)). Another analysis reads it by
   address (`iris.data`), not by a path.
-- What is committed is the file itself, or something standing in for it that
-  tooling recognises: a git-annex link or a Git LFS pointer at the path, or a
-  DVC file beside it ([`MISSING_INPUT_FILE`](#validator)). The file, or what
+- The path names the file itself, or something the tooling recognises as
+  standing in for it ([`MISSING_INPUT_FILE`](#validator)). The file, or what
   stands in for it, is tracked in git ([`INPUT_NOT_TRACKED`](#validator)).
-  How a large file's bytes are kept is the tooling's. Something standing in
-  for the content isn't the content.
+  Which stand-ins a tool recognises, and where it looks for them, is the
+  tool's: the specification names none, and two tools may judge the same
+  input differently. How a file's bytes are stored and got is the runner's,
+  and every record names its runner (§8). Something standing in for the
+  content isn't the content.
 
 `astra.yaml` holds no hash of an input. The record of each result that reads
 the input holds the hash of what it read (§8), so a change to the file makes
@@ -859,11 +861,12 @@ later than the commit their recipes ran from, `A`, which the records name.
 The result is unchanged if nothing that [`STALE_RESULT`](#check) compares
 changed between `A` and `B`, and the results it was made from are unchanged
 too. Their content hashes are taken from their records, without their
-bytes. When a recipe reads the result, its bytes come from what git holds at
-the result's default place at the declared commit, or from the tooling that
-recognises what stands in for them there, and are checked against the
-record. An input of the declared analysis read by address is got in the same
-way, from its `path` at the declared commit.
+bytes. When a recipe reads the result, the runner gets its bytes from what
+the declared commit holds at the result's default place, or through
+something there it recognises as standing in for them (§5), and they are
+checked against the record. An input of the declared analysis read by
+address is got from its `path` at the declared commit, or through what the
+runner recognises as standing in for it (§5).
 
 **Driving.** A driver's universes can drive an analysis from a commit, as any
 declared analysis. Its recipes then run on exactly its files at the declared
@@ -931,11 +934,10 @@ many files is written as an archive, or as several outputs.
 
 Records are tracked in git with the analysis, as its `astra.yaml` is, so they
 can be read whether or not the bytes are there. The bytes needn't stay at
-their default place ([`ABSENT_RESULT`](#check) is a `SHOULD`): git-annex or
-Git LFS, for example, keep them in a store and leave a link or a pointer
-standing in for them. Anything else at the default place, something standing
-in for the bytes, other bytes or nothing, leaves the result's bytes `absent`
-([`ABSENT_RESULT`](#check)).
+their default place ([`ABSENT_RESULT`](#check) is a `SHOULD`): a runner may
+keep them elsewhere and leave something standing in for them (§5). Anything
+else at the default place, something standing in for the bytes, other bytes
+or nothing, leaves the result's bytes `absent` ([`ABSENT_RESULT`](#check)).
 
 ### What a record holds
 
@@ -1188,7 +1190,7 @@ A table that breaks any of this is an error in this specification, and no
 | `COMMIT_NOT_ANCESTOR` | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in | 0007 |
 | `REMOTE_UNREACHABLE` | MUST | A declaration's `url` can be fetched and has its `commit` | 0007 |
 | `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit | 0007 |
-| `MISSING_INPUT_FILE` | MUST | An input's `path` names a file, or something standing in for one | 0006 |
+| `MISSING_INPUT_FILE` | MUST | An input's `path` names a file, or something the validator recognises as standing in for one (§5) | 0006 |
 | `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it, is tracked in git | 0006 |
 | `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is outside every other analysis's directory | 0006 |
 | `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis | 0003 |
