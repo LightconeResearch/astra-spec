@@ -5,7 +5,6 @@ see its LICENSE), each case's `in.yaml` at its id, from the release `data-2022-0
 cases with an `error` file, each a text YAML 1.2.2 makes ill-formed.
 """
 
-import math
 from pathlib import Path
 
 import pytest
@@ -14,7 +13,14 @@ from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError
 from ruamel.yaml.error import YAMLError
 from ruamel.yaml.scanner import ScannerError
 
-from .conftest import REPO_ROOT, error_pointers, load_yaml, validator
+from .conftest import (
+    REPO_ROOT,
+    error_pointers,
+    load_document,
+    load_yaml,
+    parse_code,
+    validator,
+)
 
 YAML_TEST_SUITE = REPO_ROOT / "tests" / "yaml-test-suite"
 
@@ -68,8 +74,6 @@ def load(tmp_path):
         ("1e3", 1000.0),
         ("1.2", 1.2),
         ("1_000.5", "1_000.5"),
-        (".inf", math.inf),
-        ("-.Inf", -math.inf),
         # everything else, timestamps included, is a string
         ("0.1.0", "0.1.0"),
         ("2026-10-26", "2026-10-26"),
@@ -80,10 +84,6 @@ def load(tmp_path):
 )
 def test_plain_scalars_resolve_by_the_core_schema(load, scalar, value):
     assert load(f"a: {scalar}\n") == {"a": value}
-
-
-def test_nan_is_a_float(load):
-    assert math.isnan(load("a: .nan\n")["a"])
 
 
 def test_quoted_scalars_are_strings(load):
@@ -423,8 +423,8 @@ def test_a_verbatim_core_tag_is_allowed(load):
         ("a", '"\\x61"'),
         ("a", "! a"),
         ("a", "!!str a"),
-        (".nan", ".nan"),
         ("0x1f", "31"),
+        ("true", "True"),
         ("1e3", "1000.0"),
         ("0.0", "-0.0"),
         ("~", "null"),
@@ -436,15 +436,103 @@ def test_keys_that_are_equal_nodes_are_duplicates(load, keys):
         load(f"{first}: x\n{second}: y\n")
 
 
-def test_keys_of_another_tag_are_distinct(load):
-    assert load('1: x\n"1": y\n') == {1: "x", "1": "y"}
+def test_a_key_written_twice_is_a_duplicate_whatever_its_type(load):
+    with pytest.raises(DuplicateKeyError):
+        load("true: x\ntrue: y\n")
+
+
+# --- Values with no JSON form (spec §3) ---
+
+
+@pytest.mark.parametrize("key", ["~", "[a, b]", "{a: 1}"])
+def test_a_key_that_isnt_a_string_is_left_out_and_reported(key):
+    assert load_document(f"? {key}\n: x\nb: y\n") == ({"b": "y"}, [("(root)", key)])
 
 
 @pytest.mark.parametrize("keys", [("1", "1.0"), ("1", "true"), ("0", "false")])
-def test_distinct_keys_python_cant_hold_apart_are_an_error(load, keys):
+def test_keys_of_two_tags_are_two_keys_left_out(keys):
+    """Keys that are distinct YAML nodes are two keys, even where they are one Python value (`1 == 1.0 == True`)."""
     first, second = keys
-    with pytest.raises(ConstructorError):
-        load(f"{first}: x\n{second}: y\n")
+    assert load_document(f"{first}: x\n{second}: y\n") == (
+        {},
+        [("(root)", first), ("(root)", second)],
+    )
+
+
+def test_keys_of_another_tag_are_distinct():
+    """`1` and `"1"` are two keys: the string is kept, and the integer left out."""
+    assert load_document('1: x\n"1": y\n') == ({"1": "y"}, [("(root)", "1")])
+
+
+def test_a_key_left_out_is_reported_at_its_map():
+    assert load_document(
+        "a:\n  - b/c:\n      true: x\n      d: 1\n  - 2: {3: y}\n"
+    ) == (
+        {"a": [{"b/c": {"d": 1}}, {}]},
+        [("/a/0/b~1c", "true"), ("/a/1", "2")],
+    )
+
+
+def test_a_key_inside_a_left_out_entry_isnt_reported():
+    assert load_document("1:\n  true: x\n? {2: y}\n: z\n") == (
+        {},
+        [("(root)", "1"), ("(root)", "{2: y}")],
+    )
+
+
+def test_load_yaml_refuses_a_key_that_isnt_a_string(load):
+    with pytest.raises(ValueError, match="'1' at /a"):
+        load("a: {1: x}\n")
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "a: .inf\n",
+        "a: -.Inf\n",
+        "a: .nan\n",
+        ".inf: x\n",
+        "-.Inf: x\n",
+        ".nan: x\n",
+        "a: 1e400\n",
+        "a: -1e400\n",
+        "a: 1" + "0" * 399 + "\n",
+        "a: 0x" + "f" * 300 + "\n",
+        "a: 1234e" + "1" * 35 + "\n",
+        'a: "\\uD800"\n',
+        'a: "\\uDC80"\n',
+        'a: "\\uDE00\\uD83D"\n',
+        'a: "x\\U0000D800"\n',
+        '"\\uD800": x\n',
+        "? [.nan]\n: x\n",
+        "1: {a: .nan}\n",
+    ],
+)
+def test_a_value_with_no_json_form_is_invalid_syntax(text):
+    """A number that isn't finite or is beyond a double's range, and a lone surrogate, as a value, a key or inside a
+    key or a left-out entry (an unquoted commit id of digits and an `e` included)."""
+    with pytest.raises(YAMLError) as raised:
+        load_document(text)
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+@pytest.mark.parametrize(
+    "scalar, value",
+    [
+        ("1e-400", 0.0),
+        ("1e308", 1e308),
+        ("1" + "0" * 308, 10**308),
+        ("9007199254740993", 9007199254740993),
+        ('"\\uD83D\\uDE00"', "\U0001f600"),
+        ('"\\U0001F600"', "\U0001f600"),
+    ],
+)
+def test_a_value_with_a_json_form_is_read(load, scalar, value):
+    """A number too small for a double is 0, one within its range is read exactly, and an escaped surrogate pair is
+    the one character it encodes, as in JSON."""
+    loaded = load(f"a: {scalar}\n")["a"]
+    assert loaded == value
+    assert type(loaded) is type(value)
 
 
 @pytest.mark.parametrize(

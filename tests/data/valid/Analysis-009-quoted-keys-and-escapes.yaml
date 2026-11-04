@@ -1,0 +1,15 @@
+# Quoted, `true` and `false` are strings, so they are valid ids. An escaped
+# surrogate pair is one character (U+1F600), and an integer has no maximum.
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    label: "\uD83D\uDE00"
+    decisions: [augment]
+    recipe: {command: x, resources: {gpus: 9007199254740993}}
+decisions:
+  augment:
+    options:
+      "true": {}
+      "false": {}

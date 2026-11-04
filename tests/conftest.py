@@ -4,7 +4,6 @@ import functools
 import json
 import math
 import re
-from collections.abc import Hashable
 from pathlib import Path
 from typing import Any
 
@@ -217,17 +216,59 @@ class _CoreSchemaComposer(Composer):
         return super().compose_scalar_node(anchor)
 
 
+def _joined(value: str, mark: Any) -> str:
+    """The string `value`, with each surrogate pair joined into the one character it encodes, as JSON joins `\\uD83D\\uDE00`
+    into U+1F600; any other surrogate (U+D800-U+DFFF) raises `ConstructorError`, since a string holding one has no JSON
+    form (spec §3).
+
+    A surrogate can come only from an escape: YAML text can't hold one as a character.
+    """
+    try:
+        return value.encode("utf-16-le", "surrogatepass").decode("utf-16-le")
+    except UnicodeDecodeError as error:
+        unit = int.from_bytes(error.object[error.start : error.start + 2], "little")
+        raise ConstructorError(
+            None,
+            None,
+            f"found the lone surrogate U+{unit:04X}: a string holding one has no JSON form",
+            mark,
+        ) from None
+
+
+def _written(node: Any) -> str:
+    """`node` as written in the text it was read from: from its first character (its tag's, if it has one) to its last."""
+    start, end = node.start_mark, node.end_mark
+    return start.buffer[start.pointer : start.pointer + end.index - start.index]
+
+
 class _CoreSchemaConstructor(SafeConstructor):
-    """Constructs the core schema's types only, each from its core form; any other tag is an error."""
+    """Constructs the core schema's types only, each from its core form; any other tag is an error, and so is a value
+    with no JSON form (spec §3): a float that isn't finite, an integer beyond a double's range, a string holding a lone
+    surrogate.
+
+    A map entry whose key isn't a string has no JSON form either, and is left out of its map. If the map is one of
+    `map_pointers`, the maps of the document's JSON form, the key is recorded in `left_out`.
+    """
 
     yaml_constructors: dict[Any, Any] = {}
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.map_pointers: dict[MappingNode, str] = {}
+        """The JSON Pointer of each map node of the document's JSON form, by node (`_map_pointers`)."""
+        self.left_out: list[tuple[int, str, str]] = []
+        """`(index, pointer of the map, key as written)` for each key left out of a map of `map_pointers`, `index`
+        being where the key starts in the text (maps are constructed out of document order)."""
 
     def construct_mapping(self, node: Any, deep: bool = False) -> Any:
         """The map of `node`, whose keys must be distinct YAML nodes (YAML 1.2.2 §3.2.1.3); `<<` is an ordinary key.
 
-        Two keys with the same tag and canonical form raise `DuplicateKeyError`, whatever their spelling: `a` and
-        `"\\x61"`, `.nan` and `.nan`. Keys that are distinct nodes but one Python value, such as `1`, `1.0` and `true`,
-        raise `ConstructorError`, since a Python dict can't hold them apart.
+        Two keys with the same tag and canonical form raise `DuplicateKeyError`, whatever their spelling and type: `a`
+        and `"\\x61"`, `0x1f` and `31`, `true` and `True`. Keys of two tags are distinct, so `1`, `1.0`, `true` and
+        `"1"` are four keys. An entry whose key isn't tagged `!!str` (a bool, a number, a null, a list or a map) isn't
+        added: its key and value are still constructed, so that an error in them is raised, but it has no JSON form.
+        If `node` is one of `map_pointers`, the key is recorded in `left_out`. A map inside a left-out entry isn't one
+        of them, so a key left out of it is dropped with the entry.
         """
         if not isinstance(node, MappingNode):
             raise ConstructorError(
@@ -237,7 +278,7 @@ class _CoreSchemaConstructor(SafeConstructor):
                 node.start_mark,
             )
         canonical_keys = set()
-        mapping: dict[Any, Any] = {}
+        mapping: dict[str, Any] = {}
         for key_node, value_node in node.value:
             canonical = self._canonical(key_node)
             if canonical in canonical_keys:
@@ -249,23 +290,17 @@ class _CoreSchemaConstructor(SafeConstructor):
                 )
             canonical_keys.add(canonical)
             key = self.construct_object(key_node, deep=True)
-            if isinstance(key, list):
-                key = tuple(key)
-            if not isinstance(key, Hashable):
-                raise ConstructorError(
-                    "while constructing a mapping",
-                    node.start_mark,
-                    "found a key Python can't hash",
-                    key_node.start_mark,
+            value = self.construct_object(value_node, deep=deep)
+            if key_node.tag == _TAG + "str":
+                mapping[key] = value
+            elif node in self.map_pointers:
+                self.left_out.append(
+                    (
+                        key_node.start_mark.index,
+                        self.map_pointers[node],
+                        _written(key_node),
+                    )
                 )
-            if key in mapping:
-                raise ConstructorError(
-                    "while constructing a mapping",
-                    node.start_mark,
-                    "found a key that is a distinct YAML node but equal in Python to an earlier one",
-                    key_node.start_mark,
-                )
-            mapping[key] = self.construct_object(value_node, deep=deep)
         return mapping
 
     def _canonical(self, node: Any) -> Any:
@@ -274,10 +309,7 @@ class _CoreSchemaConstructor(SafeConstructor):
         With no alias, a node holds no node twice, so the recursion ends.
         """
         if isinstance(node, ScalarNode):
-            value = self.construct_object(node, deep=True)
-            if isinstance(value, float) and math.isnan(value):
-                value = ".nan"
-            return node.tag, value
+            return node.tag, self.construct_object(node, deep=True)
         if isinstance(node, SequenceNode):
             return node.tag, tuple(self._canonical(item) for item in node.value)
         return node.tag, frozenset(
@@ -299,21 +331,47 @@ class _CoreSchemaConstructor(SafeConstructor):
         return self._core_scalar(node, "bool").lower() == "true"
 
     def construct_core_int(self, node: Any) -> int:
+        """An integer, read exactly; one beyond a double's range, which a double rounds to infinity, has no JSON form."""
         value = self._core_scalar(node, "int")
         if value.startswith(("0o", "0x")):
-            return int(value[2:], 8 if value[1] == "o" else 16)
-        return int(value)
+            number = int(value[2:], 8 if value[1] == "o" else 16)
+        else:
+            number = int(value)
+        try:
+            float(number)
+        except OverflowError:
+            raise ConstructorError(
+                None,
+                None,
+                f"{value!r} is beyond a double's range: it has no JSON form",
+                node.start_mark,
+            ) from None
+        return number
 
     def construct_core_float(self, node: Any) -> float:
-        value = self._core_scalar(node, "float").lower()
-        return float(value.replace(".inf", "inf").replace(".nan", "nan"))
+        """A float; `.inf`, `-.inf`, `.nan` and a float beyond a double's range, which rounds to infinity, have no JSON
+        form. One too small for a double rounds to 0."""
+        value = self._core_scalar(node, "float")
+        number = float(value.lower().replace(".inf", "inf").replace(".nan", "nan"))
+        if not math.isfinite(number):
+            raise ConstructorError(
+                None,
+                None,
+                f"{value!r} isn't a finite number within a double's range: it has no JSON form",
+                node.start_mark,
+            )
+        return number
+
+    def construct_core_str(self, node: Any) -> str:
+        """A string, a key's too, with each escaped surrogate pair joined into one character; a lone surrogate raises."""
+        return _joined(self.construct_scalar(node), node.start_mark)
 
 
-for _name in _CORE_SCALARS:
+for _name in (*_CORE_SCALARS, "str"):
     _CoreSchemaConstructor.add_constructor(
         _TAG + _name, getattr(_CoreSchemaConstructor, f"construct_core_{_name}")
     )
-for _name in ("str", "seq", "map"):
+for _name in ("seq", "map"):
     _CoreSchemaConstructor.add_constructor(
         _TAG + _name, getattr(SafeConstructor, f"construct_yaml_{_name}")
     )
@@ -331,22 +389,28 @@ def _core_schema_yaml() -> YAML:
     return yaml
 
 
-def _load(source: Path | str) -> Any:
-    """The document in `source`, a file or a text, with an error Python raises for its text raised as a YAML error.
+def _map_pointers(root: Any) -> dict[MappingNode, str]:
+    """The JSON Pointer of each map node of the document's JSON form, by node, as `errors` writes it (`(root)` for the
+    document): each map reached from `root` through list items and keys tagged `!!str`, and no other."""
+    pointers: dict[MappingNode, str] = {}
+    todo: list[tuple[Any, list[Any]]] = [(root, [])]
+    while todo:
+        node, path = todo.pop()
+        if isinstance(node, MappingNode):
+            pointers[node] = _pointer(path)
+            todo.extend(
+                (value, [*path, _joined(key.value, key.start_mark)])
+                for key, value in node.value
+                if key.tag == _TAG + "str" and isinstance(key, ScalarNode)
+            )
+        elif isinstance(node, SequenceNode):
+            todo.extend((item, [*path, i]) for i, item in enumerate(node.value))
+    return pointers
 
-    ruamel.yaml turns a `\\U` escape into a character without checking its range, so an escape beyond U+10FFFF
-    raises `ValueError` or `OverflowError`: it is raised as a `ScannerError`, from the original.
-    """
-    try:
-        return _core_schema_yaml().load(source)
-    except (ValueError, OverflowError) as error:
-        raise ScannerError(
-            None, None, f"found text YAML can't read as a value: {error}"
-        ) from error
 
-
-def load_yaml(path: Path) -> Any:
-    """The document in `path`, read as YAML 1.2.2 under the core schema only; raises a `YAMLError` if it isn't one.
+def load_document(source: Path | str) -> tuple[Any, list[tuple[str, str]]]:
+    """`(document, left_out)`: the JSON form of the document in `source`, a file or a text, read as YAML 1.2.2 under
+    the core schema only, and the keys left out of it; raises a `YAMLError` if it isn't such a document.
 
     A plain scalar is a null, a bool, an int or a float only in its core-schema form, and a string otherwise (so
     timestamps and `1_000` are strings); a scalar tagged `!` is a string; `<<` is an ordinary key; a tag outside the
@@ -354,17 +418,61 @@ def load_yaml(path: Path) -> Any:
     a scalar of another form (`!!seq x`, `!!bool yes`) and a `%YAML` directive other than 1.2 are errors. An anchor,
     an alias and a second document raise `ComposerError`; a file with no document (empty, or only comments) is
     None. Two keys of a map that are equal YAML nodes, with the same tag and canonical form, raise
-    `DuplicateKeyError` (keys that are distinct nodes but one Python value, such as `1` and `true`, raise
-    `ConstructorError`). Text YAML 1.2.2 makes ill-formed raises a `YAMLError` even where ruamel.yaml would read it:
-    a comment glued to a token, an under-indented line of a flow collection or a quoted scalar, `[-]`, `!<!>`, and
-    a `\\U` escape beyond U+10FFFF. A `RecursionError` (a document nested too deep) is left as it is.
+    `DuplicateKeyError`, whatever their type. Text YAML 1.2.2 makes ill-formed raises a `YAMLError` even where
+    ruamel.yaml would read it: a comment glued to a token, an under-indented line of a flow collection or a quoted
+    scalar, `[-]`, `!<!>`, and a `\\U` escape beyond U+10FFFF. A `RecursionError` (a document nested too deep) is
+    left as it is.
+
+    A value with no JSON form raises a `ConstructorError` (spec §3): `.inf`, `-.inf`, `.nan`, a number beyond a
+    double's range (`1e400`, an integer of 400 digits), and a string holding a surrogate that isn't half of an
+    escaped pair (`"\\uD800"`); an escaped pair is one character, so `"\\uD83D\\uDE00"` is U+1F600. A key that
+    isn't a string (`true`, `1`, `~`, a list or a map) has no JSON form either, but it is left out rather than
+    raised: its entry isn't in the document, and `left_out` holds `(pointer of the map, key as written)` for it, in
+    document order, as `errors` writes a pointer, so that the rest of the document can be validated. A key inside a
+    left-out entry is left out with it, and not listed. The document is composed first, so that each map's pointer
+    is known, then constructed.
     """
-    return _load(path)
+    text = source.read_bytes() if isinstance(source, Path) else source
+    yaml = _core_schema_yaml()
+    try:
+        node = yaml.compose(text)
+        if node is None:
+            return None, []
+        constructor = yaml.constructor
+        constructor.map_pointers = _map_pointers(node)
+        document = constructor.construct_document(node)
+        return document, [(at, key) for _, at, key in sorted(constructor.left_out)]
+    except (ValueError, OverflowError) as error:
+        # ruamel.yaml turns a `\U` escape into a character without checking its range, so an escape beyond
+        # U+10FFFF raises `ValueError` or `OverflowError`: it is raised as a `ScannerError`, from the original.
+        raise ScannerError(
+            None, None, f"found text YAML can't read as a value: {error}"
+        ) from error
+
+
+def _without_left_out_keys(loaded: tuple[Any, list[tuple[str, str]]]) -> Any:
+    """The document of `load_document`'s result, or a `ValueError` naming the keys left out of it, if any."""
+    document, left_out = loaded
+    if left_out:
+        raise ValueError(
+            "keys that aren't strings, left out of the document's JSON form: "
+            + ", ".join(f"{key!r} at {pointer}" for pointer, key in left_out)
+        )
+    return document
+
+
+def load_yaml(path: Path) -> Any:
+    """The JSON form of the document in `path`, as `load_document` reads it; raises a `YAMLError` if it isn't one, and
+    a `ValueError` naming each key that isn't a string, if it has any.
+
+    So a document that must be valid (a valid fixture, an example, a block of the specification) fails on such a key.
+    """
+    return _without_left_out_keys(load_document(path))
 
 
 def load_yaml_text(text: str) -> Any:
     """The document `text`, read as `load_yaml` reads a file."""
-    return _load(text)
+    return _without_left_out_keys(load_document(text))
 
 
 @functools.cache

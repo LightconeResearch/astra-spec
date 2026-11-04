@@ -198,9 +198,12 @@ strictly, under the core schema only
   ([YAML 1.2.2 §3.2.1.3](https://yaml.org/spec/1.2.2/#3213-node-comparison)),
   so `a`, `'a'` and `"\x61"` are one key, and `1` and `"1"` are two;
 - the core schema's only scalar types are strings, nulls, booleans, integers
-  and floats. An integer or a float is a JSON number, unless JSON has no
-  number for it, and a field's type is checked as JSON Schema checks it, so
-  `2.0` is an integer. `yes`, `no`, `on` and `off` are strings, and valid ids.
+  and floats. An integer or a float is a JSON number, and a field's type is
+  checked as JSON Schema checks it, so `2.0` is an integer. `.inf`, `-.inf`
+  and `.nan`, and a number beyond the range of a double (IEEE 754 binary64),
+  which rounds to infinity (`1e400`, an integer of 400 digits), have no JSON
+  form and make the file invalid ([`INVALID_SYNTAX`](#parse-and-schema)).
+  `yes`, `no`, `on` and `off` are strings, and valid ids.
   Timestamps and merge keys are not types: an unquoted date, such as
   `2026-10-26`, is a string, and `<<` is an ordinary key, so in an entry it is
   a field the schema doesn't define ([`UNKNOWN_FIELD`](#parse-and-schema));
@@ -211,11 +214,28 @@ strictly, under the core schema only
   them, such as `True` and `~`); `1e3`, `0x1F`, `-.5` and `010` (which is 10)
   are numbers; and `1_000`, `0b101`, `12:30` and `+.nan` are strings. An
   unquoted commit id of digits only is therefore an integer, and one of digits
-  and a single `e` a float, as is a version such as `1.2`. They are quoted
-  when meant as ids or strings, as in `"true": {}`, and so are commit ids and
-  versions, as in `commit: "0dbb615a…"` and `spec_version: "0.1.0"`. A value
-  of another type than its field takes fails as
-  [`WRONG_TYPE`](#parse-and-schema).
+  and a single `e` a float, or invalid at parse when that float is beyond a
+  double's range (`1234e9` followed by 34 digits); a version such as `1.2` is
+  a float too. They are quoted when meant as ids or strings, as in
+  `"true": {}`, and so are commit ids and versions, as in
+  `commit: "0dbb615a…"` and `spec_version: "0.1.0"`. A value of another type
+  than its field takes fails as [`WRONG_TYPE`](#parse-and-schema);
+- every key is a string. A key the core schema reads as a boolean, a number
+  or a null (`true:`, `1:`, `~:`), or a key that is a list or a map, has no
+  JSON form ([`INVALID_ID`](#parse-and-schema)). It is reported at its map,
+  naming the key as written, and its entry is left out of the JSON form the
+  schema checks: the parse rules apply in the entry, but no schema rule does,
+  and the rest of the file is checked as that form stands, so an `outputs` map
+  whose only key is `1` is also empty
+  ([`EMPTY_COLLECTION`](#parse-and-schema)). Keys are compared before that,
+  so `true:` written twice in one map is [`DUPLICATE_KEY`](#parse-and-schema).
+  A key that fails at parse, such as `.nan`, is
+  [`INVALID_SYNTAX`](#parse-and-schema), as any value is;
+- a `\u` or `\U` escape of a surrogate (U+D800–U+DFFF) is read only as half
+  of a pair: a high surrogate's escape followed at once by a low one's, which
+  together give one character, as in JSON, so `"\uD83D\uDE00"` is U+1F600.
+  Any other surrogate escape makes the file invalid
+  ([`INVALID_SYNTAX`](#parse-and-schema)).
 
 **Records** are JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)),
 well-formed ([`INVALID_SYNTAX`](#parse-and-schema)). A record is one JSON
@@ -224,7 +244,9 @@ value, checked by the same schema rules.
 **Every document** holds only the fields its schema defines
 ([`UNKNOWN_FIELD`](#parse-and-schema)), each with the JSON type the field
 takes ([`WRONG_TYPE`](#parse-and-schema)). An optional field without a value
-is left out: no field takes `null`.
+is left out: no field takes `null`. Its JSON form is what the schema checks:
+each string is a sequence of Unicode scalar values, and each number is finite
+and within a double's range ([`INVALID_SYNTAX`](#parse-and-schema)).
 
 **Locations.** In an analysis's directory:
 
@@ -1271,9 +1293,9 @@ A table that breaks any of this is an error in this specification, and no
 
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's, and every record is well-formed JSON | 0005, tidy-up, §3 |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; every record is well-formed JSON; and in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range | 0005, tidy-up, §3 |
 | `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, tidy-up, §3, §4 |
-| `INVALID_ID` | schema | MUST | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | tidy-up, main, §4 |
+| `INVALID_ID` | schema | MUST | Every map key is a string, and matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
 | `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main |
 | `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | tidy-up, §10 |
@@ -1446,7 +1468,13 @@ for the same error and words each rule the same way. It holds:
   version, through `$id`. Each code is a schema-layer rule's. The
   parse-layer codes have no entry, because loaders and §3's checks report
   them, not schemas; nor does the open variant's `additionalProperties`,
-  which fails on nothing.
+  which fails on nothing. A key that isn't a string is reported without
+  them: it has no JSON form, so a tool reports it from the parsed YAML, as
+  [`INVALID_ID`](#parse-and-schema) at its map (§3). A tool that hands its
+  validator the key unconverted gets the same code at the same place only in
+  a map keyed by an id or an address, through the entry of `propertyNames`'
+  `type`: among a document's or an entry's fields, it gets
+  [`UNKNOWN_FIELD`](#parse-and-schema) from `additionalProperties`.
 - `$comment`: the version of the release it was made from.
 
 In the schema's sources, each constraint names the rule it enforces: a
@@ -1550,6 +1578,23 @@ own test doesn't take, so a tool reads an explicitly tagged scalar's source
 by its tag's row of the table too, refusing `!!int 1_000` and reading
 `!!float 1` as the float 1. `yaml` reports a second document itself
 (`MULTIPLE_DOCS`), and gives `null` for a file with none.
+
+Before `toJS()`, a tool walks the document twice more. The first walk
+refuses a scalar, a key included, holding a number that isn't
+`Number.isFinite` or a string that isn't `isWellFormed()`
+([`INVALID_SYNTAX`](#parse-and-schema)): `yaml` reads `.inf`, `.nan`, `1e400`
+and an integer of 400 digits as numbers that aren't finite, and the escape of
+a lone surrogate as that surrogate. `yaml` reads an escaped pair as one
+character, as §3 does, and an integer beyond 2<sup>53</sup> rounded, which no
+check depends on. The second walk goes through the document's maps from the
+top, reporting each pair whose key isn't a `Scalar` holding a string as
+[`INVALID_ID`](#parse-and-schema) at its map, and deleting the pair without
+walking into it. Without it, `toJS()` would turn the key `true` into the
+valid id `"true"`, and keep only one of `true` and `"true"` in one map.
+`yaml`'s `uniqueKeys: true` compares keys by value alone, so a tool passes
+instead a function that compares them as §3 does: by tag (resolved from a
+plain scalar's `source` by the table, since `yaml` keeps none) and canonical
+form. Then `1` and `1.0` are two keys, and `? [a]` written twice is one.
 
 **RDF.** A record's RDF is what the
 [JSON-LD 1.1](https://www.w3.org/TR/json-ld11-api/) toRdf algorithm gives for

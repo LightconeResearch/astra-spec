@@ -13,6 +13,7 @@ from .conftest import (
     errors,
     fixture_header,
     fixtures,
+    load_document,
     load_yaml,
     parse_code,
     rules_catalogue,
@@ -37,7 +38,9 @@ def check_invalid_fixture(path: Path) -> None:
 
     A parse fixture's loader error has its rule's code (`parse_code`), and the fixture has no `# also:` line. A
     schema fixture's errors are reported at `fails at`, where `rules.json` gives them its rule, and nowhere else but
-    at the pointer of its `# also:` line, if it has one, where they must be reported too, with that line's code.
+    at the pointer of its `# also:` line, if it has one, where they must be reported too, with that line's code. A
+    key that isn't a string is an `INVALID_ID` error at its map: `load_document` reports it and leaves its entry out,
+    so it isn't found through `rules.json`, and the validator checks the rest of the document (spec §3).
     """
     rule, fails_at, also = fixture_header(path)
     if fails_at == "parse":
@@ -61,11 +64,13 @@ def check_invalid_fixture(path: Path) -> None:
         assert also_at != fails_at, "'# also:' names the place it fails at"
         expected[also_at] = also_code
     error_map = rules_catalogue()["errors"]
-    found = errors(validator(root_of(path)), load_yaml(path))
+    document, left_out = load_document(path)
+    found = errors(validator(root_of(path)), document)
     assert sorted({location for _, location, _ in found} - error_map.keys()) == []
+    keys = {(pointer, "INVALID_ID") for pointer, _ in left_out}
     elsewhere = {
         (pointer, location) for pointer, location, _ in found if pointer not in expected
-    }
+    } | {(pointer, code) for pointer, code in keys if pointer not in expected}
     assert elsewhere == set()
     codes = {
         at: {
@@ -73,6 +78,7 @@ def check_invalid_fixture(path: Path) -> None:
             for pointer, location, explains in found
             if pointer == at and not explains
         }
+        | {code for pointer, code in keys if pointer == at}
         for at in expected
     }
     assert codes == {at: {code} for at, code in expected.items()}
