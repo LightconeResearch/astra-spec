@@ -1,7 +1,7 @@
 ---
 rfc: 0007
 title: Analyses in other repositories
-status: Active
+status: Accepted
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
   - Francois Lanusse (@eiffl)

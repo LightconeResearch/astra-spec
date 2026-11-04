@@ -1,7 +1,7 @@
 ---
 rfc: 0006
 title: Data inputs
-status: Draft
+status: Accepted
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-10-28
