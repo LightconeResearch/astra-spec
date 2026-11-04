@@ -279,8 +279,8 @@
       "code": "DUPLICATE_KEY",
       "layer": "parse",
       "level": "MUST",
-      "source": "0003, 0004, §4",
-      "statement": "Every key of a map is distinct. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.)"
+      "source": "0003, 0004, §3, §4",
+      "statement": "Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.)"
     },
     {
       "code": "INVALID_ID",

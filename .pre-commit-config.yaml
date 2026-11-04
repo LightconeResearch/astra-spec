@@ -7,15 +7,17 @@ repos:
       - id: check-toml
       - id: check-yaml
         # Failing at parse (a duplicate key, malformed YAML, a %YAML 1.1
-        # directive) is these fixtures' point. Keep in step with .yamllint.yaml.
-        exclude: ^tests/data/invalid/Analysis-(101-duplicate-output|146-duplicate-universe|182-malformed-yaml|183-yaml-1-1-directive)\.yaml$
+        # directive) is the point of these fixtures and of the yaml-test-suite
+        # error cases. Keep in step with .yamllint.yaml.
+        exclude: ^tests/(data/invalid/Analysis-(101-duplicate-output|146-duplicate-universe|182-malformed-yaml|183-yaml-1-1-directive|192-comment-glued-to-a-scalar|193-flow-line-not-indented|194-escape-beyond-unicode)\.yaml|yaml-test-suite/.*)$
       # Generated files are checked against a fresh generation instead
-      # (`just check-generated`), so these hooks leave them as generated.
+      # (`just check-generated`), and the yaml-test-suite error cases are kept
+      # byte for byte as vendored, so these hooks leave them as they are.
       - id: end-of-file-fixer
-        exclude: ^src/astra/schema/generated/
+        exclude: ^(src/astra/schema/generated|tests/yaml-test-suite)/
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: ^src/astra/schema/generated/
+        exclude: ^(src/astra/schema/generated|tests/yaml-test-suite)/
 
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.37.0

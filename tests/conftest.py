@@ -2,14 +2,19 @@
 
 import functools
 import json
+import math
 import re
+from collections.abc import Hashable
 from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft201909Validator, ValidationError
 from ruamel.yaml import YAML
+from ruamel.yaml.composer import Composer
 from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError, SafeConstructor
 from ruamel.yaml.error import YAMLError
+from ruamel.yaml.nodes import MappingNode, ScalarNode, SequenceNode
+from ruamel.yaml.reader import Reader
 from ruamel.yaml.resolver import VersionedResolver
 from ruamel.yaml.scanner import Scanner, ScannerError
 from rules import json_pointer
@@ -47,8 +52,104 @@ _CORE_SCALARS = {
 """The YAML 1.2 core schema's plain scalars other than strings (YAML 1.2.2 §10.3.2), in resolution order."""
 
 
+_BREAKS = "\r\n\x85\u2028\u2029"
+"""The characters ruamel.yaml's scanner reads as line breaks."""
+
+_BEFORE_A_COMMENT = ("", " ", "\t", "\ufeff", *_BREAKS)
+"""What a comment may follow: the start of the stream (`""`), white space, a byte order mark or a line break."""
+
+
+class _CoreSchemaReader(Reader):
+    """ruamel.yaml's reader, which also keeps the last character it read, for the scanner to look one back."""
+
+    last = ""
+    """The last character read, or `""` at the start of the stream."""
+
+    def forward(self, length: int = 1) -> None:
+        super().forward(length)
+        if length:
+            self.last = self.buffer[self.pointer - 1]
+
+
 class _CoreSchemaScanner(Scanner):
-    """ruamel.yaml's scanner, refusing a `%YAML` directive for any version but 1.2."""
+    """ruamel.yaml's scanner, refusing a `%YAML` directive for any version but 1.2, and the text YAML 1.2.2 makes
+    ill-formed that ruamel.yaml would read.
+
+    That text is: a comment with no white space before it (YAML 1.2.2 §6.6); a line of a flow collection or of a
+    quoted scalar, its closing bracket or quote included, with no more indentation in spaces than the block
+    collection it is in (§6.3, §8.2.3: under a block collection indented `n` spaces, a flow node is at `n+1`); `-`,
+    `?` or `:` starting a plain scalar in a flow collection with a flow indicator after it (§7.3.3, as in `[-]`);
+    and the verbatim tag `!<!>` (§6.9.1).
+    """
+
+    _quoted = False
+    """True while a quoted scalar is scanned."""
+
+    def scan_to_next_token(self) -> Any:
+        if self.reader.peek() == "#" and self.reader.last not in _BEFORE_A_COMMENT:
+            raise ScannerError(
+                None,
+                None,
+                "found '#' right after a token: a comment needs white space before it",
+                self.reader.get_mark(),
+            )
+        return super().scan_to_next_token()
+
+    def scan_line_break(self) -> Any:
+        line_break = super().scan_line_break()
+        if line_break and (self.flow_level or self._quoted):
+            self._check_continuation()
+        return line_break
+
+    def _check_continuation(self) -> None:
+        """Refuse the line just begun, in a flow collection or a quoted scalar, if it isn't indented past the block.
+
+        A line of white space only, and in a flow collection a comment line, may have any indentation.
+        """
+        peek = self.reader.peek
+        spaces = 0
+        while peek(spaces) == " ":
+            spaces += 1
+        end = spaces
+        while peek(end) in " \t":
+            end += 1
+        if peek(end) in ("\0", *_BREAKS) or (peek(end) == "#" and not self._quoted):
+            return
+        if spaces <= self.indent:
+            raise ScannerError(
+                "while scanning a quoted scalar"
+                if self._quoted
+                else "while scanning a flow collection",
+                None,
+                f"found a line indented {spaces} spaces: it must be indented more than the block it is in "
+                f"({self.indent} spaces)",
+                self.reader.get_mark(),
+            )
+
+    def scan_flow_scalar(self, style: Any) -> Any:
+        self._quoted = True
+        try:
+            return super().scan_flow_scalar(style)
+        finally:
+            self._quoted = False
+
+    def check_plain(self) -> Any:
+        peek = self.reader.peek
+        if self.flow_level and peek() in "-?:" and peek(1) in ",[]{}":
+            return False
+        return super().check_plain()
+
+    def scan_tag(self) -> Any:
+        verbatim = self.reader.prefix(2) == "!<"
+        token = super().scan_tag()
+        if verbatim and token.value == (None, "!"):
+            raise ScannerError(
+                "while scanning a tag",
+                token.start_mark,
+                "found the verbatim tag !<!>, which YAML doesn't allow",
+                token.end_mark,
+            )
+        return token
 
     def scan_directive(self) -> Any:
         token = super().scan_directive()
@@ -79,13 +180,88 @@ class _CoreSchemaResolver(VersionedResolver):
         return _CORE_RESOLVERS
 
 
+class _CoreSchemaComposer(Composer):
+    """ruamel.yaml's composer, giving a scalar tagged `!` the tag `!!str`, as YAML 1.2.2 does (§6.9.1).
+
+    ruamel.yaml resolves such a scalar as if it were plain, so that `! 12` would be 12.
+    """
+
+    def compose_scalar_node(self, anchor: Any) -> Any:
+        event = self.parser.peek_event()
+        if event.tag == "!":
+            event.tag = _TAG + "str"
+        return super().compose_scalar_node(anchor)
+
+
 class _CoreSchemaConstructor(SafeConstructor):
     """Constructs the core schema's types only, each from its core form; any other tag is an error."""
 
     yaml_constructors: dict[Any, Any] = {}
 
-    def flatten_mapping(self, node: Any) -> None:
-        """No merge keys: `<<` is an ordinary key."""
+    def construct_mapping(self, node: Any, deep: bool = False) -> Any:
+        """The map of `node`, whose keys must be distinct YAML nodes (YAML 1.2.2 §3.2.1.3); `<<` is an ordinary key.
+
+        Two keys with the same tag and canonical form raise `DuplicateKeyError`, whatever their spelling: `a` and
+        `"\\x61"`, `.nan` and `.nan`. Keys that are distinct nodes but one Python value, such as `1`, `1.0` and `true`,
+        raise `ConstructorError`, since a Python dict can't hold them apart.
+        """
+        if not isinstance(node, MappingNode):
+            raise ConstructorError(
+                None,
+                None,
+                f"expected a mapping node, but found {node.id}",
+                node.start_mark,
+            )
+        canonical_keys = set()
+        mapping: dict[Any, Any] = {}
+        for key_node, value_node in node.value:
+            canonical = self._canonical(key_node, ())
+            if canonical in canonical_keys:
+                raise DuplicateKeyError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    "found a key equal to an earlier one: the same tag and canonical form",
+                    key_node.start_mark,
+                )
+            canonical_keys.add(canonical)
+            key = self.construct_object(key_node, deep=True)
+            if isinstance(key, list):
+                key = tuple(key)
+            if not isinstance(key, Hashable):
+                raise ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    "found a key Python can't hash",
+                    key_node.start_mark,
+                )
+            if key in mapping:
+                raise ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    "found a key that is a distinct YAML node but equal in Python to an earlier one",
+                    key_node.start_mark,
+                )
+            mapping[key] = self.construct_object(value_node, deep=deep)
+        return mapping
+
+    def _canonical(self, node: Any, path: tuple) -> Any:
+        """`node` as YAML compares nodes: its tag, and its canonical form (a scalar's value, a collection's nodes)."""
+        if any(node is ancestor for ancestor in path):
+            raise ConstructorError(
+                None, None, "found a key that holds itself", node.start_mark
+            )
+        if isinstance(node, ScalarNode):
+            value = self.construct_object(node, deep=True)
+            if isinstance(value, float) and math.isnan(value):
+                value = ".nan"
+            return node.tag, value
+        path = (*path, node)
+        if isinstance(node, SequenceNode):
+            return node.tag, tuple(self._canonical(item, path) for item in node.value)
+        return node.tag, frozenset(
+            (self._canonical(key, path), self._canonical(value, path))
+            for key, value in node.value
+        )
 
     def _core_scalar(self, node: Any, name: str) -> str:
         value = self.construct_scalar(node)
@@ -124,27 +300,48 @@ _CoreSchemaConstructor.add_constructor(None, SafeConstructor.construct_undefined
 
 
 def _core_schema_yaml() -> YAML:
-    """ruamel.yaml's pure safe loader, YAML 1.2, restricted to the core schema."""
+    """ruamel.yaml's pure safe loader, YAML 1.2, restricted to the core schema and held to YAML 1.2.2."""
     yaml = YAML(typ="safe", pure=True)
+    yaml.Reader = _CoreSchemaReader
     yaml.Scanner = _CoreSchemaScanner
+    yaml.Composer = _CoreSchemaComposer
     yaml.Resolver = _CoreSchemaResolver
     yaml.Constructor = _CoreSchemaConstructor
     return yaml
 
 
+def _load(source: Path | str) -> Any:
+    """The document in `source`, a file or a text, with an error Python raises for its text raised as a YAML error.
+
+    ruamel.yaml turns a `\\U` escape into a character without checking its range, so an escape beyond U+10FFFF
+    raises `ValueError` or `OverflowError`: it is raised as a `ScannerError`, from the original.
+    """
+    try:
+        return _core_schema_yaml().load(source)
+    except (ValueError, OverflowError) as error:
+        raise ScannerError(
+            None, None, f"found text YAML can't read as a value: {error}"
+        ) from error
+
+
 def load_yaml(path: Path) -> Any:
-    """The document in `path`, read as YAML 1.2 under the core schema only; raises `DuplicateKeyError` on a repeated key.
+    """The document in `path`, read as YAML 1.2.2 under the core schema only; raises a `YAMLError` if it isn't one.
 
     A plain scalar is a null, a bool, an int or a float only in its core-schema form, and a string otherwise (so
-    timestamps and `1_000` are strings); `<<` is an ordinary key; a tag outside the core schema (`!!set`,
-    `!!binary`, `!!omap`, `!!timestamp`, a local tag) and a `%YAML` directive other than 1.2 are errors.
+    timestamps and `1_000` are strings); a scalar tagged `!` is a string; `<<` is an ordinary key; a tag outside the
+    core schema (`!!set`, `!!binary`, `!!omap`, `!!timestamp`, a local tag) and a `%YAML` directive other than 1.2
+    are errors. Two keys of a map that are equal YAML nodes, with the same tag and canonical form, raise
+    `DuplicateKeyError` (keys that are distinct nodes but one Python value, such as `1` and `true`, raise
+    `ConstructorError`). Text YAML 1.2.2 makes ill-formed raises a `YAMLError` even where ruamel.yaml would read it:
+    a comment glued to a token, an under-indented line of a flow collection or a quoted scalar, `[-]`, `!<!>`, and
+    a `\\U` escape beyond U+10FFFF. A `RecursionError` (a document nested too deep) is left as it is.
     """
-    return _core_schema_yaml().load(path)
+    return _load(path)
 
 
 def load_yaml_text(text: str) -> Any:
     """The document `text`, read as `load_yaml` reads a file."""
-    return _core_schema_yaml().load(text)
+    return _load(text)
 
 
 @functools.cache

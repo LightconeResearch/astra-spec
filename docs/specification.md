@@ -166,7 +166,10 @@ strictly, under the core schema only
 
 - a `%YAML` directive other than `%YAML 1.2` makes the file invalid
   ([`INVALID_SYNTAX`](#parse-and-schema)), and so does a key written twice in
-  one map ([`DUPLICATE_KEY`](#parse-and-schema));
+  one map ([`DUPLICATE_KEY`](#parse-and-schema)). Two keys are the same when
+  they are equal YAML nodes, with the same tag and canonical form
+  ([YAML 1.2.2 §3.2.1.3](https://yaml.org/spec/1.2.2/#3213-node-comparison)),
+  so `a`, `'a'` and `"\x61"` are one key, and `1` and `"1"` are two;
 - the core schema's only types are strings, nulls, booleans, integers and
   floats. `yes`, `no`, `on` and `off` are strings, and valid ids. Timestamps
   and merge keys are not types: an unquoted date, such as `2026-10-26`, is a
@@ -1096,7 +1099,7 @@ A table that breaks any of this is an error in this specification, and no
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
 | `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is well-formed YAML 1.2 under the core schema (with no `%YAML` directive other than 1.2), and every record is well-formed JSON | §3, 0005 |
-| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, §4 |
+| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
 | `MISSING_FIELD` | schema | MUST | Every required field is present: `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact`, `FragmentSelector.value`, and the record's (§8) | 0004, 0005, 0006, tidy-up |
