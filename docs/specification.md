@@ -672,13 +672,11 @@ git's two forms: `scheme://…` (`https://github.com/owner/analysis`,
 `ssh://git@host/x.git`, `file:///srv/repo`) or scp-like `[user@]host:path`
 (`git@github.com:owner/repo`). The declared analysis is the one at the top
 level of that repository, at the declaration's `commit`. A bare word or a
-local path (`a`, `owner/repo`, `../repo`, `C:/repo`) is not a `url`
+local path (`a`, `owner/repo`, `../repo`) is not a `url`
 ([`INVALID_VALUE`](#parse-and-schema)): an analysis inside the root's
 repository is declared by `path`, and another repository on this machine by
-an explicit `file://` URL. A host of one letter is not scp-like, so that a
-Windows drive path is never read as a remote, as git itself does. Whether
-the URL leads to a valid analysis is the validator's to tell
-([`REMOTE_UNREACHABLE`](#validator),
+an explicit `file://` URL. Whether the URL leads to a valid analysis is the
+validator's to tell ([`REMOTE_UNREACHABLE`](#validator),
 [`MISSING_DECLARED_ANALYSIS`](#validator),
 [`DECLARED_ANALYSIS_INVALID`](#validator)).
 

@@ -12,7 +12,7 @@ decisions:
       svm: {}
 analyses:
   up:
-    url: "C:/repo"
+    url: "https://"
     commit: "d1570f85f45af286e965bf70c451031763c5deee"
 universes:
   u:

@@ -16,6 +16,12 @@ analyses:
   local:
     url: "file:///srv/repo"
     commit: "18dbdb684ed8956ea319dbe6acbc4e0700577d38"
+  host_c:
+    url: "C:/repo"
+    commit: "6f1ed002ab5595859014ebf0951522d9ad9e7c4b"
+  alias:
+    url: "git@g:owner/repo"
+    commit: "4a4e6ec39fad4f6a37c5c2bd4e0c0a3a3a4c0b5e"
 outputs:
   report:
     type: report
