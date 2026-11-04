@@ -408,7 +408,8 @@ each of which is the id of the option selected (`model: svm`)
 ([`WRONG_TYPE`](#parse-and-schema)). Lists hold only what is a list: an
 insight's `evidence`, a record's `inputs`, and lists of strings. No list of
 strings holds the same entry twice ([`DUPLICATE_ENTRY`](#parse-and-schema)),
-so an output lists each of its inputs, decisions and conditions once.
+nor two spellings of one entry ([`DUPLICATE_ELEMENT`](#validator)), so an
+output lists each of its inputs, decisions and conditions once.
 
 Every id has the one grammar `id`, and no id is reserved (not even a name
 Windows reserves, §3): an address's kind comes from the field it is written
@@ -443,6 +444,18 @@ decision's options breaks [`UNKNOWN_OPTION`](#validator). In
 `iris.random_seed` is the decision `random_seed` of the analysis in the
 parent directory, and `iris.iris_data` in `Output.inputs` is that analysis's
 output `iris_data`.
+
+Two addresses written differently that resolve to one element of one
+analysis (§7) are two **spellings** of it. In
+`examples/iris_pipeline/classification/astra.yaml`,
+`feature_extraction.features` and `iris.feature_extraction.features` are one
+output. Two conditions, or two option references, are spellings of one entry
+when their addresses spell one decision and they name the same option, and
+two conditions also need both or neither to have `~`. Two references are
+spellings of one entry when their addresses spell one element and both are
+unpinned, or both pin one universe (§7). No list holds two spellings of one
+entry ([`DUPLICATE_ELEMENT`](#validator)), so `{inputs}` never passes one
+entry twice under two spellings.
 
 A record's `address` is its result as the analysis the result belongs to
 addresses it, and a recorded input's `entry` is an entry of `Output.inputs`
@@ -722,8 +735,11 @@ A universe's `decisions` map decisions to options
 ([DecisionSelection](elements/DecisionSelection.md)), as
 `<decision>: <option>`, such as `model: svm`. A key is the id of a decision
 of the analysis or, for a decision of an analysis the universe drives, its
-address, `<declaration>.<decision>`, a flat key (§7). A value is the id of
-one of that decision's options ([`UNKNOWN_OPTION`](#validator)).
+address, `<declaration>.<decision>`, a flat key (§7), or another spelling of
+either through declarations (§4, §7). A universe's own `decisions` give each
+decision one key ([`DUPLICATE_ELEMENT`](#validator)); a derived universe can
+still set a decision it inherits under another spelling. A value is the id
+of one of that decision's options ([`UNKNOWN_OPTION`](#validator)).
 
 `derived_from` names another universe of the same analysis
 ([`UNKNOWN_DERIVED_FROM`](#validator)), whose selection this one inherits, so
@@ -809,7 +825,7 @@ set out in §7 ([`UNKNOWN_PIN_UNIVERSE`](#validator)).
 
 ### Declarations
 
-An analysis uses another by declaring it in `analyses`, keyed by the id it
+An analysis declares each analysis it uses in `analyses`, keyed by the id it
 addresses it by ([AnalysisDeclaration](elements/AnalysisDeclaration.md)). The
 declared analysis's elements are then addressed through that id, as
 `<declaration>.<element>` (§4). A declaration has exactly one of `path` and
@@ -820,12 +836,14 @@ declared analysis's elements are then addressed through that id, as
 to the folder of the declaring `astra.yaml` (§3). It doesn't start with `/`
 or `~`, separates folders with `/` (never `\`) and has no ASCII control
 character; `..` segments are allowed ([`INVALID_PATH`](#parse-and-schema)).
-It stays inside the repository of the root
-([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)) and holds an `astra.yaml`
-([`MISSING_DECLARED_ANALYSIS`](#validator)). A declared analysis can be a git
-submodule. A submodule that declares something outside its own repository,
-such as its parent with `..`, can be validated and built only from a root
-whose repository holds what it declares.
+It stays inside the declaring analysis's repository
+([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)): read in the working tree,
+the root's working tree, submodules included; read at a commit, the
+repository that holds that commit. The directory it names holds an
+`astra.yaml` ([`MISSING_DECLARED_ANALYSIS`](#validator)). A declared
+analysis can be a git submodule. A submodule that declares something outside
+its own repository, such as its parent with `..`, can be validated and built
+only from a root whose repository holds what it declares.
 
 **`url`** is a remote that git fetches another repository from, in one of
 git's two forms: `scheme://…` (`https://github.com/owner/analysis`,
@@ -833,12 +851,12 @@ git's two forms: `scheme://…` (`https://github.com/owner/analysis`,
 (`git@github.com:owner/repo`). The declared analysis is the one at the top
 level of that repository, at the declaration's `commit`. A bare word or a
 local path (`a`, `owner/repo`, `../repo`) is not a `url`
-([`INVALID_VALUE`](#parse-and-schema)): an analysis inside the root's
-repository is declared by `path`, and another repository on this machine by
-an explicit `file://` URL. A `url` holds no ASCII space or control character
-([`INVALID_VALUE`](#parse-and-schema)), though git fetches a remote with a
-space: a space is written `%20` in a `scheme://` URL, which git decodes. Git
-doesn't decode the scp-like form, so an scp-like remote
+([`INVALID_VALUE`](#parse-and-schema)): an analysis in the declaring
+analysis's repository is declared by `path`, and another repository on this
+machine by an explicit `file://` URL. A `url` holds no ASCII space or control
+character ([`INVALID_VALUE`](#parse-and-schema)), though git fetches a remote
+with a space: a space is written `%20` in a `scheme://` URL, which git
+decodes. Git doesn't decode the scp-like form, so an scp-like remote
 `[user@]host:my dir/x` is written `ssh://[user@]host/~/my%20dir/x`. Whether
 the URL leads to a valid analysis is the validator's to tell
 ([`REMOTE_UNREACHABLE`](#validator),
@@ -850,13 +868,37 @@ branch moves, a tag can be moved or name another commit in a fork or a
 mirror, and a shortened id can become ambiguous as a repository grows. A
 declaration with a `commit` declares an analysis from a commit (below).
 
-The same directory is the same analysis, whichever analysis declares it and
-by whatever id: it is read once, and each of its results is made at most
-once, however many declarations reach it. Declarations by `path` alone can
-form cycles, such as an analysis declared by its parent that
-declares its parent with `..`, but outputs never depend on each other in a
-cycle ([`OUTPUT_CYCLE`](#validator)). A declaration with a `commit` is never
-part of a cycle, since a commit can only name earlier ones.
+**Identity.** A declaration names a directory, read at a commit or in the
+working tree. With a `url`, it is the top level of that repository; with a
+`path`, it is the `path` resolved against the folder of the declaring
+`astra.yaml`. It is read at the declaration's `commit` or, without one, as
+the declaring analysis is read. The root, and every analysis reached from it
+by `path` alone, is read in the working tree. The directory is a path from
+the top of the repository that holds the commit it is read at or, read in the
+working tree, from the top of the root's working tree. Two declarations name
+the same analysis when their directories are the same path, compared as git
+compares paths (§3), read at the same commit or both in the working tree. A
+URL says only where to get the commit, so a fork or a mirror with the same
+commit gives the same analysis. *Another analysis*, everywhere in this
+specification, is one with a different identity.
+
+One analysis, whichever analysis declares it and by whatever id, is read
+once, and each of its results is made at most once, however many
+declarations reach it. A declaration by `path` alone, or a chain of them,
+that leads back to the declaring analysis's own directory names the analysis
+itself: `self: {path: .}`, say, or `feature_extraction.iris` in the root of
+`examples/iris_pipeline`. An address through it is another spelling of one
+of the analysis's own elements (§4), and a universe's key through it another
+spelling of one of its own decisions. Driving and consuming use another
+analysis's elements (below), so such an address consumes nothing, and such a
+key drives no declaration on its chain: it counts as driving for neither
+[`PARTIALLY_DRIVEN`](#validator) nor [`MISSING_DECISION`](#validator).
+
+Declarations by `path` alone can form cycles, such as an analysis declared
+by its parent that declares its parent with `..`, but outputs never depend
+on each other in a cycle ([`OUTPUT_CYCLE`](#validator)). A declaration with
+a `commit` is never part of a cycle, since a commit can only name earlier
+ones.
 
 ### The analysis stack
 
@@ -894,8 +936,9 @@ that declaration.
 - A declaration is driven by all of the driver's universes or by none
   ([`PARTIALLY_DRIVEN`](#validator)).
 - An analysis reached through two driven declarations can have a decision
-  set under either spelling (`stage.inner.d` or `inner.d`). Every spelling
-  of one decision in a universe selects the same option
+  set under either spelling (`stage.inner.d` or `inner.d`), and a universe's
+  own `decisions` set it under one ([`DUPLICATE_ELEMENT`](#validator)).
+  Every spelling of one decision in a universe selects the same option
   ([`CONFLICTING_SELECTIONS`](#validator)).
 - In the root's universes, a driven analysis's own universes don't set its
   decisions. A pin in its own file, or through an undriven declaration,
@@ -985,11 +1028,8 @@ read from the local repository or, when the declaring analysis is itself read
 from a remote, from that remote. Every rule of this specification applies to
 an analysis from a commit as it is, with its files read at its commit.
 
-**Identity.** The commit id, with the `path` for an analysis of the
-declaring analysis's own repository, is the declared analysis's identity: two
-declarations with the same commit and `path` name the same analysis. A URL
-says only where to get it, so a fork or a mirror with the same commit gives
-the same analysis.
+**Identity.** An analysis from a commit is its directory at its commit,
+whatever URL it is got from, as **Identity** under Declarations says (above).
 
 **What is read.** An analysis from a commit is read from git at its commit,
 and git checks everything read against the commit id. None of its code runs,
@@ -1377,7 +1417,7 @@ A table that breaks any of this is an error in this specification, and no
 | `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | main |
 | `UNDECLARED_TEMPLATE_REF` | MUST | Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
 | `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | tidy-up, §4 |
-| `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the repository of the root | 0004 |
+| `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the declaring analysis's repository | 0004, 0007 §1 |
 | `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` | 0004, 0007 |
 | `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit` names a commit the repository has | 0007 |
 | `COMMIT_NOT_ANCESTOR` | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in | 0007 |
@@ -1385,7 +1425,7 @@ A table that breaks any of this is an error in this specification, and no
 | `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit | 0007 |
 | `MISSING_INPUT_FILE` | MUST | An input's `path` names a file, or something the validator recognises as standing in for one (§5) | 0006 |
 | `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it, is tracked in git | 0006 |
-| `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is outside every other analysis's directory | 0006 |
+| `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own) | 0006 |
 | `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis | 0003 |
 | `DERIVED_FROM_CYCLE` | MUST | No universe is derived from itself, directly or through others | 0003 |
 | `MISSING_DECISION` | MUST | Every universe's effective selection sets every active decision of its analysis and of every analysis it drives | 0003, 0004 |
@@ -1394,6 +1434,7 @@ A table that breaks any of this is an error in this specification, and no
 | `INCOMPATIBLE_OPTIONS` | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects | 0003 |
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | main, tidy-up |
 | `PARTIALLY_DRIVEN` | MUST | Every declaration is driven by all of the driver's universes or by none | 0004 |
+| `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe's own `decisions` has two keys that spell one decision | tidy-up, §4, §6 |
 | `CONFLICTING_SELECTIONS` | MUST | Every spelling of one decision in a universe selects the same option | 0004 |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built | 0004 |
 | `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, goes through a declaration that the file's universes drive | 0004 |

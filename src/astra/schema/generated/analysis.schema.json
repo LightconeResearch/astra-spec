@@ -62,7 +62,7 @@
           }
         }
       ],
-      "description": "Another analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
+      "description": "An analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
       "properties": {
         "commit": {
           "description": "The full id of the commit the declared analysis is read at. A declaration with a `url` has one; with a `path`, it declares the analysis at that path as it was at that commit.",
@@ -70,7 +70,7 @@
           "type": "string"
         },
         "path": {
-          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml` and inside the repository of the root analysis. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), and has no ASCII control character (U+0000\u2013U+001F, U+007F); `..` segments are allowed.",
+          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml` and inside the repository this file is read from, which in the working tree is the root's, submodules included. It doesn't start with `/` or `~`, separates folders with `/` (never `\\`), and has no ASCII control character (U+0000\u2013U+001F, U+007F); `..` segments are allowed.",
           "pattern": "^(?![/~])[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
           "type": "string"
         },
@@ -544,7 +544,7 @@
             "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
             "type": "string"
           },
-          "description": "The options the universe selects, as `<decision>: <option>`. Each key is the id of a decision of the analysis or, for a decision of an analysis it drives, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `stage.method`.",
+          "description": "The options the universe selects, as `<decision>: <option>`, one key per decision. Each key is the id of a decision of the analysis or, for a decision of an analysis it drives, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `stage.method`, or another spelling of either.",
           "propertyNames": {
             "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n)",
             "type": "string"
@@ -586,7 +586,7 @@
       "additionalProperties": {
         "$ref": "#/$defs/AnalysisDeclaration__identifier_optional"
       },
-      "description": "The other analyses this analysis uses, keyed by the id it addresses them by.",
+      "description": "The analyses this analysis uses, keyed by the id it addresses them by.",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
         "type": "string"

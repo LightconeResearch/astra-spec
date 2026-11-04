@@ -323,10 +323,12 @@ classes:
         multivalued: true
         inlined: true
         description: >-
-          The options the universe selects, as `<decision>: <option>`. Each
-          key is the id of a decision of the analysis or, for a decision of an
-          analysis it drives, a flat key: the decision's address through the
-          declarations, `<declaration>.<decision>`, such as `stage.method`.
+          The options the universe selects, as `<decision>: <option>`, one
+          key per decision. Each key is the id of a decision of the analysis
+          or, for a decision of an analysis it drives, a flat key: the
+          decision's address through the declarations,
+          `<declaration>.<decision>`, such as `stage.method`, or another
+          spelling of either.
 
   DecisionSelection:
     description: >-
@@ -352,9 +354,9 @@ classes:
 
   AnalysisDeclaration:
     description: >-
-      Another analysis that this analysis uses, found by exactly one of
-      `path` and `url`. Its elements are addressed through the declaration's
-      id, as `<declaration>.<element>`.
+      An analysis that this analysis uses, found by exactly one of `path`
+      and `url`. Its elements are addressed through the declaration's id, as
+      `<declaration>.<element>`.
     attributes:
       id:
         key: true
@@ -368,9 +370,10 @@ classes:
           rule: INVALID_PATH
         description: >-
           The directory of the declared analysis's `astra.yaml`, relative to
-          the folder of this `astra.yaml` and inside the repository of the
-          root analysis. It doesn't start with `/` or `~`, separates folders
-          with `/` (never `\`), and has no ASCII control character
+          the folder of this `astra.yaml` and inside the repository this
+          file is read from, which in the working tree is the root's,
+          submodules included. It doesn't start with `/` or `~`, separates
+          folders with `/` (never `\`), and has no ASCII control character
           (U+0000–U+001F, U+007F); `..` segments are allowed.
       url:
         pattern: '^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$(?!\n)'
@@ -461,8 +464,8 @@ classes:
         multivalued: true
         inlined: true
         description: >-
-          The other analyses this analysis uses, keyed by the id it addresses
-          them by.
+          The analyses this analysis uses, keyed by the id it addresses them
+          by.
       universes:
         range: Universe
         multivalued: true

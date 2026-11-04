@@ -429,8 +429,8 @@
       "code": "DECLARATION_OUTSIDE_REPOSITORY",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004",
-      "statement": "A declaration's `path` stays inside the repository of the root"
+      "source": "0004, 0007 §1",
+      "statement": "A declaration's `path` stays inside the declaring analysis's repository"
     },
     {
       "code": "MISSING_DECLARED_ANALYSIS",
@@ -486,7 +486,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0006",
-      "statement": "An input's file is outside every other analysis's directory"
+      "statement": "An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own)"
     },
     {
       "code": "UNKNOWN_DERIVED_FROM",
@@ -543,6 +543,13 @@
       "level": "MUST",
       "source": "0004",
       "statement": "Every declaration is driven by all of the driver's universes or by none"
+    },
+    {
+      "code": "DUPLICATE_ELEMENT",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "tidy-up, §4, §6",
+      "statement": "No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe's own `decisions` has two keys that spell one decision"
     },
     {
       "code": "CONFLICTING_SELECTIONS",
