@@ -29,14 +29,15 @@ classes:
 
   TextQuoteSelector:
     description: >-
-      A passage of the cited work, quoted exactly, with the text just before
-      and after it to tell it apart where the same words occur more than once.
+      A passage of the cited work or output, quoted exactly, with the text
+      just before and after it to tell it apart where the same words occur
+      more than once.
     class_uri: oa:TextQuoteSelector
     attributes:
       exact:
         required: true
         slot_uri: oa:exact
-        description: The passage, exactly as the cited work writes it.
+        description: The passage, exactly as the cited work or output writes it.
       prefix:
         slot_uri: oa:prefix
         description: The text that comes just before the passage.
@@ -46,16 +47,16 @@ classes:
 
   FragmentSelector:
     description: >-
-      A place in a PDF, given as a PDF fragment identifier (RFC 3778), such as
-      `page=6`.
+      A place in a PDF, given as a PDF fragment identifier (RFC 8118 §3), such
+      as `page=6`.
     class_uri: oa:FragmentSelector
     attributes:
       value:
         required: true
         slot_uri: rdf:value
         description: >-
-          The PDF fragment identifier (RFC 3778), without the leading `#`,
-          such as `page=6`.
+          The PDF fragment identifier (RFC 8118 §3), without the leading `#`,
+          such as `page=6`. Pages count from 1, so `page=6` is the sixth page.
 
   # --- Insights and evidence ---
 
@@ -87,12 +88,13 @@ classes:
       quote:
         range: TextQuoteSelector
         inlined: true
-        description: The passage of the cited work the claim rests on.
+        description: The passage of the cited work or output the claim rests on.
       location:
         range: FragmentSelector
         inlined: true
         description: >-
-          The place in the cited work the claim rests on, such as `page=6`.
+          The place in the cited work or output the claim rests on, such as
+          `page=6`.
     # LinkML can't annotate the exactly_one_of list itself, so each branch
     # names the code, the same one.
     exactly_one_of:

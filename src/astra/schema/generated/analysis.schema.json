@@ -213,11 +213,11 @@
         },
         "location": {
           "$ref": "#/$defs/FragmentSelector",
-          "description": "The place in the cited work the claim rests on, such as `page=6`."
+          "description": "The place in the cited work or output the claim rests on, such as `page=6`."
         },
         "quote": {
           "$ref": "#/$defs/TextQuoteSelector",
-          "description": "The passage of the cited work the claim rests on."
+          "description": "The passage of the cited work or output the claim rests on."
         },
         "version": {
           "description": "The version of the cited work, counted from 1, such as `2` for the second version of an arXiv paper.",
@@ -230,10 +230,10 @@
     },
     "FragmentSelector": {
       "additionalProperties": false,
-      "description": "A place in a PDF, given as a PDF fragment identifier (RFC 3778), such as `page=6`.",
+      "description": "A place in a PDF, given as a PDF fragment identifier (RFC 8118 \u00a73), such as `page=6`.",
       "properties": {
         "value": {
-          "description": "The PDF fragment identifier (RFC 3778), without the leading `#`, such as `page=6`.",
+          "description": "The PDF fragment identifier (RFC 8118 \u00a73), without the leading `#`, such as `page=6`. Pages count from 1, so `page=6` is the sixth page.",
           "type": "string"
         }
       },
@@ -507,10 +507,10 @@
     },
     "TextQuoteSelector": {
       "additionalProperties": false,
-      "description": "A passage of the cited work, quoted exactly, with the text just before and after it to tell it apart where the same words occur more than once.",
+      "description": "A passage of the cited work or output, quoted exactly, with the text just before and after it to tell it apart where the same words occur more than once.",
       "properties": {
         "exact": {
-          "description": "The passage, exactly as the cited work writes it.",
+          "description": "The passage, exactly as the cited work or output writes it.",
           "type": "string"
         },
         "prefix": {

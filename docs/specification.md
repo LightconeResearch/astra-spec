@@ -529,12 +529,12 @@ Evidence has a `version` only with a `doi`
 ([`INVALID_EVIDENCE_SOURCE`](#parse-and-schema)). It locates the passage the
 claim rests on with W3C Web Annotation selectors: `quote`, a
 [TextQuoteSelector](elements/TextQuoteSelector.md)
-(`oa:TextQuoteSelector`), whose `exact` is the passage as the work writes
-it, with the `prefix` and `suffix` around it; and `location`, a
+(`oa:TextQuoteSelector`), whose `exact` is the passage as the work or output
+writes it, with the `prefix` and `suffix` around it; and `location`, a
 [FragmentSelector](elements/FragmentSelector.md) (`oa:FragmentSelector`),
 whose `value` is a PDF fragment identifier
-([RFC 3778](https://www.rfc-editor.org/rfc/rfc3778)) without the `#`, such
-as `page=6`.
+([RFC 8118 §3](https://www.rfc-editor.org/rfc/rfc8118#section-3), which
+defers to ISO 32000-2) without the `#`, such as `page=6`; pages count from 1.
 
 Evidence isn't built in a universe. Citing an output built per universe, it
 may pin it, and should ([`UNPINNED_EVIDENCE`](#validator)): the claim is then
