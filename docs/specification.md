@@ -723,17 +723,23 @@ universe in several analyses. When an analysis is built in one of its
 universes, that universe is pushed through every analysis it drives: it is
 the universe being built in all of them. An unpinned entry of `inputs` reads
 its output in that universe, and a consumed decision has the option that
-universe selects. So, for every output of another analysis read without a
-pin, and every decision of another analysis:
+universe selects. So, wherever an output built per universe is read without
+a pin, or a decision is consumed:
 
-- the analysis it belongs to is built in the universe being built
-  ([`NOT_BUILT_IN_UNIVERSE`](#validator));
-- in the file of the analysis whose universe is being built, it is reached
-  through a declaration that analysis drives
-  ([`UNDRIVEN_DECLARATION`](#validator)).
+1. The analysis it belongs to is built in the universe being built
+   ([`NOT_BUILT_IN_UNIVERSE`](#validator)). The analysis whose universe is
+   being built is always built in it, so an analysis it drives can consume
+   its decisions and read its outputs back through `..`, as
+   `feature_extraction/astra.yaml` consumes `iris.random_seed` (§4).
+2. In the file of the analysis whose universe is being built, each such
+   address of another analysis goes through a declaration that the file's
+   universes drive ([`UNDRIVEN_DECLARATION`](#validator)). Uses in other
+   files come under the first rule alone.
 
-And every output read without a pin, of the analysis itself or of another, is
-active in the universe being built ([`INPUT_NOT_BUILT`](#validator)).
+An output built once has one result, so it is read without a pin from any
+universe, through any declaration. And every output read without a pin, of
+the analysis itself or of another, is active in the universe being built
+([`INPUT_NOT_BUILT`](#validator)).
 
 A pin `#u` names, when its reference goes through a driven declaration, the
 universe `u` of the driver, and otherwise the universe `u` of the analysis
@@ -756,6 +762,18 @@ outputs:
     type: metric
     format: json
     inputs: [inner_undriven.result#v1]  # inner's own universe v1
+```
+
+Without a pin, `inner_undriven.result` would be read in the root's universe
+through a declaration that the root's universes don't drive:
+
+<!-- fragment: Analysis -->
+```yaml
+outputs:
+  in_root:
+    type: metric
+    format: json
+    inputs: [inner_undriven.result]     # UNDRIVEN_DECLARATION
 ```
 
 What is built in a driver's universes belongs to the driver (§8).
@@ -1147,8 +1165,8 @@ A table that breaks any of this is an error in this specification, and no
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | `main`, tidy-up |
 | `PARTIALLY_DRIVEN` | MUST | Every declaration is driven by all of the driver's universes or by none | 0004 |
 | `CONFLICTING_SELECTIONS` | MUST | Every spelling of one decision in a universe selects the same option | 0004 |
-| `NOT_BUILT_IN_UNIVERSE` | MUST | Every output of another analysis read without a pin, and every decision of another analysis, is used only where that analysis is built in the universe being built | 0004 |
-| `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every such read goes through a declaration that analysis drives | 0004 |
+| `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built | 0004 |
+| `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, goes through a declaration that the file's universes drive | 0004 |
 | `INPUT_NOT_BUILT` | MUST | Every output read without a pin is active (its `when` holds) in the universe being built | 0004 |
 | `PIN_ON_INPUT` | MUST | Every pinned reference names an output | 0003 |
 | `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin names a universe of the driver, through a driven declaration, or otherwise of the analysis the output belongs to | 0003, 0004 |

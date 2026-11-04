@@ -553,14 +553,14 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0004",
-      "statement": "Every output of another analysis read without a pin, and every decision of another analysis, is used only where that analysis is built in the universe being built"
+      "statement": "Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built"
     },
     {
       "code": "UNDRIVEN_DECLARATION",
       "layer": "validator",
       "level": "MUST",
       "source": "0004",
-      "statement": "In the file of the analysis whose universe is being built, every such read goes through a declaration that analysis drives"
+      "statement": "In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, goes through a declaration that the file's universes drive"
     },
     {
       "code": "INPUT_NOT_BUILT",
