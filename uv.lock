@@ -54,6 +54,7 @@ dev = [
     { name = "linkml" },
     { name = "markdown-it-py" },
     { name = "pytest" },
+    { name = "rdflib" },
     { name = "ruamel-yaml" },
 ]
 docs = [
@@ -70,6 +71,7 @@ dev = [
     { name = "linkml", specifier = "==1.12.1" },
     { name = "markdown-it-py", specifier = ">=3" },
     { name = "pytest", specifier = ">=8" },
+    { name = "rdflib", specifier = ">=7" },
     { name = "ruamel-yaml", specifier = ">=0.18" },
 ]
 docs = [

@@ -126,7 +126,8 @@ test: check-generated _pytest lint
 
 # Generate the JSON Schemas of the analysis document and the provenance record
 # (closed, and open for fields it doesn't know), the record's JSON-LD context
-# and the rule catalogue, into `out`, from the staged (versioned) schema. Each
+# (LinkML's, with every IRI in full and no term a prefix) and the rule
+# catalogue, into `out`, from the staged (versioned) schema. Each
 # JSON Schema's `$id` is the URI of its own file under its series (`{series}`,
 # filled in by the generator: `0.1` for every 0.1.x, a pre-release's whole
 # version, or `dev`), so the closed and open record schemas are distinct, and
@@ -138,7 +139,7 @@ gen-schema out="src/astra/schema/generated": _stage-versioned
   uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/analysis.schema.json {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
   uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
   uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}{series}/provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
-  uv run gen-jsonld-context {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
+  uv run python tools/jsonld_context.py {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
   uv run python tools/rules.py docs/specification.md {{staged_schema_dir}}/analysis.yaml {{staged_schema_dir}}/provenance.yaml --schemas {{out}}/analysis.schema.json {{out}}/provenance.schema.json {{out}}/provenance.open.schema.json > {{out}}/rules.json
 
 # Check that the committed generated files are what `gen-schema` makes now

@@ -6,8 +6,8 @@
       "description": "The environment a recipe ran in, named by an IRI.",
       "properties": {
         "iri": {
-          "description": "An absolute IRI naming exactly that environment, enough for its runner, at the version the record gives, to recreate it. It need not resolve online: a `urn:` IRI or a scheme of the runner's own will do, such as `urn:example-runner:env:sha256:\u2026`.",
-          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\x00-\\x20\\x7f]+$(?!\\n)",
+          "description": "An IRI (RFC 3987), never a CURIE, naming exactly that environment, enough for its runner, at the version the record gives, to recreate it; the schema checks its scheme, characters and percent-encoding, not its structure (authority, port, IP literal). It need not resolve online: a `urn:` IRI or a scheme of the runner's own will do, such as `urn:example-runner:env:sha256:\u2026`.",
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$(?!\\n)",
           "type": "string"
         }
       },
@@ -112,7 +112,7 @@
   "$id": "https://w3id.org/astra/dev/provenance.schema.json",
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "additionalProperties": false,
-  "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it.",
+  "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it. Read as RDF, its top-level node stands for the result.",
   "properties": {
     "address": {
       "description": "The result as the analysis it belongs to addresses it: the output's id, after the ids of the declared analyses that lead to it, then `#` and the universe's id when the result is built in a universe, such as `subanalysis1.output1#u1`.",

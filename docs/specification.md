@@ -975,7 +975,7 @@ result's bytes, and the run of the recipe that made it, `generated_by`, a
   later change to the list makes the result `stale`
   ([`STALE_RESULT`](#check)), not `missing`.
 - `environment`: an [Environment](elements/Environment.md), whose `iri` is an
-  absolute IRI naming exactly the environment the recipe ran in, enough for
+  IRI (RFC 3987) naming exactly the environment the recipe ran in, enough for
   its runner, at the version the record gives, to recreate it. It needn't
   resolve online: a `urn:` IRI or a scheme of the runner's own will do.
 - `runner`: a [Runner](elements/Runner.md), the runner's `id`, ideally unique
@@ -1023,8 +1023,8 @@ the same keys and values are the same record. A record holds only the fields
 its `spec_version` defines. A checker reading a record of a newer version
 than its own validates it against the open variant of the record schema,
 which ignores the fields the checker doesn't know, rather than calling the
-record `missing` ([`INVALID_RECORD`](#check), §10). Converted to RDF through
-the schema, a record is W3C PROV-O (§10).
+record `missing` ([`INVALID_RECORD`](#check), §10). Read as RDF (§10), a
+record is W3C PROV-O.
 
 Two records of one result with the same commit, inputs and environment, made
 on two machines say, show whether the result reproduces: their
@@ -1450,22 +1450,31 @@ with only a `BAD_DIRECTIVE` warning, leaving `doc.directives.yaml.version` at
 `doc.directives.yaml.version` of `'1.1'`, or a `BAD_DIRECTIVE` warning on the
 `%YAML` line, makes the file invalid ([`INVALID_SYNTAX`](#parse-and-schema)).
 
-**RDF.** `provenance.context.jsonld` maps a record's terms onto
+**RDF.** A record's RDF is what the
+[JSON-LD 1.1](https://www.w3.org/TR/json-ld11-api/) toRdf algorithm gives for
+it, with `provenance.context.jsonld` supplied as its context (a record carries
+no `@context`), plus each node's class URI as its `rdf:type`: the root node
+(the record's top-level object), each item of `inputs` and the `environment`
+are `prov:Entity`, `generated_by` is a `prov:Activity`, and the `runner` a
+`prov:SoftwareAgent`. The context maps a record's terms onto
 [W3C PROV-O](https://www.w3.org/TR/prov-o/), with ASTRA's own, where PROV has
-none, in the `https://w3id.org/astra/` namespace. The types of a record's
-nodes come from the schema's class URIs, through LinkML's RDF conversion of
-the record, not from the plain JSON-LD. Converted to RDF that way, a record is
-PROV-O: the record is a `prov:Entity` that `prov:wasGeneratedBy` its
-`generated_by`, a `prov:Activity`, which `prov:used` its inputs and its
-environment and `prov:wasAssociatedWith` its runner, a `prov:SoftwareAgent`.
-The run's `started` and `finished` are `prov:startedAtTime` and
-`prov:endedAtTime`, typed `xsd:dateTime`, the runner's `version` is
-`schema:softwareVersion`, and the environment's IRI is its `@id`. The schema
-doesn't check that a time's day exists in its month (§4), so a time such as
-30 February converts to an ill-typed `xsd:dateTime`. No RDF reading of
-`astra.yaml` is published yet. In the schema, the evidence selectors are W3C
-Web Annotation's `oa:TextQuoteSelector` (with `oa:exact`, `oa:prefix` and
-`oa:suffix`) and `oa:FragmentSelector` (with `rdf:value`).
+none, in the `https://w3id.org/astra/` namespace. It writes every IRI in full,
+and no term carries JSON-LD 1.1's prefix flag, so an `iri` is its node's `@id`
+exactly as written, whatever its scheme (`prov:env:1` too). It declares
+`"@version": 1.1`, so a JSON-LD 1.0 processor, which would read a term as a
+prefix, rejects it. Read this way, a record is PROV-O. The root node stands
+for the result: a `prov:Entity` that `prov:wasGeneratedBy` its `generated_by`,
+the run, which `prov:used` its inputs and its environment and
+`prov:wasAssociatedWith` its runner. The root node's `address`,
+`content_hash` and `size` describe the result, and its `spec_version` the
+record. The run's `started` and `finished` are `prov:startedAtTime` and
+`prov:endedAtTime`, typed `xsd:dateTime`, and the runner's `version` is
+`schema:softwareVersion`. The schema doesn't check that a time's day exists
+in its month (§4), so a time such as 30 February converts to an ill-typed
+`xsd:dateTime`. No RDF reading of `astra.yaml` is published yet. In the
+schema, the evidence selectors are W3C Web Annotation's
+`oa:TextQuoteSelector` (with `oa:exact`, `oa:prefix` and `oa:suffix`) and
+`oa:FragmentSelector` (with `rdf:value`).
 
 **The package.** The `astra-spec` Python package holds the LinkML sources and
 these artefacts, as the namespace package `astra.schema`, read through
