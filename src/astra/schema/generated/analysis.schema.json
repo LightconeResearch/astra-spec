@@ -75,7 +75,7 @@
           "type": "string"
         },
         "url": {
-          "description": "Where git fetches another repository from, as a remote: `scheme://\u2026`, such as `https://github.com/owner/analysis` or `file:///srv/repo`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`.",
+          "description": "Where git fetches another repository from, as a remote with no ASCII space or control character: `scheme://\u2026`, such as `https://github.com/owner/analysis` or `file:///srv/repo`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`.",
           "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
           "type": "string"
         }

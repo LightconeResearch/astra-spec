@@ -377,11 +377,12 @@ classes:
         annotations:
           rule: INVALID_VALUE
         description: >-
-          Where git fetches another repository from, as a remote:
-          `scheme://…`, such as `https://github.com/owner/analysis` or
-          `file:///srv/repo`, or `[user@]host:path`, such as
-          `git@github.com:owner/repo`. The declared analysis is the one at the
-          top level of that repository, at `commit`.
+          Where git fetches another repository from, as a remote with no ASCII
+          space or control character: `scheme://…`, such as
+          `https://github.com/owner/analysis` or `file:///srv/repo`, or
+          `[user@]host:path`, such as `git@github.com:owner/repo`. The declared
+          analysis is the one at the top level of that repository, at
+          `commit`.
       commit:
         range: commit_id
         description: >-

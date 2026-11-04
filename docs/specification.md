@@ -268,12 +268,33 @@ without the lookahead `"a\n"`, which a YAML block scalar gives, would be an
 reason no pattern uses `.`, `\s`, `\S`, `\d`, `\w` or `\b`, which the two
 define differently (Python's `.` matches `\r`, and its `\s` includes
 U+001C–U+001F). Patterns use explicit classes instead: `[0-9]` for a digit,
-`[^\x00-\x20\x7f]` for a visible character (one outside U+0000–U+0020 and
-U+007F), `[^\x00-\x1f\x7f]` for any character but an ASCII control, and
-`[^\x00-\x20\x7f-\x9f]` and `[^\x00-\x1f\x7f-\x9f]` for the same two that
-also leave out the C1 controls (U+0080–U+009F).
+`[^\x00-\x20\x7f]` for a character other than an ASCII space or control (one
+outside U+0000–U+0020 and U+007F), `[^\x00-\x1f\x7f]` for any character but
+an ASCII control, and `[^\x00-\x20\x7f-\x9f]` and `[^\x00-\x1f\x7f-\x9f]` for
+the same two that also leave out the C1 controls (U+0080–U+009F).
 This specification writes patterns in a short form, for readability; the
 schema holds them in full.
+
+Above U+007F a class leaves out only what it names, so these fields take
+characters that aren't visible:
+
+- `Option.excluded` and `AnalysisDeclaration.url` take `[^\x00-\x20\x7f]`,
+  which admits every character above U+007F: non-ASCII spaces (U+00A0,
+  U+3000), format characters (U+200B, U+FEFF, U+202E), U+2028, U+2029 and the
+  C1 controls.
+- The suffix of an `Evidence.doi` takes `[^\x00-\x20\x7f-\x9f]` at either end
+  and `[^\x00-\x1f\x7f-\x9f]` inside, which admit every character above
+  U+009F: non-ASCII spaces anywhere, which a DOI may hold, and the characters
+  that aren't graphic, which ISO 26324 leaves out of a DOI and no rule
+  checks: format characters, U+2028, U+2029, private-use characters and
+  noncharacters.
+- `Environment.iri` takes `[^\x00-\x20\x7f-\x9f]` less `<>"{}|\^`, the
+  backtick, `%` and `#` (which it takes only to start a percent-encoding and a
+  fragment) and the bidi formatting characters RFC 3987 §4.1 forbids (U+200E,
+  U+200F, U+202A–U+202E). Above U+009F it admits non-ASCII spaces, the other
+  format characters (U+200B, U+FEFF), U+2028 and U+2029, which RFC 3987
+  allows, and characters it doesn't, such as noncharacters, and private-use
+  characters outside a query.
 
 ### Ids and maps
 
@@ -470,8 +491,10 @@ analysis's decision.
 An option with an `excluded` reason is excluded: no effective selection
 selects it ([`EXCLUDED_OPTION_SELECTED`](#validator)). It stays listed, so the
 analysis records what it considered and why it ruled it out. The reason
-contains a visible character, one outside U+0000–U+0020 and U+007F
-([`BLANK_EXCLUDED`](#parse-and-schema)); `excluded: true` is not a reason
+contains a character other than an ASCII space or control, one outside
+U+0000–U+0020 and U+007F ([`BLANK_EXCLUDED`](#parse-and-schema)), so a
+reason made only of non-ASCII spaces, format characters or C1 controls still
+counts (§4). `excluded: true` is not a reason
 ([`WRONG_TYPE`](#parse-and-schema)), while `excluded: no` or `off` is the
 reason `no` or `off` (§3), so the option is excluded.
 
@@ -527,7 +550,7 @@ An [Evidence](elements/Evidence.md) item cites exactly one of
 
 - a published work, by its `doi`, such as `10.48550/arXiv.1706.03762`
   (`10.`, digit runs joined by `.`, `/`, then a suffix with no control
-  character and no space at either end:
+  character and no ASCII space at either end:
   [`INVALID_VALUE`](#parse-and-schema)), with the work's `version`, counted
   from 1, when the work has versions, as an arXiv paper does;
 - an output, as an `artifact`: a reference written as in `Output.inputs`,
@@ -678,8 +701,13 @@ level of that repository, at the declaration's `commit`. A bare word or a
 local path (`a`, `owner/repo`, `../repo`) is not a `url`
 ([`INVALID_VALUE`](#parse-and-schema)): an analysis inside the root's
 repository is declared by `path`, and another repository on this machine by
-an explicit `file://` URL. Whether the URL leads to a valid analysis is the
-validator's to tell ([`REMOTE_UNREACHABLE`](#validator),
+an explicit `file://` URL. A `url` holds no ASCII space or control character
+([`INVALID_VALUE`](#parse-and-schema)), though git fetches a remote with a
+space: a space is written `%20` in a `scheme://` URL, which git decodes. Git
+doesn't decode the scp-like form, so an scp-like remote
+`[user@]host:my dir/x` is written `ssh://[user@]host/~/my%20dir/x`. Whether
+the URL leads to a valid analysis is the validator's to tell
+([`REMOTE_UNREACHABLE`](#validator),
 [`MISSING_DECLARED_ANALYSIS`](#validator),
 [`DECLARED_ANALYSIS_INVALID`](#validator)).
 
