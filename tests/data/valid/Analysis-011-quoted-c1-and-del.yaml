@@ -1,0 +1,9 @@
+# A quoted scalar may hold any character but a C0 control: here a C1 control
+# (U+0096) and DEL, written raw.
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    label: "F1score"
+    description: 'xy'

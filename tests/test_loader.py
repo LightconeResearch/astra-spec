@@ -1,17 +1,21 @@
-"""The harness's loaders: an `astra.yaml` as YAML 1.2.2 under the core schema only (design §9, Ruling R19), and a
-record as strict JSON (spec §3).
+"""The harness's loaders: an `astra.yaml` as UTF-8 read by YAML 1.2.2's characters, tabs and line breaks, under the
+core schema only (design §9, Ruling R19), and a record as strict JSON (spec §3).
 
-`tests/yaml-test-suite/` holds the error cases of yaml-test-suite (https://github.com/yaml/yaml-test-suite, MIT,
-see its LICENSE), each case's `in.yaml` at its id, from the release `data-2022-01-17` (commit 6e6c296a): the 94
-cases with an `error` file, each a text YAML 1.2.2 makes ill-formed.
+`tests/yaml-test-suite/` holds cases of yaml-test-suite (https://github.com/yaml/yaml-test-suite, MIT, see its
+LICENSE), each case's `in.yaml` at its id, from the release `data-2022-01-17` (commit 6e6c296a): the 94 cases with an
+`error` file, each a text YAML 1.2.2 makes ill-formed, and, each with its `in.json`, the 44 well-formed cases that hold
+a tab and use nothing spec §3 refuses (an anchor, an alias, a tag outside the core schema, a second document, a
+`%YAML` directive other than 1.2).
 """
 
+import json
 from pathlib import Path
 
 import pytest
 from ruamel.yaml.composer import ComposerError
 from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError
 from ruamel.yaml.error import YAMLError
+from ruamel.yaml.reader import ReaderError
 from ruamel.yaml.scanner import ScannerError
 
 from .conftest import (
@@ -31,11 +35,11 @@ YAML_TEST_SUITE = REPO_ROOT / "tests" / "yaml-test-suite"
 
 @pytest.fixture
 def load(tmp_path):
-    """Load `text` as a YAML file, through the harness's `load_yaml`."""
+    """Load `text` as a YAML file, through the harness's `load_yaml`: its bytes, or a text written as UTF-8."""
 
-    def _load(text: str):
+    def _load(text: str | bytes):
         path = tmp_path / "doc.yaml"
-        path.write_text(text, encoding="utf-8")
+        path.write_bytes(text.encode("utf-8") if isinstance(text, str) else text)
         return load_yaml(path)
 
     return _load
@@ -297,23 +301,38 @@ def test_a_number_is_typed_as_json_schema_types_it(load, version, valid):
 # --- YAML 1.2.2 where ruamel.yaml departs from it ---
 
 
-def _suite_cases() -> list[Path]:
-    """The `in.yaml` of every vendored yaml-test-suite error case."""
-    return sorted(YAML_TEST_SUITE.glob("**/in.yaml"))
+def _suite_cases(*, well_formed: bool) -> list[Path]:
+    """The `in.yaml` of every vendored yaml-test-suite case that is well-formed, with its `in.json` beside it, or of
+    every error case, with none."""
+    return sorted(
+        path
+        for path in YAML_TEST_SUITE.glob("**/in.yaml")
+        if path.with_name("in.json").is_file() == well_formed
+    )
+
+
+def _case_id(path: Path) -> str:
+    return path.parent.relative_to(YAML_TEST_SUITE).as_posix()
 
 
 def test_the_yaml_test_suite_is_vendored():
-    assert len(_suite_cases()) == 94
+    assert len(_suite_cases(well_formed=False)) == 94
+    assert len(_suite_cases(well_formed=True)) == 44
 
 
-@pytest.mark.parametrize(
-    "path",
-    _suite_cases(),
-    ids=lambda path: path.parent.relative_to(YAML_TEST_SUITE).as_posix(),
-)
+@pytest.mark.parametrize("path", _suite_cases(well_formed=False), ids=_case_id)
 def test_yaml_test_suite_error_case_raises(path):
     with pytest.raises(YAMLError):
         load_yaml(path)
+
+
+@pytest.mark.parametrize("path", _suite_cases(well_formed=True), ids=_case_id)
+def test_yaml_test_suite_well_formed_tab_case_loads_to_its_json(path):
+    """Each well-formed case that holds a tab loads to its `in.json`, with JSON's types."""
+    loaded = load_yaml(path)
+    expected = json.loads(path.with_name("in.json").read_text(encoding="utf-8"))
+    assert loaded == expected
+    assert [type(x) for x in _leaves(loaded)] == [type(x) for x in _leaves(expected)]
 
 
 @pytest.mark.parametrize(
@@ -443,6 +462,219 @@ def test_keys_that_are_equal_nodes_are_duplicates(load, keys):
 def test_a_key_written_twice_is_a_duplicate_whatever_its_type(load):
     with pytest.raises(DuplicateKeyError):
         load("true: x\ntrue: y\n")
+
+
+# --- Characters, tabs and line breaks: an astra.yaml is UTF-8, read by YAML 1.2.2's characters (spec §3) ---
+
+
+@pytest.mark.parametrize("data", [b"a: \xc3\xa9\n", b"\xef\xbb\xbfa: \xc3\xa9\n"])
+def test_utf_8_loads_with_or_without_a_byte_order_mark(load, data):
+    assert load(data) == {"a": "\u00e9"}
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        "\ufeffa: \u00e9\n".encode("utf-16-le"),
+        "\ufeffa: \u00e9\n".encode("utf-16-be"),
+        "\ufeffa: \u00e9\n".encode("utf-32-le"),
+        "a: \u00e9\n".encode("latin-1"),
+    ],
+    ids=["utf-16-le", "utf-16-be", "utf-32-le", "latin-1"],
+)
+def test_bytes_that_arent_utf_8_are_invalid_syntax(load, data):
+    """UTF-16 and UTF-32, which YAML 1.2.2 §5.2 also reads, each with a byte order mark, and Latin-1."""
+    with pytest.raises(ReaderError) as raised:
+        load(data)
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+_MINIMAL = (
+    'spec_version: "0.1.0"\noutputs:\n  result:\n    type: metric\n    format: json\n'
+)
+"""A minimal valid `astra.yaml`, which F066's tab cases change."""
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        _MINIMAL.replace("type: metric", "type: metric\t# the F1 score"),
+        _MINIMAL.replace("type: metric", "type:\tmetric"),
+        _MINIMAL.replace("type: metric", "type: metric\t"),
+        _MINIMAL.replace("type: metric\n", "type: metric\n\t\n"),
+        _MINIMAL.replace("type: metric\n", "type: metric\n \t\n"),
+        _MINIMAL.replace('"0.1.0"', '\t"0.1.0"'),
+        _MINIMAL.replace("type: metric\n", "type:\n      \tmetric\n"),
+        _MINIMAL.replace("type: metric\n", "type: !!str\tmetric\n"),
+        "%YAML\t1.2\t# the version\n---\n" + _MINIMAL,
+    ],
+    ids=[
+        "before-a-comment",
+        "after-a-colon",
+        "at-a-lines-end",
+        "on-a-blank-line",
+        "on-a-blank-line-after-spaces",
+        "before-a-value",
+        "after-a-value-lines-indentation",
+        "after-a-tag",
+        "in-a-directive",
+    ],
+)
+def test_a_tab_separates(load, text):
+    """A tab is white space wherever YAML 1.2.2 allows white space outside indentation (§6.2): F066's cases and more."""
+    assert load(text) == load(_MINIMAL)
+
+
+@pytest.mark.parametrize(
+    "text, value",
+    [
+        ("a:\n  - result\t#svm\n", {"a": ["result"]}),
+        ("a: x\ty\n", {"a": "x\ty"}),
+        ("a: x\n  \ty\n", {"a": "x y"}),
+        ("a: x\n  \t\n  y\n", {"a": "x\ny"}),
+        ("-\tx\n-\t-1\n", ["x", -1]),
+        ("?\ta\n:\tb\n", {"a": "b"}),
+        ("- a:\t[x]\n", [{"a": ["x"]}]),
+        ("a: |\n  \tx\n", {"a": "\tx\n"}),
+        ("a:\t|\n  x\n", {"a": "x\n"}),
+        ("a: |\t# c\n  x\n", {"a": "x\n"}),
+        ("a: |\t\n  x\n", {"a": "x\n"}),
+        ("a: >-\t\n  x\n", {"a": "x"}),
+        ("- |\t\n  x\n", ["x\n"]),
+        ("--- |\t\n  x\n", "x\n"),
+    ],
+)
+def test_a_tab_is_read_as_yaml_reads_it(load, text, value):
+    """Before a comment (F066's `- result<TAB>#svm`), inside a plain scalar, after a continuation line's indentation,
+    on a plain scalar's empty line, after a block indicator before a node that isn't a block collection, in a block
+    scalar's content, before a block scalar, and in a block scalar's header ([162] `c-b-block-header`)."""
+    assert load(text) == value
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "a:\n\tb: 1\n",
+        "a:\n\tb\n",
+        "a:\n  b: 1\n \tc: 2\n",
+        "a:\n \tb: 1\n",
+        "-\t- x\n",
+        "- \t- x\n",
+        "?\t- x\n",
+        "-\tk: v\n",
+        "- a\n\t- b\n",
+        "a: |\n\tx\n",
+        "a: |\n  x\n\t\nb: 1\n",
+    ],
+)
+def test_a_tab_in_indentation_is_invalid_syntax(load, text):
+    """A tab before a token on a line with no more spaces than its block, a tab before a block collection, and a tab
+    in a block scalar's indentation (YAML 1.2.2 §6.1, §8.1.1)."""
+    with pytest.raises(ScannerError) as raised:
+        load(text)
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+@pytest.mark.parametrize(
+    "text, value",
+    [
+        ("a: json\x85\n", {"a": "json\x85"}),
+        ("a: metric\u2028\n", {"a": "metric\u2028"}),
+        ('a: "x\x85y"\n', {"a": "x\x85y"}),
+        ("a: 'x\u2029\n  y'\n", {"a": "x\u2029 y"}),
+        ("a: |\n  x\u2028y\n", {"a": "x\u2028y\n"}),
+        ("a: |\n  x\u2029y\n", {"a": "x\u2029y\n"}),
+        ("a: >\n  x\x85y\n  z\n", {"a": "x\x85y z\n"}),
+        ("a: x # y\x85z\n", {"a": "x"}),
+        ("a\x85b: 1\n", {"a\x85b": 1}),
+        ('a: "\\N\\L\\P\\uE000"\n', {"a": "\x85\u2028\u2029\ue000"}),
+        ("a: \ue000\x85\n", {"a": "\ue000\x85"}),
+    ],
+)
+def test_nel_ls_and_ps_are_ordinary_characters(load, text, value):
+    """YAML 1.2 reads NEL, LS and PS as ordinary characters, not line breaks (§5.4), in every kind of scalar, in a
+    comment and in a key; an escape writes its own character, and a character of the private use area is kept."""
+    assert load(text) == value
+
+
+@pytest.mark.parametrize(
+    "character", ["\x96", "\x7f", "\x80", "\x9f", "\ufffe", "\uffff", "\ufeff"]
+)
+def test_a_quoted_scalar_takes_any_character_but_a_c0_control(load, character):
+    """DEL, the C1 controls, U+FFFE, U+FFFF and U+FEFF, written raw (YAML 1.2.2 §5.1)."""
+    assert load(f"a: \"F1{character}score\"\nb: 'x{character}y'\n") == {
+        "a": f"F1{character}score",
+        "b": f"x{character}y",
+    }
+
+
+@pytest.mark.parametrize(
+    "template",
+    [
+        "a: x{}y\n",
+        "a: x # {}\n",
+        "# {}\na: x\n",
+        "a: |\n  x{}y\n",
+        "a: |  # {}\n  x\n",
+        "a: |\t# {}\n  x\n",
+        "%YAML 1.2 # {}\n---\na: x\n",
+    ],
+    ids=[
+        "plain",
+        "comment",
+        "comment-line",
+        "block-scalar",
+        "block-scalar-header",
+        "block-scalar-header-after-a-tab",
+        "directive",
+    ],
+)
+@pytest.mark.parametrize(
+    "character", ["\x96", "\x7f", "\x92", "\ufffe", "\uffff", "\ufeff"]
+)
+def test_a_character_only_quoted_scalars_take_is_invalid_syntax_elsewhere(
+    load, template, character
+):
+    """DEL, a C1 control other than NEL, U+FFFE, U+FFFF and U+FEFF in a plain scalar, a comment, a block scalar or a
+    directive (YAML 1.2.2 [1] `c-printable`, [27] `nb-char`)."""
+    with pytest.raises(ScannerError) as raised:
+        load(template.format(character))
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+@pytest.mark.parametrize(
+    "text", ["a: 1\n...\n\ufeff# c\n", "a: 1\n...\n\ufeff", "\ufeff\ufeffa: 1\n"]
+)
+def test_a_byte_order_mark_only_starts_the_file(load, text):
+    """A byte order mark after `...`, though YAML 1.2.2 §5.2 allows one at the start of each document, and a second
+    one at the start: spec §3 allows one only at the start of the file, outside a quoted scalar."""
+    with pytest.raises(ScannerError) as raised:
+        load(text)
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+@pytest.mark.parametrize(
+    "text", ['a: "x\x01y"\n', "a: 'x\x1by'\n", "a: x\x00\n", "# \x08\na: 1\n"]
+)
+def test_a_c0_control_is_invalid_syntax_anywhere(load, text):
+    """A C0 control other than tab, LF and CR, even in a quoted scalar (YAML 1.2.2 §5.1)."""
+    with pytest.raises(ReaderError) as raised:
+        load(text)
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+@pytest.mark.parametrize(
+    "text, value",
+    [
+        ("# note\rb: 1\na: 2\n", {"b": 1, "a": 2}),
+        ("a: 1\rb: 2\r", {"a": 1, "b": 2}),
+        ("a: 1\r\nb: 2\r\n", {"a": 1, "b": 2}),
+        ('a: "x\r  y"\n', {"a": "x y"}),
+    ],
+)
+def test_a_cr_on_its_own_ends_a_line(load, text, value):
+    """A CR, with or without an LF after it, is a line break (YAML 1.2.2 §5.4): it ends a comment."""
+    assert load(text) == value
 
 
 # --- Values with no JSON form (spec §3) ---

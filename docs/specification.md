@@ -80,7 +80,7 @@ Rules are enforced in five layers, set apart by what each one sees:
 
 | Layer | Enforced by | Sees |
 |---|---|---|
-| **parse** | a YAML 1.2 loader under the core schema, plus §3's checks (`astra.yaml`), or a strict JSON parser (records, §3) | one file's text |
+| **parse** | a YAML 1.2 loader under the core schema, plus §3's checks (`astra.yaml`), or a strict JSON parser (records, §3) | one file's bytes |
 | **schema** | the generated JSON Schema | one file's data |
 | **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git; no results |
 | **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git; records and results |
@@ -170,6 +170,22 @@ to the folder of the `astra.yaml` and separate folders with `/` (§5, §7).
 strictly, under the core schema only
 ([`INVALID_SYNTAX`](#parse-and-schema)):
 
+- a file is UTF-8, and may start with a byte order mark but holds none
+  anywhere else outside a quoted scalar
+  ([`INVALID_SYNTAX`](#parse-and-schema)). This is ASTRA's rule, not YAML's:
+  YAML 1.2.2 also reads UTF-16 and UTF-32, and allows a byte order mark at
+  the start of each document
+  ([§5.2](https://yaml.org/spec/1.2.2/#52-character-encodings)). Otherwise,
+  its characters and line breaks are YAML 1.2.2's
+  ([§5.1](https://yaml.org/spec/1.2.2/#51-character-set),
+  [§5.4](https://yaml.org/spec/1.2.2/#54-line-break-characters)): a C0
+  control other than tab, LF and CR makes the file invalid anywhere, and DEL,
+  a C1 control other than NEL, U+FEFF, U+FFFE and U+FFFF make it invalid
+  outside a quoted scalar ([`INVALID_SYNTAX`](#parse-and-schema)); NEL, LS
+  and PS are ordinary characters, not line breaks; a tab is white space, but
+  never indentation
+  ([§6.1](https://yaml.org/spec/1.2.2/#61-indentation-spaces)); and a CR on
+  its own ends a line, as a CR LF and an LF do;
 - a `%YAML` directive other than `%YAML 1.2` makes the file invalid
   ([`INVALID_SYNTAX`](#parse-and-schema)). This is ASTRA's rule, not YAML's:
   YAML 1.2.2 accepts `%YAML 1.1`
@@ -425,8 +441,9 @@ entries of `Output.decisions` are addresses
 `Universe.decisions` ([`INVALID_ID`](#parse-and-schema)).
 
 In YAML, `#` inside a token is literal, so `f1_score#svm` needs no quotes.
-After a space it starts a comment: `- f1_score #svm` is the plain reference
-`f1_score`, followed by a comment. Write a pin with no space before its `#`.
+After a space or a tab it starts a comment: `- f1_score #svm` is the plain
+reference `f1_score`, followed by a comment. Write a pin with no space before
+its `#`.
 
 ### Report addresses
 
@@ -1316,7 +1333,7 @@ A table that breaks any of this is an error in this specification, and no
 
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark | 0005, tidy-up, §3 |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is UTF-8 and a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark | 0005, tidy-up, §3 |
 | `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, tidy-up, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key is a string, and matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
@@ -1632,6 +1649,26 @@ valid id `"true"`, and keep only one of `true` and `"true"` in one map.
 instead a function that compares them as §3 does: by tag (resolved from a
 plain scalar's `source` by the table, since `yaml` keeps none) and canonical
 form. Then `1` and `1.0` are two keys, and `? [a]` written twice is one.
+
+A tool decodes a file's bytes itself, as UTF-8 that raises on any other byte
+(§3): with `new TextDecoder('utf-8', {fatal: true})`, which skips a leading
+byte order mark, before `yaml`, which takes only a string, and with
+`bytes.decode('utf-8')` before ruamel.yaml, whose own reader also takes
+UTF-16. Neither stock loader then reads characters, tabs and line breaks as
+§3 does. ruamel.yaml refuses a tab used as white space outside a flow
+collection or a quoted scalar, reads NEL, LS and PS as line breaks, refuses
+DEL, the C1 controls other than NEL, U+FFFE and U+FFFF even in a quoted
+scalar, and keeps U+FEFF in a plain scalar;
+[the test harness's loader](https://github.com/LightconeResearch/astra-spec/blob/main/tests/conftest.py)
+shows one way to correct each. `yaml` keeps a CR that no LF follows as
+content, so a tool replaces each such CR with an LF before parsing, which
+changes nothing else, since YAML 1.2.2 §5.4 makes every CR in the text a line
+break. `yaml` checks no characters, so a tool refuses a C0 control other than
+tab, LF and CR anywhere in the text, and reads the source of each plain
+scalar, block scalar, comment and directive from the CST, refusing DEL, a C1
+control other than NEL, U+FEFF, U+FFFE and U+FFFF in it. A tool also refuses
+every `byte-order-mark` token, since `TextDecoder` has already removed the
+one that may start the file ([`INVALID_SYNTAX`](#parse-and-schema)).
 
 **Reading records.** The parse layer for a record is a JSON parser that
 refuses what RFC 8259 leaves to the parser (§3), and neither stock parser is

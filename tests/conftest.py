@@ -1,6 +1,7 @@
 """The fixture harness: YAML 1.2 and strict JSON loading, the generated validators, `rules.json` and the fixture headers
 (design §9)."""
 
+import contextlib
 import functools
 import json
 import math
@@ -15,7 +16,7 @@ from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError, SafeCon
 from ruamel.yaml.error import YAMLError
 from ruamel.yaml.events import AliasEvent
 from ruamel.yaml.nodes import MappingNode, ScalarNode, SequenceNode
-from ruamel.yaml.reader import Reader
+from ruamel.yaml.reader import Reader, ReaderError
 from ruamel.yaml.resolver import VersionedResolver
 from ruamel.yaml.scanner import Scanner, ScannerError
 from rules import json_pointer
@@ -71,18 +72,99 @@ _CORE_SCALARS = {
 """The YAML 1.2 core schema's plain scalars other than strings (YAML 1.2.2 §10.3.2), in resolution order."""
 
 
-_BREAKS = "\r\n\x85\u2028\u2029"
-"""The characters ruamel.yaml's scanner reads as line breaks."""
+_BREAKS = "\r\n"
+"""YAML 1.2.2's line break characters, CR and LF (§5.4): the scanner reads a CR LF, a CR or an LF as a line break.
+
+ruamel.yaml's scanner also reads NEL, LS and PS as line breaks, as YAML 1.1 did, but none of them reaches it: the reader
+shows each as a stand-in (`_CoreSchemaReader`)."""
+
+_END_OF_LINE = "\0" + _BREAKS
+"""What ends a line: a line break, or the end of the text (`\\0`, which the reader adds)."""
 
 _BEFORE_A_COMMENT = ("", " ", "\t", "\ufeff", *_BREAKS)
 """What a comment may follow: the start of the stream (`""`), white space, a byte order mark or a line break."""
 
+_NON_BREAKS = "\x85\u2028\u2029"
+"""NEL, LS and PS: ordinary characters in YAML 1.2 (YAML 1.2.2 §5.4), which ruamel.yaml's scanner reads as line
+breaks."""
+
+_CONTROLS = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff]")
+"""What YAML 1.2.2 allows nowhere in a stream (§5.1, [1] `c-printable`): a C0 control other than tab, LF and CR, and a
+surrogate, which isn't a character."""
+
+_QUOTED_ONLY = re.compile("[\x7f-\x84\x86-\x9f\ufeff\ufffe\uffff]")
+"""What YAML 1.2.2 allows in a quoted scalar but not in a plain scalar, a block scalar, a comment or a directive (§5.1,
+[1] `c-printable`, [27] `nb-char`): DEL, a C1 control other than NEL, U+FEFF (a byte order mark), U+FFFE and U+FFFF.
+
+ruamel.yaml reads a byte order mark anywhere but at the start of the text as the start of a plain scalar, so this also
+refuses one at the start of a later document's prefix (`...` then U+FEFF), which YAML 1.2.2 §5.2 allows and spec §3,
+by ASTRA's rule, doesn't."""
+
+_STAND_INS = range(0xE000, 0xF900)
+"""The code points the reader takes its stand-ins from: the private use area of the Basic Multilingual Plane."""
+
 
 class _CoreSchemaReader(Reader):
-    """ruamel.yaml's reader, which also keeps the last character it read, for the scanner to look one back."""
+    """ruamel.yaml's reader, reading a text by YAML 1.2.2's characters (§5.1, §5.4), and keeping the last character it
+    read, for the scanner to look one back.
+
+    It takes a text only: `load_document` decodes a file's bytes itself. It holds the whole text, which it never trims,
+    so the scanner can read back to a line's start (`_CoreSchemaScanner._line_so_far`).
+
+    ruamel.yaml's reader refuses DEL, the C1 controls, U+FFFE and U+FFFF anywhere, but YAML 1.2.2 allows every
+    character but a C0 control (tab, LF and CR aside) inside a quoted scalar: this one refuses only those (`_CONTROLS`),
+    and the scanner refuses the others outside a quoted scalar (`_QUOTED_ONLY`).
+
+    ruamel.yaml's scanner reads NEL, LS and PS as line breaks, and its set of breaks is written out in about thirty
+    places. So the reader shows each of the three to the scanner as a stand-in, a character of the private use area
+    that the text doesn't hold, which the scanner reads as an ordinary character, as YAML 1.2 reads the three: `peek`
+    gives the stand-in, and `prefix`, which the scanner reads a scalar's text by, gives the character itself. No value
+    holds a stand-in: an escape (`"\\N"`, `"\\uE000"`) writes its own character.
+    """
 
     last = ""
     """The last character read, or `""` at the start of the stream."""
+
+    _originals: dict[int, str] = {}
+    """The character each stand-in stands for, by the stand-in's code point, for `str.translate`."""
+
+    @property
+    def stream(self) -> Any:
+        return Reader.stream.fget(self)
+
+    @stream.setter
+    def stream(self, val: Any) -> None:
+        """Read the text `val`, each NEL, LS and PS in it shown as its stand-in."""
+        if val is not None:
+            if not isinstance(val, str):
+                raise TypeError(
+                    "the reader takes a text: a file's bytes are decoded first"
+                )
+            held = set(val)
+            free = (c for c in map(chr, _STAND_INS) if c not in held)
+            stand_ins = {ord(c): next(free) for c in _NON_BREAKS if c in held}
+            self._originals = {ord(s): chr(c) for c, s in stand_ins.items()}
+            val = val.translate(stand_ins)
+        Reader.stream.fset(self, val)
+
+    def check_printable(self, data: Any) -> None:
+        """Refuse a C0 control other than tab, LF and CR, and a surrogate, anywhere in `data` (YAML 1.2.2 §5.1)."""
+        found = _CONTROLS.search(data)
+        if found is not None:
+            raise ReaderError(
+                self.name,
+                found.start(),
+                ord(found[0]),
+                "unicode",
+                "YAML allows no C0 control but tab, LF and CR, even quoted",
+            )
+
+    def prefix(self, length: int = 1) -> Any:
+        return self.restore(super().prefix(length))
+
+    def restore(self, text: str) -> str:
+        """`text` with each stand-in replaced by the character it stands for."""
+        return text.translate(self._originals) if self._originals else text
 
     def forward(self, length: int = 1) -> None:
         super().forward(length)
@@ -91,31 +173,274 @@ class _CoreSchemaReader(Reader):
 
 
 class _CoreSchemaScanner(Scanner):
-    """ruamel.yaml's scanner, refusing a `%YAML` directive for any version but 1.2, and the text YAML 1.2.2 makes
-    ill-formed that ruamel.yaml would read.
+    """ruamel.yaml's scanner, refusing a `%YAML` directive for any version but 1.2, reading tabs as YAML 1.2.2 does,
+    and refusing the text YAML 1.2.2 makes ill-formed that ruamel.yaml would read.
 
     The directive is ASTRA's rule, not YAML's (spec §3): YAML 1.2.2 §6.8.1 has a 1.2 processor accept `%YAML 1.1`,
     and process a later 1.x with a warning.
 
-    That text is: a comment with no white space before it (YAML 1.2.2 §6.6); a line of a flow collection or of a
-    quoted scalar, its closing bracket or quote included, with no more indentation in spaces than the block
-    collection it is in (§6.3, §8.2.3: under a block collection indented `n` spaces, a flow node is at `n+1`); `-`,
-    `?` or `:` starting a plain scalar in a flow collection with a flow indicator after it (§7.3.3, as in `[-]`);
-    and the verbatim tag `!<!>` (§6.9.1).
+    ruamel.yaml takes a tab as white space only in a flow collection and a quoted scalar. YAML 1.2.2 takes one wherever
+    white space separates (§6.2): after a token, at a line's end, on a line of white space only, before a comment,
+    between the words of a plain scalar and after a continuation line's indentation, in a directive, in a block
+    scalar's header, and in the block context after a line's indentation or a block indicator (`-`, `?`, `:`) before
+    anything but a block collection. It refuses one in indentation (§6.1): before a token on a line with no more spaces
+    than the block it is in, before a block collection (`-\\t-`, `?\\tkey:`), and in a block scalar's indentation
+    (§8.1.1).
+
+    The text YAML 1.2.2 makes ill-formed is: a comment with no white space before it (§6.6); a line of a flow
+    collection or of a quoted scalar, its closing bracket or quote included, with no more indentation in spaces than
+    the block collection it is in (§6.3, §8.2.3: under a block collection indented `n` spaces, a flow node is at
+    `n+1`); `-`, `?` or `:` starting a plain scalar in a flow collection with a flow indicator after it (§7.3.3, as in
+    `[-]`); the verbatim tag `!<!>` (§6.9.1); a character of `_QUOTED_ONLY` in a plain scalar, a block scalar, a
+    comment or a directive ([1], [27]); and a leading empty line of a block scalar with more spaces than its first
+    non-empty line (§8.1.1.1; ruamel.yaml compares the empty lines with each other instead).
     """
 
     _quoted = False
     """True while a quoted scalar is scanned."""
 
+    def reset_scanner(self) -> None:
+        super().reset_scanner()
+        self._after_tab: set[int] = set()
+        """Where each token starts, by its index in the text, that follows a tab in the block context after a line's
+        indentation or a block indicator: none of them may start a block collection."""
+        self._indicator_end = -1
+        """Where the last block indicator (`-`, `?` or `:` in the block context) ends, by its index in the text."""
+
+    def _line_so_far(self) -> str:
+        """The text of the reader's line before its position, without a byte order mark that starts the text."""
+        buffer, pointer = self.reader.buffer, self.reader.pointer
+        start = max(buffer.rfind("\n", 0, pointer), buffer.rfind("\r", 0, pointer)) + 1
+        line = buffer[start:pointer]
+        return line.removeprefix("\ufeff") if start == 0 else line
+
+    def _refuse_quoted_only(self, text: str, mark: Any) -> None:
+        """Raise `ScannerError` if `text`, a plain scalar, a block scalar, a comment or a directive as written, holds a
+        character YAML 1.2.2 allows only in a quoted scalar (`_QUOTED_ONLY`)."""
+        found = _QUOTED_ONLY.search(text)
+        if found is not None:
+            raise ScannerError(
+                None,
+                None,
+                f"found U+{ord(found[0]):04X}, which YAML allows only in a quoted scalar",
+                mark,
+            )
+
     def scan_to_next_token(self) -> Any:
-        if self.reader.peek() == "#" and self.reader.last not in _BEFORE_A_COMMENT:
+        """Skip the white space, comments and line breaks before the next token, refusing a comment glued to a token,
+        a comment holding a character of `_QUOTED_ONLY`, and a tab in indentation (`_note_a_tab`)."""
+        reader = self.reader
+        peek, forward = reader.peek, reader.forward
+        if peek() == "#" and reader.last not in _BEFORE_A_COMMENT:
             raise ScannerError(
                 None,
                 None,
                 "found '#' right after a token: a comment needs white space before it",
+                reader.get_mark(),
+            )
+        if reader.index == 0 and peek() == "\ufeff":
+            forward()
+        gap = reader.index
+        while True:
+            while peek() in " \t":
+                forward()
+            if peek() == "#":
+                start, mark = reader.pointer, reader.get_mark()
+                while peek() not in _END_OF_LINE:
+                    forward()
+                self._refuse_quoted_only(reader.buffer[start : reader.pointer], mark)
+            if not self.scan_line_break():
+                break
+            if not self.flow_level:
+                self.allow_simple_key = True
+            gap = reader.index
+        if not self.flow_level and peek() != "\0":
+            self._note_a_tab(gap)
+        return None
+
+    def _note_a_tab(self, gap: int) -> None:
+        """Before a token in the block context: refuse a tab in the line's indentation, and note the token in
+        `_after_tab` if a tab comes before it after the indentation, or after a block indicator, `gap` being where the
+        white space before the token starts on its line.
+
+        The indentation is the spaces that start the line. With no more of them than the block collection it is in, the
+        token would start an entry of that collection, or of one it is in, after the tab.
+        """
+        reader = self.reader
+        line = self._line_so_far()
+        if not line.strip(" \t"):
+            if "\t" not in line:
+                return
+            if len(line) - len(line.lstrip(" ")) <= self.indent:
+                raise ScannerError(
+                    None,
+                    None,
+                    f"found a tab in indentation: no more spaces before it than the block it is in has "
+                    f"({self.indent})",
+                    reader.get_mark(),
+                )
+        elif (
+            gap != self._indicator_end
+            or "\t" not in reader.buffer[gap : reader.pointer]
+        ):
+            return
+        self._after_tab.add(reader.index)
+
+    def _refuse_after_a_tab(self, index: int, what: str, mark: Any) -> None:
+        """Raise `ScannerError` if the token starting at `index` follows a tab after a line's indentation or a block
+        indicator (`_after_tab`): `what` starts a block collection."""
+        if index in self._after_tab:
+            raise ScannerError(
+                None,
+                None,
+                f"found {what} after a tab: a block collection starts after spaces only",
+                mark,
+            )
+
+    def fetch_block_entry(self) -> None:
+        block = not self.flow_level
+        if block:
+            self._refuse_after_a_tab(self.reader.index, "'-'", self.reader.get_mark())
+        super().fetch_block_entry()
+        if block:
+            self._indicator_end = self.reader.index
+
+    def fetch_key(self) -> None:
+        block = not self.flow_level
+        if block:
+            self._refuse_after_a_tab(self.reader.index, "'?'", self.reader.get_mark())
+        super().fetch_key()
+        if block:
+            self._indicator_end = self.reader.index
+
+    def fetch_value(self) -> None:
+        block = not self.flow_level
+        if block:
+            key = self.possible_simple_keys.get(self.flow_level)
+            if key is None:
+                self._refuse_after_a_tab(
+                    self.reader.index, "':'", self.reader.get_mark()
+                )
+            else:
+                self._refuse_after_a_tab(key.index, "a key", key.mark)
+        super().fetch_value()
+        if block:
+            self._indicator_end = self.reader.index
+
+    def scan_plain(self) -> Any:
+        token = super().scan_plain()
+        start, end = token.start_mark, token.end_mark
+        self._refuse_quoted_only(start.buffer[start.pointer : end.pointer], start)
+        return token
+
+    def scan_plain_spaces(self, indent: int, start_mark: Any) -> Any:
+        """What follows a word of a plain scalar, as YAML 1.2.2 reads it (§6.3, §7.3.3): the white space before the
+        next word on the line, the line breaks folded (`[" "]` for one, `["\\n", …]` for more), or `[]` or None (at a
+        document marker) where the scalar ends.
+
+        ruamel.yaml reads only spaces here. A tab is white space too: between two words it is content, and at a line's
+        end it is folded away. A line after a break continues the scalar if it has `indent` spaces, then any white
+        space ([69] `s-flow-line-prefix`), and is empty if it has fewer spaces and no tab, or only white space after
+        `indent` spaces ([70] `l-empty`). A line with fewer spaces and then a tab ends the scalar after its spaces,
+        leaving the tab to `scan_to_next_token`. In a flow collection, `_check_continuation` checks the spaces instead.
+        """
+        reader = self.reader
+        peek, forward = reader.peek, reader.forward
+        length = 0
+        while peek(length) in " \t":
+            length += 1
+        white = reader.prefix(length)
+        forward(length)
+        if peek() not in _BREAKS:
+            return [white] if white else []
+        self.scan_line_break()
+        self.allow_simple_key = True
+        breaks: list[str] = []
+        while True:
+            if reader.prefix(3) in ("---", "...") and peek(3) in _END_OF_LINE + " \t":
+                return None
+            spaces = 0
+            while peek(spaces) == " ":
+                spaces += 1
+            length = spaces
+            if self.flow_level or spaces >= indent:
+                while peek(length) in " \t":
+                    length += 1
+            if peek(length) not in _BREAKS:
+                forward(spaces if peek(length) == "\t" else length)
+                return breaks or [" "]
+            forward(length)
+            breaks.append(self.scan_line_break())
+
+    def scan_block_scalar(self, style: Any, rt: Any = False) -> Any:
+        token = super().scan_block_scalar(style, rt)
+        start, end = token.start_mark, token.end_mark
+        self._refuse_quoted_only(start.buffer[start.pointer : end.pointer], start)
+        return token
+
+    def scan_block_scalar_indicators(self, start_mark: Any) -> Any:
+        """A block scalar's indicators, read with a tab as a space: white space may follow them ([162]
+        `c-b-block-header`, [77] `s-b-comment`)."""
+        with self._tabs_as_spaces():
+            return super().scan_block_scalar_indicators(start_mark)
+
+    def scan_block_scalar_ignored_line(self, start_mark: Any) -> Any:
+        """The rest of a block scalar's header line, read with a tab as a space: white space, then a comment, may end
+        it ([77] `s-b-comment`). `scan_block_scalar` checks the comment's characters."""
+        with self._tabs_as_spaces():
+            return super().scan_block_scalar_ignored_line(start_mark)
+
+    def scan_block_scalar_indentation(self) -> Any:
+        """`(breaks, indent, end_mark)` for a block scalar with no indentation indicator: its leading empty lines, and
+        its indentation, the spaces of its first non-empty line (YAML 1.2.2 §8.1.1.1).
+
+        A line whose spaces are followed by a tab isn't empty: it is the scalar's first line if it has at least the
+        scalar's least indentation, the tab being content, and otherwise the tab is in the indentation, which YAML
+        refuses. No leading empty line has more spaces than the first non-empty line. With no non-empty line, the
+        indentation is the spaces of the longest line, as in ruamel.yaml.
+        """
+        reader = self.reader
+        peek, forward = reader.peek, reader.forward
+        least = self.indent + 1
+        breaks, most, end_mark = [], 0, reader.get_mark()
+        while peek() in " " + _BREAKS:
+            if peek() == " ":
+                forward()
+            else:
+                most = max(most, reader.column)
+                breaks.append(self.scan_line_break())
+                end_mark = reader.get_mark()
+        if peek() == "\t" and reader.column < least:
+            raise ScannerError(
+                "while scanning a block scalar",
+                None,
+                f"found a tab in its indentation ({least} spaces at least)",
+                reader.get_mark(),
+            )
+        if peek() != "\0" and reader.column >= least:
+            if most > reader.column:
+                raise ScannerError(
+                    "while scanning a block scalar",
+                    None,
+                    "found a leading empty line with more spaces than the first non-empty line",
+                    reader.get_mark(),
+                )
+            return breaks, reader.column, end_mark
+        return breaks, max(most, reader.column), end_mark
+
+    def scan_block_scalar_breaks(self, indent: int) -> Any:
+        """ruamel.yaml's, refusing a line with fewer spaces than the scalar's indentation and then a tab: such a line is
+        neither content nor empty ([170] `l-empty`), and can't follow a block scalar before a comment ([169]
+        `l-trail-comments`), so the tab is in the indentation."""
+        found = super().scan_block_scalar_breaks(indent)
+        if self.reader.peek() == "\t" and self.reader.column < indent:
+            raise ScannerError(
+                "while scanning a block scalar",
+                None,
+                f"found a tab in its indentation ({indent} spaces)",
                 self.reader.get_mark(),
             )
-        return super().scan_to_next_token()
+        return found
 
     def scan_line_break(self) -> Any:
         line_break = super().scan_line_break()
@@ -161,9 +486,24 @@ class _CoreSchemaScanner(Scanner):
             return False
         return super().check_plain()
 
+    @contextlib.contextmanager
+    def _tabs_as_spaces(self) -> Any:
+        """Show the reader's tabs to ruamel.yaml as spaces, where it takes only a space as white space and YAML 1.2.2
+        takes a tab too (§6.2), and where neither is content: on a directive's line, after a tag, and on a block
+        scalar's header line."""
+        reader = self.reader
+        peek, prefix = reader.peek, reader.prefix
+        reader.peek = lambda index=0: " " if (ch := peek(index)) == "\t" else ch
+        reader.prefix = lambda length=1: prefix(length).replace("\t", " ")
+        try:
+            yield
+        finally:
+            del reader.peek, reader.prefix
+
     def scan_tag(self) -> Any:
         verbatim = self.reader.prefix(2) == "!<"
-        token = super().scan_tag()
+        with self._tabs_as_spaces():
+            token = super().scan_tag()
         if verbatim and token.value == (None, "!"):
             raise ScannerError(
                 "while scanning a tag",
@@ -174,7 +514,14 @@ class _CoreSchemaScanner(Scanner):
         return token
 
     def scan_directive(self) -> Any:
-        token = super().scan_directive()
+        """A directive, its line read with a tab as a space (YAML 1.2.2 §6.8: white space separates its parts and its
+        comment), and refused if the line holds a character of `_QUOTED_ONLY` or is a `%YAML` for any version but
+        1.2."""
+        reader = self.reader
+        start, mark = reader.pointer, reader.get_mark()
+        with self._tabs_as_spaces():
+            token = super().scan_directive()
+        self._refuse_quoted_only(reader.buffer[start : reader.pointer], mark)
         if token.name == "YAML" and token.value != (1, 2):
             major, minor = token.value
             raise ScannerError(
@@ -317,7 +664,7 @@ class _CoreSchemaConstructor(SafeConstructor):
                     (
                         key_node.start_mark.index,
                         self.map_pointers[node],
-                        _written(key_node),
+                        self.loader.reader.restore(_written(key_node)),
                     )
                 )
         return mapping
@@ -431,6 +778,17 @@ def load_document(source: Path | str) -> tuple[Any, list[tuple[str, str]]]:
     """`(document, left_out)`: the JSON form of the document in `source`, a file or a text, read as YAML 1.2.2 under
     the core schema only, and the keys left out of it; raises a `YAMLError` if it isn't such a document.
 
+    A file's bytes are decoded as UTF-8, strictly (spec §3): bytes that aren't UTF-8 raise a `ReaderError`, so a UTF-16
+    or UTF-32 file does too, though YAML 1.2.2 §5.2 reads them. A byte order mark that starts the text is kept, for the
+    scanner to skip; one anywhere else outside a quoted scalar raises, though YAML 1.2.2 §5.2 allows one at the start
+    of each document. The text is read by YAML 1.2.2's characters, tabs and line breaks (§5, §6.1, §6.2), where
+    ruamel.yaml departs from them: a C0 control other than tab, LF and CR raises anywhere, and DEL, a C1 control other
+    than NEL, U+FEFF, U+FFFE and U+FFFF raise outside a quoted scalar; NEL, LS and PS are ordinary characters, and a
+    CR on its own ends a line; a tab separates wherever YAML 1.2.2 allows white space other than indentation (after a
+    token, at a line's end, before a comment, inside a plain scalar, after an indentation's spaces before anything but
+    a block collection), and raises in indentation, before a block collection after a block indicator (`-\\t-`), and in
+    a block scalar's indentation.
+
     A plain scalar is a null, a bool, an int or a float only in its core-schema form, and a string otherwise (so
     timestamps and `1_000` are strings); a scalar tagged `!` is a string; `<<` is an ordinary key; a tag outside the
     core schema (`!!set`, `!!binary`, `!!omap`, `!!timestamp`, a local tag), a core tag on a node of another kind or
@@ -451,7 +809,20 @@ def load_document(source: Path | str) -> tuple[Any, list[tuple[str, str]]]:
     left-out entry is left out with it, and not listed. The document is composed first, so that each map's pointer
     is known, then constructed.
     """
-    text = source.read_bytes() if isinstance(source, Path) else source
+    if isinstance(source, Path):
+        data = source.read_bytes()
+        try:
+            text = data.decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ReaderError(
+                str(source),
+                error.start,
+                data[error.start : error.start + 1],
+                "utf-8",
+                f"{error.reason}: an astra.yaml is UTF-8",
+            ) from None
+    else:
+        text = source
     yaml = _core_schema_yaml()
     try:
         node = yaml.compose(text)
@@ -481,8 +852,8 @@ def _without_left_out_keys(loaded: tuple[Any, list[tuple[str, str]]]) -> Any:
 
 
 def load_yaml(path: Path) -> Any:
-    """The JSON form of the document in `path`, as `load_document` reads it; raises a `YAMLError` if it isn't one, and
-    a `ValueError` naming each key that isn't a string, if it has any.
+    """The JSON form of the document in `path`, its bytes decoded as strict UTF-8 and read as `load_document` reads
+    them; raises a `YAMLError` if it isn't one, and a `ValueError` naming each key that isn't a string, if it has any.
 
     So a document that must be valid (a valid fixture, an example, a block of the specification) fails on such a key.
     """
@@ -707,11 +1078,17 @@ def fixture_header(path: Path) -> tuple[str, str, tuple[str, str] | None]:
     The header is two comment lines, `# rule: <CODE>` and `# fails at: <location>`, then optionally a third,
     `# also: <CODE> at <pointer>`: a second error the fixture's one break brings. `also` is that line's
     `(code, pointer)`, or None. A third line that is a comment must be an `# also:` line.
+
+    The lines are the first three that end in LF, read from the bytes as ASCII, so that a fixture that isn't UTF-8,
+    or holds a CR on its own, has a header (a CR LF's CR is dropped).
     """
     header = header_file(path)
     if not header.is_file():
         raise ValueError(f"{path.name}: its header file {header.name} is missing")
-    lines = header.read_text(encoding="utf-8").splitlines()[:3]
+    lines = [
+        line.removesuffix(b"\r").decode("ascii", "replace")
+        for line in header.read_bytes().split(b"\n")[:3]
+    ]
     rule = _RULE_LINE.fullmatch(lines[0]) if lines else None
     fails_at = _FAILS_AT_LINE.fullmatch(lines[1]) if len(lines) > 1 else None
     if rule is None or fails_at is None:

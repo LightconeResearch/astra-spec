@@ -2,9 +2,12 @@
 
 extends: default
 
-# Failing at parse (a duplicate key, malformed YAML, a %YAML 1.1 directive, a
-# local tag, a second document) is the point of these fixtures and of the
-# yaml-test-suite error cases. Keep in step with check-yaml's exclude in
+# What yamllint's loader refuses is the point of these fixtures and of the
+# yaml-test-suite cases: failing at parse (a duplicate key, malformed YAML, a
+# %YAML 1.1 directive, a local tag, a second document, bytes that aren't
+# UTF-8, a C1 control outside quotes), and YAML 1.2's tabs and characters (a
+# tab as white space, a C1 control or DEL in quotes, NEL as an ordinary
+# character). Keep in step with check-yaml's exclude in
 # .pre-commit-config.yaml.
 ignore: |
   tests/data/invalid/Analysis-101-duplicate-output.yaml
@@ -16,6 +19,11 @@ ignore: |
   tests/data/invalid/Analysis-194-escape-beyond-unicode.yaml
   tests/data/invalid/Analysis-201-local-tag.yaml
   tests/data/invalid/Analysis-204-second-document.yaml
+  tests/data/invalid/Analysis-211-not-utf-8.yaml
+  tests/data/invalid/Analysis-212-c1-control-in-plain-scalar.yaml
+  tests/data/valid/Analysis-010-tabs-as-separation.yaml
+  tests/data/valid/Analysis-011-quoted-c1-and-del.yaml
+  tests/data/valid/Analysis-012-nel-in-block-scalar.yaml
   tests/yaml-test-suite/
 
 rules:

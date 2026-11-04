@@ -1,0 +1,9 @@
+# NEL (U+0085) is an ordinary character in YAML 1.2, not a line break: this
+# description is one line, with a NEL in it.
+spec_version: "0.1.0"
+description: |
+  First sentence.Second sentence.
+outputs:
+  result:
+    type: metric
+    format: json

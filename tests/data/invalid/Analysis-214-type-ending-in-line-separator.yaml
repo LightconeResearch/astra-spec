@@ -1,0 +1,7 @@
+# rule: INVALID_VALUE
+# fails at: /outputs/result/type
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric 
+    format: json
