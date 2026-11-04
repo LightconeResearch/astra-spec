@@ -233,7 +233,7 @@ is `iris.random_seed.seed_42`.
 | [`commit_id`](elements/CommitId.md) | a full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64 (SHA-256) | `AnalysisDeclaration.commit`, `Generation.commit` |
 | [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits | `ProvenanceRecord.content_hash`, `RecordedInput.content_hash` |
 | [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros | `Analysis.spec_version`, `ProvenanceRecord.spec_version` |
-| [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ` | `Generation.started`, `Generation.finished` |
+| [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, each field in its range; whether the day exists in its month, such as 30 February, isn't checked | `Generation.started`, `Generation.finished` |
 
 A value that doesn't take its type's form fails: a map key or an `id` as
 [`INVALID_ID`](#parse-and-schema), any other address, reference, option
@@ -939,15 +939,20 @@ the result's `address`, the `content_hash` and `size` (in bytes) of the
 result's bytes, and the run of the recipe that made it, `generated_by`, a
 [Generation](elements/Generation.md):
 
-- `commit`: the full id of the git commit the recipe ran from. It pins every
-  file of the code and every `astra.yaml`, an analysis in a submodule through
-  the commit the submodule is pinned at.
+- `commit`: the full id of the git commit the recipe ran from, the driver's
+  commit for what a driver's universes build (§7). It pins every file of the
+  code and every `astra.yaml`: an analysis in a submodule through the commit
+  the submodule is pinned at, and an analysis from a commit through its
+  declaration's `commit`.
 - `inputs`: what the recipe read, as one
-  [RecordedInput](elements/RecordedInput.md) for each entry the output lists,
+  [RecordedInput](elements/RecordedInput.md) for each entry the output lists
+  in the `astra.yaml` files at the record's `commit`, and no other item,
   matched by its `entry`, which is written exactly as the output lists it
   ([`MISSING_RECORD_INPUTS`](#check)). Each gives the `content_hash` and
   `size` of what the recipe read through the entry: another output's result,
-  or the file an input names. The order of the items carries no meaning.
+  or the file an input names. The order of the items carries no meaning. A
+  later change to the list makes the result `stale`
+  ([`STALE_RESULT`](#check)), not `missing`.
 - `environment`: an [Environment](elements/Environment.md), whose `iri` is an
   absolute IRI naming exactly the environment the recipe ran in, enough for
   its runner, at the version the record gives, to recreate it. It needn't
@@ -955,7 +960,14 @@ result's bytes, and the run of the recipe that made it, `generated_by`, a
 - `runner`: a [Runner](elements/Runner.md), the runner's `id`, ideally unique
   (an IRI, say), and its `version`.
 - `started` and `finished`: when the recipe started and finished, in UTC to
-  the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`.
+  the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, each field in its range;
+  whether the day exists in its month, such as 30 February, isn't checked.
+
+Every field of a record is required ([`MISSING_FIELD`](#parse-and-schema))
+but three: `started` and `finished`, which are optional, and `inputs`, which
+the schema leaves optional and [`MISSING_RECORD_INPUTS`](#check) holds to
+the entries the output lists. So a record of an output that lists no inputs
+can leave `inputs` out.
 
 Every hash names its algorithm: `sha256:`, then the SHA-256 digest
 ([`INVALID_VALUE`](#parse-and-schema)).
@@ -1054,6 +1066,9 @@ recognises stand-ins can tell that the bytes have been `modified`: a stand-in
 naming another hash, or a file that plainly isn't a stand-in and doesn't
 match.
 
+A checker reads records only through planned results: a record at no planned
+result's place gets no status, and no check rule applies to it.
+
 Evidence citing a result gets the status of the result's record
 ([`STALE_EVIDENCE`](#check)), through the record its address names: the
 reference, pinned when the output is built per universe, names exactly one
@@ -1140,7 +1155,7 @@ A table that breaks any of this is an error in this specification, and no
 | `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key matches its key's type (an `id`, or an `address` in `Universe.decisions`), and every `id`-typed value matches the `id` grammar | §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
-| `MISSING_FIELD` | schema | MUST | Every required field is present: `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact`, `FragmentSelector.value`, and the record's (§8) | 0004, 0005, 0006, tidy-up |
+| `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up |
 | `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | §10 |
 | `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry | 0004, `main` |
 | `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |
@@ -1219,9 +1234,9 @@ status.
 | Code | Level | Rule | Status when broken | Source |
 |---|---|---|---|---|
 | `MISSING_RECORD` | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once) in the analysis it belongs to | `missing` | 0005 §1 |
-| `INVALID_RECORD` | MUST | Every record is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, §8 |
-| `MISPLACED_RECORD` | MUST | Every record's `address` names the result whose record is kept where it is | `missing` | 0005 §1 |
-| `MISSING_RECORD_INPUTS` | MUST | Every record has exactly one `inputs` item for each entry its output lists, matched by `entry` (their order carries no meaning) | `missing` | 0005 §2 |
+| `INVALID_RECORD` | MUST | The record at each planned result's place is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, §8 |
+| `MISPLACED_RECORD` | MUST | The record at each planned result's place names that result in its `address` | `missing` | 0005 §1 |
+| `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
 | `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, its inputs' content, or the results it reads | `stale` | 0005 §4 |
 | `ABSENT_RESULT` | SHOULD | Every result's recorded bytes are at its default place | `absent`, or `modified` | 0005 §1 |
 | `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status | 0005 §5 |
@@ -1387,10 +1402,12 @@ PROV-O: the record is a `prov:Entity` that `prov:wasGeneratedBy` its
 `generated_by`, a `prov:Activity`, which `prov:used` its inputs and its
 environment and `prov:wasAssociatedWith` its runner, a `prov:SoftwareAgent`.
 The run's `started` and `finished` are `prov:startedAtTime` and
-`prov:endedAtTime`, the runner's `version` is `schema:softwareVersion`, and
-the environment's IRI is its `@id`. No RDF reading of `astra.yaml` is
-published yet. In the schema, the evidence selectors are W3C Web
-Annotation's `oa:TextQuoteSelector` (with `oa:exact`, `oa:prefix` and
+`prov:endedAtTime`, typed `xsd:dateTime`, the runner's `version` is
+`schema:softwareVersion`, and the environment's IRI is its `@id`. The schema
+doesn't check that a time's day exists in its month (§4), so a time such as
+30 February converts to an ill-typed `xsd:dateTime`. No RDF reading of
+`astra.yaml` is published yet. In the schema, the evidence selectors are W3C
+Web Annotation's `oa:TextQuoteSelector` (with `oa:exact`, `oa:prefix` and
 `oa:suffix`) and `oa:FragmentSelector` (with `rdf:value`).
 
 **The package.** The `astra-spec` Python package holds the LinkML sources and

@@ -301,7 +301,7 @@
       "layer": "schema",
       "level": "MUST",
       "source": "0004, 0005, 0006, tidy-up",
-      "statement": "Every required field is present: `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact`, `FragmentSelector.value`, and the record's (§8)"
+      "statement": "Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size`"
     },
     {
       "code": "UNKNOWN_FIELD",
@@ -638,7 +638,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "0005 §2, §8",
-      "statement": "Every record is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's",
+      "statement": "The record at each planned result's place is valid against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's",
       "status": "`missing`"
     },
     {
@@ -646,7 +646,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "0005 §1",
-      "statement": "Every record's `address` names the result whose record is kept where it is",
+      "statement": "The record at each planned result's place names that result in its `address`",
       "status": "`missing`"
     },
     {
@@ -654,7 +654,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "0005 §2",
-      "statement": "Every record has exactly one `inputs` item for each entry its output lists, matched by `entry` (their order carries no meaning)",
+      "statement": "The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning)",
       "status": "`missing`"
     },
     {

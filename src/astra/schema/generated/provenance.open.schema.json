@@ -22,7 +22,7 @@
       "description": "A run of an output's recipe: the commit it ran from, what it read, the environment it ran in and the runner that ran it.",
       "properties": {
         "commit": {
-          "description": "The full id of the git commit the recipe ran from. It pins every file of the code and every `astra.yaml`, an analysis in a submodule through the commit the submodule is pinned at.",
+          "description": "The full id of the git commit the recipe ran from, the driver's commit for what a driver's universes build. It pins every file of the code and every `astra.yaml`: an analysis in a submodule through the commit the submodule is pinned at, and an analysis from a commit through its declaration's `commit`.",
           "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)",
           "type": "string"
         },
@@ -36,7 +36,7 @@
           "type": "string"
         },
         "inputs": {
-          "description": "What the recipe read: one item for each entry the output's `inputs` lists, matched by `entry`; the order of the items carries no meaning.",
+          "description": "What the recipe read: one item for each entry the output's `inputs` lists in the `astra.yaml` files at the record's `commit`, and no other item, matched by `entry`; the order of the items carries no meaning. A later change to the list makes the result `stale`, not `missing`.",
           "items": {
             "$ref": "#/$defs/RecordedInput"
           },
@@ -70,7 +70,7 @@
           "type": "string"
         },
         "entry": {
-          "description": "The entry exactly as the output's `inputs` lists it in the `astra.yaml`, such as `iris.data`.",
+          "description": "The entry exactly as the output's `inputs` lists it in the `astra.yaml` files at the record's `commit`, such as `iris.data`.",
           "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
           "type": "string"
         },
