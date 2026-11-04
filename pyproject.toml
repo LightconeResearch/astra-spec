@@ -83,6 +83,8 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/astra"]
+# astra.schema holds no .py file, so an editable install needs src on the path to expose it.
+dev-mode-dirs = ["src"]
 
 # Ship the agent briefing inside the package so tooling (e.g. `astra guide`
 # from astra-tools) can read the copy matching the installed schema.
