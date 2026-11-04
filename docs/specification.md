@@ -166,6 +166,22 @@ An **analysis** is a directory with an `astra.yaml` at its top. Its recipes
 run in that directory. The paths of its inputs and declarations are relative
 to the folder of the `astra.yaml` and separate folders with `/` (§5, §7).
 
+**Paths.** A path in an analysis is written as git writes a path in a commit,
+the same on every machine, and so is each place §8 builds from its ids and
+formats; a tool on Windows maps them onto its own paths, as git does. A path
+names the entry git holds at exactly that path, byte for byte, so case and
+Unicode form count: a match that ignores either names nothing
+([`MISSING_INPUT_FILE`](#validator),
+[`MISSING_DECLARED_ANALYSIS`](#validator)). Two paths that differ only in case
+or Unicode form, such as `data/A.csv` and `data/a.csv`, name two files or
+folders, as in git, so `Stage` and `stage` declare two analyses (§7). An
+`astra.yaml` needn't be one Windows can check out. The path `C:/x` is `x` in a
+folder `C:`, not on a drive, and a name Windows reserves, such as `con` or
+`aux`, or a name ending in `.`, such as one built from `format: "csv."`, is
+valid. No ASTRA rule bounds the length of an id, a format or a path: a path
+git can't check out on a machine, such as one holding a name longer than its
+file system allows (255 bytes on ext4), can't be used there.
+
 **`astra.yaml`** is YAML 1.2 ([YAML](https://yaml.org/spec/1.2.2/)), read
 strictly, under the core schema only
 ([`INVALID_SYNTAX`](#parse-and-schema)):
@@ -394,11 +410,12 @@ insight's `evidence`, a record's `inputs`, and lists of strings. No list of
 strings holds the same entry twice ([`DUPLICATE_ENTRY`](#parse-and-schema)),
 so an output lists each of its inputs, decisions and conditions once.
 
-Every id has the one grammar `id`, and no id is reserved: an address's kind
-comes from the field it is written in, so an element can be called `inputs`.
-Ids of different kinds can be the same, except where one field could resolve
-to either: an input and an output never share an id, since `Output.inputs`
-takes both ([`AMBIGUOUS_ID`](#validator)).
+Every id has the one grammar `id`, and no id is reserved (not even a name
+Windows reserves, §3): an address's kind comes from the field it is written
+in, so an element can be called `inputs`. Ids of different kinds can be the
+same, except where one field could resolve to either: an input and an output
+never share an id, since `Output.inputs` takes both
+([`AMBIGUOUS_ID`](#validator)).
 
 ### Addresses
 
@@ -468,10 +485,10 @@ and finding them.
 ### Inputs
 
 An [Input](elements/Input.md) is a file committed with the analysis, named by
-its `path`, relative to the folder of the `astra.yaml`. The path doesn't start
-with `/` or `~`, separates folders with `/` (never `\`), has no `..` segment
-and no ASCII control character (U+0000–U+001F, U+007F), and doesn't end in
-`/` ([`INVALID_PATH`](#parse-and-schema)).
+its `path`, relative to the folder of the `astra.yaml` (§3). The path doesn't
+start with `/` or `~`, separates folders with `/` (never `\`), has no `..`
+segment and no ASCII control character (U+0000–U+001F, U+007F), and doesn't
+end in `/` ([`INVALID_PATH`](#parse-and-schema)).
 
 - It names one file ([`MISSING_INPUT_FILE`](#validator)). Data in many files
   is many inputs.
@@ -800,8 +817,8 @@ declared analysis's elements are then addressed through that id, as
 `commit`, which a `url` needs ([`URL_WITHOUT_COMMIT`](#parse-and-schema)).
 
 **`path`** is the directory of the declared analysis's `astra.yaml`, relative
-to the folder of the declaring `astra.yaml`. It doesn't start with `/` or
-`~`, separates folders with `/` (never `\`) and has no ASCII control
+to the folder of the declaring `astra.yaml` (§3). It doesn't start with `/`
+or `~`, separates folders with `/` (never `\`) and has no ASCII control
 character; `..` segments are allowed ([`INVALID_PATH`](#parse-and-schema)).
 It stays inside the repository of the root
 ([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)) and holds an `astra.yaml`

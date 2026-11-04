@@ -1,0 +1,27 @@
+# Paths are git's paths (spec §3): `C:/data.csv` is a file in a folder `C:`,
+# `data/A.csv` and `data/a.csv` are two files, and names Windows reserves
+# (`aux`, `con`) or that end in `.` (the format `csv.`) are valid.
+spec_version: "0.1.0"
+inputs:
+  drive: {path: "C:/data.csv"}
+  upper: {path: data/A.csv}
+  lower: {path: data/a.csv}
+analyses:
+  stage: {path: "C:repo"}
+decisions:
+  prior:
+    options:
+      pro: {}
+      con: {}
+universes:
+  con:
+    decisions: {prior: con}
+outputs:
+  aux:
+    type: table
+    format: csv
+    inputs: [drive, upper, lower]
+  dotted:
+    type: table
+    format: "csv."
+    decisions: [prior]
