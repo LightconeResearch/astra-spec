@@ -466,6 +466,7 @@ decision of a declared analysis, by its address (`root.a.a1`). The element is
 `when` is always active. Conditions are evaluated in the effective selection
 of the universe being built (§6).
 
+<!-- fragment: Analysis -->
 ```yaml
 decisions:
   correction:
@@ -578,6 +579,7 @@ A selection the universe makes itself, rather than inherits, is of an active
 decision ([`INACTIVE_DECISION`](#validator)). Where `gpu_optimization` has
 `when: [backend.gpu]`:
 
+<!-- fragment: Analysis -->
 ```yaml
 universes:
   gpu_advanced:
@@ -740,6 +742,7 @@ own universes ([`UNKNOWN_PIN_UNIVERSE`](#validator)). To read one of a driven
 analysis's own universes, the driver declares the same directory a second
 time, without driving that declaration:
 
+<!-- fragment: Analysis -->
 ```yaml
 analyses:
   inner: {path: stage/inner}            # the root's universes set inner.d
@@ -1278,6 +1281,7 @@ a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
 (`DUPLICATE_ENTRY`); and `enum` and `minimum` (`INVALID_VALUE`). An abridged
 `rules.json`:
 
+<!-- excerpt: rules.json -->
 ```json
 {
   "$comment": "ASTRA rule catalogue, schema version 0.1.0",
