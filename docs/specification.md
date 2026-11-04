@@ -76,7 +76,7 @@ Rules are enforced in five layers, set apart by what each one sees:
 
 | Layer | Enforced by | Sees |
 |---|---|---|
-| **parse** | any strict YAML 1.2 loader | one file's text |
+| **parse** | a YAML 1.2 loader under the core schema, plus §3's checks | one file's text |
 | **schema** | the generated JSON Schema | one file's data |
 | **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git; no results |
 | **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git; records and results |
@@ -166,23 +166,33 @@ strictly, under the core schema only
 ([`INVALID_SYNTAX`](#parse-and-schema)):
 
 - a `%YAML` directive other than `%YAML 1.2` makes the file invalid
-  ([`INVALID_SYNTAX`](#parse-and-schema)), and so does a key written twice in
-  one map ([`DUPLICATE_KEY`](#parse-and-schema)). Two keys are the same when
-  they are equal YAML nodes, with the same tag and canonical form
+  ([`INVALID_SYNTAX`](#parse-and-schema)). This is ASTRA's rule, not YAML's:
+  YAML 1.2.2 accepts `%YAML 1.1`
+  ([§6.8.1](https://yaml.org/spec/1.2.2/#681-yaml-directives)), so a tool
+  checks the directive itself;
+- a key written twice in one map makes the file invalid
+  ([`DUPLICATE_KEY`](#parse-and-schema)). Two keys are the same when they are
+  equal YAML nodes, with the same tag and canonical form
   ([YAML 1.2.2 §3.2.1.3](https://yaml.org/spec/1.2.2/#3213-node-comparison)),
   so `a`, `'a'` and `"\x61"` are one key, and `1` and `"1"` are two;
-- the core schema's only types are strings, nulls, booleans, integers and
-  floats. `yes`, `no`, `on` and `off` are strings, and valid ids. Timestamps
-  and merge keys are not types: an unquoted date, such as `2026-10-26`, is a
-  string, and `<<` is an ordinary key, so in an entry it is a field the
-  schema doesn't define ([`UNKNOWN_FIELD`](#parse-and-schema));
-- `true` and `false` are booleans and `null` is a null (as are the core
-  schema's other spellings of them, such as `True` and `~`), and a plain
-  scalar that looks like a number is a number: an all-digit commit id is read
-  as an integer, and a version such as `1.2` as a float. They are therefore
-  quoted when meant as ids or strings, as in `"true": {}`, and so are commit
-  ids and versions, as in `commit: "0dbb615a…"` and `spec_version: "0.1.0"`.
-  A value of another type than its field takes fails as
+- the core schema's only scalar types are strings, nulls, booleans, integers
+  and floats. An integer or a float is a JSON number, unless JSON has no
+  number for it, and a field's type is checked as JSON Schema checks it, so
+  `2.0` is an integer. `yes`, `no`, `on` and `off` are strings, and valid ids.
+  Timestamps and merge keys are not types: an unquoted date, such as
+  `2026-10-26`, is a string, and `<<` is an ordinary key, so in an entry it is
+  a field the schema doesn't define ([`UNKNOWN_FIELD`](#parse-and-schema));
+- an untagged plain scalar that matches a row of
+  [YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)'s
+  table is that row's type, and any other is a string. So `true` and `false`
+  are booleans and `null` is a null (as are the table's other spellings of
+  them, such as `True` and `~`); `1e3`, `0x1F`, `-.5` and `010` (which is 10)
+  are numbers; and `1_000`, `0b101`, `12:30` and `+.nan` are strings. An
+  unquoted commit id of digits only is therefore an integer, and one of digits
+  and a single `e` a float, as is a version such as `1.2`. They are quoted
+  when meant as ids or strings, as in `"true": {}`, and so are commit ids and
+  versions, as in `commit: "0dbb615a…"` and `spec_version: "0.1.0"`. A value
+  of another type than its field takes fails as
   [`WRONG_TYPE`](#parse-and-schema).
 
 **Records** are JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)),
@@ -1328,9 +1338,9 @@ for the same error and words each rule the same way. It holds:
   report an error, keyed by the keyword's absolute keyword location, as JSON
   Schema 2019-09 defines it: the schema's `$id`, `#`, and the JSON Pointer to
   the keyword once every `$ref` is resolved. Each code is a schema-layer
-  rule's. The parse-layer codes have no entry, because loaders report them,
-  not schemas; nor does the open variant's `additionalProperties`, which
-  fails on nothing.
+  rule's. The parse-layer codes have no entry, because loaders and §3's
+  checks report them, not schemas; nor does the open variant's
+  `additionalProperties`, which fails on nothing.
 - `$comment`: the version of the schema it was made from.
 
 In the schema's sources, each constraint names the rule it enforces: a
@@ -1404,6 +1414,20 @@ equal subschemas sit in different places:
   a `$ref` of its own, starts again from `#`. So `schemaPath` is not always
   the location. With `verbose: true`, an error's `parentSchema` is the
   subschema, and its `keyword` the keyword.
+
+**Reading `astra.yaml`.** The parse layer is a YAML 1.2 loader under the
+core schema, plus §3's checks, and a stock loader that calls itself YAML 1.2
+is not always one. ruamel.yaml's safe loader and js-yaml's `CORE_SCHEMA`
+resolve plain scalars by tables of their own, not by YAML 1.2.2 §10.3.2's:
+both read `1_000` as 1000 and `0b101` as 5, which the table leaves strings;
+ruamel.yaml also reads `2026-10-26` as a date, and js-yaml reads `-.5` as a
+string. In JavaScript, the `yaml` package follows the table under the options
+`{version: '1.2', schema: 'core', uniqueKeys: true, merge: false}`. It
+accepts `%YAML 1.1`, as YAML 1.2.2 requires, and every other version but 1.2
+with only a `BAD_DIRECTIVE` warning, leaving `doc.directives.yaml.version` at
+`'1.2'`. So a tool checks the directive itself: a
+`doc.directives.yaml.version` of `'1.1'`, or a `BAD_DIRECTIVE` warning on the
+`%YAML` line, makes the file invalid ([`INVALID_SYNTAX`](#parse-and-schema)).
 
 **RDF.** `provenance.context.jsonld` maps a record's terms onto
 [W3C PROV-O](https://www.w3.org/TR/prov-o/), with ASTRA's own, where PROV has

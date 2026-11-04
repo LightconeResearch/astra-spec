@@ -75,6 +75,9 @@ class _CoreSchemaScanner(Scanner):
     """ruamel.yaml's scanner, refusing a `%YAML` directive for any version but 1.2, and the text YAML 1.2.2 makes
     ill-formed that ruamel.yaml would read.
 
+    The directive is ASTRA's rule, not YAML's (spec §3): YAML 1.2.2 §6.8.1 has a 1.2 processor accept `%YAML 1.1`,
+    and process a later 1.x with a warning.
+
     That text is: a comment with no white space before it (YAML 1.2.2 §6.6); a line of a flow collection or of a
     quoted scalar, its closing bracket or quote included, with no more indentation in spaces than the block
     collection it is in (§6.3, §8.2.3: under a block collection indented `n` spaces, a flow node is at `n+1`); `-`,

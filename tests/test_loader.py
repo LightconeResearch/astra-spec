@@ -13,7 +13,7 @@ from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError
 from ruamel.yaml.error import YAMLError
 from ruamel.yaml.scanner import ScannerError
 
-from .conftest import REPO_ROOT, load_yaml
+from .conftest import REPO_ROOT, error_pointers, load_yaml, validator
 
 YAML_TEST_SUITE = REPO_ROOT / "tests" / "yaml-test-suite"
 
@@ -155,6 +155,78 @@ def test_duplicate_keys_raise(load):
 def test_malformed_yaml_raises(load):
     with pytest.raises(YAMLError):
         load("outputs: {result: {type: metric\n")
+
+
+# --- The examples of the specification's §3 ---
+
+
+@pytest.mark.parametrize(
+    "scalar, value",
+    [
+        # strings, and valid ids
+        ("yes", "yes"),
+        ("no", "no"),
+        ("on", "on"),
+        ("off", "off"),
+        # timestamps are not types
+        ("2026-10-26", "2026-10-26"),
+        # booleans and nulls, in the table's spellings
+        ("true", True),
+        ("false", False),
+        ("null", None),
+        ("True", True),
+        ("~", None),
+        # numbers by the table
+        ("1e3", 1000.0),
+        ("0x1F", 31),
+        ("-.5", -0.5),
+        ("010", 10),
+        # strings, since they match no row of the table
+        ("1_000", "1_000"),
+        ("0b101", "0b101"),
+        ("12:30", "12:30"),
+        ("+.nan", "+.nan"),
+        # an all-digit commit id, one of digits and a single `e`, and a version
+        (
+            "1234567890123456789012345678901234567890",
+            1234567890123456789012345678901234567890,
+        ),
+        (
+            "1234567890123456789012345678901234567e12",
+            1234567890123456789012345678901234567e12,
+        ),
+        ("1.2", 1.2),
+        # quoted, they are strings
+        ('"0dbb615a"', "0dbb615a"),
+        ('"0.1.0"', "0.1.0"),
+    ],
+)
+def test_a_scalar_of_section_3_is_read_as_it_says(load, scalar, value):
+    loaded = load(f"a: {scalar}\n")["a"]
+    assert loaded == value
+    assert type(loaded) is type(value)
+
+
+def test_a_quoted_key_of_section_3_is_a_string(load):
+    assert load('"true": {}\n') == {"true": {}}
+
+
+@pytest.mark.parametrize("version, valid", [("2.0", True), ("2.5", False)])
+def test_a_number_is_typed_as_json_schema_types_it(load, version, valid):
+    """§3: `2.0` is an integer, since JSON Schema counts a number with a zero fractional part as one."""
+    doc = load(
+        'spec_version: "0.1.0"\n'
+        "outputs:\n"
+        "  result: {type: metric, format: json}\n"
+        "prior_insights:\n"
+        "  noise:\n"
+        "    claim: Forests resist noise.\n"
+        "    evidence:\n"
+        f"      - {{doi: 10.5555/12345678, version: {version}}}\n"
+    )
+    assert isinstance(doc["prior_insights"]["noise"]["evidence"][0]["version"], float)
+    expected = set() if valid else {"/prior_insights/noise/evidence/0/version"}
+    assert error_pointers(validator("Analysis"), doc) == expected
 
 
 # --- YAML 1.2.2 where ruamel.yaml departs from it ---
