@@ -1,4 +1,4 @@
-"""The built wheel ships the schema artefacts and nothing else (design D7)."""
+"""The built wheel ships exactly the schema artefacts (design D7)."""
 
 import shutil
 import subprocess
@@ -6,6 +6,23 @@ import zipfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Every file the wheel ships outside its `*.dist-info/`: the LinkML sources,
+# the generated contract and the agent briefing (design D7, CLAUDE.md).
+ARTEFACTS = frozenset(
+    {
+        "astra/schema/types.yaml",
+        "astra/schema/analysis.yaml",
+        "astra/schema/insight.yaml",
+        "astra/schema/provenance.yaml",
+        "astra/schema/generated/analysis.schema.json",
+        "astra/schema/generated/provenance.schema.json",
+        "astra/schema/generated/provenance.open.schema.json",
+        "astra/schema/generated/provenance.context.jsonld",
+        "astra/schema/generated/rules.json",
+        "astra/docs/llms.txt",
+    }
+)
 
 
 def built_wheel(tmp_path: Path) -> zipfile.ZipFile:
@@ -26,39 +43,15 @@ def built_wheel(tmp_path: Path) -> zipfile.ZipFile:
     return zipfile.ZipFile(wheels[0])
 
 
-def test_wheel_ships_only_schema_artefacts(tmp_path):
-    names = [n for n in built_wheel(tmp_path).namelist() if ".dist-info/" not in n]
-    assert names
-    unexpected = [
-        n
-        for n in names
-        if not (n.startswith("astra/schema/") or n == "astra/docs/llms.txt")
-    ]
-    assert not unexpected
-    assert not [n for n in names if n.endswith(".py")]
-
-
-def test_wheel_ships_the_contract(tmp_path):
-    names = set(built_wheel(tmp_path).namelist())
-    contract = [
-        "analysis.schema.json",
-        "provenance.schema.json",
-        "provenance.open.schema.json",
-    ]
-    contexts = ["provenance.context.jsonld"]
-    catalogue = ["rules.json"]
-    shipped = sorted(
-        n.removeprefix("astra/schema/generated/")
-        for n in names
-        if n.startswith("astra/schema/generated/")
+def test_wheel_ships_exactly_the_artefacts(tmp_path):
+    names = {n for n in built_wheel(tmp_path).namelist() if ".dist-info/" not in n}
+    missing = sorted(ARTEFACTS - names)
+    extra = sorted(names - ARTEFACTS)
+    assert not (missing or extra), (
+        "the wheel's files differ from ARTEFACTS:\n"
+        f"  missing: {missing}\n"
+        f"  extra:   {extra}"
     )
-    assert shipped == sorted(contract + contexts + catalogue)
-
-
-def test_wheel_ships_the_sources(tmp_path):
-    names = set(built_wheel(tmp_path).namelist())
-    modules = ["types", "analysis", "insight", "provenance"]
-    assert [m for m in modules if f"astra/schema/{m}.yaml" not in names] == []
 
 
 def test_metadata_has_no_runtime_dependencies(tmp_path):
