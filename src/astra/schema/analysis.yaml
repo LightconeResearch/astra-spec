@@ -307,8 +307,8 @@ classes:
   Universe:
     description: >-
       A universe: a selection of one option for every active decision of the
-      analysis and of every analysis reached through a declaration that a
-      universe of the analysis drives. Its effective selection is the
+      analysis and of every analysis reached through a declaration that the
+      analysis's universes drive. Its effective selection is the
       effective selection of the universe it is derived from, if any, with
       its own `decisions` written over it decision by decision and every
       inherited selection of a decision that isn't active in the result

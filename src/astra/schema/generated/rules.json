@@ -536,7 +536,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0003, 0004, tidy-up, §6, §7",
-      "statement": "Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that a universe of its analysis drives"
+      "statement": "Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that its analysis's universes drive"
     },
     {
       "code": "INACTIVE_DECISION",
@@ -567,25 +567,11 @@
       "statement": "No effective selection selects an excluded option"
     },
     {
-      "code": "PARTIALLY_DRIVEN",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0004, tidy-up, §6, §7",
-      "statement": "Every chain of declarations from an analysis's file is driven by all of the analysis's universes or by none, judged on their effective selections"
-    },
-    {
       "code": "DUPLICATE_ELEMENT",
       "layer": "validator",
       "level": "MUST",
-      "source": "tidy-up, §4, §6",
-      "statement": "No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe's own `decisions` has two keys that spell one decision"
-    },
-    {
-      "code": "CONFLICTING_SELECTIONS",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0004, tidy-up, §6, §7",
-      "statement": "Every spelling of one decision in a universe's effective selection selects the same option"
+      "source": "0004, tidy-up, §4, §6, §7",
+      "statement": "No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe's own `decisions`, together with the effective selection it inherits, has two keys that spell one decision"
     },
     {
       "code": "NOT_BUILT_IN_UNIVERSE",
@@ -656,6 +642,13 @@
       "level": "SHOULD",
       "source": "0003, 0004",
       "statement": "Every analysis with decisions, or with outputs built per universe, has universes, unless the root's universes drive it, or it consumes a decision"
+    },
+    {
+      "code": "RESULT_IN_TWO_PLACES",
+      "layer": "validator",
+      "level": "SHOULD",
+      "source": "main, §7, §8",
+      "statement": "No planned result has two names: its output's analysis is reached through at most one chain of driven declarations from the analysis the result belongs to (§8)"
     },
     {
       "code": "MISSING_RECORD",
