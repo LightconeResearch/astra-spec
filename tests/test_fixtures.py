@@ -103,6 +103,31 @@ def test_invalid_fixture(path):
     check_invalid_fixture(path)
 
 
+_PRE_0_1 = """\
+version: "0.0.11"
+name: Iris classification
+outputs:
+  accuracy:
+    type: metric
+    format: json
+"""
+"""An `astra.yaml` as written before 0.1: a `version` and a `name`, and no `spec_version`."""
+
+
+def test_a_file_without_spec_version_reports_every_schema_error():
+    """A file whose `spec_version` is missing is checked against the validator's own schema, and every schema error
+    in it is reported (spec §1, §9 *What is checked*): a pre-0.1 file lacks `spec_version` (MISSING_FIELD) and has
+    `version` and `name` (UNKNOWN_FIELD), both at the document. An invalid fixture names one code at each place, so
+    this is a test of its own."""
+    document, left_out = load_document(_PRE_0_1)
+    assert left_out == []
+    error_map = rules_catalogue()["errors"]
+    found = errors(validator("Analysis"), document)
+    assert {
+        (pointer, error_map[location]) for pointer, location, explains in found
+    } == {("(root)", "MISSING_FIELD"), ("(root)", "UNKNOWN_FIELD")}
+
+
 SUFFIXES = {"Analysis": ".yaml", "ProvenanceRecord": ".json"}
 """The file suffix of each fixture root: an `astra.yaml` is YAML, a record JSON (spec §3)."""
 

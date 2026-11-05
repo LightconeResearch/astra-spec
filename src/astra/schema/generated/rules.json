@@ -500,7 +500,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0003",
-      "statement": "No universe is derived from itself, directly or through others"
+      "statement": "No universe's chain of `derived_from` loops"
     },
     {
       "code": "MISSING_DECISION",

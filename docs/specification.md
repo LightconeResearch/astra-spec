@@ -61,8 +61,10 @@ when it is valid under every other `X.Y` version. So one schema of
 that reads one version of it reads them all
 ([`UNSUPPORTED_SPEC_VERSION`](#validator)). A validator reads each
 `astra.yaml` by the version it states
-([`UNSUPPORTED_SPEC_VERSION`](#validator)). What a minor or major version
-promises about another is left to ASTRA's versioning policy.
+([`UNSUPPORTED_SPEC_VERSION`](#validator)). A file whose `spec_version` is
+missing or malformed is checked against the validator's own schema, and every
+schema error in it is reported. What a minor or major version promises about
+another is left to ASTRA's versioning policy.
 
 ## 2. Overview
 
@@ -91,8 +93,9 @@ Four roles conform to this specification:
 - A **document**, an `astra.yaml` or a record, conforms when it breaks no
   parse or schema rule.
 - A **validator** reads an analysis, every `astra.yaml` of its stack and git,
-  and reports every parse, schema and validator rule the analysis breaks. An
-  analysis is valid when it breaks none of their `MUST`s.
+  and reports every parse, schema and validator rule the analysis breaks,
+  except where §9's *What is checked* leaves one unchecked. An analysis is
+  valid when it breaks none of their `MUST`s.
 - A **checker** reads an analysis, every `astra.yaml` of its stack and git,
   and its records and results, and gives each planned result its statuses by
   the check rules (§8). A record that breaks a parse or schema rule leaves its
@@ -257,9 +260,9 @@ strictly, under the core schema only
   or a null (`true:`, `1:`, `~:`), or a key that is a list or a map, has no
   JSON form ([`INVALID_ID`](#parse-and-schema)). It is reported at its map,
   naming the key as written, and its entry is left out of the JSON form the
-  schema checks: the parse rules apply in the entry, but no schema rule does,
-  and the rest of the file is checked as that form stands, so an `outputs` map
-  whose only key is `1` is also empty
+  schema checks (§9, *What is checked*): the parse rules apply in the entry,
+  but no schema rule does, and the rest of the file is checked as that form
+  stands, so an `outputs` map whose only key is `1` is also empty
   ([`EMPTY_COLLECTION`](#parse-and-schema)). Keys are compared before that,
   so `true:` written twice in one map is [`DUPLICATE_KEY`](#parse-and-schema).
   A key that fails at parse, such as `.nan`, is
@@ -746,8 +749,8 @@ one of that decision's options ([`UNKNOWN_OPTION`](#validator)).
 
 `derived_from` names another universe of the same analysis
 ([`UNKNOWN_DERIVED_FROM`](#validator)), whose selection this one inherits, so
-that it gives only the decisions it changes. No universe is derived from
-itself, directly or through others ([`DERIVED_FROM_CYCLE`](#validator)).
+that it gives only the decisions it changes. No universe's chain of
+`derived_from` loops ([`DERIVED_FROM_CYCLE`](#validator)).
 `derived_from` says how two universes relate and makes neither special. A
 universe's `label` and `tags` are its own: they are never inherited.
 
@@ -766,6 +769,10 @@ is resolved:
 3. An inherited selection of a decision that isn't active in the result is
    dropped, so a universe that switches a decision off needn't undo what it
    inherited for it.
+
+A universe whose `derived_from` doesn't resolve, or whose chain loops or
+reaches a universe that has none, has no effective selection (§9, *What is
+checked*).
 
 The effective selection is held to everything a universe written in full is:
 
@@ -1105,7 +1112,10 @@ declaring analysis's repository that stops a runner from running
 
 **Validity.** The declared analysis, with everything it declares, is valid
 at its commit ([`DECLARED_ANALYSIS_INVALID`](#validator)), each `astra.yaml`
-read by the `spec_version` it states. A commit's files never change, so
+read by the `spec_version` it states. A rule broken inside an analysis from a
+commit is reported twice: `DECLARED_ANALYSIS_INVALID` on the declaration, in
+the file the author can edit, and the rule's own code at its place in the
+commit's file, which says why. A commit's files never change, so
 neither does the answer, and a validator can remember it for a commit it has
 validated. A published analysis SHOULD declare only remotes its readers can
 fetch. That isn't a `MUST`, since a remote can be private while the analysis
@@ -1407,6 +1417,100 @@ makes no tool non-conforming. The code is what a tool that does it reports.
 Only the runner table, whose rules are about a tool's own actions, can have
 `MAY` rows.
 
+**What is checked.** A tool reports every rule broken, except in the cases
+below, and the list is closed. In each case another broken rule leaves what a
+rule is about undetermined, so the rule isn't checked and isn't reported. Each
+case starts from a broken `MUST`. So a rule left unchecked never makes an
+invalid analysis valid, or a `missing` result anything else: it changes only
+which codes are reported. Two rules whose subjects are both determined are
+both reported, even when one edit fixes both.
+
+1. **A key that isn't a string.** A map entry whose key isn't a string (`1:`,
+   `true:`, `~:`) is reported once, as [`INVALID_ID`](#parse-and-schema) at
+   its map, naming the key. The entry is left out, and the rest of the file
+   is checked without it.
+2. **A file that can't be read.** A file that breaks a parse rule is checked
+   no further. A file whose `spec_version` is missing or malformed isn't
+   checked by [`UNSUPPORTED_SPEC_VERSION`](#validator): it is checked against
+   the validator's own schema (§1). A file whose well-formed `spec_version`
+   breaks `UNSUPPORTED_SPEC_VERSION` isn't checked by the schema layer.
+3. **A file that isn't a valid document.** A file that breaks a parse or
+   schema rule, or [`UNSUPPORTED_SPEC_VERSION`](#validator), isn't checked by
+   the validator layer, and its declarations aren't followed. Its analysis is
+   undetermined (5).
+4. **A declaration that can't be read.** On a declaration whose own analysis
+   can't be got, because it breaks
+   [`DECLARATION_OUTSIDE_REPOSITORY`](#validator),
+   [`COMMIT_NOT_FOUND`](#validator), or
+   [`REMOTE_UNREACHABLE`](#validator) for its own `url`, neither
+   [`MISSING_DECLARED_ANALYSIS`](#validator) nor
+   [`DECLARED_ANALYSIS_INVALID`](#validator) is checked. On one that breaks
+   `COMMIT_NOT_FOUND`, [`COMMIT_NOT_ANCESTOR`](#validator) isn't checked
+   either. Its analysis is undetermined (5), and so is the analysis of a
+   declaration that breaks `MISSING_DECLARED_ANALYSIS`.
+   `DECLARED_ANALYSIS_INVALID` isn't checked on an analysis from a commit
+   whose file breaks [`UNSUPPORTED_SPEC_VERSION`](#validator). Where
+   `REMOTE_UNREACHABLE` is reported on a declaration for a commit further in
+   (§7), `DECLARED_ANALYSIS_INVALID` isn't checked on that declaration, and
+   the analysis that couldn't be got is undetermined. The analyses read on
+   the way to it are not: their declarations' `MISSING_DECLARED_ANALYSIS`,
+   and addresses into them such as `upstream.summary#u1`, are still checked.
+5. **An undetermined analysis.** No validator rule is checked in its file. In
+   the files that declare it, nothing reached through that declaration is
+   checked: no address through it, by
+   [`UNRESOLVED_ADDRESS`](#validator) or by any rule on what the address
+   would name, no [`MISSING_DECISION`](#validator) for its decisions, and no
+   [`PARTIALLY_DRIVEN`](#validator) for a chain through it.
+6. **A name that names nothing.** An address that breaks
+   [`UNRESOLVED_ADDRESS`](#validator), and an option that breaks
+   [`UNKNOWN_OPTION`](#validator), name nothing, and no rule is checked on
+   what they would name. That leaves out `UNKNOWN_OPTION` under such an
+   address, the pin rules ([`PIN_ON_INPUT`](#validator),
+   [`UNKNOWN_PIN_UNIVERSE`](#validator), [`PIN_INACTIVE`](#validator),
+   [`REDUNDANT_PIN`](#validator), [`UNPINNED_EVIDENCE`](#validator)), and
+   [`NOT_BUILT_IN_UNIVERSE`](#validator),
+   [`UNDRIVEN_DECLARATION`](#validator), [`INPUT_NOT_BUILT`](#validator),
+   [`OUTPUT_CYCLE`](#validator) and [`DUPLICATE_ELEMENT`](#validator)
+   through it. A selection that names nothing isn't checked by
+   [`INACTIVE_DECISION`](#validator),
+   [`CONFLICTING_SELECTIONS`](#validator),
+   [`MISSING_REQUIRED_OPTION`](#validator),
+   [`INCOMPATIBLE_OPTIONS`](#validator) or
+   [`EXCLUDED_OPTION_SELECTED`](#validator). A `requires` or
+   `incompatible_with` entry that names nothing is ignored.
+7. **An element whose activity is undetermined.** In a universe, a `when` is
+   undetermined when one of its conditions names nothing (6), or tests a
+   decision that the universe's selection leaves unset
+   ([`MISSING_DECISION`](#validator)) or sets to an option that names
+   nothing. Its element's activity in that universe is then undetermined.
+   `MISSING_DECISION` and [`INACTIVE_DECISION`](#validator) aren't checked
+   for such a decision, [`INPUT_NOT_BUILT`](#validator) and
+   [`PIN_INACTIVE`](#validator) aren't checked for such an output, and step 3
+   of the effective selection (§6) doesn't drop it.
+8. **A universe with no effective selection.** A universe has none when its
+   `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#validator), or its chain
+   breaks [`DERIVED_FROM_CYCLE`](#validator) or reaches a universe that has
+   none. For it, [`MISSING_DECISION`](#validator),
+   [`INACTIVE_DECISION`](#validator), [`MISSING_REQUIRED_OPTION`](#validator),
+   [`INCOMPATIBLE_OPTIONS`](#validator),
+   [`EXCLUDED_OPTION_SELECTED`](#validator),
+   [`CONFLICTING_SELECTIONS`](#validator),
+   [`NOT_BUILT_IN_UNIVERSE`](#validator),
+   [`UNDRIVEN_DECLARATION`](#validator) and [`INPUT_NOT_BUILT`](#validator)
+   aren't checked, and [`PIN_INACTIVE`](#validator) isn't checked for a pin
+   naming it. [`UNRESOLVED_ADDRESS`](#validator),
+   [`UNKNOWN_OPTION`](#validator) and [`DUPLICATE_ELEMENT`](#validator) are
+   still checked on its own `decisions`. [`PARTIALLY_DRIVEN`](#validator) is
+   judged over the driver's other universes.
+9. **An input with no file.** An input that breaks
+   [`MISSING_INPUT_FILE`](#validator) isn't checked by
+   [`INPUT_NOT_TRACKED`](#validator).
+10. **A result with no valid record.** A result that breaks
+    [`MISSING_RECORD`](#check) isn't checked by [`INVALID_RECORD`](#check),
+    [`MISPLACED_RECORD`](#check) or [`MISSING_RECORD_INPUTS`](#check). One
+    whose record breaks `INVALID_RECORD` isn't checked by the last two.
+    [`STALE_RESULT`](#check) isn't checked for a result that is `missing`.
+
 **The catalogue as data.** The rules are extracted from this section into
 `rules.json` (§10), so its tables are a format that tools parse, not only
 text to read:
@@ -1480,7 +1584,7 @@ A table that breaks any of this is an error in this specification, and no
 | `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it, is tracked in git | 0006 |
 | `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own) | 0006 |
 | `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis | 0003 |
-| `DERIVED_FROM_CYCLE` | MUST | No universe is derived from itself, directly or through others | 0003 |
+| `DERIVED_FROM_CYCLE` | MUST | No universe's chain of `derived_from` loops | 0003 |
 | `MISSING_DECISION` | MUST | Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that a universe of its analysis drives | 0003, 0004, tidy-up, §6, §7 |
 | `INACTIVE_DECISION` | MUST | A universe itself sets only decisions whose `when` holds in its effective selection | 0003 |
 | `MISSING_REQUIRED_OPTION` | MUST | Every effective selection satisfies the `requires` of every option it selects | 0003 |
