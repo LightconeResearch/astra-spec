@@ -1443,7 +1443,9 @@ result's bytes, and the run of the recipe that made it, `generated_by`, a
 - `environment`: an [Environment](elements/Environment.md), whose `iri` is an
   IRI (RFC 3987) naming exactly the environment the recipe ran in, enough for
   its runner, at the version the record gives, to recreate it. It needn't
-  resolve online: a `urn:` IRI or a scheme of the runner's own will do.
+  resolve online: a `urn:` IRI or a scheme of the runner's own will do. The
+  record schema checks its scheme, characters and percent-encoding, not its
+  structure (§4, [`INVALID_VALUE`](#parse-and-schema)).
 - `runner`: a [Runner](elements/Runner.md), the runner's `id`, ideally unique
   (an IRI, say), and its `version`.
 - `started` and `finished`: when the recipe started and finished, in UTC to
@@ -1508,7 +1510,7 @@ on two machines say, show whether the result reproduces: their
   their default places ([`UNRECORDED_RESULT`](#runner)).
 - Every field of the record is true of the run
   ([`FALSE_RECORD`](#runner)). It records each recipe's environment as an
-  IRI that it can recreate at its version
+  RFC 3987 IRI that it can recreate at its version
   ([`UNRECREATABLE_ENVIRONMENT`](#runner)), and should let someone see what
   that environment holds, as PROV for example.
 - It runs only committed code. It runs each recipe in a checkout of a
@@ -1900,7 +1902,7 @@ status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
 |---|---|---|---|
 | `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places | 0005 §1, 0005 §3 |
 | `FALSE_RECORD` | MUST | Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times | 0005 §2, 0005 §3 |
-| `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an IRI that it can recreate at its version | 0005 §3 |
+| `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an RFC 3987 IRI that it can recreate at its version | 0005 §3 |
 | `UNCOMMITTED_CHANGES` | MUST | A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones, and what a tool keeps of, or puts in place to drive, an analysis from a commit | 0005 §3, 0007 §2, 0007 §7 |
 | `WRONG_WORKING_DIRECTORY` | MUST | A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it | 0004 §1, 0004 §5 |
 | `NOT_AT_COMMIT` | MUST | A runner drives an analysis from a commit on exactly its files at that commit | 0007 §7 |

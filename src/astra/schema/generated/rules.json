@@ -731,7 +731,7 @@
       "layer": "runner",
       "level": "MUST",
       "source": "0005 §3",
-      "statement": "A runner records each recipe's environment as an IRI that it can recreate at its version"
+      "statement": "A runner records each recipe's environment as an RFC 3987 IRI that it can recreate at its version"
     },
     {
       "code": "UNCOMMITTED_CHANGES",
