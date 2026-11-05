@@ -2156,9 +2156,29 @@ UTF-16. Neither stock loader then reads characters, tabs and line breaks as
 §3 does. ruamel.yaml refuses a tab used as white space outside a flow
 collection or a quoted scalar, reads NEL, LS and PS as line breaks, refuses
 DEL, the C1 controls other than NEL, U+FFFE and U+FFFF even in a quoted
-scalar, and keeps U+FEFF in a plain scalar;
+scalar, and keeps U+FEFF in a plain scalar. Nor does it read a flow
+collection's indicators as YAML 1.2.2 does. It takes every `?` as the
+explicit key indicator, so that `{?x: y}` has the key `x`, not `?x`; a `:`
+before `,`, `]` or `}` into a plain scalar, so that `[x:]` is `["x:"]`, not
+`[{x: null}]`; and, in a flow mapping, almost any `:` as the value
+indicator, whatever follows it, where YAML 1.2.2 has one before anything but
+white space, a line break, `,`, `]` or `}` only after a JSON-like key (a
+quoted scalar or a flow collection), so that `{ :x}` is `{null: x}`, not
+`{":x": null}`, `x: {a: :x}` is refused, and `{ :[b]}`, which YAML 1.2.2
+refuses, is read. It refuses a key of a flow mapping that spans lines, is
+longer than 1024 characters or has its `:` on a later line, an adjacent
+value after a JSON-like key in a flow sequence (`["x":y]`), a single pair with
+an empty key (`[: x]`), and a tag right before `,`, `]` or `}` (`[!!str]`);
 [the test harness's loader](https://github.com/LightconeResearch/astra-spec/blob/main/tests/conftest.py)
-shows one way to correct each. `yaml` keeps a CR that no LF follows as
+shows one way to correct each. `yaml` reads all of these as YAML 1.2.2 does,
+but it too takes a `?` right before a flow indicator (`,`, `[`, `]`, `{` or
+`}`) as the explicit key indicator, where YAML 1.2.2 has one only before
+white space or a line break, and a `:` right before `[` or `{` as the value
+indicator, with the collection as its value, after a key that isn't
+JSON-like, or none (`{a:[b]}`, `[a:[b]]`, `{ :[b]}`), where YAML 1.2.2 has
+white space between them; so a tool refuses such a `?` and such a `:`
+([`INVALID_SYNTAX`](#parse-and-schema)).
+`yaml` keeps a CR that no LF follows as
 content, so a tool replaces each such CR with an LF before parsing, which
 changes nothing else, since YAML 1.2.2 §5.4 makes every CR in the text a line
 break. `yaml` checks no characters, so a tool refuses a C0 control other than
