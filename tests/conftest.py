@@ -1,24 +1,23 @@
 """The fixture harness: YAML 1.2 and strict JSON loading, the generated validators, `rules.json` and the fixture headers
 (design §9)."""
 
-import contextlib
 import functools
 import json
 import math
 import re
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
 from jsonschema import Draft201909Validator, ValidationError
 from ruamel.yaml import YAML
-from ruamel.yaml.composer import Composer, ComposerError
-from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError, SafeConstructor
-from ruamel.yaml.error import YAMLError
-from ruamel.yaml.events import AliasEvent
-from ruamel.yaml.nodes import MappingNode, ScalarNode, SequenceNode
-from ruamel.yaml.reader import Reader, ReaderError
-from ruamel.yaml.resolver import VersionedResolver
-from ruamel.yaml.scanner import Scanner, ScannerError
+from ruamel.yaml.events import (
+    AliasEvent,
+    CollectionEndEvent,
+    DocumentStartEvent,
+    MappingStartEvent,
+    ScalarEvent,
+)
 from rules import json_pointer
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -34,6 +33,14 @@ _ALSO_LINE = re.compile(r"# also: ([A-Z][A-Z0-9_]*) at (\(root\)|(/[^/]*)+)")
 
 PARSE_CODES = {"INVALID_SYNTAX", "DUPLICATE_KEY"}
 """The parse-layer codes `parse_code` gives."""
+
+
+class YAMLError(ValueError):
+    """An `astra.yaml` that breaks a parse rule (spec §3), as `load_document` reads it."""
+
+
+class DuplicateKeyError(YAMLError):
+    """A map of an `astra.yaml` with two equal string keys (spec §3)."""
 
 
 class JSONError(ValueError):
@@ -59,785 +66,274 @@ def parse_code(error: YAMLError | JSONError) -> str:
     )
 
 
-_TAG = "tag:yaml.org,2002:"
-
-_CORE_SCALARS = {
-    "null": re.compile(r"null|Null|NULL|~|"),
-    "bool": re.compile(r"true|True|TRUE|false|False|FALSE"),
-    "int": re.compile(r"[-+]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+"),
-    "float": re.compile(
-        r"[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?|[-+]?\.(inf|Inf|INF)|\.(nan|NaN|NAN)"
-    ),
-}
-"""The YAML 1.2 core schema's plain scalars other than strings (YAML 1.2.2 §10.3.2), in resolution order."""
-
-
-_BREAKS = "\r\n"
-"""YAML 1.2.2's line break characters, CR and LF (§5.4): the scanner reads a CR LF, a CR or an LF as a line break.
-
-ruamel.yaml's scanner also reads NEL, LS and PS as line breaks, as YAML 1.1 did, but none of them reaches it: the reader
-shows each as a stand-in (`_CoreSchemaReader`)."""
-
-_END_OF_LINE = "\0" + _BREAKS
-"""What ends a line: a line break, or the end of the text (`\\0`, which the reader adds)."""
-
-_BEFORE_A_COMMENT = ("", " ", "\t", "\ufeff", *_BREAKS)
-"""What a comment may follow: the start of the stream (`""`), white space, a byte order mark or a line break."""
-
-_NON_BREAKS = "\x85\u2028\u2029"
-"""NEL, LS and PS: ordinary characters in YAML 1.2 (YAML 1.2.2 §5.4), which ruamel.yaml's scanner reads as line
-breaks."""
-
-_CONTROLS = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff]")
-"""What YAML 1.2.2 allows nowhere in a stream (§5.1, [1] `c-printable`): a C0 control other than tab, LF and CR, and a
-surrogate, which isn't a character."""
-
-_QUOTED_ONLY = re.compile("[\x7f-\x84\x86-\x9f\ufeff\ufffe\uffff]")
-"""What YAML 1.2.2 allows in a quoted scalar but not in a plain scalar, a block scalar, a comment or a directive (§5.1,
-[1] `c-printable`, [27] `nb-char`): DEL, a C1 control other than NEL, U+FEFF (a byte order mark), U+FFFE and U+FFFF.
-
-ruamel.yaml reads a byte order mark anywhere but at the start of the text as the start of a plain scalar, so this also
-refuses one at the start of a later document's prefix (`...` then U+FEFF), which YAML 1.2.2 §5.2 allows and spec §3,
-by ASTRA's rule, doesn't."""
-
-_STAND_INS = range(0xE000, 0xF900)
-"""The code points the reader takes its stand-ins from: the private use area of the Basic Multilingual Plane."""
-
-
-class _CoreSchemaReader(Reader):
-    """ruamel.yaml's reader, reading a text by YAML 1.2.2's characters (§5.1, §5.4), and keeping the last character it
-    read, for the scanner to look one back.
-
-    It takes a text only: `load_document` decodes a file's bytes itself. It holds the whole text, which it never trims,
-    so the scanner can read back to a line's start (`_CoreSchemaScanner._line_so_far`).
-
-    ruamel.yaml's reader refuses DEL, the C1 controls, U+FFFE and U+FFFF anywhere, but YAML 1.2.2 allows every
-    character but a C0 control (tab, LF and CR aside) inside a quoted scalar: this one refuses only those (`_CONTROLS`),
-    and the scanner refuses the others outside a quoted scalar (`_QUOTED_ONLY`).
-
-    ruamel.yaml's scanner reads NEL, LS and PS as line breaks, and its set of breaks is written out in about thirty
-    places. So the reader shows each of the three to the scanner as a stand-in, a character of the private use area
-    that the text doesn't hold, which the scanner reads as an ordinary character, as YAML 1.2 reads the three: `peek`
-    gives the stand-in, and `prefix`, which the scanner reads a scalar's text by, gives the character itself. No value
-    holds a stand-in: an escape (`"\\N"`, `"\\uE000"`) writes its own character.
-    """
-
-    last = ""
-    """The last character read, or `""` at the start of the stream."""
-
-    _originals: dict[int, str] = {}
-    """The character each stand-in stands for, by the stand-in's code point, for `str.translate`."""
-
-    @property
-    def stream(self) -> Any:
-        return Reader.stream.fget(self)
-
-    @stream.setter
-    def stream(self, val: Any) -> None:
-        """Read the text `val`, each NEL, LS and PS in it shown as its stand-in."""
-        if val is not None:
-            if not isinstance(val, str):
-                raise TypeError(
-                    "the reader takes a text: a file's bytes are decoded first"
-                )
-            held = set(val)
-            free = (c for c in map(chr, _STAND_INS) if c not in held)
-            stand_ins = {ord(c): next(free) for c in _NON_BREAKS if c in held}
-            self._originals = {ord(s): chr(c) for c, s in stand_ins.items()}
-            val = val.translate(stand_ins)
-        Reader.stream.fset(self, val)
-
-    def check_printable(self, data: Any) -> None:
-        """Refuse a C0 control other than tab, LF and CR, and a surrogate, anywhere in `data` (YAML 1.2.2 §5.1)."""
-        found = _CONTROLS.search(data)
-        if found is not None:
-            raise ReaderError(
-                self.name,
-                found.start(),
-                ord(found[0]),
-                "unicode",
-                "YAML allows no C0 control but tab, LF and CR, even quoted",
-            )
-
-    def prefix(self, length: int = 1) -> Any:
-        return self.restore(super().prefix(length))
-
-    def restore(self, text: str) -> str:
-        """`text` with each stand-in replaced by the character it stands for."""
-        return text.translate(self._originals) if self._originals else text
-
-    def forward(self, length: int = 1) -> None:
-        super().forward(length)
-        if length:
-            self.last = self.buffer[self.pointer - 1]
-
-
-class _CoreSchemaScanner(Scanner):
-    """ruamel.yaml's scanner, refusing a `%YAML` directive for any version but 1.2, reading tabs as YAML 1.2.2 does,
-    and refusing the text YAML 1.2.2 makes ill-formed that ruamel.yaml would read.
-
-    The directive is ASTRA's rule, not YAML's (spec §3): YAML 1.2.2 §6.8.1 has a 1.2 processor accept `%YAML 1.1`,
-    and process a later 1.x with a warning.
-
-    ruamel.yaml takes a tab as white space only in a flow collection and a quoted scalar. YAML 1.2.2 takes one wherever
-    white space separates (§6.2): after a token, at a line's end, on a line of white space only, before a comment,
-    between the words of a plain scalar and after a continuation line's indentation, in a directive, in a block
-    scalar's header, and in the block context after a line's indentation or a block indicator (`-`, `?`, `:`) before
-    anything but a block collection. It refuses one in indentation (§6.1): before a token on a line with no more spaces
-    than the block it is in, before a block collection (`-\\t-`, `?\\tkey:`), and in a block scalar's indentation
-    (§8.1.1).
-
-    The text YAML 1.2.2 makes ill-formed is: a comment with no white space before it (§6.6); a line of a flow
-    collection or of a quoted scalar, its closing bracket or quote included, with no more indentation in spaces than
-    the block collection it is in (§6.3, §8.2.3: under a block collection indented `n` spaces, a flow node is at
-    `n+1`); `-`, `?` or `:` starting a plain scalar in a flow collection with a flow indicator after it (§7.3.3, as in
-    `[-]`); the verbatim tag `!<!>` (§6.9.1); a character of `_QUOTED_ONLY` in a plain scalar, a block scalar, a
-    comment or a directive ([1], [27]); and a leading empty line of a block scalar with more spaces than its first
-    non-empty line (§8.1.1.1; ruamel.yaml compares the empty lines with each other instead).
-    """
-
-    _quoted = False
-    """True while a quoted scalar is scanned."""
-
-    def reset_scanner(self) -> None:
-        super().reset_scanner()
-        self._after_tab: set[int] = set()
-        """Where each token starts, by its index in the text, that follows a tab in the block context after a line's
-        indentation or a block indicator: none of them may start a block collection."""
-        self._indicator_end = -1
-        """Where the last block indicator (`-`, `?` or `:` in the block context) ends, by its index in the text."""
-
-    def _line_so_far(self) -> str:
-        """The text of the reader's line before its position, without a byte order mark that starts the text."""
-        buffer, pointer = self.reader.buffer, self.reader.pointer
-        start = max(buffer.rfind("\n", 0, pointer), buffer.rfind("\r", 0, pointer)) + 1
-        line = buffer[start:pointer]
-        return line.removeprefix("\ufeff") if start == 0 else line
-
-    def _refuse_quoted_only(self, text: str, mark: Any) -> None:
-        """Raise `ScannerError` if `text`, a plain scalar, a block scalar, a comment or a directive as written, holds a
-        character YAML 1.2.2 allows only in a quoted scalar (`_QUOTED_ONLY`)."""
-        found = _QUOTED_ONLY.search(text)
-        if found is not None:
-            raise ScannerError(
-                None,
-                None,
-                f"found U+{ord(found[0]):04X}, which YAML allows only in a quoted scalar",
-                mark,
-            )
-
-    def scan_to_next_token(self) -> Any:
-        """Skip the white space, comments and line breaks before the next token, refusing a comment glued to a token,
-        a comment holding a character of `_QUOTED_ONLY`, and a tab in indentation (`_note_a_tab`)."""
-        reader = self.reader
-        peek, forward = reader.peek, reader.forward
-        if peek() == "#" and reader.last not in _BEFORE_A_COMMENT:
-            raise ScannerError(
-                None,
-                None,
-                "found '#' right after a token: a comment needs white space before it",
-                reader.get_mark(),
-            )
-        if reader.index == 0 and peek() == "\ufeff":
-            forward()
-        gap = reader.index
-        while True:
-            while peek() in " \t":
-                forward()
-            if peek() == "#":
-                start, mark = reader.pointer, reader.get_mark()
-                while peek() not in _END_OF_LINE:
-                    forward()
-                self._refuse_quoted_only(reader.buffer[start : reader.pointer], mark)
-            if not self.scan_line_break():
-                break
-            if not self.flow_level:
-                self.allow_simple_key = True
-            gap = reader.index
-        if not self.flow_level and peek() != "\0":
-            self._note_a_tab(gap)
-        return None
-
-    def _note_a_tab(self, gap: int) -> None:
-        """Before a token in the block context: refuse a tab in the line's indentation, and note the token in
-        `_after_tab` if a tab comes before it after the indentation, or after a block indicator, `gap` being where the
-        white space before the token starts on its line.
-
-        The indentation is the spaces that start the line. With no more of them than the block collection it is in, the
-        token would start an entry of that collection, or of one it is in, after the tab.
-        """
-        reader = self.reader
-        line = self._line_so_far()
-        if not line.strip(" \t"):
-            if "\t" not in line:
-                return
-            if len(line) - len(line.lstrip(" ")) <= self.indent:
-                raise ScannerError(
-                    None,
-                    None,
-                    f"found a tab in indentation: no more spaces before it than the block it is in has "
-                    f"({self.indent})",
-                    reader.get_mark(),
-                )
-        elif (
-            gap != self._indicator_end
-            or "\t" not in reader.buffer[gap : reader.pointer]
-        ):
-            return
-        self._after_tab.add(reader.index)
-
-    def _refuse_after_a_tab(self, index: int, what: str, mark: Any) -> None:
-        """Raise `ScannerError` if the token starting at `index` follows a tab after a line's indentation or a block
-        indicator (`_after_tab`): `what` starts a block collection."""
-        if index in self._after_tab:
-            raise ScannerError(
-                None,
-                None,
-                f"found {what} after a tab: a block collection starts after spaces only",
-                mark,
-            )
-
-    def fetch_block_entry(self) -> None:
-        block = not self.flow_level
-        if block:
-            self._refuse_after_a_tab(self.reader.index, "'-'", self.reader.get_mark())
-        super().fetch_block_entry()
-        if block:
-            self._indicator_end = self.reader.index
-
-    def fetch_key(self) -> None:
-        block = not self.flow_level
-        if block:
-            self._refuse_after_a_tab(self.reader.index, "'?'", self.reader.get_mark())
-        super().fetch_key()
-        if block:
-            self._indicator_end = self.reader.index
-
-    def fetch_value(self) -> None:
-        block = not self.flow_level
-        if block:
-            key = self.possible_simple_keys.get(self.flow_level)
-            if key is None:
-                self._refuse_after_a_tab(
-                    self.reader.index, "':'", self.reader.get_mark()
-                )
-            else:
-                self._refuse_after_a_tab(key.index, "a key", key.mark)
-        super().fetch_value()
-        if block:
-            self._indicator_end = self.reader.index
-
-    def scan_plain(self) -> Any:
-        token = super().scan_plain()
-        start, end = token.start_mark, token.end_mark
-        self._refuse_quoted_only(start.buffer[start.pointer : end.pointer], start)
-        return token
-
-    def scan_plain_spaces(self, indent: int, start_mark: Any) -> Any:
-        """What follows a word of a plain scalar, as YAML 1.2.2 reads it (§6.3, §7.3.3): the white space before the
-        next word on the line, the line breaks folded (`[" "]` for one, `["\\n", …]` for more), or `[]` or None (at a
-        document marker) where the scalar ends.
-
-        ruamel.yaml reads only spaces here. A tab is white space too: between two words it is content, and at a line's
-        end it is folded away. A line after a break continues the scalar if it has `indent` spaces, then any white
-        space ([69] `s-flow-line-prefix`), and is empty if it has fewer spaces and no tab, or only white space after
-        `indent` spaces ([70] `l-empty`). A line with fewer spaces and then a tab ends the scalar after its spaces,
-        leaving the tab to `scan_to_next_token`. In a flow collection, `_check_continuation` checks the spaces instead.
-        """
-        reader = self.reader
-        peek, forward = reader.peek, reader.forward
-        length = 0
-        while peek(length) in " \t":
-            length += 1
-        white = reader.prefix(length)
-        forward(length)
-        if peek() not in _BREAKS:
-            return [white] if white else []
-        self.scan_line_break()
-        self.allow_simple_key = True
-        breaks: list[str] = []
-        while True:
-            if reader.prefix(3) in ("---", "...") and peek(3) in _END_OF_LINE + " \t":
-                return None
-            spaces = 0
-            while peek(spaces) == " ":
-                spaces += 1
-            length = spaces
-            if self.flow_level or spaces >= indent:
-                while peek(length) in " \t":
-                    length += 1
-            if peek(length) not in _BREAKS:
-                forward(spaces if peek(length) == "\t" else length)
-                return breaks or [" "]
-            forward(length)
-            breaks.append(self.scan_line_break())
-
-    def scan_block_scalar(self, style: Any, rt: Any = False) -> Any:
-        token = super().scan_block_scalar(style, rt)
-        start, end = token.start_mark, token.end_mark
-        self._refuse_quoted_only(start.buffer[start.pointer : end.pointer], start)
-        return token
-
-    def scan_block_scalar_indicators(self, start_mark: Any) -> Any:
-        """A block scalar's indicators, read with a tab as a space: white space may follow them ([162]
-        `c-b-block-header`, [77] `s-b-comment`)."""
-        with self._tabs_as_spaces():
-            return super().scan_block_scalar_indicators(start_mark)
-
-    def scan_block_scalar_ignored_line(self, start_mark: Any) -> Any:
-        """The rest of a block scalar's header line, read with a tab as a space: white space, then a comment, may end
-        it ([77] `s-b-comment`). `scan_block_scalar` checks the comment's characters."""
-        with self._tabs_as_spaces():
-            return super().scan_block_scalar_ignored_line(start_mark)
-
-    def scan_block_scalar_indentation(self) -> Any:
-        """`(breaks, indent, end_mark)` for a block scalar with no indentation indicator: its leading empty lines, and
-        its indentation, the spaces of its first non-empty line (YAML 1.2.2 §8.1.1.1).
-
-        A line whose spaces are followed by a tab isn't empty: it is the scalar's first line if it has at least the
-        scalar's least indentation, the tab being content, and otherwise the tab is in the indentation, which YAML
-        refuses. No leading empty line has more spaces than the first non-empty line. With no non-empty line, the
-        indentation is the spaces of the longest line, as in ruamel.yaml.
-        """
-        reader = self.reader
-        peek, forward = reader.peek, reader.forward
-        least = self.indent + 1
-        breaks, most, end_mark = [], 0, reader.get_mark()
-        while peek() in " " + _BREAKS:
-            if peek() == " ":
-                forward()
-            else:
-                most = max(most, reader.column)
-                breaks.append(self.scan_line_break())
-                end_mark = reader.get_mark()
-        if peek() == "\t" and reader.column < least:
-            raise ScannerError(
-                "while scanning a block scalar",
-                None,
-                f"found a tab in its indentation ({least} spaces at least)",
-                reader.get_mark(),
-            )
-        if peek() != "\0" and reader.column >= least:
-            if most > reader.column:
-                raise ScannerError(
-                    "while scanning a block scalar",
-                    None,
-                    "found a leading empty line with more spaces than the first non-empty line",
-                    reader.get_mark(),
-                )
-            return breaks, reader.column, end_mark
-        return breaks, max(most, reader.column), end_mark
-
-    def scan_block_scalar_breaks(self, indent: int) -> Any:
-        """ruamel.yaml's, refusing a line with fewer spaces than the scalar's indentation and then a tab: such a line is
-        neither content nor empty ([170] `l-empty`), and can't follow a block scalar before a comment ([169]
-        `l-trail-comments`), so the tab is in the indentation."""
-        found = super().scan_block_scalar_breaks(indent)
-        if self.reader.peek() == "\t" and self.reader.column < indent:
-            raise ScannerError(
-                "while scanning a block scalar",
-                None,
-                f"found a tab in its indentation ({indent} spaces)",
-                self.reader.get_mark(),
-            )
-        return found
-
-    def scan_line_break(self) -> Any:
-        line_break = super().scan_line_break()
-        if line_break and (self.flow_level or self._quoted):
-            self._check_continuation()
-        return line_break
-
-    def _check_continuation(self) -> None:
-        """Refuse the line just begun, in a flow collection or a quoted scalar, if it isn't indented past the block.
-
-        A line of white space only, and in a flow collection a comment line, may have any indentation.
-        """
-        peek = self.reader.peek
-        spaces = 0
-        while peek(spaces) == " ":
-            spaces += 1
-        end = spaces
-        while peek(end) in " \t":
-            end += 1
-        if peek(end) in ("\0", *_BREAKS) or (peek(end) == "#" and not self._quoted):
-            return
-        if spaces <= self.indent:
-            raise ScannerError(
-                "while scanning a quoted scalar"
-                if self._quoted
-                else "while scanning a flow collection",
-                None,
-                f"found a line indented {spaces} spaces: it must be indented more than the block it is in "
-                f"({self.indent} spaces)",
-                self.reader.get_mark(),
-            )
-
-    def scan_flow_scalar(self, style: Any) -> Any:
-        self._quoted = True
-        try:
-            return super().scan_flow_scalar(style)
-        finally:
-            self._quoted = False
-
-    def check_plain(self) -> Any:
-        peek = self.reader.peek
-        if self.flow_level and peek() in "-?:" and peek(1) in ",[]{}":
-            return False
-        return super().check_plain()
-
-    @contextlib.contextmanager
-    def _tabs_as_spaces(self) -> Any:
-        """Show the reader's tabs to ruamel.yaml as spaces, where it takes only a space as white space and YAML 1.2.2
-        takes a tab too (§6.2), and where neither is content: on a directive's line, after a tag, and on a block
-        scalar's header line."""
-        reader = self.reader
-        peek, prefix = reader.peek, reader.prefix
-        reader.peek = lambda index=0: " " if (ch := peek(index)) == "\t" else ch
-        reader.prefix = lambda length=1: prefix(length).replace("\t", " ")
-        try:
-            yield
-        finally:
-            del reader.peek, reader.prefix
-
-    def scan_tag(self) -> Any:
-        verbatim = self.reader.prefix(2) == "!<"
-        with self._tabs_as_spaces():
-            token = super().scan_tag()
-        if verbatim and token.value == (None, "!"):
-            raise ScannerError(
-                "while scanning a tag",
-                token.start_mark,
-                "found the verbatim tag !<!>, which YAML doesn't allow",
-                token.end_mark,
-            )
-        return token
-
-    def scan_directive(self) -> Any:
-        """A directive, its line read with a tab as a space (YAML 1.2.2 §6.8: white space separates its parts and its
-        comment), and refused if the line holds a character of `_QUOTED_ONLY` or is a `%YAML` for any version but
-        1.2."""
-        reader = self.reader
-        start, mark = reader.pointer, reader.get_mark()
-        with self._tabs_as_spaces():
-            token = super().scan_directive()
-        self._refuse_quoted_only(reader.buffer[start : reader.pointer], mark)
-        if token.name == "YAML" and token.value != (1, 2):
-            major, minor = token.value
-            raise ScannerError(
-                None,
-                None,
-                f"found %YAML {major}.{minor}: only 1.2 is read",
-                token.start_mark,
-            )
-        return token
-
-
-_CORE_RESOLVERS: dict[Any, list] = {}
-"""The core schema's resolvers, by the first character of the scalar (`""` for the empty one), as ruamel.yaml looks them up."""
-for _name, _pattern in _CORE_SCALARS.items():
-    _anchored = re.compile(rf"(?:{_pattern.pattern})\Z")
-    for _first in ["", *"~nNtTfF-+0123456789."]:
-        _CORE_RESOLVERS.setdefault(_first, []).append((_TAG + _name, _anchored))
-
-
-class _CoreSchemaResolver(VersionedResolver):
-    """Resolves a plain scalar by the core schema only: no timestamps, no merge key, no `_` in numbers."""
-
-    @property
-    def versioned_resolver(self) -> Any:
-        return _CORE_RESOLVERS
-
-
-class _CoreSchemaComposer(Composer):
-    """ruamel.yaml's composer, refusing every anchor and alias (spec §3), and giving a scalar tagged `!` the tag
-    `!!str`, as YAML 1.2.2 does (§6.9.1).
-
-    An anchor or an alias raises `ComposerError`: a file uses neither, so an entry is written out in full. ruamel.yaml
-    resolves a scalar tagged `!` as if it were plain, so that `! 12` would be 12.
-    """
-
-    def compose_node(self, parent: Any, index: Any) -> Any:
-        event = self.parser.peek_event()
-        if isinstance(event, AliasEvent):
-            raise ComposerError(
-                None,
-                None,
-                f"found the alias *{event.anchor}: a file uses no alias",
-                event.start_mark,
-            )
-        if event.anchor is not None:
-            raise ComposerError(
-                None,
-                None,
-                f"found the anchor &{event.anchor}: a file uses no anchor",
-                event.start_mark,
-            )
-        return super().compose_node(parent, index)
-
-    def compose_scalar_node(self, anchor: Any) -> Any:
-        event = self.parser.peek_event()
-        if event.tag == "!":
-            event.tag = _TAG + "str"
-        return super().compose_scalar_node(anchor)
-
-
-def _joined(value: str, mark: Any) -> str:
-    """The string `value`, with each surrogate pair joined into the one character it encodes, as JSON joins `\\uD83D\\uDE00`
-    into U+1F600; any other surrogate (U+D800-U+DFFF) raises `ConstructorError`, since a string holding one has no JSON
-    form (spec §3).
-
-    A surrogate can come only from an escape: YAML text can't hold one as a character.
+# --- An astra.yaml: a stock YAML 1.2 parser, with ASTRA's rules checked on the text, the events and the value ---
+
+_FORBIDDEN = re.compile(
+    "[\x00-\x09\x0b\x0c\x0e-\x1f\x7f-\x9f\u2028\u2029\ufeff\ufffe\uffff]"
+)
+"""What a file holds nowhere, quoted or not, once the byte order mark that may start it is dropped: a tab, a C0
+control other than LF and CR, DEL, a C1 control (NEL included), LS, PS, U+FEFF, U+FFFE and U+FFFF (spec §3). An escape
+in a double-quoted scalar still writes any of them."""
+
+_YAML_1_2 = re.compile(r"%YAML +1\.2( +#.*)? *")
+"""The one directive a file may hold: `%YAML 1.2`, with the version written so, and maybe a comment."""
+
+_START = re.compile(r"---( |$)")
+"""A line that is a document start marker, `---`, alone or before white space."""
+
+_END = re.compile(r"\.\.\.( |$)")
+"""A line that is a document end marker, `...`, alone or before white space."""
+
+_END_LINE = re.compile(r"\.\.\.( +#.*)? *")
+"""A document end marker's line with nothing on it but a comment."""
+
+_SURROGATE = re.compile("[\ud800-\udfff]")
+"""A surrogate, which a scalar's value holds only from a `\\u` or `\\U` escape: UTF-8 text can't hold one."""
+
+_DOUBLE_DIGITS = 309
+"""The most digits an integer within a double's range can have: the greatest double is about 1.8 × 10^308."""
+
+
+_CORE_TABLE = (
+    (re.compile(r"null|Null|NULL|~|"), lambda text: None),
+    (re.compile(r"true|True|TRUE"), lambda text: True),
+    (re.compile(r"false|False|FALSE"), lambda text: False),
+    (re.compile(r"[-+]?[0-9]+"), int),
+    (re.compile(r"0o[0-7]+"), lambda text: int(text[2:], 8)),
+    (re.compile(r"0x[0-9a-fA-F]+"), lambda text: int(text[2:], 16)),
+    (re.compile(r"[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?"), float),
+    (re.compile(r"[-+]?(\.inf|\.Inf|\.INF)"), lambda text: math.inf),
+    (re.compile(r"\.nan|\.NaN|\.NAN"), lambda text: math.nan),
+)
+"""YAML 1.2.2 §10.3.2's table: each row's pattern, and how a plain scalar it matches is read, in the table's order."""
+
+
+def _text(data: bytes) -> str:
+    """The text of an `astra.yaml`'s bytes, as the parser is given it, once the rules on the text hold (spec §3); raises
+    `YAMLError` if one doesn't.
+
+    The bytes are UTF-8, strictly, and may start with a byte order mark, which is dropped. The text holds none of
+    `_FORBIDDEN`. LF, CR LF and a CR on its own each end a line: a lone CR is read as an LF, which changes nothing else,
+    since YAML 1.2.2 §5.4 makes every CR a line break, and a missing final line break is read as present. Then
+    `_documents` checks the directives and the document markers.
     """
     try:
-        return value.encode("utf-16-le", "surrogatepass").decode("utf-16-le")
+        text = data.decode("utf-8")
     except UnicodeDecodeError as error:
-        unit = int.from_bytes(error.object[error.start : error.start + 2], "little")
-        raise ConstructorError(
-            None,
-            None,
-            f"found the lone surrogate U+{unit:04X}: a string holding one has no JSON form",
-            mark,
+        raise YAMLError(
+            f"found bytes that aren't UTF-8 at byte {error.start}: an astra.yaml is UTF-8"
         ) from None
-
-
-def _written(node: Any) -> str:
-    """`node` as written in the text it was read from: from its first character (its tag's, if it has one) to its last."""
-    start, end = node.start_mark, node.end_mark
-    return start.buffer[start.pointer : start.pointer + end.index - start.index]
-
-
-class _CoreSchemaConstructor(SafeConstructor):
-    """Constructs the core schema's types only, each from its core form; any other tag is an error, and so is a value
-    with no JSON form (spec §3): a float that isn't finite, an integer beyond a double's range, a string holding a lone
-    surrogate.
-
-    A map entry whose key isn't a string has no JSON form either, and is left out of its map. If the map is one of
-    `map_pointers`, the maps of the document's JSON form, the key is recorded in `left_out`.
-    """
-
-    yaml_constructors: dict[Any, Any] = {}
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self.map_pointers: dict[MappingNode, str] = {}
-        """The JSON Pointer of each map node of the document's JSON form, by node (`_map_pointers`)."""
-        self.left_out: list[tuple[int, str, str]] = []
-        """`(index, pointer of the map, key as written)` for each key left out of a map of `map_pointers`, `index`
-        being where the key starts in the text (maps are constructed out of document order)."""
-
-    def construct_mapping(self, node: Any, deep: bool = False) -> Any:
-        """The map of `node`, whose keys must be distinct YAML nodes (YAML 1.2.2 §3.2.1.3); `<<` is an ordinary key.
-
-        Two keys with the same tag and canonical form raise `DuplicateKeyError`, whatever their spelling and type: `a`
-        and `"\\x61"`, `0x1f` and `31`, `true` and `True`. Keys of two tags are distinct, so `1`, `1.0`, `true` and
-        `"1"` are four keys. An entry whose key isn't tagged `!!str` (a bool, a number, a null, a list or a map) isn't
-        added: its key and value are still constructed, so that an error in them is raised, but it has no JSON form.
-        If `node` is one of `map_pointers`, the key is recorded in `left_out`. A map inside a left-out entry isn't one
-        of them, so a key left out of it is dropped with the entry.
-        """
-        if not isinstance(node, MappingNode):
-            raise ConstructorError(
-                None,
-                None,
-                f"expected a mapping node, but found {node.id}",
-                node.start_mark,
-            )
-        canonical_keys = set()
-        mapping: dict[str, Any] = {}
-        for key_node, value_node in node.value:
-            canonical = self._canonical(key_node)
-            if canonical in canonical_keys:
-                raise DuplicateKeyError(
-                    "while constructing a mapping",
-                    node.start_mark,
-                    "found a key equal to an earlier one: the same tag and canonical form",
-                    key_node.start_mark,
-                )
-            canonical_keys.add(canonical)
-            key = self.construct_object(key_node, deep=True)
-            value = self.construct_object(value_node, deep=deep)
-            if key_node.tag == _TAG + "str":
-                mapping[key] = value
-            elif node in self.map_pointers:
-                self.left_out.append(
-                    (
-                        key_node.start_mark.index,
-                        self.map_pointers[node],
-                        self.loader.reader.restore(_written(key_node)),
-                    )
-                )
-        return mapping
-
-    def _canonical(self, node: Any) -> Any:
-        """`node` as YAML compares nodes: its tag, and its canonical form (a scalar's value, a collection's nodes).
-
-        With no alias, a node holds no node twice, so the recursion ends.
-        """
-        if isinstance(node, ScalarNode):
-            return node.tag, self.construct_object(node, deep=True)
-        if isinstance(node, SequenceNode):
-            return node.tag, tuple(self._canonical(item) for item in node.value)
-        return node.tag, frozenset(
-            (self._canonical(key), self._canonical(value)) for key, value in node.value
+    text = text.removeprefix("\ufeff")
+    found = _FORBIDDEN.search(text)
+    if found is not None:
+        raise YAMLError(
+            f"found U+{ord(found[0]):04X} at character {found.start()}: a file holds none, quoted or not"
         )
+    text = re.sub("\r(?!\n)", "\n", text)
+    if text and not text.endswith("\n"):
+        text += "\n"
+    _documents(text)
+    return text
 
-    def _core_scalar(self, node: Any, name: str) -> str:
-        value = self.construct_scalar(node)
-        if not _CORE_SCALARS[name].fullmatch(value):
-            raise ConstructorError(
-                None, None, f"{value!r} is not a core-schema {name}", node.start_mark
-            )
-        return value
 
-    def construct_core_null(self, node: Any) -> None:
-        self._core_scalar(node, "null")
+def _documents(text: str) -> None:
+    """Raise `YAMLError` unless `text`'s only directive is `%YAML 1.2`, a `---` line comes, if at all, once and before
+    the content, and a `...` line comes, if at all, once and after the document, with nothing but comments after it.
 
-    def construct_core_bool(self, node: Any) -> bool:
-        return self._core_scalar(node, "bool").lower() == "true"
+    Read line by line, leaving out blank lines and comments: a directive is a line starting with `%` before the
+    content. A line scan reads the markers exactly, since YAML 1.2.2 lets no scalar hold a line that starts with `---`
+    or `...` followed by white space or the line's end (§9.1.2).
+    """
+    lines: list[str] = []
+    """The lines that are neither blank, a comment nor a directive."""
+    for line in re.split("\r?\n", text):
+        bare = line.lstrip(" ")
+        if bare == "" or bare.startswith("#"):
+            continue
+        if not lines and line.startswith("%"):
+            if _YAML_1_2.fullmatch(line) is None:
+                raise YAMLError(
+                    f"found the directive {line!r}: the only directive is %YAML 1.2"
+                )
+            continue
+        lines.append(line)
+    starts = [i for i, line in enumerate(lines) if _START.match(line)]
+    ends = [i for i, line in enumerate(lines) if _END.match(line)]
+    if starts not in ([], [0]):
+        raise YAMLError(
+            "found a `---` after the content: a file holds one document, its `---` first"
+        )
+    if ends not in ([], [len(lines) - 1]) or ends == [0]:
+        raise YAMLError(
+            "found a `...` before the end, or with no document before it: a file holds one document, its `...` last"
+        )
+    if ends and _END_LINE.fullmatch(lines[-1]) is None:
+        raise YAMLError("found content after `...` on its line")
 
-    def construct_core_int(self, node: Any) -> int:
-        """An integer, read exactly; one beyond a double's range, which a double rounds to infinity, has no JSON form."""
-        value = self._core_scalar(node, "int")
-        if value.startswith(("0o", "0x")):
-            number = int(value[2:], 8 if value[1] == "o" else 16)
-        else:
-            number = int(value)
+
+class _Node:
+    """A node of the document, built from the parser's events: a scalar's value, or a list's items or a map's keys and
+    values, alternating, with where it starts and ends in the text."""
+
+    __slots__ = ("start", "end", "value", "children", "is_map")
+
+    def __init__(self, start: int, *, value: Any = None, is_map: bool = False):
+        self.start = self.end = start
+        self.value = value
+        self.children: list[_Node] | None = None
+        self.is_map = is_map
+
+
+def _plain(text: str, mark: Any) -> Any:
+    """The value of a plain scalar `text`: the type of the row of YAML 1.2.2 §10.3.2's table it matches, or a string if
+    it matches none. A number that isn't finite or is beyond a double's range has no JSON form, and raises `YAMLError`.
+
+    A decimal integer's digits are counted first, since Python refuses to convert one of more than 4300 digits.
+    """
+    for pattern, read in _CORE_TABLE:
+        if pattern.fullmatch(text):
+            break
+    else:
+        return text
+    if read is int and len(text.lstrip("+-").lstrip("0")) > _DOUBLE_DIGITS:
+        value = math.inf
+    else:
+        value = read(text)
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
         try:
-            float(number)
+            finite = math.isfinite(value)
         except OverflowError:
-            raise ConstructorError(
-                None,
-                None,
-                f"{value!r} is beyond a double's range: it has no JSON form",
-                node.start_mark,
-            ) from None
-        return number
-
-    def construct_core_float(self, node: Any) -> float:
-        """A float; `.inf`, `-.inf`, `.nan` and a float beyond a double's range, which rounds to infinity, have no JSON
-        form. One too small for a double rounds to 0."""
-        value = self._core_scalar(node, "float")
-        number = float(value.lower().replace(".inf", "inf").replace(".nan", "nan"))
-        if not math.isfinite(number):
-            raise ConstructorError(
-                None,
-                None,
-                f"{value!r} isn't a finite number within a double's range: it has no JSON form",
-                node.start_mark,
+            finite = False
+        if not finite:
+            raise YAMLError(
+                f"found {text[:20]!r}{'…' if len(text) > 20 else ''} {_at(mark)}: a number that isn't finite or is"
+                " beyond a double's range has no JSON form"
             )
-        return number
-
-    def construct_core_str(self, node: Any) -> str:
-        """A string, a key's too, with each escaped surrogate pair joined into one character; a lone surrogate raises."""
-        return _joined(self.construct_scalar(node), node.start_mark)
+    return value
 
 
-for _name in (*_CORE_SCALARS, "str"):
-    _CoreSchemaConstructor.add_constructor(
-        _TAG + _name, getattr(_CoreSchemaConstructor, f"construct_core_{_name}")
-    )
-for _name in ("seq", "map"):
-    _CoreSchemaConstructor.add_constructor(
-        _TAG + _name, getattr(SafeConstructor, f"construct_yaml_{_name}")
-    )
-_CoreSchemaConstructor.add_constructor(None, SafeConstructor.construct_undefined)
+def _at(mark: Any) -> str:
+    """Where a parser's mark is, in words."""
+    return f"at line {mark.line + 1}, column {mark.column + 1}"
 
 
-def _core_schema_yaml() -> YAML:
-    """ruamel.yaml's pure safe loader, YAML 1.2, restricted to the core schema and held to YAML 1.2.2."""
-    yaml = YAML(typ="safe", pure=True)
-    yaml.Reader = _CoreSchemaReader
-    yaml.Scanner = _CoreSchemaScanner
-    yaml.Composer = _CoreSchemaComposer
-    yaml.Resolver = _CoreSchemaResolver
-    yaml.Constructor = _CoreSchemaConstructor
-    return yaml
+def _events(text: str) -> Iterator[Any]:
+    """The events of stock ruamel.yaml's parser for `text`; an error it raises, whatever its class, is a `YAMLError`:
+    the text isn't YAML 1.2 the parser reads (spec §3)."""
+    events = YAML(typ="safe", pure=True).parse(text)
+    while True:
+        try:
+            event = next(events)
+        except StopIteration:
+            return
+        except Exception as error:
+            raise YAMLError(f"found text YAML doesn't read: {error}") from error
+        yield event
 
 
-def _map_pointers(root: Any) -> dict[MappingNode, str]:
-    """The JSON Pointer of each map node of the document's JSON form, by node, as `errors` writes it (`(root)` for the
-    document): each map reached from `root` through list items and keys tagged `!!str`, and no other."""
-    pointers: dict[MappingNode, str] = {}
-    todo: list[tuple[Any, list[Any]]] = [(root, [])]
-    while todo:
-        node, path = todo.pop()
-        if isinstance(node, MappingNode):
-            pointers[node] = _pointer(path)
-            todo.extend(
-                (value, [*path, _joined(key.value, key.start_mark)])
-                for key, value in node.value
-                if key.tag == _TAG + "str" and isinstance(key, ScalarNode)
+def _node(event: Any, events: Iterator[Any]) -> _Node:
+    """The node that `event` starts, its children read from `events`; raises `YAMLError` for an alias, a tag, an escape
+    of a surrogate, or a number with no JSON form (spec §3). An anchor alone is ignored."""
+    if isinstance(event, AliasEvent):
+        raise YAMLError(
+            f"found the alias *{event.anchor} {_at(event.start_mark)}: a file uses no alias"
+        )
+    if event.tag is not None:
+        raise YAMLError(
+            f"found the tag {event.tag} {_at(event.start_mark)}: a file uses no tag"
+        )
+    if isinstance(event, ScalarEvent):
+        found = _SURROGATE.search(event.value)
+        if found is not None:
+            raise YAMLError(
+                f"found an escape of the surrogate U+{ord(found[0]):04X} {_at(event.start_mark)}: a file writes a"
+                " character beyond U+FFFF as itself or with \\U"
             )
-        elif isinstance(node, SequenceNode):
-            todo.extend((item, [*path, i]) for i, item in enumerate(node.value))
-    return pointers
+        node = _Node(
+            event.start_mark.index,
+            value=event.value if event.style else _plain(event.value, event.start_mark),
+        )
+        node.end = event.end_mark.index
+        return node
+    node = _Node(event.start_mark.index, is_map=isinstance(event, MappingStartEvent))
+    node.children = []
+    for child in events:
+        if isinstance(child, CollectionEndEvent):
+            node.end = child.end_mark.index
+            return node
+        node.children.append(_node(child, events))
+    raise YAMLError("found the end of the events inside a collection")
+
+
+def _root(events: Iterator[Any]) -> _Node | None:
+    """The node of the one document in `events`, or None if there is none."""
+    root = None
+    for event in events:
+        if isinstance(event, DocumentStartEvent):
+            if root is not None:
+                raise YAMLError("found a second document: a file holds one")
+            root = _node(next(events), events)
+    return root
+
+
+def _json_form(
+    node: _Node, path: list[Any], text: str, left_out: list[tuple[str, str]] | None
+) -> Any:
+    """The JSON form of `node`, at `path` in the document, recording in `left_out` the pointer of its map and the key
+    as written for each entry left out since its key isn't a string; raises `DuplicateKeyError` for two equal string
+    keys of one map.
+
+    Keys that aren't strings take no part in that. An entry left out is still read, for a duplicate key in its key or
+    its value, with `left_out` None: a key in it is left out with it, and not recorded.
+    """
+    if node.children is None:
+        return node.value
+    if not node.is_map:
+        return [
+            _json_form(item, [*path, i], text, left_out)
+            for i, item in enumerate(node.children)
+        ]
+    mapping: dict[str, Any] = {}
+    for key, value in zip(node.children[::2], node.children[1::2]):
+        if key.children is None and isinstance(key.value, str):
+            if key.value in mapping:
+                raise DuplicateKeyError(
+                    f"found the key {key.value!r} twice in the map at {_pointer(path)}: its string keys are distinct"
+                )
+            mapping[key.value] = _json_form(value, [*path, key.value], text, left_out)
+            continue
+        _json_form(key, path, text, None)
+        _json_form(value, path, text, None)
+        if left_out is not None:
+            left_out.append((_pointer(path), text[key.start : key.end].rstrip()))
+    return mapping
 
 
 def load_document(source: Path | str) -> tuple[Any, list[tuple[str, str]]]:
-    """`(document, left_out)`: the JSON form of the document in `source`, a file or a text, read as YAML 1.2.2 under
-    the core schema only, and the keys left out of it; raises a `YAMLError` if it isn't such a document.
+    """`(document, left_out)`: the JSON form of the `astra.yaml` in `source`, a file or a text, and the keys left out of
+    it; raises a `YAMLError` if it breaks a parse rule (spec §3).
 
-    A file's bytes are decoded as UTF-8, strictly (spec §3): bytes that aren't UTF-8 raise a `ReaderError`, so a UTF-16
-    or UTF-32 file does too, though YAML 1.2.2 §5.2 reads them. A byte order mark that starts the text is kept, for the
-    scanner to skip; one anywhere else outside a quoted scalar raises, though YAML 1.2.2 §5.2 allows one at the start
-    of each document. The text is read by YAML 1.2.2's characters, tabs and line breaks (§5, §6.1, §6.2), where
-    ruamel.yaml departs from them: a C0 control other than tab, LF and CR raises anywhere, and DEL, a C1 control other
-    than NEL, U+FEFF, U+FFFE and U+FFFF raise outside a quoted scalar; NEL, LS and PS are ordinary characters, and a
-    CR on its own ends a line; a tab separates wherever YAML 1.2.2 allows white space other than indentation (after a
-    token, at a line's end, before a comment, inside a plain scalar, after an indentation's spaces before anything but
-    a block collection), and raises in indentation, before a block collection after a block indicator (`-\\t-`), and in
-    a block scalar's indentation.
+    The rules are checked on the text, before parsing (`_text`): UTF-8, with one optional leading byte order mark; no
+    raw tab, C0 control other than LF and CR, DEL, C1 control, LS, PS, U+FEFF, U+FFFE or U+FFFF; LF, CR LF and a lone
+    CR each end a line, and a missing final line break is read as present; no directive but `%YAML 1.2`; at most one
+    `---`, before the content, and one `...`, after it. Then on the events of ruamel.yaml's stock parser (`_node`): any
+    error the parser raises; no alias, though an anchor alone is allowed; no tag at all; no escape of a surrogate,
+    paired or not; each plain scalar typed by YAML 1.2.2 §10.3.2's table, and each number finite and within a double's
+    range. Then on the tree, once the whole file has parsed (`_json_form`): no two equal string keys in one map
+    (`DuplicateKeyError`), and every key a string. A file with no document (empty, or only comments) is None.
 
-    A plain scalar is a null, a bool, an int or a float only in its core-schema form, and a string otherwise (so
-    timestamps and `1_000` are strings); a scalar tagged `!` is a string; `<<` is an ordinary key; a tag outside the
-    core schema (`!!set`, `!!binary`, `!!omap`, `!!timestamp`, a local tag), a core tag on a node of another kind or
-    a scalar of another form (`!!seq x`, `!!bool yes`) and a `%YAML` directive other than 1.2 are errors. An anchor,
-    an alias and a second document raise `ComposerError`; a file with no document (empty, or only comments) is
-    None. Two keys of a map that are equal YAML nodes, with the same tag and canonical form, raise
-    `DuplicateKeyError`, whatever their type. Text YAML 1.2.2 makes ill-formed raises a `YAMLError` even where
-    ruamel.yaml would read it: a comment glued to a token, an under-indented line of a flow collection or a quoted
-    scalar, `[-]`, `!<!>`, and a `\\U` escape beyond U+10FFFF. A `RecursionError` (a document nested too deep) is
-    left as it is.
-
-    A value with no JSON form raises a `ConstructorError` (spec §3): `.inf`, `-.inf`, `.nan`, a number beyond a
-    double's range (`1e400`, an integer of 400 digits), and a string holding a surrogate that isn't half of an
-    escaped pair (`"\\uD800"`); an escaped pair is one character, so `"\\uD83D\\uDE00"` is U+1F600. A key that
-    isn't a string (`true`, `1`, `~`, a list or a map) has no JSON form either, but it is left out rather than
+    A key that isn't a string (`true`, `1`, `~`, a list or a map) has no JSON form, but it is left out rather than
     raised: its entry isn't in the document, and `left_out` holds `(pointer of the map, key as written)` for it, in
     document order, as `errors` writes a pointer, so that the rest of the document can be validated. A key inside a
-    left-out entry is left out with it, and not listed. The document is composed first, so that each map's pointer
-    is known, then constructed.
+    left-out entry is left out with it, and not listed. A `RecursionError` (a document nested too deep) is left as it
+    is.
     """
-    if isinstance(source, Path):
-        data = source.read_bytes()
-        try:
-            text = data.decode("utf-8")
-        except UnicodeDecodeError as error:
-            raise ReaderError(
-                str(source),
-                error.start,
-                data[error.start : error.start + 1],
-                "utf-8",
-                f"{error.reason}: an astra.yaml is UTF-8",
-            ) from None
-    else:
-        text = source
-    yaml = _core_schema_yaml()
-    try:
-        node = yaml.compose(text)
-        if node is None:
-            return None, []
-        constructor = yaml.constructor
-        constructor.map_pointers = _map_pointers(node)
-        document = constructor.construct_document(node)
-        return document, [(at, key) for _, at, key in sorted(constructor.left_out)]
-    except (ValueError, OverflowError) as error:
-        # ruamel.yaml turns a `\U` escape into a character without checking its range, so an escape beyond
-        # U+10FFFF raises `ValueError` or `OverflowError`: it is raised as a `ScannerError`, from the original.
-        raise ScannerError(
-            None, None, f"found text YAML can't read as a value: {error}"
-        ) from error
+    data = source.read_bytes() if isinstance(source, Path) else source.encode("utf-8")
+    text = _text(data)
+    root = _root(_events(text))
+    left_out: list[tuple[str, str]] = []
+    document = None if root is None else _json_form(root, [], text, left_out)
+    return document, left_out
 
 
 def _without_left_out_keys(loaded: tuple[Any, list[tuple[str, str]]]) -> Any:
@@ -852,8 +348,8 @@ def _without_left_out_keys(loaded: tuple[Any, list[tuple[str, str]]]) -> Any:
 
 
 def load_yaml(path: Path) -> Any:
-    """The JSON form of the document in `path`, its bytes decoded as strict UTF-8 and read as `load_document` reads
-    them; raises a `YAMLError` if it isn't one, and a `ValueError` naming each key that isn't a string, if it has any.
+    """The JSON form of the document in `path`, read as `load_document` reads it; raises a `YAMLError` if it breaks a
+    parse rule, and a `ValueError` naming each key that isn't a string, if it has any.
 
     So a document that must be valid (a valid fixture, an example, a block of the specification) fails on such a key.
     """
@@ -863,10 +359,6 @@ def load_yaml(path: Path) -> Any:
 def load_yaml_text(text: str) -> Any:
     """The document `text`, read as `load_yaml` reads a file."""
     return _without_left_out_keys(load_document(text))
-
-
-_DOUBLE_DIGITS = 309
-"""The most digits an integer within a double's range can have: the greatest double is about 1.8 × 10^308."""
 
 
 def _json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:

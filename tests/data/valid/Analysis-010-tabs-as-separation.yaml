@@ -1,9 +1,0 @@
-# A tab is white space wherever YAML 1.2 allows it outside indentation: here
-# before a comment and after `:`.
-spec_version: "0.1.0"	# the version
-outputs:
-  result:
-    type:	metric
-    format: json
-    recipe:
-      command: python make.py '{output}'

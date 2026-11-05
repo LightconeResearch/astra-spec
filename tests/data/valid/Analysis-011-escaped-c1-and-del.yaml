@@ -1,0 +1,11 @@
+# A double-quoted scalar writes with an escape what a file can't hold raw:
+# here a C1 control (U+0096) and DEL.
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    label: "F1\x96score"
+    description: "x\x7Fy"
+    recipe:
+      command: python make.py '{output}'

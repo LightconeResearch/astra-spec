@@ -247,93 +247,66 @@ file system allows (255 bytes on ext4), can't be used there.
   git configuration. So an `astra.yaml` at a commit is parsed from its blob.
   In the working tree, it is parsed from the file on disk.
 
-**`astra.yaml`** is YAML 1.2 ([YAML](https://yaml.org/spec/1.2.2/)), read
-strictly, under the core schema only
-([`INVALID_SYNTAX`](#parse-and-schema)):
+**`astra.yaml`** is YAML 1.2 ([YAML 1.2.2](https://yaml.org/spec/1.2.2/))
+under the core schema, with these rules
+([`INVALID_SYNTAX`](#parse-and-schema) unless another code is named):
 
-- a file is UTF-8, and may start with a byte order mark but holds none
-  anywhere else outside a quoted scalar
-  ([`INVALID_SYNTAX`](#parse-and-schema)). This is ASTRA's rule, not YAML's:
-  YAML 1.2.2 also reads UTF-16 and UTF-32, and allows a byte order mark at
-  the start of each document
-  ([§5.2](https://yaml.org/spec/1.2.2/#52-character-encodings)). Otherwise,
-  its characters and line breaks are YAML 1.2.2's
-  ([§5.1](https://yaml.org/spec/1.2.2/#51-character-set),
-  [§5.4](https://yaml.org/spec/1.2.2/#54-line-break-characters)): a C0
-  control other than tab, LF and CR makes the file invalid anywhere, and DEL,
-  a C1 control other than NEL, U+FEFF, U+FFFE and U+FFFF make it invalid
-  outside a quoted scalar ([`INVALID_SYNTAX`](#parse-and-schema)); NEL, LS
-  and PS are ordinary characters, not line breaks; a tab is white space, but
-  never indentation
-  ([§6.1](https://yaml.org/spec/1.2.2/#61-indentation-spaces)); and a CR on
-  its own ends a line, as a CR LF and an LF do;
-- a `%YAML` directive other than `%YAML 1.2` makes the file invalid
-  ([`INVALID_SYNTAX`](#parse-and-schema)). This is ASTRA's rule, not YAML's:
-  YAML 1.2.2 accepts `%YAML 1.1`
-  ([§6.8.1](https://yaml.org/spec/1.2.2/#681-yaml-directives)), so a tool
-  checks the directive itself;
-- a file holds at most one document ([`INVALID_SYNTAX`](#parse-and-schema)):
-  a `---` after a document starts another, even with nothing after it. A file
-  with no document, empty or holding only comments, is null, and fails as
-  [`WRONG_TYPE`](#parse-and-schema);
-- a file uses no anchor (`&base`) and no alias (`*base`), so an entry is
-  written out in full ([`INVALID_SYNTAX`](#parse-and-schema));
-- a node's tag, with its handle expanded, is one of the core schema's,
-  `tag:yaml.org,2002:` followed by `str`, `int`, `float`, `bool`, `null`,
-  `seq` or `map` (written `!!str` and so on), on a node of its kind: `!!seq`
-  on a list, `!!map` on a map, `!!str` on any scalar, and each of the others
-  on a scalar that its row of
-  [YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)'s
-  table takes. So `!!float 1` is the float 1, and `!!bool yes` is invalid.
-  Any other tag, such as `!include`, `!!omap` or `!!timestamp`, makes the
-  file invalid ([`INVALID_SYNTAX`](#parse-and-schema)). A node tagged `!` is
-  a string, a list or a map, by its kind
-  ([YAML 1.2.2 §6.9.1](https://yaml.org/spec/1.2.2/#691-node-tags)), so
-  `! 12` is the string `"12"`;
-- a key written twice in one map makes the file invalid
-  ([`DUPLICATE_KEY`](#parse-and-schema)). Two keys are the same when they are
-  equal YAML nodes, with the same tag and canonical form
-  ([YAML 1.2.2 §3.2.1.3](https://yaml.org/spec/1.2.2/#3213-node-comparison)),
-  so `a`, `'a'` and `"\x61"` are one key, and `1` and `"1"` are two;
-- the core schema's only scalar types are strings, nulls, booleans, integers
-  and floats. An integer or a float is a JSON number, and a field's type is
+- **Encoding.** The file is UTF-8, and may start with a byte order mark.
+- **Characters.** Apart from that byte order mark, the file holds no tab, no
+  C0 control other than LF and CR, no DEL, no C1 control (NEL included), no
+  U+2028 or U+2029, no U+FEFF, and no U+FFFE or U+FFFF, in a quoted scalar or
+  anywhere else. A double-quoted scalar can write any of them with an
+  escape, such as `\t` or `\x85`.
+- **Lines.** LF, CR LF and a CR on its own each end a line. A file that
+  doesn't end with a line break is read as if it did.
+- **Directives and documents.** The only directive is `%YAML 1.2`, written
+  so. A file holds at most one document: a `---` line comes at most once,
+  before the content, and a `...` line at most once, after it, with nothing
+  but comments after it. A file with no document, empty or holding only
+  comments, is null, and fails as [`WRONG_TYPE`](#parse-and-schema).
+- **Aliases and tags.** No node is an alias (`*base`), and no node has a
+  tag, `!!str` and `!` included. An anchor (`&base`) alone means nothing.
+- **Scalars.** A plain scalar that matches a row of [YAML 1.2.2
+  §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)'s table is that
+  row's type, and any other scalar is a string. So `true` and `false` are
+  booleans and `null` is a null (as are the table's other spellings of them,
+  such as `True` and `~`); `1e3`, `0x1F`, `-.5` and `010` (which is 10) are
+  numbers; and `yes`, `no`, `on`, `off`, `1_000`, `0b101`, `12:30` and `+.nan`
+  are strings (the first four are valid ids). Timestamps and merge keys are
+  not types: an unquoted date, such as `2026-10-26`, is a string, and `<<` is
+  an ordinary key, so in an entry it is a field the schema doesn't define
+  ([`UNKNOWN_FIELD`](#parse-and-schema)). An unquoted commit id of digits only
+  is therefore an integer, and one of digits and a single `e` a float, or
+  invalid at parse when that float is beyond a double's range (`1234e9`
+  followed by 34 digits); a version such as `1.2` is a float too. They are
+  quoted when meant as ids or strings, as in `"true": {}`, and so are commit
+  ids and versions, as in `commit: "0dbb615a…"` and `spec_version: "0.1.0"`. A
+  value of another type than its field takes fails as
+  [`WRONG_TYPE`](#parse-and-schema).
+- **Numbers.** An integer or a float is a JSON number, and a field's type is
   checked as JSON Schema checks it, so `2.0` is an integer. `.inf`, `-.inf`
   and `.nan`, and a number beyond the range of a double (IEEE 754 binary64),
   which rounds to infinity (`1e400`, an integer of 400 digits), have no JSON
-  form and make the file invalid ([`INVALID_SYNTAX`](#parse-and-schema)).
-  `yes`, `no`, `on` and `off` are strings, and valid ids.
-  Timestamps and merge keys are not types: an unquoted date, such as
-  `2026-10-26`, is a string, and `<<` is an ordinary key, so in an entry it is
-  a field the schema doesn't define ([`UNKNOWN_FIELD`](#parse-and-schema));
-- an untagged plain scalar that matches a row of
-  [YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)'s
-  table is that row's type, and any other is a string. So `true` and `false`
-  are booleans and `null` is a null (as are the table's other spellings of
-  them, such as `True` and `~`); `1e3`, `0x1F`, `-.5` and `010` (which is 10)
-  are numbers; and `1_000`, `0b101`, `12:30` and `+.nan` are strings. An
-  unquoted commit id of digits only is therefore an integer, and one of digits
-  and a single `e` a float, or invalid at parse when that float is beyond a
-  double's range (`1234e9` followed by 34 digits); a version such as `1.2` is
-  a float too. They are quoted when meant as ids or strings, as in
-  `"true": {}`, and so are commit ids and versions, as in
-  `commit: "0dbb615a…"` and `spec_version: "0.1.0"`. A value of another type
-  than its field takes fails as [`WRONG_TYPE`](#parse-and-schema);
-- every key is a string. A key the core schema reads as a boolean, a number
-  or a null (`true:`, `1:`, `~:`), or a key that is a list or a map, has no
-  JSON form ([`INVALID_ID`](#parse-and-schema)). It is reported at its map,
-  naming the key as written, and its entry is left out of the JSON form the
-  schema checks (§9, *What is checked*): the parse rules apply in the entry,
-  but no schema rule does, and the rest of the file is checked as that form
-  stands, so an `outputs` map whose only key is `1` is also empty
-  ([`EMPTY_COLLECTION`](#parse-and-schema)). Keys are compared before that,
-  so `true:` written twice in one map is [`DUPLICATE_KEY`](#parse-and-schema).
-  A key that fails at parse, such as `.nan`, is
-  [`INVALID_SYNTAX`](#parse-and-schema), as any value is;
-- a `\u` or `\U` escape of a surrogate (U+D800–U+DFFF) is read only as half
-  of a pair: a high surrogate's escape followed at once by a low one's, which
-  together give one character, as in JSON, so `"\uD83D\uDE00"` is U+1F600.
-  Any other surrogate escape makes the file invalid
-  ([`INVALID_SYNTAX`](#parse-and-schema)).
+  form.
+- **Escapes.** No `\u` or `\U` escape is of a surrogate (U+D800–U+DFFF),
+  alone or in a pair. A character beyond U+FFFF is written as itself, or as
+  `\U0001F600`.
+- **Keys.** Every key is a string. A key the table reads as a boolean, a
+  number or a null (`true:`, `1:`, `~:`), or a key that is a list or a map,
+  has no JSON form ([`INVALID_ID`](#parse-and-schema)). It is reported at its
+  map, naming the key as written, and its entry is left out of the JSON form
+  the schema checks (§9, *What is checked*): the parse rules apply in the
+  entry, but no schema rule does, and the rest of the file is checked as that
+  form stands, so an `outputs` map whose only key is `1` is also empty
+  ([`EMPTY_COLLECTION`](#parse-and-schema)). A key that fails at parse, such
+  as `.nan`, is [`INVALID_SYNTAX`](#parse-and-schema), as any value is.
+- **Duplicate keys.** No two string keys of one map are equal once their
+  escapes are read ([`DUPLICATE_KEY`](#parse-and-schema)), so `a`, `'a'` and
+  `"\x61"` are one key. Keys that aren't strings take no part in this:
+  `true:` written twice in one map is two keys, each
+  [`INVALID_ID`](#parse-and-schema), and `1` and `"1"` are two keys.
+- Otherwise the file is a well-formed YAML 1.2 stream, read as YAML 1.2.2
+  reads it.
 
 **Records** are JSON text ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259))
 in UTF-8, read strictly ([`INVALID_SYNTAX`](#parse-and-schema)):
@@ -350,7 +323,7 @@ in UTF-8, read strictly ([`INVALID_SYNTAX`](#parse-and-schema)):
   escapes are read, so `"a"` and `"\u0061"` are one name. RFC 8259 §4 doesn't
   forbid a repeated name, and Python's `json.loads` and JavaScript's
   `JSON.parse` keep the last of two, so a checker needs a parser that reports
-  one (§10);
+  one;
 - its strings and numbers are those of every document (below): a number
   beyond a double's range (`1e400`) and the escape of a lone surrogate
   (`"\ud800"`) make it invalid ([`INVALID_SYNTAX`](#parse-and-schema)), and an
@@ -550,7 +523,7 @@ entries of `Output.decisions` are addresses
 `Universe.decisions` ([`INVALID_ID`](#parse-and-schema)).
 
 In YAML, `#` inside a token is literal, so `f1_score#svm` needs no quotes.
-After a space or a tab it starts a comment: `- f1_score #svm` is the plain
+After a space it starts a comment: `- f1_score #svm` is the plain
 reference `f1_score`, followed by a comment. Write a pin with no space before
 its `#`.
 
@@ -1795,8 +1768,8 @@ A table that breaks any of this is an error in this specification, and no
 
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is UTF-8 and a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark | 0005, tidy-up, §3 |
-| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read | 0003, 0004, tidy-up, §3, §4 |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is UTF-8, holds none of the raw characters §3 excludes, has no directive but `%YAML 1.2`, at most one `---`, before its content, and at most one `...`, after it, no alias, no tag and no escape of a surrogate, and is otherwise a well-formed YAML 1.2 stream under the core schema; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark | 0005, tidy-up, §3 |
+| `DUPLICATE_KEY` | parse | MUST | No two string keys of one map in an `astra.yaml` are equal once their escapes are read, and no two names of one object in a record are | 0003, 0004, tidy-up, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key is a string, and matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar | 0003, 0004 |
 | `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Output.recipe`, `Recipe.command`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main, §5 |
@@ -2106,92 +2079,6 @@ their own: it reports [`INVALID_RECORD`](#check) for the record's result, with
 the code of each error as its reason, and with the parser's code
 ([`INVALID_SYNTAX`](#parse-and-schema) or
 [`DUPLICATE_KEY`](#parse-and-schema)) for a record that fails at parse (§3).
-
-**Reading `astra.yaml`.** The parse layer is a YAML 1.2 loader under the
-core schema, plus §3's checks, and a stock loader that calls itself YAML 1.2
-is not always one. ruamel.yaml's safe loader and js-yaml's `CORE_SCHEMA`
-resolve plain scalars by tables of their own, not by YAML 1.2.2 §10.3.2's:
-both read `1_000` as 1000 and `0b101` as 5, which the table leaves strings;
-ruamel.yaml also reads `2026-10-26` as a date, and js-yaml reads `-.5` as a
-string. In JavaScript, the `yaml` package follows the table under the options
-`{version: '1.2', schema: 'core', uniqueKeys: true, merge: false,
-resolveKnownTags: false}`. It accepts `%YAML 1.1`, as YAML 1.2.2 requires,
-and every other version but 1.2 with only a `BAD_DIRECTIVE` warning, leaving
-`doc.directives.yaml.version` at `'1.2'`. So a tool checks the directive
-itself: a `doc.directives.yaml.version` of `'1.1'`, or a `BAD_DIRECTIVE`
-warning on the `%YAML` line, makes the file invalid
-([`INVALID_SYNTAX`](#parse-and-schema)). By default `yaml` builds `!!omap`,
-`!!set`, `!!binary` and `!!timestamp` as YAML 1.1's types and merges at a
-`!!merge` key; under `resolveKnownTags: false` it builds a node with any tag
-outside the core schema as a string, a list or a map by its kind, as it does
-one tagged `!`, keeping the tag in `node.tag`, with a `TAG_RESOLVE_FAILED`
-warning. It reads anchors and aliases either way. So a
-JS loader refuses every anchor, every alias and every tag outside the core
-schema itself, walking the document with `visit`: every `Alias`, every node
-with an `anchor`, and every node whose `tag` is set and is neither `!` nor a
-core schema tag on a node of its kind makes the file invalid
-([`INVALID_SYNTAX`](#parse-and-schema)). The warning isn't that check: `yaml`
-also gives it, and leaves a string, for a core tag on a scalar whose form its
-own test doesn't take, so a tool reads an explicitly tagged scalar's source
-by its tag's row of the table too, refusing `!!int 1_000` and reading
-`!!float 1` as the float 1. `yaml` reports a second document itself
-(`MULTIPLE_DOCS`), and gives `null` for a file with none.
-
-Before `toJS()`, a tool walks the document twice more. The first walk
-refuses a scalar, a key included, holding a number that isn't
-`Number.isFinite` or a string that isn't `isWellFormed()`
-([`INVALID_SYNTAX`](#parse-and-schema)): `yaml` reads `.inf`, `.nan`, `1e400`
-and an integer of 400 digits as numbers that aren't finite, and the escape of
-a lone surrogate as that surrogate. `yaml` reads an escaped pair as one
-character, as §3 does, and an integer beyond 2<sup>53</sup> rounded, which no
-check depends on. The second walk goes through the document's maps from the
-top, reporting each pair whose key isn't a `Scalar` holding a string as
-[`INVALID_ID`](#parse-and-schema) at its map, and deleting the pair without
-walking into it. Without it, `toJS()` would turn the key `true` into the
-valid id `"true"`, and keep only one of `true` and `"true"` in one map.
-`yaml`'s `uniqueKeys: true` compares keys by value alone, so a tool passes
-instead a function that compares them as §3 does: by tag (resolved from a
-plain scalar's `source` by the table, since `yaml` keeps none) and canonical
-form. Then `1` and `1.0` are two keys, and `? [a]` written twice is one.
-
-A tool decodes a file's bytes itself, as UTF-8 that raises on any other byte
-(§3): with `new TextDecoder('utf-8', {fatal: true})`, which skips a leading
-byte order mark, before `yaml`, which takes only a string, and with
-`bytes.decode('utf-8')` before ruamel.yaml, whose own reader also takes
-UTF-16. Neither stock loader then reads characters, tabs and line breaks as
-§3 does. ruamel.yaml refuses a tab used as white space outside a flow
-collection or a quoted scalar, reads NEL, LS and PS as line breaks, refuses
-DEL, the C1 controls other than NEL, U+FFFE and U+FFFF even in a quoted
-scalar, and keeps U+FEFF in a plain scalar;
-[the test harness's loader](https://github.com/LightconeResearch/astra-spec/blob/main/tests/conftest.py)
-shows one way to correct each. `yaml` keeps a CR that no LF follows as
-content, so a tool replaces each such CR with an LF before parsing, which
-changes nothing else, since YAML 1.2.2 §5.4 makes every CR in the text a line
-break. `yaml` checks no characters, so a tool refuses a C0 control other than
-tab, LF and CR anywhere in the text, and reads the source of each plain
-scalar, block scalar, comment and directive from the CST, refusing DEL, a C1
-control other than NEL, U+FEFF, U+FFFE and U+FFFF in it. A tool also refuses
-every `byte-order-mark` token, since `TextDecoder` has already removed the
-one that may start the file ([`INVALID_SYNTAX`](#parse-and-schema)).
-
-**Reading records.** The parse layer for a record is a JSON parser that
-refuses what RFC 8259 leaves to the parser (§3), and neither stock parser is
-one. Python's `json.loads` reads `NaN`, `Infinity` and `-Infinity`, keeps the
-last of two repeated names, reads `1e400` as an infinity, and reads the
-escape of a lone surrogate as that surrogate; given bytes, it also skips a
-byte order mark and reads UTF-16 and UTF-32. So a tool decodes the bytes
-itself, as UTF-8 that raises on any other byte, refuses a leading U+FEFF, and
-passes `json.loads` an `object_pairs_hook` that refuses a repeated name, a
-`parse_constant` that refuses whatever it is given, and a `parse_float` and a
-`parse_int` that refuse a number beyond a double's range; then it walks the
-value, refusing a string that holds a surrogate. In JavaScript, `JSON.parse`
-refuses `NaN` and a byte order mark, but keeps the last of two repeated
-names, reads `1e400` as `Infinity` and keeps a lone surrogate, and
-`TextDecoder` skips a byte order mark and replaces bytes that aren't UTF-8
-unless it is made with `{fatal: true, ignoreBOM: true}`. So a tool decodes
-with those options, refuses a leading U+FEFF, parses with a parser that
-reports a repeated name, and refuses a number that isn't `Number.isFinite`
-and a string that isn't `isWellFormed()`.
 
 **RDF.** A record's RDF is what the
 [JSON-LD 1.1](https://www.w3.org/TR/json-ld11-api/) toRdf algorithm gives for
