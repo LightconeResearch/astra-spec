@@ -879,8 +879,11 @@ output built per universe, since the pin fixes the universe it reads.
 
 An output built once has no universe of its own. It lists no decisions, so
 its recipe has no `{decisions.<entry>}` placeholder
-([`UNDECLARED_TEMPLATE_REF`](#validator)), and a pin on it selects nothing
-([`REDUNDANT_PIN`](#validator)).
+([`UNDECLARED_TEMPLATE_REF`](#validator)), and a pin on it doesn't change
+which result a reference names ([`REDUNDANT_PIN`](#validator)): pinned or
+not, the reference names its one result, and `{inputs.<entry>}` gives that
+result's path; the pin still names a universe
+([`UNKNOWN_PIN_UNIVERSE`](#validator)).
 
 An analysis with no decisions, whose outputs read only what is the same in
 every universe, needs no universes. One with decisions, or with outputs built
@@ -1423,10 +1426,10 @@ it uses is pinned by the commit or is part of the environment. A runner may
 enforce this, with a sandbox say.
 
 A record names the commit its recipe ran from, so it is committed in a later
-commit. That commit adds only records and results, so it makes nothing
-stale. The commit a record names stays in the history of every commit that
-holds the record, so branches with records SHOULD be merged rather than
-squashed or rebased.
+commit. That commit adds only records and results, so it makes none of the
+results whose records it adds stale. The commit a record names stays in the
+history of every commit that holds the record, so branches with records
+SHOULD be merged rather than squashed or rebased.
 
 ### When a result is unchanged
 
@@ -1443,14 +1446,17 @@ if, since that commit, nothing has changed in ([`STALE_RESULT`](#check)):
   one is rebuilt, it is unchanged again if the rebuilt bytes are the same.
 
 Otherwise it is **stale**. Nothing else counts: editing a finding, a
-description or another output leaves a result unchanged. The code, through
-the commit, and the environment are recorded but not compared: a change to
-either shows only when the recipe is run again and makes other bytes. An
-unchanged result suggests, but doesn't guarantee, that the recipe would make
-it again. In the analysis of §2, selecting `random_forest` in the universe
-`svm` makes `accuracy#svm` stale, and `comparison` with it, while editing the
-finding leaves both unchanged. How a checker finds this out is the tooling's
-choice.
+description or another output leaves a result unchanged, unless the edit
+changes something listed above (an `astra.yaml` named as an input, or an
+output whose results it reads, say). The code, through the commit, and the
+environment are recorded but not compared: a change to either shows only when
+the recipe is run again and makes other bytes. An unchanged result suggests,
+but doesn't guarantee, that the recipe would make it again. In the analysis
+of §2, selecting `random_forest` in the universe `svm` makes `accuracy#svm`
+stale, and `comparison` with it, while editing the finding leaves both
+unchanged. Editing `src/train.py` leaves both unchanged too, but once
+`accuracy#svm` is made again with other bytes, `comparison` is stale until it
+is rebuilt. How a checker finds this out is the tooling's choice.
 
 ### Statuses
 
@@ -1465,12 +1471,17 @@ but their status is `absent`.
 A checker reads records only through planned results: a record at no planned
 result's place gets no status, and no check rule applies to it.
 
-Evidence citing a result gets the status of the result's record
-([`STALE_EVIDENCE`](#check)), through the record its address names: the
-reference, pinned when the output is built per universe, names exactly one
-result. A check covers the evidence of the analysis it is run on. The
-results of an analysis from a commit that are read or cited are checked by
-the same rules, through their records at the declared commit (§7).
+Evidence citing a result gets the status of that result's record
+([`STALE_EVIDENCE`](#check)). An `artifact` that is pinned, or that names an
+output built once, names exactly one result, and its record is the one that
+result's address gives. A check covers the evidence of the analysis it is run
+on.
+
+The results of an analysis from a commit that are read or cited get their
+record status (`unchanged`, `stale`, `missing`) by the same rules, through
+their records at the declared commit. Only those a recipe reads get a bytes
+status ([`ABSENT_RESULT`](#check)), from what git holds at the declared
+commit (§7).
 
 ## 9. Conformance
 
@@ -1753,8 +1764,10 @@ or `absent`). Evidence citing a result gets that result's first status.
 | `ABSENT_RESULT` | SHOULD | Every result's recorded bytes are at its default place | `absent` | 0005 §1 |
 | `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status | 0005 §5 |
 
-The results of an analysis from a commit that are read or cited are checked
-by the same rules, through their records at the declared commit (0007
+The results of an analysis from a commit that are read or cited get their
+record status (`unchanged`, `stale`, `missing`) by the same rules, through
+their records at the declared commit. Only those a recipe reads get a bytes
+status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
 §4–5).
 
 ### runner
