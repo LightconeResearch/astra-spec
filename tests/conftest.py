@@ -17,17 +17,15 @@ from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError, SafeCon
 from ruamel.yaml.error import YAMLError
 from ruamel.yaml.events import AliasEvent, MappingStartEvent
 from ruamel.yaml.nodes import MappingNode, ScalarNode, SequenceNode
-from ruamel.yaml.parser import Parser, ParserError
+from ruamel.yaml.parser import Parser
 from ruamel.yaml.reader import Reader, ReaderError
 from ruamel.yaml.resolver import VersionedResolver
 from ruamel.yaml.scanner import Scanner, ScannerError
 from ruamel.yaml.tokens import (
-    DocumentEndToken,
     FlowEntryToken,
     FlowMappingEndToken,
     FlowSequenceEndToken,
     ScalarToken,
-    StreamEndToken,
     ValueToken,
 )
 from rules import json_pointer
@@ -651,31 +649,9 @@ class _CoreSchemaScanner(Scanner):
 
 
 class _CoreSchemaParser(Parser):
-    """ruamel.yaml's parser, reading two forms as YAML 1.2.2 does, where ruamel.yaml refuses or misreads them: a `...`
-    with no document before it, which starts none, and a single pair with an empty key in a flow sequence, as in
-    `[: x]` ([151], [146] `c-ns-flow-map-empty-key-entry`), whose key is null, so it is left out of its map, as any key
-    that isn't a string is."""
-
-    def parse_implicit_document_start(self) -> Any:
-        """Skips each `...` at the start of the file or after another `...`: it ends no document, and starts none
-        (YAML 1.2.2 [211] `l-yaml-stream`), where ruamel.yaml would start a document at it, refusing a file holding
-        only `...`, and reading a second document after a `...` that follows one ending a document. As after a
-        document, a `...` has nothing after it on its line but a comment ([205] `l-document-suffix`)."""
-        scanner = self.scanner
-        while scanner.check_token(DocumentEndToken):
-            marker = scanner.get_token()
-            following = scanner.peek_token()
-            if (
-                not isinstance(following, StreamEndToken)
-                and following.start_mark.line == marker.end_mark.line
-            ):
-                raise ParserError(
-                    None,
-                    None,
-                    "found content after a document end marker, on its line",
-                    following.start_mark,
-                )
-        return super().parse_implicit_document_start()
+    """ruamel.yaml's parser, reading a single pair with an empty key in a flow sequence, as in `[: x]`, which
+    ruamel.yaml refuses (YAML 1.2.2 [151], [146] `c-ns-flow-map-empty-key-entry`): its key is null, so it is left out
+    of its map, as any key that isn't a string is."""
 
     def parse_flow_sequence_entry(self, first: bool = False) -> Any:
         scanner = self.scanner
@@ -956,19 +932,17 @@ def load_document(source: Path | str) -> tuple[Any, list[tuple[str, str]]]:
     timestamps and `1_000` are strings); a scalar tagged `!` is a string; `<<` is an ordinary key; a tag outside the
     core schema (`!!set`, `!!binary`, `!!omap`, `!!timestamp`, a local tag), a core tag on a node of another kind or
     a scalar of another form (`!!seq x`, `!!bool yes`) and a `%YAML` directive other than 1.2 are errors. An anchor,
-    an alias and a second document raise `ComposerError`; a `...` with no document before it starts none, where
-    ruamel.yaml would start one, so a file with no document (empty, or only comments and `...` lines) is None, and
-    `...` lines before or after a document leave it the only one. Two keys of a map that are equal YAML nodes, with
-    the same tag and canonical form, raise `DuplicateKeyError`, whatever their type. A flow collection's indicators
-    are read as YAML 1.2.2 reads them, where ruamel.yaml would misread or refuse them: `?` is the explicit key
-    indicator only before white space or a line break (`{?x: y}` has the key `?x`); `:` is the value indicator before
-    white space, a line break or a flow indicator, and before anything after a JSON-like key (`[x:]` is
-    `[{x: null}]`, `["x":y]` is `[{x: y}]`, and `{ :x}` is `{":x": null}`); a key of a flow mapping may span lines
-    and be of any length; a single pair in a flow sequence may have an empty key (`[: x]`); and a tag may end an
-    entry (`[!!str]` is `[""]`). Text YAML 1.2.2 makes ill-formed raises a `YAMLError` even where ruamel.yaml would
-    read it: a comment glued to a token, an under-indented line of a flow collection or a quoted scalar, `[-]`,
-    `[?]`, `{ :[b]}`, `!<!>`, and a `\\U` escape beyond U+10FFFF. A `RecursionError` (a document nested too deep)
-    is left as it is.
+    an alias and a second document raise `ComposerError`; a file with no document (empty, or only comments) is
+    None. Two keys of a map that are equal YAML nodes, with the same tag and canonical form, raise
+    `DuplicateKeyError`, whatever their type. A flow collection's indicators are read as YAML 1.2.2 reads them, where
+    ruamel.yaml would misread or refuse them: `?` is the explicit key indicator only before white space or a line
+    break (`{?x: y}` has the key `?x`); `:` is the value indicator before white space, a line break or a flow
+    indicator, and before anything after a JSON-like key (`[x:]` is `[{x: null}]`, `["x":y]` is `[{x: y}]`, and
+    `{ :x}` is `{":x": null}`); a key of a flow mapping may span lines and be of any length; a single pair in a flow
+    sequence may have an empty key (`[: x]`); and a tag may end an entry (`[!!str]` is `[""]`). Text YAML 1.2.2
+    makes ill-formed raises a `YAMLError` even where ruamel.yaml would read it: a comment glued to a token, an
+    under-indented line of a flow collection or a quoted scalar, `[-]`, `[?]`, `{ :[b]}`, `!<!>`, and a `\\U` escape
+    beyond U+10FFFF. A `RecursionError` (a document nested too deep) is left as it is.
 
     A value with no JSON form raises a `ConstructorError` (spec §3): `.inf`, `-.inf`, `.nan`, a number beyond a
     double's range (`1e400`, an integer of 400 digits), and a string holding a surrogate that isn't half of an

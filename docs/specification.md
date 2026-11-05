@@ -2183,16 +2183,7 @@ white space or a line break, and a `:` right before `[` or `{` as the value
 indicator, with the collection as its value, after a key that isn't
 JSON-like, or none (`{a:[b]}`, `[a:[b]]`, `{ :[b]}`), where YAML 1.2.2 has
 white space between them; so a tool refuses such a `?` and such a `:`
-([`INVALID_SYNTAX`](#parse-and-schema)). Both loaders start a document at a
-`...` with no document before it, at the start of the file or after another
-`...`, where YAML 1.2.2 starts none: ruamel.yaml refuses a file holding only
-`...`, or a document after one, and both read a second document where two
-`...` follow a file's one (`yaml` reports `MULTIPLE_DOCS` for a `...` before
-it too). So a tool skips such a `...` before ruamel.yaml's parser starts a
-document at it, and with `yaml` takes the errors of every document that
-`parseAllDocuments` gives, then leaves out each one with no `---`
-(`doc.directives.docStart`) whose content is empty and has no tag, before
-counting the documents.
+([`INVALID_SYNTAX`](#parse-and-schema)).
 `yaml` keeps a CR that no LF follows as
 content, so a tool replaces each such CR with an LF before parsing, which
 changes nothing else, since YAML 1.2.2 §5.4 makes every CR in the text a line
