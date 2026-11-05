@@ -93,9 +93,12 @@ Four roles conform to this specification:
 - A **document**, an `astra.yaml` or a record, conforms when it breaks no
   parse or schema rule.
 - A **validator** reads an analysis, every `astra.yaml` of its stack and git
-  (§3), and reports every parse, schema and validator rule the analysis
-  breaks, except where §9's *What is checked* leaves one unchecked. An
-  analysis is valid when it breaks none of their `MUST`s.
+  (§3), and reports every parse, schema and validator rule that the
+  analysis, or any analysis of its stack, breaks, except where §9's *What is
+  checked* leaves one unchecked. One broken inside an analysis from a commit
+  is also reported as [`DECLARED_ANALYSIS_INVALID`](#validator) on its
+  declaration (§7). An analysis is valid when its stack breaks none of their
+  `MUST`s.
 - A **checker** reads an analysis, every `astra.yaml` of its stack and git
   (§3), and its records and results, and gives each planned result its
   statuses by the check rules (§8). A record that breaks a parse or schema
@@ -982,10 +985,12 @@ declares, directly or through other declared analyses. A validator reads
 every `astra.yaml` of the stack, each by the `spec_version` it states
 ([`UNSUPPORTED_SPEC_VERSION`](#validator)).
 
-The universes being built are the root's. In them the root is the driver and
-is never driven, even when a declaration in its stack leads back to it.
-Another analysis's universe is used only where a pin names it. That analysis
-is then its driver, and what is built there belongs to it (§8).
+The universes built are the root's and those a pin names. In the root's
+universes the root is the driver and is never driven, even when a
+declaration in its stack leads back to it. Another analysis's universe is
+used only where a pin names it. That analysis is then its driver, and what
+is built there belongs to it (§8). A validator also checks every other
+universe of the stack (below).
 
 ### Driving and consuming
 
@@ -1044,6 +1049,28 @@ keeps them unless a key drives it.
   decisions. A pin in its own file, or through an undriven declaration,
   still reads one of them (below). Each universe being built has one driver,
   the analysis whose universe it is.
+
+A validator still checks every universe of every analysis of the stack, a
+driven analysis's own included. Each universe's selections are held to §6
+and to driving ([`UNRESOLVED_ADDRESS`](#validator),
+[`UNKNOWN_OPTION`](#validator), [`DUPLICATE_ELEMENT`](#validator),
+[`UNKNOWN_DERIVED_FROM`](#validator), [`DERIVED_FROM_CYCLE`](#validator),
+[`MISSING_DECISION`](#validator), [`INACTIVE_DECISION`](#validator),
+[`MISSING_REQUIRED_OPTION`](#validator),
+[`INCOMPATIBLE_OPTIONS`](#validator),
+[`EXCLUDED_OPTION_SELECTED`](#validator),
+[`CONFLICTING_SELECTIONS`](#validator), [`PARTIALLY_DRIVEN`](#validator)).
+The declarations a universe drives are those its effective selection
+drives, as above, a declaration back to the root included; checking a
+universe builds nothing, so the root stays undriven in its own universes.
+Where the root drives `sub`, a universe of `sub`'s own that leaves one of
+`sub`'s active decisions unset breaks `MISSING_DECISION`, though the root's
+universes don't use it. The rules on the universe being built (below:
+[`NOT_BUILT_IN_UNIVERSE`](#validator), [`UNDRIVEN_DECLARATION`](#validator),
+[`INPUT_NOT_BUILT`](#validator)) hold only in the universes built. Checking
+another analysis's universes doesn't make it the root: the root, and so its
+working tree, stays the same, and each declaration is judged once
+([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)).
 
 Driving leaves an analysis able to stand alone, and consuming a decision ties
 the outputs that use it to the decision's analysis. By convention, a
@@ -1178,16 +1205,18 @@ at its commit ([`DECLARED_ANALYSIS_INVALID`](#validator)), each `astra.yaml`
 read by the `spec_version` it states. A rule broken inside an analysis from a
 commit is reported twice: `DECLARED_ANALYSIS_INVALID` on the declaration, in
 the file the author can edit, and the rule's own code at its place in the
-commit's file, which says why. Getting a commit from a remote is checked
-apart from that validity ([`REMOTE_UNREACHABLE`](#validator)). A commit is
-got from a remote when it is a declaration's `url` and `commit`, a `path`
-and `commit` declared in a file read from a remote, or the commit a gitlink
-pins, crossed at a commit (§3). The remote is the `url`, the remote the file
-was read from, or the submodule's URL (§3). Files at a commit never change,
-but remotes do. So getting a commit is checked each time, and a commit kept
-from an earlier fetch counts as got. Whether the declared analysis is
-otherwise valid can't change, and a validator can remember the answer for a
-commit it has validated, with the schemas it has.
+commit's file, which says why. A rule broken in an analysis declared without
+a `commit` is reported once, under its own code. Getting a commit from a
+remote is checked apart from that validity
+([`REMOTE_UNREACHABLE`](#validator)). A commit is got from a remote when it
+is a declaration's `url` and `commit`, a `path` and `commit` declared in a
+file read from a remote, or the commit a gitlink pins, crossed at a commit
+(§3). The remote is the `url`, the remote the file was read from, or the
+submodule's URL (§3). Files at a commit never change, but remotes do. So
+getting a commit is checked each time, and a commit kept from an earlier
+fetch counts as got. Whether the declared analysis is otherwise valid can't
+change, and a validator can remember the answer for a commit it has
+validated, with the schemas it has.
 
 A commit that can't be got is an error on one declaration in a file outside
 every analysis from a commit, read in the working tree, which the author can
@@ -1645,6 +1674,8 @@ A table that breaks any of this is an error in this specification, and no
 | `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, tidy-up, main, #73 |
 
 ### validator
+
+Every universe of every analysis of the stack is checked as §7 says.
 
 | Code | Level | Rule | Source |
 |---|---|---|---|
