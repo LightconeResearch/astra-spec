@@ -55,17 +55,19 @@ doesn't restate them.
 **Versions.** Every analysis document and every record states, in
 `spec_version`, the version of this specification it is written against, as
 `MAJOR.MINOR.PATCH`: three non-negative integers without leading zeros, such
-as `0.1.0` ([`INVALID_VALUE`](#parse-and-schema)). A patch release never
-changes what is valid: a document or a record is valid under `X.Y.Z` exactly
-when it is valid under every other `X.Y` version. So one schema of
-`astra.yaml` and one of a record serve each minor version, and a validator
-that reads one version of it reads them all
-([`UNSUPPORTED_SPEC_VERSION`](#validator)). A validator reads each
-`astra.yaml` by the version it states
+as `0.1.0` ([`INVALID_VALUE`](#parse-and-schema)). Versions are ordered by
+MAJOR, then MINOR, then PATCH, each compared as an integer, so `0.10.0` comes
+after `0.9.0`. A version's minor version is its MAJOR and MINOR: `0.1` for
+`0.1.3`. A patch release never changes what is valid: a document or a record
+is valid under `X.Y.Z` exactly when it is valid under every other `X.Y`
+version. So each minor version has one schema of `astra.yaml` and one of a
+record, and every `0.1.x` document is read by 0.1's. A validator reads each
+`astra.yaml` by the schema of the minor version it states, so a validator
+that reads one patch of a minor version reads them all
 ([`UNSUPPORTED_SPEC_VERSION`](#validator)). A file whose `spec_version` is
-missing or malformed is checked against the validator's own schema, and every
-schema error in it is reported. What a minor or major version promises about
-another is left to ASTRA's versioning policy.
+missing or malformed is checked against the schema of the validator's own
+minor version, and every schema error in it is reported. What one minor
+version promises about another is left to ASTRA's versioning policy.
 
 ## 2. Overview
 
@@ -103,7 +105,10 @@ Four roles conform to this specification:
 - A **checker** reads an analysis, every `astra.yaml` of its stack and git
   (§3), and its records and results, and gives each planned result its
   statuses by the check rules (§8). A record that breaks a parse or schema
-  rule leaves its result `missing` ([`INVALID_RECORD`](#check)).
+  rule leaves its result `missing` ([`INVALID_RECORD`](#check)). A checker
+  implements one version, its own. It has the record schema of every minor
+  version from 0.1 up to its own (§10): records begin at 0.1.0, and no
+  earlier version has a record schema.
 - A **runner** runs recipes and writes each result's bytes and record. A
   record is its runner's testimony, and names it. A runner conforms when it
   keeps the runner `MUST`s, which keep its records true. How it stores bytes
@@ -1460,11 +1465,16 @@ A record holds only what its commit can't give: the output's declaration, the
 options of its decisions and its format are in the `astra.yaml` files at that
 commit. The order of a record's fields carries no meaning: two records with
 the same keys and values are the same record. A record holds only the fields
-its `spec_version` defines. A checker reading a record of a newer version
-than its own validates it against the open variant of the record schema,
-which ignores the fields the checker doesn't know, rather than calling the
-record `missing` ([`INVALID_RECORD`](#check), §10). Read as RDF (§10), a
-record is W3C PROV-O.
+its `spec_version` defines, and is read by its minor version's record schema
+(§1). A checker reading a record of a greater minor version than its own
+validates it against the open variant of the record schema, which ignores
+the fields the checker doesn't know, rather than calling the record
+`missing`. A record whose minor version is smaller than the checker's and has
+no record schema, such as `0.0.9`, is `missing`. A record whose
+`spec_version` is missing or malformed is validated against the checker's
+own record schema, so every error is a reason
+([`INVALID_RECORD`](#check), §10). Read as RDF (§10), a record is W3C
+PROV-O.
 
 Two records of one result with the same commit, inputs and environment, made
 on two machines say, show whether the result reproduces: their
@@ -1774,7 +1784,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 
 | Code | Level | Rule | Source |
 |---|---|---|---|
-| `UNSUPPORTED_SPEC_VERSION` | MUST | Every `astra.yaml` in the stack has a `spec_version` the validator has the schema for (the file is then validated against that schema, by the schema layer) | 0007 §6 |
+| `UNSUPPORTED_SPEC_VERSION` | MUST | Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of (the file is then validated against the schema of its minor version, by the schema layer) | 0007 §6, §1 |
 | `UNRESOLVED_ADDRESS` | MUST | Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact` | 0004 |
 | `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003, 0004 |
 | `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | main |
@@ -1848,7 +1858,7 @@ none.
 | Code | Level | Rule | Status when broken | Source |
 |---|---|---|---|---|
 | `MISSING_RECORD` | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once), for each of its names, in the analysis it belongs to | `missing` | 0005 §1 |
-| `INVALID_RECORD` | MUST | The record at each planned result's place breaks no parse rule, and no schema rule against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, tidy-up, §3, §8 |
+| `INVALID_RECORD` | MUST | The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema, or against the open variant when that minor version is greater than the checker's | `missing` | 0005 §2, tidy-up, §3, §8 |
 | `MISPLACED_RECORD` | MUST | The record at each planned result's place has, as its `address`, the address that place is worked out from | `missing` | 0005 §1 |
 | `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
 | `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
@@ -1925,8 +1935,8 @@ language agree.
 
 **The open variant.** `provenance.open.schema.json` differs from
 `provenance.schema.json` only in allowing fields it doesn't define. A checker
-reading a record of a newer version than its own validates the record against
-it, and so ignores the fields that version adds
+reading a record of a greater minor version than its own validates the record
+against it, and so ignores the fields that version adds
 ([`INVALID_RECORD`](#check)).
 
 **The rule catalogue.** `rules.json` is derived from this specification and
