@@ -219,13 +219,16 @@ def _at(mark: Any) -> str:
 
 def _events(text: str) -> Iterator[Any]:
     """The events of stock ruamel.yaml's parser for `text`; an error it raises, whatever its class, is a `YAMLError`:
-    the text isn't YAML 1.2 the parser reads (spec §3)."""
+    the text isn't YAML 1.2 the parser reads (spec §3). A `RecursionError` (a document nested too deep) is left as it
+    is."""
     events = YAML(typ="safe", pure=True).parse(text)
     while True:
         try:
             event = next(events)
         except StopIteration:
             return
+        except RecursionError:
+            raise
         except Exception as error:
             raise YAMLError(f"found text YAML doesn't read: {error}") from error
         yield event

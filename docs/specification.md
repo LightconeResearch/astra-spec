@@ -316,14 +316,11 @@ in UTF-8, read strictly ([`INVALID_SYNTAX`](#parse-and-schema)):
   ([`INVALID_SYNTAX`](#parse-and-schema));
 - a record starts with no byte order mark
   ([`INVALID_SYNTAX`](#parse-and-schema)). RFC 8259 §8.1 forbids writing one
-  but lets a parser ignore one; a checker refuses it, as `JSON.parse` does, so
-  that every checker reads a record alike;
+  but lets a parser ignore one; a checker refuses it;
 - a name written twice in one object makes the record invalid
   ([`DUPLICATE_KEY`](#parse-and-schema)). Names are compared once their
   escapes are read, so `"a"` and `"\u0061"` are one name. RFC 8259 §4 doesn't
-  forbid a repeated name, and Python's `json.loads` and JavaScript's
-  `JSON.parse` keep the last of two, so a checker needs a parser that reports
-  one;
+  forbid a repeated name;
 - its strings and numbers are those of every document (below): a number
   beyond a double's range (`1e400`) and the escape of a lone surrogate
   (`"\ud800"`) make it invalid ([`INVALID_SYNTAX`](#parse-and-schema)), and an

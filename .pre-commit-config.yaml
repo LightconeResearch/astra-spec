@@ -8,10 +8,10 @@ repos:
       - id: check-yaml
         # What this hook's loader refuses is the point of these fixtures:
         # each fails at parse (a duplicate key, malformed YAML, a %YAML 1.1
-        # directive, an escape beyond Unicode, a local tag, a second
-        # document, bytes that aren't UTF-8, a tab as white space, a C1
-        # control, DEL or NEL). Keep in step with .yamllint.yaml.
-        exclude: ^tests/data/invalid/Analysis-(101-duplicate-output|146-duplicate-universe|182-malformed-yaml|183-yaml-1-1-directive|194-escape-beyond-unicode|201-local-tag|204-second-document|211-not-utf-8|212-c1-control-in-plain-scalar|224-tab-as-separation|226-c1-control-in-quoted-scalar|227-del-in-quoted-scalar|228-nel-in-block-scalar)\.yaml$
+        # directive, a local tag, a second document, bytes that aren't UTF-8,
+        # a tab as white space, a C1 control, DEL or NEL). Keep in step with
+        # .yamllint.yaml.
+        exclude: ^tests/data/invalid/Analysis-(101-duplicate-output|146-duplicate-universe|182-malformed-yaml|183-yaml-1-1-directive|201-local-tag|204-second-document|211-not-utf-8|212-c1-control-in-plain-scalar|224-tab-as-separation|226-c1-control-in-quoted-scalar|227-del-in-quoted-scalar|228-nel-in-block-scalar)\.yaml$
       # Generated files are checked against a fresh generation instead
       # (`just check-generated`), and a tab or a lone CR is the point of these
       # fixtures, so these hooks leave them as they are.
