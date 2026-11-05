@@ -692,11 +692,11 @@
       "statement": "A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places"
     },
     {
-      "code": "UNCOMMITTED_CHANGES",
+      "code": "FALSE_RECORD",
       "layer": "runner",
       "level": "MUST",
-      "source": "0005 §3",
-      "statement": "A runner runs only when the repository has no changes other than the results and records it writes"
+      "source": "0005 §2, 0005 §3",
+      "statement": "Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times"
     },
     {
       "code": "UNRECREATABLE_ENVIRONMENT",
@@ -706,11 +706,18 @@
       "statement": "A runner records each recipe's environment as an IRI that it can recreate at its version"
     },
     {
-      "code": "UNDECLARED_READ",
+      "code": "UNCOMMITTED_CHANGES",
       "layer": "runner",
       "level": "MUST",
-      "source": "0005 §3",
-      "statement": "A recipe reads files and results only through its output's inputs"
+      "source": "0005 §3, 0007 §2, 0007 §7",
+      "statement": "A runner runs each recipe in a checkout of the commit its record names, with no changes but the results and records it writes itself, the results the recipe reads, at their recorded bytes, and what a tool keeps of, or puts in place to drive, an analysis from a commit"
+    },
+    {
+      "code": "WRONG_WORKING_DIRECTORY",
+      "layer": "runner",
+      "level": "MUST",
+      "source": "0004 §1, 0004 §5",
+      "statement": "A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it"
     },
     {
       "code": "NOT_AT_COMMIT",
@@ -723,15 +730,22 @@
       "code": "REBUILT_FROM_COMMIT",
       "layer": "runner",
       "level": "MUST",
-      "source": "0007 §7",
-      "statement": "A runner builds none of the outputs built once of an analysis from a commit that it drives, and reads them through their records"
+      "source": "0007 §3, 0007 §7",
+      "statement": "A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each such result through its record at the commit that analysis is read at"
     },
     {
       "code": "STALE_INPUT",
       "layer": "runner",
       "level": "MUST",
-      "source": "0007",
-      "statement": "A runner builds an output only when every result it reads is `unchanged` and its bytes can be got and are the recorded ones"
+      "source": "0007 §4, 0007 §5",
+      "statement": "A runner builds no output that reads a result belonging to an analysis from a commit, or to an analysis reached from it through declarations, while that result is `missing` or `stale`, or its bytes can't be got or aren't the recorded ones"
+    },
+    {
+      "code": "UNDECLARED_READ",
+      "layer": "runner",
+      "level": "SHOULD",
+      "source": "0005 §3, tidy-up",
+      "statement": "A recipe reads the files inputs name, and other outputs' results, only through its output's inputs"
     }
   ]
 }

@@ -23,8 +23,8 @@ such as `DIGIT`. Patterns are regular expressions, written as §4 says.
 with a code, such as [`MISSING_DECISION`](#validator). The other sections
 explain what the rules are about and link to their codes. The two
 recommendations no tool can check are stated where they apply (§7, §8), and
-the two duties of a runner that no tool can check after the runner's rules
-(§9).
+the runner's recommendation and permission, which no tool can check either,
+after the runner's rules (§9).
 
 **Fields.** Every class of the format has a page in the
 [schema reference](elements/index.md), generated from the schema, whose
@@ -87,7 +87,7 @@ Rules are enforced in five layers, set apart by what each one sees:
 | **schema** | the generated JSON Schema | one file's data |
 | **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git (§3); no results |
 | **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git (§3); records and results |
-| **runner** | whatever runs recipes | its own actions |
+| **runner** | whatever runs recipes | its own actions, the checkouts it runs recipes in, and what the recipes read |
 
 Four roles conform to this specification:
 
@@ -104,8 +104,10 @@ Four roles conform to this specification:
   (§3), and its records and results, and gives each planned result its
   statuses by the check rules (§8). A record that breaks a parse or schema
   rule leaves its result `missing` ([`INVALID_RECORD`](#check)).
-- A **runner** runs recipes and writes each result's bytes and record. It
-  conforms when it keeps the runner rules.
+- A **runner** runs recipes and writes each result's bytes and record. A
+  record is its runner's testimony, and names it. A runner conforms when it
+  keeps the runner `MUST`s, which keep its records true. How it stores bytes
+  or builds environments is its own.
 
 An analysis that reads a file, makes one artefact per universe and compares
 two universes in a third:
@@ -170,8 +172,9 @@ the analysis has three results, each with a record (§8).
 ## 3. Files
 
 An **analysis** is a directory with an `astra.yaml` at its top. Its recipes
-run in that directory. The paths of its inputs and declarations are relative
-to the folder of the `astra.yaml` and separate folders with `/` (§5, §7).
+run in that directory ([`WRONG_WORKING_DIRECTORY`](#runner)). The paths of
+its inputs and declarations are relative to the folder of the `astra.yaml`
+and separate folders with `/` (§5, §7).
 
 **Paths.** A path in an analysis is written as git writes a path in a commit,
 the same on every machine, and so is each place §8 builds from its ids and
@@ -621,7 +624,7 @@ disk and GPUs it asks for (`cpus` at least 0 and `gpus` at least 1:
 [`INVALID_VALUE`](#parse-and-schema)), and `container`, an image name, which is pulled,
 or the path of a Containerfile, which is built. `Analysis.container` is the
 default container of the analysis's recipes. A recipe runs in its analysis's
-directory.
+directory ([`WRONG_WORKING_DIRECTORY`](#runner)).
 
 The `command` is a POSIX shell command and a template. A runner substitutes
 its placeholders before running it:
@@ -640,9 +643,14 @@ output's `inputs` or `decisions` exactly as written, dots and `#` included:
 Two pins of one output are two entries, each with its own placeholder. Any
 other placeholder breaks [`UNDECLARED_TEMPLATE_REF`](#validator): one naming
 an entry the output doesn't list, such as `{inputs.data}` when `data` isn't
-among its `inputs`, or one of none of these forms, such as `{foo}`. A recipe
-reads files and results only through its output's inputs
-([`UNDECLARED_READ`](#runner)).
+among its `inputs`, or one of none of these forms, such as `{foo}`.
+
+A recipe should read the files inputs name, and other outputs' results, only
+through its output's inputs ([`UNDECLARED_READ`](#runner)), since a checker
+sees a change to them only through those inputs. Anything else it uses, its
+own scripts among them, is pinned by the commit or is part of the
+environment. A runner can enforce this, as §9 permits; one that does fails
+the recipe.
 
 ### Decisions and options
 
@@ -1177,7 +1185,9 @@ the working tree, of HEAD or, during a merge, MERGE_HEAD
 or, when the declaring analysis is itself read from a remote, from that
 remote, and each submodule it reaches through a gitlink as §3 says. Every
 rule of this specification applies to an analysis from a commit as it is,
-with its files read at its commit.
+with its files read at its commit. Its results are those that belong to it
+or to an analysis reached from it through declarations, read at the same
+commit.
 
 **Identity.** An analysis from a commit is its directory at its commit,
 whatever URL it is got from, as **Identity** under Declarations says (above).
@@ -1236,11 +1246,11 @@ declare only remotes its readers can fetch. That isn't a `MUST`, since a
 remote can be private while the analysis is being worked on.
 
 **Use.** Unless it is driven, none of the recipes of an analysis from a
-commit run, so the rules above let it give only its outputs in its own
-universes, pinned (`upstream.summary#u1`), its outputs built once
-(`upstream.stage.report`), and its inputs (`upstream.data`). Evidence cites
-its results in the same way. An address that doesn't exist in the declared
-analysis is an error in the declaring one
+commit run ([`REBUILT_FROM_COMMIT`](#runner)), so the rules above let it
+give only its outputs in its own universes, pinned (`upstream.summary#u1`),
+its outputs built once (`upstream.stage.report`), and its inputs
+(`upstream.data`). Evidence cites its results in the same way. An address
+that doesn't exist in the declared analysis is an error in the declaring one
 ([`UNRESOLVED_ADDRESS`](#validator)). Whether the result it names is
 recorded and unchanged is the checker's to tell (§8).
 
@@ -1266,17 +1276,20 @@ as standing in for it (§5).
 **Driving.** A driver's universes can drive an analysis from a commit, as any
 declared analysis. Its recipes then run on exactly its files at the declared
 commit ([`NOT_AT_COMMIT`](#runner)). Where the tool puts those files is the
-tool's choice, and they aren't part of the declaring analysis's code. Which
-environment the recipes run in is the runner's choice, as for any recipe, and
-is recorded in the driver's records. Its outputs built once aren't built: like
-the rest of its results, they are read through their records at the declared
-commit ([`REBUILT_FROM_COMMIT`](#runner)). What the driver's universes build
-belongs to the driver, and its records name the driver's commit, where the
-declaration says which commit the driven analysis is from and, for a remote,
-where to get it. A git submodule also records a URL and a commit, but only in
-git, and its checkout can drift from them. A `url` and a `commit` fix them in
-`astra.yaml`, so the declared analysis has the same identity whether it is
-read or driven, and what a driver runs is the declared commit.
+tool's choice, and they aren't part of the declaring analysis's code and
+aren't a change that stops a runner from running
+([`UNCOMMITTED_CHANGES`](#runner)). Which environment the recipes run in is
+the runner's choice, as for any recipe, and is recorded in the driver's
+records. Its outputs built once aren't built: like the rest of its results,
+they are read through their records at the declared commit
+([`REBUILT_FROM_COMMIT`](#runner)). Only what the driver's universes build is
+built. It belongs to the driver, and its records name the driver's commit,
+where the declaration says which commit the driven analysis is from and, for
+a remote, where to get it. A git submodule also records a URL and a commit,
+but only in git, and its checkout can drift from them. A `url` and a
+`commit` fix them in `astra.yaml`, so the declared analysis has the same
+identity whether it is read or driven, and what a driver runs is the
+declared commit.
 
 ## 8. Results and records
 
@@ -1432,19 +1445,35 @@ on two machines say, show whether the result reproduces: their
 
 ### What a runner does
 
-A runner writes a record for every result it makes, at the place of each of
-its names in the analysis the result belongs to, and writes the bytes to their
-default places ([`UNRECORDED_RESULT`](#runner)). It runs only committed code:
-while the repository has changes other than the results and records it writes,
-it refuses to run ([`UNCOMMITTED_CHANGES`](#runner)). It records each recipe's
-environment as an IRI that it can recreate at its version
-([`UNRECREATABLE_ENVIRONMENT`](#runner)), and should let someone see what that
-environment holds, as PROV for example. It builds an output only when every
-result the output reads is `unchanged` and its bytes can be got and are the
-recorded ones ([`STALE_INPUT`](#runner)). A recipe reads files and results
-only through its output's inputs ([`UNDECLARED_READ`](#runner)): anything else
-it uses is pinned by the commit or is part of the environment. A runner may
-enforce this, with a sandbox say.
+- A runner writes a record for every result it makes, at the place of each
+  of its names in the analysis the result belongs to, and writes the bytes to
+  their default places ([`UNRECORDED_RESULT`](#runner)).
+- Every field of the record is true of the run
+  ([`FALSE_RECORD`](#runner)). It records each recipe's environment as an
+  IRI that it can recreate at its version
+  ([`UNRECREATABLE_ENVIRONMENT`](#runner)), and should let someone see what
+  that environment holds, as PROV for example.
+- It runs only committed code. It runs each recipe in a checkout of the
+  commit the record names, with no changes but the results and records it
+  writes itself, the results the recipe reads, at their recorded bytes, and
+  what a tool keeps of, or puts in place to drive, an analysis from a commit
+  ([`UNCOMMITTED_CHANGES`](#runner)). That checkout is the working tree when
+  the working tree has no other changes. When it has, the runner refuses to
+  run, or runs in a checkout of its own, at HEAD say, and writes the results
+  and records into the working tree. Either way the records are committed in
+  a commit that has the commit they name in its history (below). It runs
+  each recipe in its analysis's directory in that checkout
+  ([`WRONG_WORKING_DIRECTORY`](#runner)).
+- It builds no result of an analysis from a commit (§7)
+  ([`REBUILT_FROM_COMMIT`](#runner)), and builds no output that reads such a
+  result while it is `missing` or `stale` or its bytes can't be got or
+  aren't the recorded ones ([`STALE_INPUT`](#runner)). Any other result it
+  reads may be stale; what it builds from it is then stale too (*When a
+  result is unchanged*, below).
+
+A checker sees much of a breach afterwards: a result with no record is
+`missing`, and bytes that aren't the recorded ones are `absent`. Enforcing
+[`UNDECLARED_READ`](#runner) is the runner's choice (§5).
 
 A record names the commit its recipe ran from, so it is committed in a later
 commit. That commit adds only records and results, so it makes none of the
@@ -1551,7 +1580,7 @@ What breaking a rule leads to depends on the layer:
 |---|---|
 | parse, schema, validator | A broken `MUST` is reported as an **error** and makes the file invalid (a checker reports a record's as a reason of [`INVALID_RECORD`](#check)); a broken `SHOULD` is reported as a **warning**, and the file stays valid |
 | check | Nothing fails. The code is reported and **the result gets a status**, given in the check table's extra column, *Status when broken* |
-| runner | The runner doesn't conform. Where a rule says the runner refuses, it reports the code |
+| runner | A runner that breaks a `MUST` doesn't conform. It runs no recipe while `UNCOMMITTED_CHANGES` would be broken, and builds no output while `STALE_INPUT` would be, and when it refuses for either it reports the code. `UNDECLARED_READ` binds the recipe: breaking it leaves the analysis valid, and a runner that enforces it fails the recipe and reports the code |
 
 The check layer is the only one laid out differently, with that extra
 column, because breaking one of its rules changes what a result is. A parse,
@@ -1806,17 +1835,19 @@ status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
 | Code | Level | Rule | Source |
 |---|---|---|---|
 | `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places | 0005 §1, 0005 §3 |
-| `UNCOMMITTED_CHANGES` | MUST | A runner runs only when the repository has no changes other than the results and records it writes | 0005 §3 |
+| `FALSE_RECORD` | MUST | Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times | 0005 §2, 0005 §3 |
 | `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an IRI that it can recreate at its version | 0005 §3 |
-| `UNDECLARED_READ` | MUST | A recipe reads files and results only through its output's inputs | 0005 §3 |
+| `UNCOMMITTED_CHANGES` | MUST | A runner runs each recipe in a checkout of the commit its record names, with no changes but the results and records it writes itself, the results the recipe reads, at their recorded bytes, and what a tool keeps of, or puts in place to drive, an analysis from a commit | 0005 §3, 0007 §2, 0007 §7 |
+| `WRONG_WORKING_DIRECTORY` | MUST | A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it | 0004 §1, 0004 §5 |
 | `NOT_AT_COMMIT` | MUST | A runner drives an analysis from a commit on exactly its files at that commit | 0007 §7 |
-| `REBUILT_FROM_COMMIT` | MUST | A runner builds none of the outputs built once of an analysis from a commit that it drives, and reads them through their records | 0007 §7 |
-| `STALE_INPUT` | MUST | A runner builds an output only when every result it reads is `unchanged` and its bytes can be got and are the recorded ones | 0007 |
+| `REBUILT_FROM_COMMIT` | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each such result through its record at the commit that analysis is read at | 0007 §3, 0007 §7 |
+| `STALE_INPUT` | MUST | A runner builds no output that reads a result belonging to an analysis from a commit, or to an analysis reached from it through declarations, while that result is `missing` or `stale`, or its bytes can't be got or aren't the recorded ones | 0007 §4, 0007 §5 |
+| `UNDECLARED_READ` | SHOULD | A recipe reads the files inputs name, and other outputs' results, only through its output's inputs | 0005 §3, tidy-up |
 
-Two duties that are not rules of their own, because nothing can check them: a
-runner SHOULD let someone see what an environment it recorded holds, and MAY
-enforce `UNDECLARED_READ` (with a sandbox, say). The specification states them
-in its §8.
+A recommendation and a permission. Neither is a rule of its own, because
+nothing can check them: a runner SHOULD let someone see what an environment
+it recorded holds, and MAY enforce `UNDECLARED_READ`, with a sandbox say. §5
+and §8 explain them.
 
 ## 10. Schema artefacts
 
