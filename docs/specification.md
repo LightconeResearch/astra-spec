@@ -1237,9 +1237,9 @@ at its commit ([`DECLARED_ANALYSIS_INVALID`](#validator)), each `astra.yaml`
 read by the `spec_version` it states. A rule broken inside an analysis from a
 commit is reported twice: `DECLARED_ANALYSIS_INVALID` on the declaration, in
 the file the author can edit, and the rule's own code at its place in the
-commit's file, which says why. A rule broken in an analysis declared without
-a `commit` is reported once, under its own code. Getting a commit from a
-remote is checked apart from that validity
+commit's file, which says why. A rule broken in the root, or in an analysis
+reached from it by `path` alone, is reported once, under its own code.
+Getting a commit from a remote is checked apart from that validity
 ([`REMOTE_UNREACHABLE`](#validator)). A commit is got from a remote when it
 is a declaration's `url` and `commit`, a `path` and `commit` declared in a
 file read from a remote, or the commit a gitlink pins, crossed at a commit
