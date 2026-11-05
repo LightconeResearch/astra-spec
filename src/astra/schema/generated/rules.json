@@ -426,6 +426,13 @@
       "statement": "No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes)"
     },
     {
+      "code": "CLASHING_RESULT_NAME",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "tidy-up, §4, §8",
+      "statement": "No output shares its id with a declaration of the same analysis"
+    },
+    {
       "code": "DECLARATION_OUTSIDE_REPOSITORY",
       "layer": "validator",
       "level": "MUST",
@@ -487,6 +494,13 @@
       "level": "MUST",
       "source": "0006",
       "statement": "An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own)"
+    },
+    {
+      "code": "RESERVED_PATH",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "tidy-up, §3",
+      "statement": "No input's `path` and no declaration's `path`, with `.`, `..` and repeated `/` resolved, is or lies in the `results/` or `.astra/` of an analysis of the stack"
     },
     {
       "code": "UNKNOWN_DERIVED_FROM",

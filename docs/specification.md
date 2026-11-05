@@ -371,6 +371,14 @@ and within a double's range ([`INVALID_SYNTAX`](#parse-and-schema)).
 | `.astra/records/{universe}/{name}.json`, `.astra/records/{name}.json` | the records of the results that belong to the analysis, tracked in git (§8) |
 | `results/{universe}/{name}.{format}`, `results/{name}.{format}` | the default places of those results' bytes (§8) |
 
+`results/` and `.astra/` belong to runners. No input's `path` and no
+declaration's `path` is, or lies in, them ([`RESERVED_PATH`](#validator)):
+joined to the folder of the `astra.yaml` that writes it, with its `.` and
+`..` segments and repeated `/` resolved as text, a path is not the
+`results/` or `.astra/` of any analysis of the stack (§7), and is not inside
+one. So a run never writes over an input or a declared analysis, and a
+result is read by its address (§5), never by a path.
+
 Universes are declared only in `astra.yaml` (§6). A `universes/` directory
 means nothing to ASTRA.
 
@@ -474,9 +482,11 @@ output lists each of its inputs, decisions and conditions once.
 Every id has the one grammar `id`, and no id is reserved (not even a name
 Windows reserves, §3): an address's kind comes from the field it is written
 in, so an element can be called `inputs`. Ids of different kinds can be the
-same, except where one field could resolve to either: an input and an output
-never share an id, since `Output.inputs` takes both
-([`AMBIGUOUS_ID`](#validator)).
+same, with two exceptions. An input and an output never share an id, since
+`Output.inputs` takes both ([`AMBIGUOUS_ID`](#validator)). An output never
+shares its id with a declaration of its analysis, since their results'
+default places could then be the same (§8,
+[`CLASHING_RESULT_NAME`](#validator)).
 
 ### Addresses
 
@@ -569,6 +579,10 @@ and doesn't end in `/` ([`INVALID_PATH`](#parse-and-schema)).
   within it, a directory with an `astra.yaml` of its own
   ([`INPUT_IN_ANOTHER_ANALYSIS`](#validator)). Another analysis reads it by
   address (`iris.data`), not by a path.
+- The file is outside the places that belong to runners: the path is not,
+  and doesn't lie in, the `results/` or `.astra/` of an analysis of the
+  stack, as §3 resolves it ([`RESERVED_PATH`](#validator)). A result is read
+  by its address, never by a path.
 - The path names the file itself (not a symlink, §3), or something the
   tooling recognises as standing in for it
   ([`MISSING_INPUT_FILE`](#validator)). The file, or what stands in for it,
@@ -928,12 +942,14 @@ character; `..` segments are allowed ([`INVALID_PATH`](#parse-and-schema)).
 It stays inside the declaring analysis's repository
 ([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)): read in the working tree,
 the root's working tree, submodules included; read at a commit, the
-repository that holds that commit. The directory it names holds an
-`astra.yaml` ([`MISSING_DECLARED_ANALYSIS`](#validator)). A declared
-analysis can be a git submodule, read as §3 says. A submodule that declares
-something outside its own repository, such as its parent with `..`, can be
-validated and built only from a root whose repository holds what it
-declares.
+repository that holds that commit. It is not, and doesn't lie in, the
+`results/` or `.astra/` of an analysis of the stack, as §3 resolves it
+([`RESERVED_PATH`](#validator)), so a run never writes over a declared
+analysis. The directory it names holds an `astra.yaml`
+([`MISSING_DECLARED_ANALYSIS`](#validator)). A declared analysis can be a
+git submodule, read as §3 says. A submodule that declares something outside
+its own repository, such as its parent with `..`, can be validated and built
+only from a root whose repository holds what it declares.
 
 **`url`** is a remote that git fetches another repository from, in one of
 git's two forms: `scheme://…` (`https://github.com/owner/analysis`,
@@ -1338,7 +1354,14 @@ In the analysis a result belongs to:
 | Its bytes, at their default place | `results/{universe}/{name}.{format}` | `results/{name}.{format}` |
 
 Both are worked out from an address of the result, so a result with two
-names has two of each. A record is the record only of the result its
+names has two of each. Ids hold no `.`, but a format can (`tar.gz`), so two
+default places `{name}.{format}` in one folder are the same only when one
+name is a proper dotted prefix of the other: the output `stage` in format
+`summary.json` and the result `stage.summary` in format `json`, say. That
+needs an output and a declaration with one id in some analysis on the
+longer name's chain of declarations. Every analysis of the stack keeps
+[`CLASHING_RESULT_NAME`](#validator), so no two results of one analysis
+share a default place. A record is the record only of the result its
 `address` names, under that name ([`MISSING_RECORD`](#check),
 [`MISPLACED_RECORD`](#check)). The runner writes the bytes to their default
 places ([`UNRECORDED_RESULT`](#runner)) and tells the recipe where to write
@@ -1752,6 +1775,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | main |
 | `UNDECLARED_TEMPLATE_REF` | MUST | Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
 | `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | tidy-up, §4 |
+| `CLASHING_RESULT_NAME` | MUST | No output shares its id with a declaration of the same analysis | tidy-up, §4, §8 |
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the declaring analysis's repository | 0004, 0007 §1 |
 | `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` file, with no symlink on the way (§3) | 0004, 0007, §3 |
 | `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit the declaring analysis's repository has | 0007, §3, §7 |
@@ -1761,6 +1785,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `MISSING_INPUT_FILE` | MUST | An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5) | 0006, §3 |
 | `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink | 0006, §3 |
 | `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own) | 0006 |
+| `RESERVED_PATH` | MUST | No input's `path` and no declaration's `path`, with `.`, `..` and repeated `/` resolved, is or lies in the `results/` or `.astra/` of an analysis of the stack | tidy-up, §3 |
 | `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis | 0003 |
 | `DERIVED_FROM_CYCLE` | MUST | No universe's chain of `derived_from` loops | 0003 |
 | `MISSING_DECISION` | MUST | Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that a universe of its analysis drives | 0003, 0004, tidy-up, §6, §7 |
