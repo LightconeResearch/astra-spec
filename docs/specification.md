@@ -865,8 +865,6 @@ The effective selection is held to everything a universe written in full is:
   on sets it;
 - it names only declared decisions and their options
   ([`UNRESOLVED_ADDRESS`](#validator), [`UNKNOWN_OPTION`](#validator));
-- it gives each decision one key, and an inherited decision the key it is
-  inherited under ([`DUPLICATE_ELEMENT`](#validator));
 - it breaks no `requires` ([`MISSING_REQUIRED_OPTION`](#validator)) and no
   `incompatible_with` ([`INCOMPATIBLE_OPTIONS`](#validator)), and selects no
   excluded option ([`EXCLUDED_OPTION_SELECTED`](#validator)).
@@ -1345,7 +1343,7 @@ output built once always is. Reached through two such chains (`inner` and
 and recorded under each name, though a planned result should have one
 ([`RESULT_IN_TWO_PLACES`](#validator)). The rule is judged on the planned
 results, so in the universes built (§7) and not in the other universes a
-validator checks. For each two names of a result, it is reported at the
+validator checks. For each pair of a result's names, it is reported at the
 first declaration of each of their chains that the other chain doesn't go
 through, in the file that holds it: in the example, at the driver's `inner`
 and `stage`. A result's **address** is a name followed, for a result built
@@ -1702,8 +1700,9 @@ both reported, even when one edit fixes both.
    `MISSING_DECISION` and [`INACTIVE_DECISION`](#validator) aren't checked
    for such a decision, [`INPUT_NOT_BUILT`](#validator) and
    [`PIN_INACTIVE`](#validator) aren't checked for such an output, nor
-   [`RESULT_IN_TWO_PLACES`](#validator) for a result planned only through
-   it, and step 3 of the effective selection (§6) doesn't drop it.
+   [`RESULT_IN_TWO_PLACES`](#validator) for its result or a result planned
+   only through it, and step 3 of the effective selection (§6) doesn't drop
+   such a decision.
 8. **A universe with no effective selection.** A universe has none when its
    `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#validator), or its chain
    breaks [`DERIVED_FROM_CYCLE`](#validator) or reaches a universe that has
@@ -1813,7 +1812,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `MISSING_REQUIRED_OPTION` | MUST | Every effective selection satisfies the `requires` of every option it selects | 0003 |
 | `INCOMPATIBLE_OPTIONS` | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects | 0003 |
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | main, tidy-up |
-| `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe's own `decisions` has two keys that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
+| `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built | 0004 |
 | `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
 | `INPUT_NOT_BUILT` | MUST | Every output read without a pin is active (its `when` holds) in the universe being built | 0004 |
