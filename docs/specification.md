@@ -844,8 +844,8 @@ is resolved:
 
 1. Without `derived_from`, it is the universe's own `decisions`.
 2. With `derived_from`, it is the effective selection of the universe named
-   there, each of the universe's own selections replacing the inherited
-   selection of its decision. So where `stage.inner.d` and `inner.d` spell
+   there, each of the universe's own selections replacing what the universe
+   inherits for its decision. So where `stage.inner.d` and `inner.d` spell
    one decision, a universe that inherits `stage.inner.d: d1` changes it by
    setting `stage.inner.d: d2`; setting `inner.d: d2`, or `inner.d: d1`,
    breaks [`DUPLICATE_ELEMENT`](#validator) at its own key.
@@ -865,7 +865,8 @@ The effective selection is held to everything a universe written in full is:
   on sets it;
 - it names only declared decisions and their options
   ([`UNRESOLVED_ADDRESS`](#validator), [`UNKNOWN_OPTION`](#validator));
-- it gives each decision one key ([`DUPLICATE_ELEMENT`](#validator));
+- it gives each decision one key, and an inherited decision the key it is
+  inherited under ([`DUPLICATE_ELEMENT`](#validator));
 - it breaks no `requires` ([`MISSING_REQUIRED_OPTION`](#validator)) and no
   `incompatible_with` ([`INCOMPATIBLE_OPTIONS`](#validator)), and selects no
   excluded option ([`EXCLUDED_OPTION_SELECTED`](#validator)).
@@ -1068,9 +1069,9 @@ universes of its own keeps them unless a key drives it.
 - Driving is judged on the effective selections, so a key a derived universe
   inherits counts as one it sets.
 - An analysis reached through two driven declarations can have a decision
-  set under either spelling (`stage.inner.d` or `inner.d`), but a universe's
-  effective selection sets it under one key
-  ([`DUPLICATE_ELEMENT`](#validator)).
+  set under either spelling (`stage.inner.d` or `inner.d`), but a universe
+  sets it under one key, a derived universe that inherits it under the key
+  it inherits ([`DUPLICATE_ELEMENT`](#validator)).
 - In the root's universes, a driven analysis's own universes don't set its
   decisions. A pin in its own file, or through an undriven declaration,
   still reads one of them (below). Each universe being built has one driver,
@@ -1092,9 +1093,10 @@ universe of `sub`'s own that leaves one of `sub`'s active decisions unset
 breaks `MISSING_DECISION`, though the root's universes don't use it. The
 rules on the universe being built (below:
 [`NOT_BUILT_IN_UNIVERSE`](#validator), [`UNDRIVEN_DECLARATION`](#validator),
-[`INPUT_NOT_BUILT`](#validator)) hold only in the universes built. Checking
-another analysis's universes doesn't make it the root: the root, and so its
-working tree, stays the same, and each declaration is judged once
+[`INPUT_NOT_BUILT`](#validator)) hold only in the universes built, as
+[`RESULT_IN_TWO_PLACES`](#validator) does (§8). Checking another analysis's
+universes doesn't make it the root: the root, and so its working tree, stays
+the same, and each declaration is judged once
 ([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)).
 
 Driving leaves an analysis able to stand alone, and consuming a decision ties
@@ -1343,11 +1345,12 @@ output built once always is. Reached through two such chains (`inner` and
 and recorded under each name, though a planned result should have one
 ([`RESULT_IN_TWO_PLACES`](#validator)). The rule is judged on the planned
 results, so in the universes built (§7) and not in the other universes a
-validator checks, and is reported at the last declaration of each chain, in
-the file that holds it. A result's **address** is a name followed, for a
-result built in a universe, by `#` and the universe's id
-(`subanalysis1.output1#u1`). Each address is the `address` of the record at
-its place.
+validator checks. For each two names of a result, it is reported at the
+first declaration of each of their chains that the other chain doesn't go
+through, in the file that holds it: in the example, at the driver's `inner`
+and `stage`. A result's **address** is a name followed, for a result built
+in a universe, by `#` and the universe's id (`subanalysis1.output1#u1`).
+Each address is the `address` of the record at its place.
 
 ### Where records and bytes go
 
@@ -1697,10 +1700,10 @@ both reported, even when one edit fixes both.
    ([`MISSING_DECISION`](#validator)) or sets to an option that names
    nothing. Its element's activity in that universe is then undetermined.
    `MISSING_DECISION` and [`INACTIVE_DECISION`](#validator) aren't checked
-   for such a decision, [`INPUT_NOT_BUILT`](#validator),
-   [`PIN_INACTIVE`](#validator) and [`RESULT_IN_TWO_PLACES`](#validator)
-   aren't checked for such an output, and step 3 of the effective selection
-   (§6) doesn't drop it.
+   for such a decision, [`INPUT_NOT_BUILT`](#validator) and
+   [`PIN_INACTIVE`](#validator) aren't checked for such an output, nor
+   [`RESULT_IN_TWO_PLACES`](#validator) for a result planned only through
+   it, and step 3 of the effective selection (§6) doesn't drop it.
 8. **A universe with no effective selection.** A universe has none when its
    `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#validator), or its chain
    breaks [`DERIVED_FROM_CYCLE`](#validator) or reaches a universe that has
@@ -1714,7 +1717,8 @@ both reported, even when one edit fixes both.
    [`PIN_INACTIVE`](#validator) isn't checked for a pin naming it.
    [`UNRESOLVED_ADDRESS`](#validator), [`UNKNOWN_OPTION`](#validator) and
    [`DUPLICATE_ELEMENT`](#validator) are still checked on its own
-   `decisions`. Driving (§7) is judged over the driver's other universes.
+   `decisions`. Driving (§7) counts its own `decisions` in place of its
+   effective selection.
 9. **An input with no file.** An input that breaks
    [`MISSING_INPUT_FILE`](#validator) isn't checked by
    [`INPUT_NOT_TRACKED`](#validator).
@@ -1809,7 +1813,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `MISSING_REQUIRED_OPTION` | MUST | Every effective selection satisfies the `requires` of every option it selects | 0003 |
 | `INCOMPATIBLE_OPTIONS` | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects | 0003 |
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | main, tidy-up |
-| `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe's own `decisions`, together with the effective selection it inherits, has two keys that spell one decision | 0004, tidy-up, §4, §6, §7 |
+| `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe's own `decisions` has two keys that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built | 0004 |
 | `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
 | `INPUT_NOT_BUILT` | MUST | Every output read without a pin is active (its `when` holds) in the universe being built | 0004 |
