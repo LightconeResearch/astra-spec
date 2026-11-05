@@ -1,17 +1,21 @@
 """`rules.json`: the rules extracted from the specification's §9, and the error map derived from the schema (design D13).
 
 The extractor is strict, so it is tested on small specifications, one per way a §9 can be malformed. The committed
-`rules.json` holds every rule of §9 in order, and a code for every keyword of the three JSON Schemas that can report an
-error, each a schema-layer code. `absolute_keyword_location` is checked where `jsonschema`'s paths need resolving.
+`rules.json` holds every rule of §9 in order, and a code for every keyword of the three JSON Schemas whose error can
+make an instance fail (spec §10), each a schema-layer code. `absolute_keyword_location` is checked where `jsonschema`'s
+paths need resolving.
 """
 
 import copy as copy_module
+import functools
 import json
 import re
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
+from jschon import JSON, JSONSchema, create_catalog
 from jsonschema import Draft201909Validator
 from jsonschema_generator import generate
 from linkml_runtime import SchemaView
@@ -24,6 +28,8 @@ from .conftest import (
     errors,
     fixture_header,
     fixtures,
+    load_document,
+    load_json,
     rules_catalogue,
     validator,
 )
@@ -455,11 +461,13 @@ REPORTING = {
     "not",
     "if",
 }
-"""The keywords that report an error of their own. Nothing inside an `if` or a `not` is ever reported."""
+"""The keywords that report an error of their own. Nothing inside an `if` or a `not` has an entry: no error there makes
+the instance fail, and a tool drops it (spec §10, "From an error to its code")."""
 
 
 def reporting_keywords(node: dict, pointer: str = "") -> Iterator[str]:
-    """The JSON Pointer of every keyword in the schema `node` that can report an error (`additionalProperties: false` too)."""
+    """The JSON Pointer of every keyword in the schema `node` whose error can make the instance fail
+    (`additionalProperties: false` too)."""
     for keyword, value in node.items():
         here = pointer + json_pointer([keyword])
         if keyword in REPORTING or (
@@ -498,7 +506,8 @@ def locations(prefix: str) -> dict[str, str]:
 
 @pytest.mark.parametrize("name", SCHEMAS)
 def test_every_keyword_that_can_fail_has_one_code(name):
-    """The error map holds exactly the keywords of the three schemas that can report an error, each once."""
+    """The error map holds exactly the keywords of the three schemas whose error can make an instance fail, each
+    once."""
     schema = load(name)
     assert sorted(locations(schema["$id"] + "#")) == sorted(reporting_keywords(schema))
 
@@ -979,3 +988,214 @@ def test_absolute_keyword_location_finds_the_subschema_by_identity():
     (error,) = copy.iter_errors({**DOCUMENT, "extra": 1})
     with pytest.raises(ValueError, match="isn't found in the schema"):
         absolute_keyword_location(validator("Analysis"), error)
+
+
+# --- Spec §10's filter, on a validator that writes JSON Schema's standard output formats ---
+
+NAMED = {"$defs", "properties"}
+"""The keywords that hold subschemas by name: in a keyword location, the name follows the keyword."""
+INDEXED = {"allOf", "anyOf", "oneOf"}
+"""The keywords that hold a list of subschemas: in a keyword location, the index follows the keyword."""
+LISTED_ABOVE = {"properties", "items", "$ref", "allOf", "then"}
+"""The applicators that standard output lists above an error, with an `additionalProperties` that holds a schema: a
+tool drops them, as it drops the subschemas listed there (spec §10)."""
+OUTPUT_SCHEMAS = {
+    "Analysis": "analysis.schema.json",
+    "ProvenanceRecord": "provenance.schema.json",
+}
+"""The committed schema of the documents rooted at each class."""
+
+
+@functools.cache
+def jschon_catalog() -> None:
+    """jschon's catalog of JSON Schema 2019-09, which it reads a schema's `$schema` from, made once."""
+    create_catalog("2019-09")
+
+
+@functools.cache
+def jschon_schema(root: str) -> JSONSchema:
+    """The committed schema of documents rooted at `root`, read by jschon, a JSON Schema 2019-09 validator that writes
+    the standard output formats."""
+    jschon_catalog()
+    return JSONSchema(load(OUTPUT_SCHEMAS[root]))
+
+
+def jschon_units(root: str, document: Any, output_format: str) -> list[dict[str, Any]]:
+    """The failing output units jschon writes for `document`, in its `basic` or `verbose` format.
+
+    Basic output lists a unit only below units that fail too, so it leaves out what fails below an `allOf` member or
+    a `oneOf` that passes. Verbose output lists every unit: each failing one is taken, a subschema (the root,
+    `…/allOf/0`) as well as a keyword, which is everything a validator writing a standard format could list, so the
+    filter is tested on all of it.
+    """
+    result = jschon_schema(root).evaluate(JSON(document))
+    if output_format == "basic":
+        return result.output("basic").get("errors", [])
+
+    def walk(unit: dict[str, Any]) -> Iterator[dict[str, Any]]:
+        if not unit["valid"]:
+            yield unit
+        for child in unit.get("errors", unit.get("annotations", [])):
+            yield from walk(child)
+
+    return list(walk(result.output("verbose")))
+
+
+def keyword_steps(location: str) -> list[tuple[str, str | None, str]]:
+    """`(keyword, name or index, location)` for each keyword a keyword location runs through, in order.
+
+    A keyword location (a unit's `keywordLocation`, its evaluation path) is a JSON Pointer through the schema, `$ref`s
+    included. The name or index is the token after a keyword that holds subschemas by name or in a list (`properties/x`,
+    `oneOf/0`), or None; `location` is the keyword's own keyword location. A unit that names a keyword, not a
+    subschema, ends in a step with None.
+    """
+    tokens = [
+        token.replace("~1", "/").replace("~0", "~") for token in location.split("/")[1:]
+    ]
+    steps, here = [], ""
+    while tokens:
+        keyword = tokens.pop(0)
+        here += json_pointer([keyword])
+        argument = tokens.pop(0) if keyword in NAMED | INDEXED and tokens else None
+        steps.append((keyword, argument, here))
+        if argument is not None:
+            here += json_pointer([argument])
+    return steps
+
+
+def _within(inner: str, outer: str) -> bool:
+    """True if the JSON Pointer `inner` is `outer` or below it."""
+    return inner == outer or inner.startswith(outer + "/")
+
+
+def _schema_at(schema: dict[str, Any], location: str) -> Any:
+    """The value at an absolute keyword location of `schema`."""
+    value: Any = schema
+    for token in location.split("#", 1)[1].split("/")[1:]:
+        token = token.replace("~1", "/").replace("~0", "~")
+        value = value[int(token)] if isinstance(value, list) else value[token]
+    return value
+
+
+def listed_above(unit: dict[str, Any], schema: dict[str, Any]) -> bool:
+    """True if `unit` is what standard output lists above an error (spec §10): a subschema (the root, `…/allOf/0`) or
+    an applicator."""
+    steps = keyword_steps(unit["keywordLocation"])
+    if not steps or steps[-1][1] is not None:
+        return True
+    keyword = steps[-1][0]
+    return keyword in LISTED_ABOVE or (
+        keyword == "additionalProperties"
+        and isinstance(_schema_at(schema, unit["absoluteKeywordLocation"]), dict)
+    )
+
+
+def makes_the_instance_fail(unit: dict[str, Any], units: list[dict[str, Any]]) -> bool:
+    """False if spec §10 drops `unit`, of the failing `units`, as an error that doesn't make the instance fail.
+
+    That is an error inside an `if` or a `not`, an `if` whose `then` doesn't fail, and an error inside a branch of a
+    `oneOf` or an `anyOf` that isn't reported as failing. A unit fails below another when its instance location is the
+    other's or below it.
+    """
+    *above, (keyword, _, here) = keyword_steps(unit["keywordLocation"])
+    at = unit["instanceLocation"]
+    if any(step in ("if", "not") for step, _, _ in above):
+        return False
+    if keyword == "if":
+        then = here.removesuffix("if") + "then"
+        return any(
+            _within(other["keywordLocation"], then)
+            and _within(other["instanceLocation"], at)
+            for other in units
+        )
+    return all(
+        any(
+            other["keywordLocation"] == location
+            and _within(at, other["instanceLocation"])
+            for other in units
+        )
+        for step, _, location in above
+        if step in ("oneOf", "anyOf")
+    )
+
+
+def section_10(
+    units: list[dict[str, Any]], schema: dict[str, Any]
+) -> set[tuple[str, str]]:
+    """`(pointer, location)` for each of the failing `units` that spec §10 has a tool keep: not a subschema or an
+    applicator listed above an error, and making the instance fail.
+
+    An error inside a `propertyNames` is at its map's pointer: jschon writes the key at the end of its instance
+    location, as if it named the key's entry, and that last token goes.
+    """
+    kept = set()
+    for unit in units:
+        if listed_above(unit, schema) or not makes_the_instance_fail(unit, units):
+            continue
+        at = unit["instanceLocation"]
+        if any(
+            step == "propertyNames"
+            for step, _, _ in keyword_steps(unit["keywordLocation"])[:-1]
+        ):
+            at = at.rsplit("/", 1)[0]
+        kept.add((at or "(root)", unit["absoluteKeywordLocation"]))
+    return kept
+
+
+SCHEMA_FIXTURES = [
+    path for path in fixtures("invalid") if fixture_header(path)[1] != "parse"
+]
+"""The invalid fixtures that fail at the schema layer."""
+
+
+def fixture_document(path: Path) -> tuple[str, Any]:
+    """`(root, document)` for a fixture: the class it is a document of, and its JSON form, with any entry whose key
+    isn't a string left out (spec §3)."""
+    document = load_json(path) if path.suffix == ".json" else load_document(path)[0]
+    return path.name.split("-", 1)[0], document
+
+
+@pytest.mark.parametrize("output_format", ["basic", "verbose"])
+@pytest.mark.parametrize("path", SCHEMA_FIXTURES, ids=lambda path: path.stem)
+def test_section_10_filter_gives_the_codes_jsonschema_gives(path, output_format):
+    """On jschon's standard output for each schema-layer invalid fixture, every error spec §10 keeps has an entry, and
+    the `(pointer, code)` pairs are those of `jsonschema`'s errors."""
+    root, document = fixture_document(path)
+    error_map = rules_catalogue()["errors"]
+    kept = section_10(
+        jschon_units(root, document, output_format), load(OUTPUT_SCHEMAS[root])
+    )
+    assert sorted(location for _, location in kept if location not in error_map) == []
+    assert {(pointer, error_map[location]) for pointer, location in kept} == {
+        (pointer, error_map[location])
+        for pointer, location, _ in errors(validator(root), document)
+    }
+
+
+LEAKS = {
+    "Analysis-150-short-commit": {
+        # The failing branch of a `oneOf` that passes: its entry's code would be wrong.
+        ANALYSIS + DECLARATION + "/allOf/0/then/oneOf/0/required",
+    },
+    "Analysis-166-doi-directory-not-10": {
+        ANALYSIS + "/$defs/Evidence/allOf/0/then/oneOf/1/required",
+        # An `if` whose `then` doesn't fail, and the `not` inside it, which has no entry.
+        ANALYSIS + "/$defs/Evidence/allOf/1/if",
+        ANALYSIS + "/$defs/Evidence/allOf/1/if/not",
+    },
+}
+
+
+@pytest.mark.parametrize("name, leaked", LEAKS.items(), ids=LEAKS)
+def test_section_10_filter_drops_what_doesnt_make_the_instance_fail(name, leaked):
+    """jschon's verbose output lists failures that don't make the instance fail, as a validator writing a standard
+    format may: spec §10's filter drops exactly those."""
+    (path,) = [path for path in SCHEMA_FIXTURES if path.stem == name]
+    root, document = fixture_document(path)
+    schema = load(OUTPUT_SCHEMAS[root])
+    units = jschon_units(root, document, "verbose")
+    assert {
+        unit["absoluteKeywordLocation"]
+        for unit in units
+        if not listed_above(unit, schema) and not makes_the_instance_fail(unit, units)
+    } == leaked

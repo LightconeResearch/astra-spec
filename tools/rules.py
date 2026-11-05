@@ -13,15 +13,15 @@
   than an RFC number with an optional ``§n``, ``tidy-up``, ``main``, ``#n`` or ``§n``, the tokens separated by ``, ``;
   a cell holding anything but text, code spans, emphasis, links and inline HTML; or a cell whose Markdown can't be
   rebuilt from its tokens, is an error. Cells are read as CommonMark with GFM tables, as §9 says.
-- ``errors``: for each keyword of the generated JSON Schemas that can report an error, its absolute keyword location
-  (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it enforces. The code
-  comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type or slot that
-  defines a pattern, on a class rule, on each branch of an ``exactly_one_of``), or, for the keywords whose code never
-  varies, from a default. A map's keys take their key's code for both their ``type`` and their ``pattern``. A class's
-  checks (its exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the
-  keywords of its ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does. Every such keyword
-  has exactly one code, every code is a schema-layer rule of §9, and every ``rule`` annotation gives some keyword its
-  code.
+- ``errors``: for each keyword of the generated JSON Schemas whose error can make the instance fail, its absolute
+  keyword location (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it
+  enforces. The code comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type
+  or slot that defines a pattern, on a class rule, on each branch of an ``exactly_one_of``), or, for the keywords whose
+  code never varies, from a default. A map's keys take their key's code for both their ``type`` and their ``pattern``. A
+  class's checks (its exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the
+  keywords of its ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does, since no error there
+  makes the instance fail (spec §10, "From an error to its code"). Every such keyword has exactly one code, every code
+  is a schema-layer rule of §9, and every ``rule`` annotation gives some keyword its code.
 """
 
 import argparse
@@ -511,7 +511,8 @@ class _ErrorMap:
         has one, then its class rules, in order.
 
         Each member is `{if, then}`. Its `if` takes the check's code, since Ajv reports it when the `then` fails, but
-        nothing inside it does: it only guards the check. The keywords of its `then` that can fail take the code too.
+        nothing inside it does: it only guards the check, and a tool drops any error inside an `if` (spec §10). The
+        keywords of its `then` that can fail take the code too.
         """
         codes = (
             [self.exactly_one_of_code(cls, pointer)]
@@ -586,7 +587,8 @@ class _ErrorMap:
                 raise self.unknown(pointer, keyword)
             self.add([*pointer, keyword], code)
 
-    # Inside a class rule or an exactly-one-of branch, every keyword that can report an error takes the rule's code.
+    # Inside a class rule or an exactly-one-of branch, every keyword whose error can make the instance fail takes the
+    # rule's code.
 
     def condition(self, node: dict, pointer: list[Any], code: str) -> None:
         for keyword, value in node.items():
@@ -597,7 +599,7 @@ class _ErrorMap:
                 for field, sub in value.items():
                     self.condition(sub, [*here, field], code)
             elif keyword == "not":
-                # Nothing inside a `not` is reported, only the `not`.
+                # Only the `not` is reported: a tool drops any error inside a `not` (spec §10).
                 self.add(here, code)
             elif keyword in DEFAULTS or keyword in ("required", "pattern"):
                 self.add(here, code)
@@ -770,7 +772,8 @@ def _tree_root(view: SchemaView) -> str:
 def build_error_map(schema: dict, schema_view: SchemaView) -> dict[str, str]:
     """For the generated JSON Schema `schema` of the LinkML schema `schema_view`: absolute keyword location → code.
 
-    It holds every keyword of `schema` that can report an error, and raises `ValueError` for any it can't give a code.
+    It holds every keyword of `schema` whose error can make the instance fail (spec §10), and raises `ValueError` for
+    any it can't give a code.
     """
     return dict(sorted(_walk(schema, schema_view).codes.items()))
 

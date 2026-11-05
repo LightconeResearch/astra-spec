@@ -1918,7 +1918,7 @@ for every 0.1.x) and `/`, followed by its file name:
 | `provenance.schema.json` | `https://w3id.org/astra/0.1/provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
 | `provenance.open.schema.json` | `https://w3id.org/astra/0.1/provenance.open.schema.json` | the same schema, open: it allows fields it doesn't define |
 | `provenance.context.jsonld` | `https://w3id.org/astra/0.1/provenance.context.jsonld` | the JSON-LD context of a record |
-| `rules.json` | `https://w3id.org/astra/0.1/rules.json` | the rule catalogue of §9, with the code of every error the JSON Schemas can report |
+| `rules.json` | `https://w3id.org/astra/0.1/rules.json` | the rule catalogue of §9, with the code of each JSON Schema error that makes an instance fail |
 
 Each JSON Schema's `$id` is its URI. So the closed and open record schemas are
 distinct resources, and so are the schemas of two minor versions, which a
@@ -1960,10 +1960,11 @@ for the same error and words each rule the same way. It holds:
   Status when broken cells, as inline CommonMark with each link reduced to
   its text. A `status` is display text naming the status a result, or
   evidence citing it, gets when the rule is broken, not a status token.
-- `errors`: the code of every keyword of the three JSON Schemas that can
-  report an error, keyed by the keyword's absolute keyword location, as JSON
-  Schema 2019-09 defines it: the schema's `$id`, `#`, and the JSON Pointer to
-  the keyword once every `$ref` is resolved. So each key names its minor
+- `errors`: the code of every keyword of the three JSON Schemas whose error
+  can make an instance fail (*From an error to its code*, below), keyed by
+  the keyword's absolute keyword location, as JSON Schema 2019-09 defines
+  it: the schema's `$id`, `#`, and the JSON Pointer to the keyword once
+  every `$ref` is resolved. So each key names its minor
   version, through `$id`. Each code is a schema-layer rule's. The
   parse-layer codes have no entry, because loaders and §3's checks report
   them, not schemas; nor does the open variant's `additionalProperties`,
@@ -2015,16 +2016,30 @@ a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
 ```
 
 **From an error to its code.** A tool that reports the catalogue's codes
-looks up, in `errors`, the absolute keyword location of each error its
-validator reports. `jsonschema` and Ajv report the innermost errors: each
-names the keyword that failed, either an assertion (such as `pattern`,
-`required` or `additionalProperties: false`) or a `oneOf`, `not`, `if` or
-`propertyNames` that fails as a whole. Each such error has an entry,
-including those that say why a `oneOf` failed. A validator that writes one
-of JSON Schema's standard output formats also lists the applicators above
-an error (`properties`, `items`, `$ref`, an `additionalProperties` that
-holds a schema, `allOf`, `then`). Those have no entry; a tool maps the
-innermost errors.
+looks up, in `errors`, the absolute keyword location of each error that
+makes the instance fail. Those are the failing assertions (such as
+`pattern`, `required` or `additionalProperties: false`); each `oneOf`,
+`not` or `propertyNames` that fails as a whole, and each `if` whose `then`
+fails; and the errors that say why a failing `oneOf` failed. Each has an
+entry.
+
+A validator can report other errors too, and a tool drops them. It drops
+an `if` whose `then` doesn't fail, and any error inside an `if`, whose
+outcome "has no direct effect on the overall validation result"
+([JSON Schema 2019-09 core §9.2.2.1](https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-02#section-9.2.2.1)),
+or inside a `not`, whose subschema's errors make it pass. It drops any
+error inside a branch of a `oneOf` or an `anyOf`, unless that `oneOf` or
+`anyOf` is reported as failing. And it drops what JSON Schema's standard
+output formats list above an error: the subschemas themselves (the root,
+`…/allOf/0`) and the applicators (`properties`, `items`, `$ref`, an
+`additionalProperties` that holds a schema, `allOf`, `then`), none of which
+has an entry. A bad key is reported at its map's pointer, since a JSON
+Pointer can't name a key: an error inside a `propertyNames` is at the map,
+even where a validator's instance location for it ends in the key, and a
+tool reports the key with the code. Any validator that follows JSON Schema
+2019-09 then gives the same set of pairs of an instance location and a
+code, though the number of errors may differ (Ajv's `uniqueItems` departs
+from it, below).
 
 What a validator gives with an error is the path it took to the keyword,
 through `$ref`s, so a tool needs one step to get the location. In both
@@ -2034,10 +2049,13 @@ Pointer in the schema, `/` and the keyword. The pointer is found by walking
 the schema once and comparing objects by identity, not by value, since
 equal subschemas sit in different places:
 
-- **Python's `jsonschema`.** An error's `absolute_schema_path` runs through
-  each `$ref` without naming it (and leaves out the `if` of a failing
-  `then`), so it is not the location. Its `schema` is the subschema, and its
-  `validator` the keyword.
+- **Python's `jsonschema`.** It reports the errors inside a failing `then`
+  or `propertyNames`, never the `if` or the `propertyNames` itself, and a
+  failing `oneOf` as one error, with the errors of its branches in its
+  `context`. For a bad key, `error.instance` is the key. An error's
+  `absolute_schema_path` runs through each `$ref` without naming it, so it
+  is not the location. Its `schema` is the subschema, and its `validator`
+  the keyword.
 - **Ajv.** Compile with the options `allErrors: true` and `verbose: true`.
   Without `allErrors`, Ajv stops at the first error it meets, which can be a
   `oneOf` above the error that matters, with another code. An error's
@@ -2046,7 +2064,17 @@ equal subschemas sit in different places:
   (`#/$defs/…`), but one it compiles on its own, as it does any target with
   a `$ref` of its own, starts again from `#`. So `schemaPath` is not always
   the location. With `verbose: true`, an error's `parentSchema` is the
-  subschema, and its `keyword` the keyword.
+  subschema, and its `keyword` the keyword. Ajv reports both levels: the
+  errors inside a failing `then`, `propertyNames` or `oneOf`, and the `if`,
+  `propertyNames` or `oneOf` above them, which has the same code. For a
+  bad key, the key is the inner error's `propertyName`, or
+  `params.propertyName` on the `propertyNames` error. Ajv's `uniqueItems`
+  departs from JSON Schema on a list whose items have a type: it skips the
+  items of another type, and it misses a repeated `__proto__`. So an
+  Ajv-based tool checks for a repeated `__proto__` itself
+  ([`DUPLICATE_ENTRY`](#parse-and-schema)), and a comparison of its codes
+  with another validator's ignores `DUPLICATE_ENTRY` on a list that also
+  has an item of the wrong type ([`WRONG_TYPE`](#parse-and-schema)).
 
 A checker maps a record's errors the same way, through the record schema it
 reads the record by, closed or open. It doesn't report them as errors of

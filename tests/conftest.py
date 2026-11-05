@@ -1028,10 +1028,10 @@ def absolute_keyword_location(v: Draft201909Validator, error: ValidationError) -
     """The absolute keyword location of `error`: the URI of the schema resource, `#`, and the JSON Pointer to the keyword.
 
     That is the keyword's place once every `$ref` is resolved, as JSON Schema 2019-09 defines it and as `rules.json`
-    keys its error map. `jsonschema`'s `absolute_schema_path` runs through `$ref`s without naming them (and leaves out
-    an `if` before its `then`), so it isn't that place. But `error.schema` is the subschema that holds the failing
-    keyword, and `error.validator` the keyword: the location is that subschema's JSON Pointer, found in the schema by
-    identity, then the keyword. It is an error if the subschema isn't in the schema or doesn't hold the keyword.
+    keys its error map. `jsonschema`'s `absolute_schema_path` runs through `$ref`s without naming them, so it isn't
+    that place (spec §10). But `error.schema` is the subschema that holds the failing keyword, and `error.validator`
+    the keyword: the location is that subschema's JSON Pointer, found in the schema by identity, then the keyword. It
+    is an error if the subschema isn't in the schema or doesn't hold the keyword.
     """
     pointer = _subschema_pointers(v.schema).get(id(error.schema))
     if (

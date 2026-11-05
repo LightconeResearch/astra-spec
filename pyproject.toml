@@ -65,6 +65,8 @@ dev = [
     "pytest>=8",
     "markdown-it-py>=3",
     "rdflib>=7",
+    # Pinned: tests/test_rules.py reads its standard output formats to check spec §10's filter.
+    "jschon==0.11.1",
 ]
 docs = [
     "zensical>=0.0.33; python_version >= '3.10'",
@@ -105,6 +107,10 @@ fallback-version = "0.0.0"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["tools"]
+# jschon (tests/test_rules.py) checks URIs through rfc3986's deprecated methods.
+filterwarnings = [
+  "ignore:Please use rfc3986.validators.Validator instead:DeprecationWarning",
+]
 
 # Ref.: https://github.com/codespell-project/codespell
 [tool.codespell]
