@@ -632,6 +632,9 @@ format. It is the extension of the result's default place (§8).
 - `when` makes the output conditional (below).
 - `recipe` says how the output is made (below).
 
+An output may leave out `recipe`; this version gives such an output no
+meaning.
+
 No output depends on itself, directly or through others
 ([`OUTPUT_CYCLE`](#validator)).
 
@@ -655,6 +658,13 @@ its placeholders before running it:
 | `{inputs}` | the paths of all the output's inputs, in the order of `inputs`, separated by spaces |
 | `{output}` | the path the result is written to |
 | `{{`, `}}` | a literal `{`, `}` |
+
+A placeholder gives a path the recipe can open from the directory it runs
+in; whether it is relative or absolute is the runner's. A runner substitutes
+each placeholder verbatim, with no shell quoting, so quoting is the author's
+job: a path may hold a space or a character the shell treats specially, and a
+command that may meet one quotes the placeholder, as in
+`--data "{inputs.data}"`.
 
 In `{inputs.<entry>}` and `{decisions.<entry>}`, `<entry>` is an entry of the
 output's `inputs` or `decisions` exactly as written, dots and `#` included:
