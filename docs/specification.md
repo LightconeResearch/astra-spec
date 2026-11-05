@@ -677,7 +677,7 @@ each placeholder verbatim, with no shell quoting, so quoting is the author's
 job: a path may hold a space or a character the shell treats specially, and a
 command that may meet one quotes the placeholder, as in
 `--data '{inputs.data}'`. Single quotes keep every character a path may hold
-but `'`, and double quotes every one but `$`, the backtick and `"`.
+but `'`, and double quotes every one but `$`, the backtick, `"` and `\`.
 
 In `{inputs.<entry>}` and `{decisions.<entry>}`, `<entry>` is an entry of the
 output's `inputs` or `decisions` exactly as written, dots and `#` included:
