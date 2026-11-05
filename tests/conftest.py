@@ -6,7 +6,6 @@ import functools
 import json
 import math
 import re
-from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -15,19 +14,11 @@ from ruamel.yaml import YAML
 from ruamel.yaml.composer import Composer, ComposerError
 from ruamel.yaml.constructor import ConstructorError, DuplicateKeyError, SafeConstructor
 from ruamel.yaml.error import YAMLError
-from ruamel.yaml.events import AliasEvent, MappingStartEvent
+from ruamel.yaml.events import AliasEvent
 from ruamel.yaml.nodes import MappingNode, ScalarNode, SequenceNode
-from ruamel.yaml.parser import Parser
 from ruamel.yaml.reader import Reader, ReaderError
 from ruamel.yaml.resolver import VersionedResolver
 from ruamel.yaml.scanner import Scanner, ScannerError
-from ruamel.yaml.tokens import (
-    FlowEntryToken,
-    FlowMappingEndToken,
-    FlowSequenceEndToken,
-    ScalarToken,
-    ValueToken,
-)
 from rules import json_pointer
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -89,12 +80,6 @@ shows each as a stand-in (`_CoreSchemaReader`)."""
 
 _END_OF_LINE = "\0" + _BREAKS
 """What ends a line: a line break, or the end of the text (`\\0`, which the reader adds)."""
-
-_WHITE_OR_END = " \t" + _END_OF_LINE
-"""White space, or what ends a line."""
-
-_FLOW_INDICATORS = ",[]{}"
-"""YAML 1.2.2's flow indicators ([23] `c-flow-indicator`)."""
 
 _BEFORE_A_COMMENT = ("", " ", "\t", "\ufeff", *_BREAKS)
 """What a comment may follow: the start of the stream (`""`), white space, a byte order mark or a line break."""
@@ -188,9 +173,8 @@ class _CoreSchemaReader(Reader):
 
 
 class _CoreSchemaScanner(Scanner):
-    """ruamel.yaml's scanner, refusing a `%YAML` directive for any version but 1.2, reading tabs and the indicators of
-    a flow collection as YAML 1.2.2 does, and refusing the text YAML 1.2.2 makes ill-formed that ruamel.yaml would
-    read.
+    """ruamel.yaml's scanner, refusing a `%YAML` directive for any version but 1.2, reading tabs as YAML 1.2.2 does,
+    and refusing the text YAML 1.2.2 makes ill-formed that ruamel.yaml would read.
 
     The directive is ASTRA's rule, not YAML's (spec §3): YAML 1.2.2 §6.8.1 has a 1.2 processor accept `%YAML 1.1`,
     and process a later 1.x with a warning.
@@ -203,29 +187,13 @@ class _CoreSchemaScanner(Scanner):
     than the block it is in, before a block collection (`-\\t-`, `?\\tkey:`), and in a block scalar's indentation
     (§8.1.1).
 
-    In a flow collection (§7.4), ruamel.yaml takes every `?` as the explicit key indicator, `:` as the value indicator
-    only before white space in a flow sequence but almost anywhere in a flow mapping (`{ :x}` is `{null: x}`, and
-    `x: {a: :x}` is refused), and a `:` before a flow indicator into a plain scalar; it limits an implicit key of a
-    flow mapping to one line of 1024 characters, takes `,`, `[` and `]` into a shorthand tag, and refuses a flow
-    indicator right after a tag. YAML 1.2.2 takes `?` as the indicator only before white space or a line break, and
-    otherwise as the start of a plain scalar before a safe character ([142], [126] `ns-plain-first`), so `{?x: y}`
-    has the key `?x`. It takes `:` as the value indicator before white space, a line break or a flow indicator, after
-    any key, which a plain scalar then doesn't hold ([147], [130] `ns-plain-char`), so `[x:]` is `[{x: null}]`; and
-    after a JSON-like key (a quoted scalar or a flow collection) before anything too ([149], [153]), so `["x":y]` is
-    `[{x: y}]`. Elsewhere, before a safe character, `:` starts a plain scalar, so `{ :x}` is `{":x": null}` and
-    `{a: :x}` is `{a: ":x"}`. An implicit key of a flow mapping may span lines and be of any length ([145], [148]),
-    unlike one in the block context or of a pair in a flow sequence ([154], [155]). A shorthand tag holds no flow
-    indicator ([40] `ns-tag-char`), and one directly before `,`, `]` or `}` is on an empty node ([105] `e-scalar`), so
-    `[!!str]` is `[""]`.
-
     The text YAML 1.2.2 makes ill-formed is: a comment with no white space before it (§6.6); a line of a flow
     collection or of a quoted scalar, its closing bracket or quote included, with no more indentation in spaces than
     the block collection it is in (§6.3, §8.2.3: under a block collection indented `n` spaces, a flow node is at
-    `n+1`); `-` or `?` in a flow collection with a flow indicator after it, which starts no plain scalar and is no
-    indicator (§7.3.3, as in `[-]` and `[?]`); a flow collection right after a `:` with no key before it ([147]:
-    `{ :[b]}`, `{!!str :[b]}`); the verbatim tag `!<!>` (§6.9.1); a character of `_QUOTED_ONLY` in a plain scalar, a
-    block scalar, a comment or a directive ([1], [27]); and a leading empty line of a block scalar with more spaces
-    than its first non-empty line (§8.1.1.1; ruamel.yaml compares the empty lines with each other instead).
+    `n+1`); `-`, `?` or `:` starting a plain scalar in a flow collection with a flow indicator after it (§7.3.3, as in
+    `[-]`); the verbatim tag `!<!>` (§6.9.1); a character of `_QUOTED_ONLY` in a plain scalar, a block scalar, a
+    comment or a directive ([1], [27]); and a leading empty line of a block scalar with more spaces than its first
+    non-empty line (§8.1.1.1; ruamel.yaml compares the empty lines with each other instead).
     """
 
     _quoted = False
@@ -238,15 +206,6 @@ class _CoreSchemaScanner(Scanner):
         indentation or a block indicator: none of them may start a block collection."""
         self._indicator_end = -1
         """Where the last block indicator (`-`, `?` or `:` in the block context) ends, by its index in the text."""
-        self._last_token: Any = None
-        """The last token fetched, or None before the first. `tokens` may no longer hold it: the parser takes every
-        token that no possible implicit key holds back, and in a flow collection no implicit key is possible after
-        `?`."""
-
-    def fetch_more_tokens(self) -> Any:
-        found = super().fetch_more_tokens()
-        self._last_token = self.tokens[-1]
-        return found
 
     def _line_so_far(self) -> str:
         """The text of the reader's line before its position, without a byte order mark that starts the text."""
@@ -369,17 +328,7 @@ class _CoreSchemaScanner(Scanner):
             self._indicator_end = self.reader.index
 
     def scan_plain(self) -> Any:
-        """A plain scalar, refused if it holds a character of `_QUOTED_ONLY`, and ending in a flow collection at a `:`
-        before a flow indicator, which is then the value indicator ([130] `ns-plain-char`): ruamel.yaml, which ends one
-        at a `:` only before white space, is shown the flow indicator as a space."""
-        if self.flow_level:
-            buffer = self.reader.buffer
-            with self._shown_as_spaces(
-                lambda index, ch: ch in _FLOW_INDICATORS and buffer[index - 1] == ":"
-            ):
-                token = super().scan_plain()
-        else:
-            token = super().scan_plain()
+        token = super().scan_plain()
         start, end = token.start_mark, token.end_mark
         self._refuse_quoted_only(start.buffer[start.pointer : end.pointer], start)
         return token
@@ -531,93 +480,29 @@ class _CoreSchemaScanner(Scanner):
         finally:
             self._quoted = False
 
-    def stale_possible_simple_keys(self) -> None:
-        """ruamel.yaml's, which drops a possible implicit key once the scanner is past its line or 1024 characters
-        after it, keeping each of a flow mapping, which may span lines and be of any length ([145], [148]): it stays
-        possible until `,`, `}`, or the `:` that makes it a key."""
-        kept = {
-            level: key
-            for level, key in self.possible_simple_keys.items()
-            if level and self.flow_context[level - 1] == "{"
-        }
-        for level in kept:
-            del self.possible_simple_keys[level]
-        super().stale_possible_simple_keys()
-        self.possible_simple_keys.update(kept)
-
-    def check_key(self) -> Any:
-        """`?` is the explicit key indicator only before white space or a line break ([142], [150]), in a flow
-        collection too, where ruamel.yaml takes every `?` as one."""
-        return self.reader.peek(1) in _WHITE_OR_END
-
-    def check_value(self) -> Any:
-        """In a flow collection, `:` is the value indicator before white space, a line break, `,`, `]` or `}`, after any
-        key ([147] `c-ns-flow-map-separate-value`), and before anything after a JSON-like key, explicit or not ([149]
-        `c-ns-flow-map-adjacent-value`, [153]): the last token fetched (`_last_token`) is then a quoted scalar or the
-        end of a flow collection. Anywhere else, in a value too, it starts a plain scalar (`check_plain`), so `{a: :x}`
-        is `{a: ":x"}`.
-
-        After any other key, or none, white space separates the value from the `:` ([147]), so `{x:[y]}` and `{ :[y]}`
-        are refused: the `:` is no value indicator here, and starts no plain scalar in `check_plain`."""
-        if not self.flow_level:
-            return super().check_value()
-        if self.reader.peek(1) in _WHITE_OR_END + ",]}":
-            return True
-        last = self._last_token
-        return isinstance(last, (FlowSequenceEndToken, FlowMappingEndToken)) or (
-            isinstance(last, ScalarToken) and last.style in ("'", '"')
-        )
-
     def check_plain(self) -> Any:
-        """In a flow collection, `-`, `?` or `:` starts a plain scalar only before a safe character: not before white
-        space, a line break or a flow indicator ([126] `ns-plain-first`). Elsewhere, ruamel.yaml's decides."""
         peek = self.reader.peek
-        if self.flow_level and peek() in "-?:":
-            return peek(1) not in _WHITE_OR_END + _FLOW_INDICATORS
+        if self.flow_level and peek() in "-?:" and peek(1) in ",[]{}":
+            return False
         return super().check_plain()
 
     @contextlib.contextmanager
-    def _shown_as_spaces(self, shown: Callable[[int, str], bool]) -> Any:
-        """Show ruamel.yaml a space for each character `shown(index, character)` holds of, `index` being its place in
-        the reader's text, where its scanner looks ahead (`peek`) and in the text it takes (`prefix`)."""
+    def _tabs_as_spaces(self) -> Any:
+        """Show the reader's tabs to ruamel.yaml as spaces, where it takes only a space as white space and YAML 1.2.2
+        takes a tab too (§6.2), and where neither is content: on a directive's line, after a tag, and on a block
+        scalar's header line."""
         reader = self.reader
         peek, prefix = reader.peek, reader.prefix
-
-        def shown_peek(index: int = 0) -> str:
-            ch = peek(index)
-            return " " if shown(reader.pointer + index, ch) else ch
-
-        def shown_prefix(length: int = 1) -> str:
-            start = reader.pointer
-            return "".join(
-                " " if shown(start + i, ch) else ch
-                for i, ch in enumerate(prefix(length))
-            )
-
-        reader.peek, reader.prefix = shown_peek, shown_prefix
+        reader.peek = lambda index=0: " " if (ch := peek(index)) == "\t" else ch
+        reader.prefix = lambda length=1: prefix(length).replace("\t", " ")
         try:
             yield
         finally:
             del reader.peek, reader.prefix
 
-    def _tabs_as_spaces(self) -> Any:
-        """Show the reader's tabs to ruamel.yaml as spaces, where it takes only a space as white space and YAML 1.2.2
-        takes a tab too (§6.2), and where neither is content: on a directive's line, after a tag, and on a block
-        scalar's header line."""
-        return self._shown_as_spaces(lambda index, ch: ch == "\t")
-
     def scan_tag(self) -> Any:
-        """A tag, read with a tab as a space, and in a flow collection ending before `,`, `]` or `}`: anywhere in a
-        shorthand tag or `!`, which holds none ([40] `ns-tag-char`), and after a verbatim tag's `>`. ruamel.yaml takes
-        `,` and `]` into a shorthand tag, and refuses any of the three right after a tag, where YAML 1.2.2 reads the
-        tag as on an empty node ([105] `e-scalar`): `[!!str]` is `[""]`."""
-        reader = self.reader
-        verbatim = reader.prefix(2) == "!<"
-        end = reader.buffer.find(">", reader.pointer) if verbatim else -1
-        flow = bool(self.flow_level)
-        with self._shown_as_spaces(
-            lambda index, ch: ch == "\t" or (flow and ch in ",]}" and index > end)
-        ):
+        verbatim = self.reader.prefix(2) == "!<"
+        with self._tabs_as_spaces():
             token = super().scan_tag()
         if verbatim and token.value == (None, "!"):
             raise ScannerError(
@@ -646,29 +531,6 @@ class _CoreSchemaScanner(Scanner):
                 token.start_mark,
             )
         return token
-
-
-class _CoreSchemaParser(Parser):
-    """ruamel.yaml's parser, reading a single pair with an empty key in a flow sequence, as in `[: x]`, which
-    ruamel.yaml refuses (YAML 1.2.2 [151], [146] `c-ns-flow-map-empty-key-entry`): its key is null, so it is left out
-    of its map, as any key that isn't a string is."""
-
-    def parse_flow_sequence_entry(self, first: bool = False) -> Any:
-        scanner = self.scanner
-        if not first and scanner.check_token(FlowEntryToken):
-            scanner.get_token()
-            first = True
-        if first and scanner.check_token(ValueToken):
-            token = scanner.peek_token()
-            self.state = self._parse_flow_sequence_entry_empty_key
-            return MappingStartEvent(
-                None, None, True, token.start_mark, token.end_mark, flow_style=True
-            )
-        return super().parse_flow_sequence_entry(first)
-
-    def _parse_flow_sequence_entry_empty_key(self) -> Any:
-        self.state = self.parse_flow_sequence_entry_mapping_value
-        return self.process_empty_scalar(self.scanner.peek_token().start_mark)
 
 
 _CORE_RESOLVERS: dict[Any, list] = {}
@@ -887,7 +749,6 @@ def _core_schema_yaml() -> YAML:
     yaml = YAML(typ="safe", pure=True)
     yaml.Reader = _CoreSchemaReader
     yaml.Scanner = _CoreSchemaScanner
-    yaml.Parser = _CoreSchemaParser
     yaml.Composer = _CoreSchemaComposer
     yaml.Resolver = _CoreSchemaResolver
     yaml.Constructor = _CoreSchemaConstructor
@@ -934,15 +795,10 @@ def load_document(source: Path | str) -> tuple[Any, list[tuple[str, str]]]:
     a scalar of another form (`!!seq x`, `!!bool yes`) and a `%YAML` directive other than 1.2 are errors. An anchor,
     an alias and a second document raise `ComposerError`; a file with no document (empty, or only comments) is
     None. Two keys of a map that are equal YAML nodes, with the same tag and canonical form, raise
-    `DuplicateKeyError`, whatever their type. A flow collection's indicators are read as YAML 1.2.2 reads them, where
-    ruamel.yaml would misread or refuse them: `?` is the explicit key indicator only before white space or a line
-    break (`{?x: y}` has the key `?x`); `:` is the value indicator before white space, a line break or a flow
-    indicator, and before anything after a JSON-like key (`[x:]` is `[{x: null}]`, `["x":y]` is `[{x: y}]`, and
-    `{ :x}` is `{":x": null}`); a key of a flow mapping may span lines and be of any length; a single pair in a flow
-    sequence may have an empty key (`[: x]`); and a tag may end an entry (`[!!str]` is `[""]`). Text YAML 1.2.2
-    makes ill-formed raises a `YAMLError` even where ruamel.yaml would read it: a comment glued to a token, an
-    under-indented line of a flow collection or a quoted scalar, `[-]`, `[?]`, `{ :[b]}`, `!<!>`, and a `\\U` escape
-    beyond U+10FFFF. A `RecursionError` (a document nested too deep) is left as it is.
+    `DuplicateKeyError`, whatever their type. Text YAML 1.2.2 makes ill-formed raises a `YAMLError` even where
+    ruamel.yaml would read it: a comment glued to a token, an under-indented line of a flow collection or a quoted
+    scalar, `[-]`, `!<!>`, and a `\\U` escape beyond U+10FFFF. A `RecursionError` (a document nested too deep) is
+    left as it is.
 
     A value with no JSON form raises a `ConstructorError` (spec §3): `.inf`, `-.inf`, `.nan`, a number beyond a
     double's range (`1e400`, an integer of 400 digits), and a string holding a surrogate that isn't half of an

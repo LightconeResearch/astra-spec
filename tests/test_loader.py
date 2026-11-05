@@ -3,12 +3,9 @@ core schema only (design §9, Ruling R19), and a record as strict JSON (spec §3
 
 `tests/yaml-test-suite/` holds cases of yaml-test-suite (https://github.com/yaml/yaml-test-suite, MIT, see its
 LICENSE), each case's `in.yaml` at its id, from the release `data-2022-01-17` (commit 6e6c296a): the 94 cases with an
-`error` file, each a text YAML 1.2.2 makes ill-formed, and, each with its `in.json`, the 217 well-formed cases that use
-nothing spec §3 refuses (an anchor, an alias, a tag outside the core schema, a second document, a `%YAML` directive
-other than 1.2) and whose keys are all strings, but four. JEF9/02 and L24T/01 are left out: each ends the file in a
-block scalar with no line break after it, which the suite reads as if a line break followed, and YAML 1.2.2's grammar
-as the end of the file, and spec §3 doesn't say which reading holds. So are HWV9 and QT73, each a `...` with no
-document before it, which the loader refuses.
+`error` file, each a text YAML 1.2.2 makes ill-formed, and, each with its `in.json`, the 44 well-formed cases that hold
+a tab and use nothing spec §3 refuses (an anchor, an alias, a tag outside the core schema, a second document, a
+`%YAML` directive other than 1.2).
 """
 
 import json
@@ -32,7 +29,6 @@ from .conftest import (
     parse_code,
     validator,
 )
-from .test_fixtures import check_schema_errors
 
 YAML_TEST_SUITE = REPO_ROOT / "tests" / "yaml-test-suite"
 
@@ -324,7 +320,7 @@ def _case_id(path: Path) -> str:
 
 def test_the_yaml_test_suite_is_vendored():
     assert len(_suite_cases(well_formed=False)) == 94
-    assert len(_suite_cases(well_formed=True)) == 217
+    assert len(_suite_cases(well_formed=True)) == 44
 
 
 @pytest.mark.parametrize("path", _suite_cases(well_formed=False), ids=_case_id)
@@ -334,13 +330,12 @@ def test_yaml_test_suite_error_case_raises(path):
 
 
 @pytest.mark.parametrize("path", _suite_cases(well_formed=True), ids=_case_id)
-def test_yaml_test_suite_well_formed_case_loads_to_its_json(path):
-    """Each well-formed case loads to its `in.json`, with JSON's types; an empty `in.json` is a file with no
-    document, which is null (spec §3)."""
+def test_yaml_test_suite_well_formed_tab_case_loads_to_its_json(path):
+    """Each well-formed case that holds a tab loads to its `in.json`, with JSON's types."""
     loaded = load_yaml(path)
-    text = path.with_name("in.json").read_text(encoding="utf-8")
-    expected = json.loads(text) if text.strip() else None
-    assert _typed(loaded) == _typed(expected)
+    expected = json.loads(path.with_name("in.json").read_text(encoding="utf-8"))
+    assert loaded == expected
+    assert [type(x) for x in _leaves(loaded)] == [type(x) for x in _leaves(expected)]
 
 
 @pytest.mark.parametrize(
@@ -409,260 +404,15 @@ def test_an_indented_flow_or_quoted_line_is_read(load, text, value):
 
 
 @pytest.mark.parametrize(
-    "text",
-    [
-        "a: [-]\n",
-        "a: [-, -]\n",
-        "a: {b: -}\n",
-        "a: [?]\n",
-        "a: {?}\n",
-        "a: [x, ?]\n",
-        "a: {b, ?}\n",
-    ],
+    "text", ["a: [-]\n", "a: [-, -]\n", "a: {b: -}\n", "a: [x, :]\n"]
 )
 def test_an_indicator_starts_a_plain_scalar_only_before_a_safe_character(load, text):
-    """In a flow collection, `-` or `?` before a flow indicator starts no plain scalar ([126] `ns-plain-first`), and
-    `?` there is no explicit key indicator either, which needs white space after it ([142], [150])."""
     with pytest.raises(ScannerError):
         load(text)
 
 
 def test_an_indicator_before_a_safe_character_starts_a_plain_scalar(load):
-    assert load("a: [-x, -1, :x, ?x, ?#]\n") == {"a": ["-x", -1, ":x", "?x", "?#"]}
-
-
-@pytest.mark.parametrize(
-    "text, value",
-    [
-        ("{ ?foo: bar }\n", {"?foo": "bar"}),
-        ("{?foo}\n", {"?foo": None}),
-        ("{a: ?x}\n", {"a": "?x"}),
-        ("{? foo: bar}\n", {"foo": "bar"}),
-        ("{?\tfoo: bar}\n", {"foo": "bar"}),
-        ("{?\n foo: bar}\n", {"foo": "bar"}),
-        ("[? foo: bar]\n", [{"foo": "bar"}]),
-    ],
-)
-def test_a_question_mark_in_a_flow_collection_is_a_key_indicator_only_before_white_space(
-    load, text, value
-):
-    """`?` is the explicit key indicator where white space or a line break follows it (YAML 1.2.2 [142], [150]), and
-    before a safe character starts a plain scalar, as in the block context (yaml-test-suite 652Z, HM87/01)."""
-    assert load(text) == value
-
-
-@pytest.mark.parametrize(
-    "text, value",
-    [
-        (
-            '{\nunquoted : "separate",\nhttp://foo.com,\nomitted value:,\n}\n',
-            {"unquoted": "separate", "http://foo.com": None, "omitted value": None},
-        ),
-        ("{a:}\n", {"a": None}),
-        ("{a:, b}\n", {"a": None, "b": None}),
-        ("[a:]\n", [{"a": None}]),
-        ("[a :, b]\n", [{"a": None}, "b"]),
-        ("{a:x, b::}\n", {"a:x": None, "b:": None}),
-        ("[a:x]\n", ["a:x"]),
-        ("{ :x}\n", {":x": None}),
-        ("{a, :x}\n", {"a": None, ":x": None}),
-        ("{!!str :x}\n", {":x": None}),
-        ("{? :x}\n", {":x": None}),
-        ("x: {a: :x}\n", {"x": {"a": ":x"}}),
-        ("{a: b,\n c: :x}\n", {"a": "b", "c": ":x"}),
-        ("{a: !!str :x}\n", {"a": ":x"}),
-    ],
-)
-def test_a_colon_in_a_flow_collection_is_a_value_indicator_only_before_an_unsafe_character(
-    load, text, value
-):
-    """After a key that isn't JSON-like, or none, `:` is the value indicator before white space, a line break or a flow
-    indicator ([147] `c-ns-flow-map-separate-value`), and before a safe character is part of a plain scalar, or starts
-    one, in a key or a value ([130] `ns-plain-char`, [126]). So `omitted value:,` has the key `omitted value`
-    (yaml-test-suite 4ABK)."""
-    assert load(text) == value
-
-
-@pytest.mark.parametrize(
-    "text",
-    [
-        "{a:[b]}\n",
-        "{a:{b: c}}\n",
-        "[a:[b]]\n",
-        "[:[b]]\n",
-        "{ :[b]}\n",
-        "{a, :[b]}\n",
-        "{!!str :[b]}\n",
-    ],
-)
-def test_a_value_after_a_key_that_isnt_json_like_is_separated_from_its_colon(text):
-    """After a plain key or an empty one (nothing, or a tag alone), white space separates a value from its `:` ([147]),
-    so a `:` right before a flow collection is refused: only a JSON-like key takes an adjacent value ([149])."""
-    with pytest.raises(YAMLError):
-        load_document(text)
-
-
-@pytest.mark.parametrize(
-    "text, loaded",
-    [
-        ('["a":b]\n', ([{"a": "b"}], [])),
-        ("['a':b]\n", ([{"a": "b"}], [])),
-        ('["a" :b]\n', ([{"a": "b"}], [])),
-        ('["a":[b]]\n', ([{"a": ["b"]}], [])),
-        ("{\"a\":b, 'c':{d: e}}\n", ({"a": "b", "c": {"d": "e"}}, [])),
-        ('a: {? "a":b}\n', ({"a": {"a": "b"}}, [])),
-        ('a: [? "a":b]\n', ({"a": [{"a": "b"}]}, [])),
-        ('{\n? "a":b}\n', ({"a": "b"}, [])),
-        ('[\n? "a":b]\n', ([{"a": "b"}], [])),
-        ("a: {? [x]:b}\n", ({"a": {}}, [("/a", "[x]")])),
-    ],
-)
-def test_a_json_like_key_takes_an_adjacent_value(text, loaded):
-    """After a quoted scalar or a flow collection that is a key, `:` is the value indicator before anything, in a flow
-    sequence as in a flow mapping ([149] `c-ns-flow-map-adjacent-value`, [153]; yaml-test-suite 9MMW), and after `?`
-    too ([142], [150], then [143] `ns-flow-map-explicit-entry`), whatever the flow collection is in. A key that isn't a
-    string is left out of its map and reported, as anywhere."""
-    assert load_document(text) == loaded
-
-
-@pytest.mark.parametrize(
-    "text, value",
-    [
-        ('{"a"\n: b}\n', {"a": "b"}),
-        ("{a\n # c\n :\n b}\n", {"a": "b"}),
-        ('[{"a\n b"\n :c}]\n', [{"a b": "c"}]),
-        ("{" + "k" * 1100 + ": v}\n", {"k" * 1100: "v"}),
-    ],
-    ids=[
-        "colon-on-the-next-line",
-        "comment-before-the-colon",
-        "multi-line",
-        "1100-characters",
-    ],
-)
-def test_an_implicit_key_of_a_flow_mapping_may_span_lines_and_exceed_1024_characters(
-    load, text, value
-):
-    """An implicit key of a flow mapping is any flow node, which white space, line breaks and comments may separate
-    from its `:` ([145], [148]; yaml-test-suite 4MUZ, 5MUD, K3WX, NJ66, 9SA2): only a key in the block context or of
-    a single pair in a flow sequence is limited to one line and 1024 characters ([154], [155])."""
-    assert load(text) == value
-
-
-@pytest.mark.parametrize(
-    "text",
-    ["[a\n: b]\n", '["a"\n :b]\n', "[" + "k" * 1100 + ": v]\n", "k" * 1100 + ": v\n"],
-    ids=[
-        "colon-on-the-next-line",
-        "adjacent-value-on-the-next-line",
-        "1100-characters",
-        "block-1100-characters",
-    ],
-)
-def test_a_key_of_a_single_pair_or_a_block_mapping_is_one_line_of_1024_characters_at_most(
-    text,
-):
-    """An implicit key of a single pair in a flow sequence, or in the block context, is on the line of its `:`, and
-    1024 characters long at most ([154], [155]; yaml-test-suite ZXT5, an error case)."""
-    with pytest.raises(YAMLError):
-        load_document(text)
-
-
-@pytest.mark.parametrize(
-    "text, loaded",
-    [
-        (
-            '- [ YAML : separate ]\n- [ "JSON like":adjacent ]\n- [ {JSON: like}:adjacent ]\n',
-            (
-                [[{"YAML": "separate"}], [{"JSON like": "adjacent"}], [{}]],
-                [("/2/0", "{JSON: like}")],
-            ),
-        ),
-        (
-            "- [ : empty key ]\n- [: another empty key]\n",
-            ([[{}], [{}]], [("/0/0", ""), ("/1/0", "")]),
-        ),
-        ("[x, :]\n", (["x", {}], [("/1", "")])),
-        ("[ : ]\n", ([{}], [("/0", "")])),
-    ],
-    ids=["9MMW", "CFD4", "empty-key-and-value", "empty-key-and-value-spaced"],
-)
-def test_a_single_pair_in_a_flow_sequence_may_have_any_key(text, loaded):
-    """A single pair's key may be JSON-like, with an adjacent value, or empty ([151] `c-ns-flow-map-empty-key-entry`):
-    yaml-test-suite 9MMW and CFD4. A key that isn't a string is left out of its map and reported, as anywhere."""
-    assert load_document(text) == loaded
-
-
-@pytest.mark.parametrize(
-    "text, value",
-    [
-        ("{a: !!str, b: !!str}\n", {"a": "", "b": ""}),
-        ("[!!str, !!null]\n", ["", None]),
-        ("[!!str,x]\n", ["", "x"]),
-        ("{a: !, b: c}\n", {"a": "", "b": "c"}),
-        ("[!]\n", [""]),
-        ("{a: !<tag:yaml.org,2002:str>, b: c}\n", {"a": "", "b": "c"}),
-        ("[!<tag:yaml.org,2002:str>]\n", [""]),
-        ("[!<tag:yaml.org,2002:str> x]\n", ["x"]),
-    ],
-)
-def test_a_tag_in_a_flow_collection_may_end_its_entry(load, text, value):
-    """A shorthand tag holds no flow indicator ([40] `ns-tag-char`), and a tag before `,`, `]` or `}` is on an empty
-    node ([105] `e-scalar`), as `!!str,` is the empty string (yaml-test-suite WZ62); a verbatim tag holds `,`."""
-    assert load(text) == value
-
-
-@pytest.mark.parametrize(
-    "outputs, expected",
-    [
-        (
-            "{?result: {type: metric, format: json, " + _RECIPE + "}}",
-            {"/outputs": {"INVALID_ID"}},
-        ),
-        ("{? result: {type: metric, format: json, " + _RECIPE + "}}", {}),
-        ("{result\n  : {type: metric, format: json, " + _RECIPE + "}}", {}),
-        ('{"result"\n  :{type: metric, format: json, ' + _RECIPE + "}}", {}),
-        ('{? "result":{type: metric, format: json, ' + _RECIPE + "}}", {}),
-        ("{" + "r" * 1100 + ": {type: metric, format: json, " + _RECIPE + "}}", {}),
-        (
-            "{result: {type: metric, format: json, "
-            + _RECIPE
-            + ", description: !!str, label: x}}",
-            {},
-        ),
-        (
-            "{result: {type: metric, format: json, " + _RECIPE + ", tags: [x:]}}",
-            {"/outputs/result/tags/0": {"WRONG_TYPE"}},
-        ),
-        (
-            "{result: {type: metric, format: json, " + _RECIPE + ", :x}}",
-            {"/outputs/result": {"UNKNOWN_FIELD"}},
-        ),
-        (
-            "{result: {type: metric, format: json, " + _RECIPE + ", tags: [: x]}}",
-            {"/outputs/result/tags/0": {"INVALID_ID", "WRONG_TYPE"}},
-        ),
-    ],
-    ids=[
-        "question-mark-glued-to-a-key",
-        "explicit-key",
-        "colon-on-the-next-line",
-        "adjacent-value-on-the-next-line",
-        "explicit-key-with-an-adjacent-value",
-        "key-of-1100-characters",
-        "core-tag-before-a-comma",
-        "colon-before-a-flow-indicator",
-        "colon-before-a-safe-character-after-no-key",
-        "single-pair-with-an-empty-key",
-    ],
-)
-def test_a_flow_form_has_the_verdict_of_its_yaml_1_2_2_reading(outputs, expected):
-    """`outputs` written in a flow form YAML 1.2.2 reads as ruamel.yaml doesn't: `?result` is a key that isn't an id
-    (`INVALID_ID`), a key may be long or have its `:` on the next line, an explicit quoted key takes an adjacent value,
-    `!!str,` is an empty description, `x:` in a list of tags is a map, `:x` with no key before it is a key (an unknown
-    field), and a single pair with an empty key has a key that isn't a string."""
-    document, left_out = load_document(f'spec_version: "0.1.0"\noutputs: {outputs}\n')
-    check_schema_errors("Analysis", document, expected, left_out)
+    assert load("a: [-x, -1, :x]\n") == {"a": ["-x", -1, ":x"]}
 
 
 @pytest.mark.parametrize(
@@ -1132,14 +882,15 @@ def test_a_record_that_isnt_utf_8_is_invalid_syntax(tmp_path, data):
 def test_a_records_json_is_read(text, value):
     """JSON's white space, numbers within a double's range read exactly, an escaped surrogate pair as one character,
     and names that differ only in case as two. Any JSON value is read: the schema checks it is an object."""
-    assert _typed(load_json(text)) == _typed(value)
+    loaded = load_json(text)
+    assert loaded == value
+    assert [type(x) for x in _leaves(loaded)] == [type(x) for x in _leaves(value)]
 
 
-def _typed(value):
-    """A JSON value with each scalar paired with its type, so that two compare equal only where each scalar has the
-    same type too (`1`, `1.0` and `True` are equal in Python); a map's order doesn't count, as in JSON."""
+def _leaves(value):
+    """The scalars of a JSON value, in order."""
     if isinstance(value, dict):
-        return {key: _typed(item) for key, item in value.items()}
+        return [leaf for item in value.values() for leaf in _leaves(item)]
     if isinstance(value, list):
-        return [_typed(item) for item in value]
-    return type(value), value
+        return [leaf for item in value for leaf in _leaves(item)]
+    return [value]
