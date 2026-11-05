@@ -130,6 +130,8 @@ outputs:
   accuracy:
     type: metric
     format: json
+    recipe:
+      command: python make.py '{output}'
 """
 """An `astra.yaml` as written before 0.1: a `version` and a `name`, and no `spec_version`."""
 
@@ -176,6 +178,8 @@ outputs:
   result:
     type: metric
     format: json
+    recipe:
+      command: python make.py '{output}'
 analyses:
   up:
     path: up

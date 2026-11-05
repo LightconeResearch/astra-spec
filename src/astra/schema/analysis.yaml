@@ -100,6 +100,7 @@ classes:
       `{...}` template substitution (see `command`).
     attributes:
       command:
+        required: true
         description: >-
           The POSIX shell command that makes the output, such as
           `python src/train.py`. It is a template, whose placeholders a
@@ -220,6 +221,7 @@ classes:
           when every condition holds.
       recipe:
         range: Recipe
+        required: true
         inlined: true
         description: How the output is made.
 

@@ -10,9 +10,13 @@ outputs:
     type: metric
     format: json
     decisions: [model]
+    recipe:
+      command: python make.py '{output}'
   scores:
     type: table
     format: csv
+    recipe:
+      command: python make.py '{output}'
 decisions:
   model:
     options:

@@ -923,9 +923,12 @@ def test_a_code_that_is_not_a_schema_code_fails(tmp_path):
 
 # --- absolute_keyword_location, where jsonschema's paths need resolving ---
 
+RECIPE = {"command": "python make.py '{output}'"}
+"""A valid recipe."""
+
 DOCUMENT = {
     "spec_version": "0.1.0",
-    "outputs": {"o": {"type": "metric", "format": "csv"}},
+    "outputs": {"o": {"type": "metric", "format": "csv", "recipe": RECIPE}},
 }
 
 LOCATED = {
@@ -959,7 +962,10 @@ LOCATED = {
         {("/analyses/a/url", ANALYSIS + DECLARATION + "/properties/url/type")},
     ),
     "a map's propertyNames": (
-        {**DOCUMENT, "outputs": {"O": {"type": "metric", "format": "csv"}}},
+        {
+            **DOCUMENT,
+            "outputs": {"O": {"type": "metric", "format": "csv", "recipe": RECIPE}},
+        },
         {("/outputs", ANALYSIS + "/properties/outputs/propertyNames/pattern")},
     ),
     "a map's propertyNames, inside a $ref": (
@@ -983,11 +989,14 @@ LOCATED = {
         },
     ),
     "a map's additionalProperties, object form": (
-        {**DOCUMENT, "outputs": {"o": {"type": "metric"}}},
+        {**DOCUMENT, "outputs": {"o": {"type": "metric", "recipe": RECIPE}}},
         {("/outputs/o", ANALYSIS + "/$defs/Output__identifier_optional/required")},
     ),
     "an enum through a $ref with a sibling": (
-        {**DOCUMENT, "outputs": {"o": {"type": "movie", "format": "csv"}}},
+        {
+            **DOCUMENT,
+            "outputs": {"o": {"type": "movie", "format": "csv", "recipe": RECIPE}},
+        },
         {("/outputs/o/type", ANALYSIS + "/$defs/OutputType/enum")},
     ),
     "the root": (

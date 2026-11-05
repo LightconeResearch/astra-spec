@@ -6,3 +6,5 @@ outputs:
     <<: {type: metric}
     type: metric
     format: json
+    recipe:
+      command: python make.py '{output}'

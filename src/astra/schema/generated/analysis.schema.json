@@ -468,7 +468,8 @@
       },
       "required": [
         "type",
-        "format"
+        "format",
+        "recipe"
       ],
       "title": "Output",
       "type": "object"
@@ -490,6 +491,9 @@
           "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
         }
       },
+      "required": [
+        "command"
+      ],
       "title": "Recipe",
       "type": "object"
     },

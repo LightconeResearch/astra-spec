@@ -5,6 +5,10 @@ outputs:
   result:
     type: metric
     format: json
+    recipe:
+      command: python make.py '{output}'
   result:
     type: metric
     format: json
+    recipe:
+      command: python make.py '{output}'

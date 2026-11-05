@@ -38,6 +38,9 @@ from .test_fixtures import check_schema_errors
 
 YAML_TEST_SUITE = REPO_ROOT / "tests" / "yaml-test-suite"
 
+_RECIPE = "recipe: {command: \"python make.py '{output}'\"}"
+"""An output's recipe, as an entry of a flow mapping."""
+
 
 @pytest.fixture
 def load(tmp_path):
@@ -300,7 +303,7 @@ def test_a_number_is_typed_as_json_schema_types_it(load, version, valid):
     doc = load(
         'spec_version: "0.1.0"\n'
         "outputs:\n"
-        "  result: {type: metric, format: json}\n"
+        "  result: {type: metric, format: json, " + _RECIPE + "}\n"
         "prior_insights:\n"
         "  noise:\n"
         "    claim: Forests resist noise.\n"
@@ -384,6 +387,7 @@ def test_yaml_test_suite_case_of_several_documents_reads_as_its_json(path):
 
 _MINIMAL = (
     'spec_version: "0.1.0"\noutputs:\n  result:\n    type: metric\n    format: json\n'
+    "    recipe:\n      command: python make.py '{output}'\n"
 )
 """A minimal valid `astra.yaml`, which the cases of `...` and of tabs (F066's) change."""
 
@@ -724,23 +728,31 @@ def test_a_tag_in_a_flow_collection_may_end_its_entry(load, text, value):
 @pytest.mark.parametrize(
     "outputs, expected",
     [
-        ("{?result: {type: metric, format: json}}", {"/outputs": {"INVALID_ID"}}),
-        ("{? result: {type: metric, format: json}}", {}),
-        ("{result\n  : {type: metric, format: json}}", {}),
-        ('{"result"\n  :{type: metric, format: json}}', {}),
-        ('{? "result":{type: metric, format: json}}', {}),
-        ("{" + "r" * 1100 + ": {type: metric, format: json}}", {}),
-        ("{result: {type: metric, format: json, description: !!str, label: x}}", {}),
         (
-            "{result: {type: metric, format: json, tags: [x:]}}",
+            "{?result: {type: metric, format: json, " + _RECIPE + "}}",
+            {"/outputs": {"INVALID_ID"}},
+        ),
+        ("{? result: {type: metric, format: json, " + _RECIPE + "}}", {}),
+        ("{result\n  : {type: metric, format: json, " + _RECIPE + "}}", {}),
+        ('{"result"\n  :{type: metric, format: json, ' + _RECIPE + "}}", {}),
+        ('{? "result":{type: metric, format: json, ' + _RECIPE + "}}", {}),
+        ("{" + "r" * 1100 + ": {type: metric, format: json, " + _RECIPE + "}}", {}),
+        (
+            "{result: {type: metric, format: json, "
+            + _RECIPE
+            + ", description: !!str, label: x}}",
+            {},
+        ),
+        (
+            "{result: {type: metric, format: json, " + _RECIPE + ", tags: [x:]}}",
             {"/outputs/result/tags/0": {"WRONG_TYPE"}},
         ),
         (
-            "{result: {type: metric, format: json, :x}}",
+            "{result: {type: metric, format: json, " + _RECIPE + ", :x}}",
             {"/outputs/result": {"UNKNOWN_FIELD"}},
         ),
         (
-            "{result: {type: metric, format: json, tags: [: x]}}",
+            "{result: {type: metric, format: json, " + _RECIPE + ", tags: [: x]}}",
             {"/outputs/result/tags/0": {"INVALID_ID", "WRONG_TYPE"}},
         ),
     ],

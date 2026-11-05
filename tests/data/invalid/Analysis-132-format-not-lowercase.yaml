@@ -5,3 +5,5 @@ outputs:
   result:
     type: metric
     format: PNG
+    recipe:
+      command: python make.py '{output}'

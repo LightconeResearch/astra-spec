@@ -21,7 +21,11 @@ outputs:
     type: table
     format: csv
     inputs: [drive, upper, lower]
+    recipe:
+      command: python make.py '{output}'
   dotted:
     type: table
     format: "csv."
     decisions: [prior]
+    recipe:
+      command: python make.py '{output}'

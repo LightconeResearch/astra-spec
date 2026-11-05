@@ -10,6 +10,8 @@ outputs:
     format: json
     inputs: [stage.features]
     decisions: [scaling, model]
+    recipe:
+      command: python make.py '{output}'
 decisions:
   scaling:
     options:

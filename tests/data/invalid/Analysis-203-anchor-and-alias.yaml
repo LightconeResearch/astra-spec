@@ -6,7 +6,11 @@ outputs:
     type: metric
     format: json
     tags: &survey [survey]
+    recipe:
+      command: python make.py '{output}'
   summary:
     type: metric
     format: json
     tags: *survey
+    recipe:
+      command: python make.py '{output}'

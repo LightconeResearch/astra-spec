@@ -46,7 +46,13 @@ _MARKER_LIKE = re.compile(r"<!--[ \t]*(?:fragment|excerpt)\b")
 
 FRAGMENT_STUB = {
     "spec_version": "0.1.0",
-    "outputs": {"stub": {"type": "metric", "format": "json"}},
+    "outputs": {
+        "stub": {
+            "type": "metric",
+            "format": "json",
+            "recipe": {"command": "python make.py '{output}'"},
+        }
+    },
 }
 """The `astra.yaml` a fragment is validated over."""
 

@@ -6,3 +6,5 @@ outputs:
     type: metric
     format: json
     label: 2026-10-26
+    recipe:
+      command: python make.py '{output}'

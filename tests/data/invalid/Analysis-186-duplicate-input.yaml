@@ -9,3 +9,5 @@ outputs:
     type: metric
     format: json
     inputs: [data, data]
+    recipe:
+      command: python make.py '{output}'

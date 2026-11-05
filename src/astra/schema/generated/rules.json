@@ -135,6 +135,7 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Recipe/additionalProperties": "UNKNOWN_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Recipe/properties/command/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Recipe/properties/container/type": "WRONG_TYPE",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Recipe/required": "MISSING_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Recipe/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Resources/additionalProperties": "UNKNOWN_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Resources/properties/cpus/minimum": "INVALID_VALUE",
@@ -317,8 +318,8 @@
       "code": "MISSING_FIELD",
       "layer": "schema",
       "level": "MUST",
-      "source": "0004, 0005, 0006, tidy-up, main",
-      "statement": "Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size`"
+      "source": "0004, 0005, 0006, tidy-up, main, §5",
+      "statement": "Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Output.recipe`, `Recipe.command`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size`"
     },
     {
       "code": "UNKNOWN_FIELD",

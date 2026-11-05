@@ -36,3 +36,5 @@ outputs:
     type: report
     format: pdf
     inputs: ["upstream.summary#u1", stage.features]
+    recipe:
+      command: python make.py '{output}'

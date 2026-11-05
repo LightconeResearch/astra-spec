@@ -6,3 +6,5 @@ outputs:
     type: metric
     format: json
     description: !include result.md
+    recipe:
+      command: python make.py '{output}'

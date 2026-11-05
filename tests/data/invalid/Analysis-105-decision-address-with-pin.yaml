@@ -6,6 +6,8 @@ outputs:
     type: metric
     format: json
     decisions: ["d#u"]
+    recipe:
+      command: python make.py '{output}'
 decisions:
   d:
     options:

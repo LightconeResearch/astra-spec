@@ -7,3 +7,5 @@ outputs:
     format: json
     label: "F1score"
     description: 'xy'
+    recipe:
+      command: python make.py '{output}'

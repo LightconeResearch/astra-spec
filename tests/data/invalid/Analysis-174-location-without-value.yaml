@@ -5,6 +5,8 @@ outputs:
   result:
     type: metric
     format: json
+    recipe:
+      command: python make.py '{output}'
 prior_insights:
   p:
     claim: C

@@ -6,3 +6,5 @@ outputs:
     type: metric
     format: json
     label: "\U00110000"
+    recipe:
+      command: python make.py '{output}'

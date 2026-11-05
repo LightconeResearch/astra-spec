@@ -4,3 +4,5 @@ spec_version: "0.1.0"
 outputs:
   result:
     format: json
+    recipe:
+      command: python make.py '{output}'

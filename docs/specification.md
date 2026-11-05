@@ -620,8 +620,8 @@ analysis's input, or comes in through an output whose recipe gets it.
 
 An [Output](elements/Output.md) is an artefact the analysis makes. It has a
 `type`, one of [OutputType](elements/OutputType.md) (`metric`, `figure`,
-`table`, `data`, `report`: [`INVALID_VALUE`](#parse-and-schema)), and a
-`format` ([`MISSING_FIELD`](#parse-and-schema)). The `format` is how the artefact is
+`table`, `data`, `report`: [`INVALID_VALUE`](#parse-and-schema)), a `format`
+and a `recipe` ([`MISSING_FIELD`](#parse-and-schema)). The `format` is how the artefact is
 encoded, as a lowercase token, `^[a-z0-9][a-z0-9_.+-]*$`: the file extension
 it is written with, without the leading dot, such as `png`, `csv` or
 `parquet` ([`INVALID_VALUE`](#parse-and-schema)). Any token of that form is a
@@ -644,15 +644,13 @@ format. It is the extension of the result's default place (§8).
 - `when` makes the output conditional (below).
 - `recipe` says how the output is made (below).
 
-An output may leave out `recipe`; this version gives such an output no
-meaning.
-
 No output depends on itself, directly or through others
 ([`OUTPUT_CYCLE`](#validator)).
 
 ### Recipes
 
-A [Recipe](elements/Recipe.md) has a `command`, and the context it runs in:
+A [Recipe](elements/Recipe.md) has a `command`
+([`MISSING_FIELD`](#parse-and-schema)), and optionally the context it runs in:
 `resources` ([Resources](elements/Resources.md)), the CPUs, memory, time,
 disk and GPUs it asks for (`cpus` at least 0 and `gpus` at least 1:
 [`INVALID_VALUE`](#parse-and-schema)), and `container`, an image name, which is pulled,
@@ -750,6 +748,8 @@ outputs:
     type: table
     format: csv
     when: [correction.calibrated]
+    recipe:
+      command: python make.py '{output}'
 ```
 
 A universe selecting `correction.none` has neither `calibration_prior` nor
@@ -1186,10 +1186,14 @@ outputs:
     type: metric
     format: json
     inputs: [inner.result#u1]           # the root's universe u1
+    recipe:
+      command: python make.py '{output}'
   in_inner_v1:
     type: metric
     format: json
     inputs: [inner_undriven.result#v1]  # inner's own universe v1
+    recipe:
+      command: python make.py '{output}'
 universes:
   u1:
     decisions:
@@ -1206,6 +1210,8 @@ outputs:
     type: metric
     format: json
     inputs: [inner_undriven.result]     # UNDRIVEN_DECLARATION
+    recipe:
+      command: python make.py '{output}'
 ```
 
 The address's whole chain decides, up to its last declaration. Where the
@@ -1793,7 +1799,7 @@ A table that breaks any of this is an error in this specification, and no
 | `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read | 0003, 0004, tidy-up, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key is a string, and matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar | 0003, 0004 |
-| `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main |
+| `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Output.recipe`, `Recipe.command`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main, §5 |
 | `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | tidy-up, §10 |
 | `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry, and no list of strings in an `astra.yaml` is empty | 0004, tidy-up, main |
 | `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |

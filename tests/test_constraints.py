@@ -71,6 +71,13 @@ class Case(NamedTuple):
 
 HEX_64 = "0123456789abcdef" * 4
 
+OUTPUT = {
+    "type": "metric",
+    "format": "json",
+    "recipe": {"command": "python make.py '{output}'"},
+}
+"""A valid output, for a map entry added under a bad key."""
+
 INSIGHT = {"claim": "The forest is accurate.", "evidence": [{"artifact": "scores"}]}
 """A valid insight, for a map entry added under a bad key."""
 
@@ -109,16 +116,8 @@ NEGATIVE = [
     Case("core", "/inputs", {1: {"path": "data/catalog.csv"}}, "INVALID_ID"),
     Case("minimal", "/outputs", ["result"], "WRONG_TYPE"),
     Case("minimal", "/outputs", {}, "EMPTY_COLLECTION"),
-    Case(
-        "minimal",
-        "/outputs/result.v2",
-        {"type": "metric", "format": "json"},
-        "INVALID_ID",
-        "/outputs",
-    ),
-    Case(
-        "minimal", "/outputs", {1: {"type": "metric", "format": "json"}}, "INVALID_ID"
-    ),
+    Case("minimal", "/outputs/result.v2", OUTPUT, "INVALID_ID", "/outputs"),
+    Case("minimal", "/outputs", {1: OUTPUT}, "INVALID_ID"),
     Case("core", "/decisions", ["method"], "WRONG_TYPE"),
     Case(
         "core",
@@ -167,6 +166,7 @@ NEGATIVE = [
     ),
     Case("core", "/outputs/estimates/type", DELETE, "MISSING_FIELD"),
     Case("core", "/outputs/estimates/format", DELETE, "MISSING_FIELD"),
+    Case("core", "/outputs/estimates/recipe", DELETE, "MISSING_FIELD"),
     Case("core", "/outputs/estimates/label", 1, "WRONG_TYPE"),
     Case("core", "/outputs/estimates/description", 1, "WRONG_TYPE"),
     Case("core", "/outputs/estimates/tags", "redshifts", "WRONG_TYPE"),
@@ -212,6 +212,7 @@ NEGATIVE = [
         "UNKNOWN_FIELD",
         "/outputs/bias/recipe",
     ),
+    Case("core", "/outputs/bias/recipe/command", DELETE, "MISSING_FIELD"),
     Case("core", "/outputs/bias/recipe/command", ["python"], "WRONG_TYPE"),
     Case("core", "/outputs/bias/recipe/container", 1, "WRONG_TYPE"),
     Case("quoted-keys", RESOURCES, "1 gpu", "WRONG_TYPE"),
