@@ -1,0 +1,8 @@
+# rule: MISSING_FIELD
+# fails at: /outputs/result
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    recipe:
+      command: python make.py '{output}'

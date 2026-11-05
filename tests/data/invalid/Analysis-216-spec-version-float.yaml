@@ -1,0 +1,9 @@
+# rule: WRONG_TYPE
+# fails at: /spec_version
+spec_version: 0.1
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'

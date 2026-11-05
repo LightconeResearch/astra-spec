@@ -1,0 +1,71 @@
+---
+id: https://example.org/checks
+name: checks
+description: |-
+  A scratch schema, not ASTRA, for testing the JSON Schema generator
+  extension on class-level checks: an exactly_one_of and two class rules.
+version: 0.0.0
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  checks: https://example.org/checks/
+
+default_prefix: checks
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Root:
+    tree_root: true
+    description: The document.
+    attributes:
+      sources:
+        description: A list of sources.
+        range: Source
+        multivalued: true
+        inlined_as_list: true
+
+  Source:
+    description: >-
+      A source with exactly one of `path` and `url`, a `commit` with a `url`,
+      and a `version` only with a `doi`.
+    attributes:
+      path:
+        description: A path.
+      url:
+        description: A URL.
+      commit:
+        description: A commit.
+      doi:
+        description: A DOI.
+      version:
+        description: A version.
+        range: integer
+    exactly_one_of:
+      - slot_conditions:
+          path:
+            required: true
+      - slot_conditions:
+          url:
+            required: true
+    rules:
+      - description: A source with a `url` has a `commit`.
+        preconditions:
+          slot_conditions:
+            url:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            commit:
+              value_presence: PRESENT
+      - description: A source without a `doi` has no `version`.
+        preconditions:
+          slot_conditions:
+            doi:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            version:
+              value_presence: ABSENT

@@ -1,0 +1,63 @@
+spec_version: "0.1.0"
+label: Photometric redshifts
+description: >-
+  Estimates photometric redshifts from a photometry catalogue, then measures
+  their bias.
+tags: [photometric-redshifts, cosmology]
+container: ghcr.io/desc/photoz:latest
+inputs:
+  catalog:
+    label: Photometry
+    description: The LSST-like photometry catalogue.
+    tags: [photometry]
+    path: data/catalog.csv
+outputs:
+  estimates:
+    label: Estimates
+    description: Redshift point estimates and their PDFs.
+    tags: [redshifts]
+    type: data
+    format: parquet
+    inputs:
+      - catalog
+      - calibration.spectra
+    decisions:
+      - method
+      - calibration.split
+    recipe:
+      command: >-
+        python src/predict.py --data {inputs.catalog}
+        --spectra {inputs.calibration.spectra} --method {decisions.method}
+        --split {decisions.calibration.split} --out {output}
+  bias:
+    type: metric
+    format: json
+    inputs:
+      - estimates#baseline
+    when:
+      - "~method.template"
+    recipe:
+      command: >-
+        python src/bias.py --estimates {inputs.estimates#baseline}
+        --out {output}
+decisions:
+  method:
+    label: Estimator
+    rationale: The estimator trades accuracy against interpretability.
+    tags: [estimator]
+    options:
+      neural_net:
+        label: Neural network
+        description: A neural network trained on a spectroscopic sample.
+        tags: [machine-learning]
+        insights: [nn_beats_templates]
+        requires: [training.large]
+      template: {}
+  training:
+    label: Training set
+    when: [method.neural_net]
+    options:
+      large: {}
+      small:
+        incompatible_with: [method.neural_net]
+        excluded: Too few galaxies to train a neural network.

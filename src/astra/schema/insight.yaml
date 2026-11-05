@@ -2,8 +2,9 @@
 id: https://w3id.org/astra/insight
 name: insight
 description: |-
-  Insight and evidence models with W3C Web Annotation-compliant selectors
-  for referencing content in scientific papers and analysis artifacts.
+  The insights of an analysis: claims backed by evidence, which cites a
+  published work by its DOI or an output by reference, and locates the
+  passage it relies on with W3C Web Annotation selectors.
 # Placeholder version. The real version is injected at build time from the
 # latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0
@@ -12,127 +13,162 @@ license: https://creativecommons.org/licenses/by/4.0/
 prefixes:
   astra: https://w3id.org/astra/
   linkml: https://w3id.org/linkml/
+  dcterms: http://purl.org/dc/terms/
   oa: http://www.w3.org/ns/oa#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
 
 default_prefix: astra
 default_range: string
 
 imports:
   - linkml:types
-
-# ==========================================================================
-# W3C Web Annotation Selectors
-# ==========================================================================
+  - types
 
 classes:
 
+  # --- Selectors (W3C Web Annotation) ---
+
   TextQuoteSelector:
     description: >-
-      W3C TextQuoteSelector for locating text in a document.
-      The authoritative anchor for verification.
+      A passage of the cited work or output, quoted exactly, with the text
+      just before and after it to tell it apart where the same words occur
+      more than once.
     class_uri: oa:TextQuoteSelector
     attributes:
       exact:
         required: true
-        description: Exact quoted text (1-3 sentences)
+        slot_uri: oa:exact
+        description: The passage, exactly as the cited work or output writes it.
       prefix:
-        description: ~20-100 chars before for disambiguation
+        slot_uri: oa:prefix
+        description: The text that comes just before the passage.
       suffix:
-        description: ~20-100 chars after for disambiguation
+        slot_uri: oa:suffix
+        description: The text that comes just after the passage.
 
   FragmentSelector:
     description: >-
-      W3C FragmentSelector for PDF locations.
-      Conforms to RFC 3778/8118 for PDF fragments.
+      A place in the cited work or output, given as a fragment identifier in
+      the syntax `conforms_to` names, such as `row=5-7` in a CSV (RFC 7111).
+      Without `conforms_to`, it is a PDF fragment identifier (RFC 8118 §3),
+      such as `page=6`, with pages counted from 1.
     class_uri: oa:FragmentSelector
     attributes:
       value:
-        description: Fragment value (e.g., 'page=6')
-      page:
-        range: integer
-        minimum_value: 1
-        description: 1-indexed page number
+        required: true
+        slot_uri: rdf:value
+        pattern: '^([^\x00-\x20\x7f"#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$(?!\n)'
+        annotations:
+          rule: INVALID_VALUE
+        description: >-
+          The fragment identifier, without the leading `#`, such as `page=6`.
+          It is non-empty and holds no ASCII space or control character, none
+          of ``"#<>[\]^`{|}``, and `%` only before two hex digits.
+      conforms_to:
+        slot_uri: dcterms:conformsTo
+        range: iri
+        description: >-
+          The IRI of the specification of the fragment syntax `value` follows,
+          as W3C Web Annotation gives it, such as
+          `http://tools.ietf.org/rfc/rfc7111` for a CSV. Without it, `value` is
+          a PDF fragment identifier (RFC 8118).
 
-  # ==========================================================================
-  # Evidence and Insights
-  # ==========================================================================
+  # --- Insights and evidence ---
 
   Evidence:
     description: >-
-      Evidence from a source with W3C-compliant selectors.
-      Can reference literature (by DOI) or analysis artifacts (by output ID).
-      Exactly one of doi or artifact must be set.
+      What a claim rests on: a published work, cited by its `doi`, or an
+      output, cited as an `artifact`. It has exactly one of the two, and a
+      `version` only with a `doi`.
     attributes:
-      id:
-        identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
-        description: Evidence identifier
       doi:
-        description: DOI of the source paper (e.g., '10.48550/arXiv.1706.03762')
-        pattern: "^10\\.\\d{4,}/.*$"
+        pattern: '^10\.[0-9]+(\.[0-9]+)*/[^\x00-\x20\x7f-\x9f]([^\x00-\x1f\x7f-\x9f]*[^\x00-\x20\x7f-\x9f])?$(?!\n)'
+        annotations:
+          rule: INVALID_VALUE
+        description: >-
+          The DOI name of the cited work, under the `10` directory: `10.`, the
+          registrant code, `/` and the suffix, such as
+          `10.48550/arXiv.1706.03762`.
       artifact:
-        description: Output ID referencing a declared output in this analysis
+        range: reference
+        description: >-
+          A reference to the cited output, written as in an output's
+          `inputs`. It may pin the output to a universe, and should when the
+          output is built per universe: to the universe the claim is about,
+          such as `f1_score#svm_standard`.
       version:
         range: integer
         minimum_value: 1
-        description: Paper version for arXiv papers (version matters for reproducibility)
-      snapshot:
-        description: Path to immutable copy of the artifact
-      source_commit:
-        description: Git commit that produced the original artifact
+        description: >-
+          The version of the cited work, counted from 1, such as `2` for the
+          second version of an arXiv paper.
       quote:
         range: TextQuoteSelector
         inlined: true
-        description: Text quote anchor
+        description: >-
+          The passage of the cited work or output the claim rests on. With a
+          `location`, the passage is sought within that place.
       location:
         range: FragmentSelector
         inlined: true
-        description: Location hint (page number for PDFs/reports)
+        description: >-
+          The place in the cited work or output the claim rests on, such as
+          `page=6`.
+    # LinkML can't annotate the exactly_one_of list itself, so each branch
+    # names the code, the same one.
+    exactly_one_of:
+      - slot_conditions:
+          doi:
+            required: true
+        annotations:
+          rule: INVALID_EVIDENCE_SOURCE
+      - slot_conditions:
+          artifact:
+            required: true
+        annotations:
+          rule: INVALID_EVIDENCE_SOURCE
+    rules:
+      - description: Evidence without a `doi` has no `version`.
+        annotations:
+          rule: INVALID_EVIDENCE_SOURCE
+        preconditions:
+          slot_conditions:
+            doi:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            version:
+              value_presence: ABSENT
 
   Insight:
     description: >-
-      A unit of scientific knowledge backed by evidence.
-      Used for both prior_insights (informing decisions) and
-      findings (conclusions from the analysis).
+      A claim backed by evidence: as a prior insight, what earlier work
+      establishes and the analysis builds on; as a finding, what the analysis
+      concludes.
     attributes:
       id:
-        identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
-        description: Unique identifier
-      label:
+        key: true
+        range: id
         description: >-
-          Short human-readable name for compact rendering
-          (margin glyphs, breadcrumbs, card titles). Optional;
-          tooling falls back to id when absent.
+          The insight's id, written as its key in `prior_insights` or
+          `findings`.
+      label:
+        description: A short display name for the insight.
       claim:
         required: true
-        description: What we learned (1-2 sentences)
-      created_at:
-        range: datetime
-        required: true
-        description: Creation timestamp (ISO 8601)
+        description: What the insight asserts, in one or two sentences.
+      description:
+        description: The reasoning behind the claim, in free prose.
       evidence:
         range: Evidence
         multivalued: true
         inlined_as_list: true
         required: true
-        description: Supporting evidence (papers or analysis artifacts)
-      derived:
-        range: boolean
-        description: True if synthesized/inferred from multiple sources
+        minimum_cardinality: 1
+        description: What the claim rests on, as a list. There is at least one.
       scope:
-        description: Applicability conditions
+        description: The conditions under which the claim holds, in free prose.
       tags:
         multivalued: true
-        description: Categorization tags
-      notes:
-        description: Reasoning notes
-
-  InsightCollection:
-    description: Collection of insights, usable standalone or embedded in an analysis
-    attributes:
-      insights:
-        range: Insight
-        multivalued: true
-        inlined: true
-        description: Map of insight IDs to insights
+        minimum_cardinality: 1
+        description: Keywords for grouping and finding the insight.

@@ -1,0 +1,55 @@
+# The option `rf` cites the prior insight `forests_resist_noise`, and the
+# finding pins its evidence to the universe `u1`, since `result` is built per
+# universe. The prior insight also cites a DOI whose registrant code has two
+# parts (an ISBN-A), and one with a space inside its suffix. Its location is a
+# PDF fragment, with no `conforms_to`, and the finding's location in the CSV
+# output `scores` names its syntax, RFC 7111.
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    decisions: [model]
+    recipe:
+      command: python make.py '{output}'
+  scores:
+    type: table
+    format: csv
+    recipe:
+      command: python make.py '{output}'
+decisions:
+  model:
+    options:
+      rf:
+        insights: [forests_resist_noise]
+      svm: {}
+universes:
+  u1:
+    decisions:
+      model: rf
+prior_insights:
+  forests_resist_noise:
+    claim: Random forests stay accurate as label noise grows.
+    evidence:
+      - doi: 10.5555/12345678
+        version: 2
+        quote:
+          prefix: "In every experiment, "
+          exact: "the forest lost less than one point of accuracy"
+          suffix: " at 20% label noise."
+        location: {value: "page=6&search=%22label%20noise%22"}
+      - doi: 10.978.8889637/173
+      - doi: "10.3929/ethz-a- 007549606"
+findings:
+  rf_accuracy:
+    label: Forest accuracy
+    claim: The random forest reaches 0.93 accuracy.
+    description: Measured on the held-out tenth of the catalogue.
+    scope: Tabular data with fewer than 10 000 rows.
+    tags: [accuracy, random-forest]
+    evidence:
+      - artifact: "result#u1"
+      - artifact: scores
+        location:
+          value: "row=5-7"
+          conforms_to: "http://tools.ietf.org/rfc/rfc7111"

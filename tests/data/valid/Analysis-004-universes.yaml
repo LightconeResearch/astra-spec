@@ -1,0 +1,36 @@
+# `svm_standard` is `rf_standard` with one decision changed, and the flat key
+# `stage.method` drives the decision `method` of the declared analysis `stage`.
+spec_version: "0.1.0"
+analyses:
+  stage:
+    path: stage
+outputs:
+  accuracy:
+    type: metric
+    format: json
+    inputs: [stage.features]
+    decisions: [scaling, model]
+    recipe:
+      command: python make.py '{output}'
+decisions:
+  scaling:
+    options:
+      standard: {}
+      minmax: {}
+  model:
+    options:
+      random_forest: {}
+      svm: {}
+universes:
+  rf_standard:
+    label: Random forest, standard scaling
+    description: A random forest on standardised features reduced by PCA.
+    tags: [baseline, random-forest]
+    decisions:
+      scaling: standard
+      model: random_forest
+      stage.method: pca
+  svm_standard:
+    derived_from: rf_standard
+    decisions:
+      model: svm

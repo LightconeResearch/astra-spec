@@ -1,0 +1,21 @@
+# rule: WRONG_TYPE
+# fails at: /analyses
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'
+decisions:
+  model:
+    options:
+      rf: {}
+      svm: {}
+analyses:
+  - id: up
+    path: up
+universes:
+  u:
+    decisions:
+      model: rf

@@ -1,16 +1,16 @@
 # generated part of documentation
 /docs/elements/*.md
-# generated schema artifacts (regenerated on every docs build and served from gh-pages)
+# published schema artifacts, written on every docs build and served from gh-pages:
+# the merged model (gen-yaml), and the JSON Schemas and the record's JSON-LD
+# context copied from the committed src/astra/schema/generated/ (_add-artifacts)
 /docs/schema/*.yaml
 /docs/schema/*.json
 /docs/schema/*.jsonld
-# linkml-run-examples output (not useful to have in git in its current form)
-/examples/output/
-
-# Derived schemas, generated from the schema.yaml
+# The justfile's scratch space: the staged, versioned schema (tmp/schema/) and
+# the drift check's fresh generation (tmp/generated-check/)
 tmp/
-project/
-!project/README.md
+# The pinned Ajv's install, for `just check-ajv` (tools/ajv/)
+tools/ajv/node_modules/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

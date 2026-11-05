@@ -4,8 +4,8 @@ name: analysis
 title: ASTRA
 description: |-
   Agentic Schema for Transparent Research Analysis.
-  A framework for defining hierarchical scientific analyses with
-  decision points, evidence-backed insights, and universe specifications.
+  The analysis document, `astra.yaml`: the files an analysis reads, the
+  artefacts it makes, and the decisions it makes along the way.
 license: https://creativecommons.org/licenses/by/4.0/
 # Placeholder version. The real version is injected at build time from the
 # latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
@@ -20,54 +20,8 @@ default_range: string
 
 imports:
   - linkml:types
+  - types
   - insight
-  - universe
-
-# ==========================================================================
-# Slots shared across analysis classes
-# ==========================================================================
-
-#
-# Identifier pattern: lowercase snake_case, with reserved category
-# names excluded so that path references like `decisions.<id>` and
-# sub-analysis-scoped paths like `<sub>.<id>` (used by the `from:`
-# slot and by `when`/`requires`/`incompatible_with`) cannot be
-# silently shadowed by an entity named after a category. Reserved set:
-#   inputs, outputs, decisions, findings, prior_insights, analyses,
-#   options, content
-# Applied to every entity ID: Input, Output, Option, Decision,
-# Analysis, Insight, Evidence.
-#
-
-slots:
-
-  from:
-    description: >-
-      Reference to a related element via a path expression. When set,
-      the local node is a pure alias: only `id` and (where applicable)
-      `when` may be declared alongside `from`; all content fields
-      (type, description, label, source, options, recipe, etc.) are
-      inherited from the referenced node.
-
-      Path grammar (uniform across Input, Output, and Decision):
-
-        ../id              -- escape one scope upward, then name 'id'
-        ../../id           -- escape two scopes upward, then name 'id'
-        ../scope.id        -- escape upward, then descend into named child
-        scope.id           -- descend into a named child of the current scope
-        scope.sub.id       -- descend through nested children
-
-      Each `from:` may cross one or more scope boundaries. Each class's
-      `slot_usage` restricts the legal directions for that class: Input
-      reaches up or up-then-into-sibling, Output reaches into own
-      children, Decision reaches up only.
-
-  when:
-    multivalued: true
-    description: >-
-      Conditions for when this element is active.
-      Format: 'decision_id.option_id' or '~decision_id.option_id'.
-      Multiple conditions are AND'd together.
 
 # ==========================================================================
 # Enumerations
@@ -75,45 +29,25 @@ slots:
 
 enums:
 
-  InputType:
-    description: Type of analysis input
-    permissible_values:
-      data:
-        description: A dataset, file, or external resource
-      analysis:
-        description: Outputs from another ASTRA analysis
-
   OutputType:
-    description: Type of analysis output
+    description: The kind of artefact an output is.
     permissible_values:
       metric:
-        description: A metric or measurement
+        description: A metric or measurement.
       figure:
-        description: A figure or visualization
+        description: A figure or visualisation.
       table:
-        description: A table of data
+        description: A table of data.
       data:
-        description: A data file or dataset
+        description: A data file or dataset.
       report:
-        description: A report or document
+        description: A report or document.
 
 # ==========================================================================
 # Classes
 # ==========================================================================
 
 classes:
-
-  # --- Utility ---
-
-  KeyValuePair:
-    description: A key-value string pair
-    attributes:
-      key:
-        identifier: true
-        description: The key
-      value:
-        required: true
-        description: The value
 
   # --- Execution ---
   #
@@ -166,31 +100,30 @@ classes:
       `{...}` template substitution (see `command`).
     attributes:
       command:
+        required: true
         description: >-
-          POSIX shell command to execute (e.g.,
-          'python src/train.py', 'Rscript analysis.R',
-          'julia model.jl'). Any executable invocation is fine.
+          The POSIX shell command that makes the output, such as
+          `python src/train.py`. It is a template, whose placeholders a
+          runner substitutes before running it:
 
-          The command is a template. Runners substitute these
-          placeholders before invoking it:
+            {inputs.<entry>}     the path of what an entry of the output's
+                                 `inputs` names, with <entry> written
+                                 exactly as the entry is, dots and `#`
+                                 included, as in
+                                 {inputs.classification.accuracy#baseline}
+            {decisions.<entry>}  the id of the option selected for the
+                                 decision an entry of the output's
+                                 `decisions` names, with <entry> written
+                                 exactly as the entry is, as in
+                                 {decisions.iris.random_seed}
+            {inputs}             the paths of all the output's inputs, in
+                                 the order of `inputs`, separated by spaces
+            {output}             the path the result is written to
+            {{ and }}            a literal { and }
 
-            {inputs.<id>}     -- path to the named upstream input
-                                 (must be declared in Output.inputs)
-            {inputs}          -- space-separated paths to all declared
-                                 inputs, in declaration order
-            {decisions.<id>}  -- active option ID for the named
-                                 decision in the current universe
-                                 (must be declared in Output.decisions)
-            {output}          -- path the artifact will be written to
-
-          Use {{ and }} to emit literal '{' and '}'. Every
-          placeholder must resolve to a declared item; the
-          validator rejects unresolved or undeclared references.
-
-          Static constants belong inline in the command (e.g.,
-          '--max-iter 1000'); there is no separate `params` channel
-          because varying values are decisions and constants are
-          just command text.
+          Every placeholder takes one of these forms, and the <entry> of an
+          {inputs.<entry>} or {decisions.<entry>} is an entry of the output's
+          `inputs` or `decisions`, exactly as written.
       resources:
         range: Resources
         inlined: true
@@ -202,403 +135,373 @@ classes:
           pulled as pre-built images; file paths (e.g., 'Containerfile',
           'containers/Dockerfile') are built from source.
 
-  # --- Inputs and Outputs ---
+  # --- Inputs and outputs ---
 
   Input:
     description: >-
-      An input to the analysis. Two kinds: data (dataset/file/resource)
-      or analysis (outputs from another ASTRA analysis).
-
-      Sub-analysis inputs may alias an upstream artifact via `from`,
-      using the unified path grammar:
-
-        from: ../id              -- a parent input
-        from: ../../id           -- a grandparent input
-        from: ../sibling.out_id  -- a sibling sub-analysis's output
-
-      An aliased Input is a pure pointer: only `id` and `from` are
-      allowed, with all other fields inherited from the source.
-    slots:
-      - from
-    slot_usage:
-      from:
-        description: >-
-          Path to the source: `../id` (ancestor input), `../../id`
-          (further ancestor), or `../scope.out_id` (sibling sub's
-          output). Reaching down into own children is not allowed —
-          consume those via Output re-export instead.
-        pattern: "^(\\.\\./)+[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+      A file the analysis reads, tracked in git with it and named by its path.
     attributes:
       id:
-        identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
-        description: Unique identifier for the input
+        key: true
+        range: id
+        description: The input's id, written as its key in `inputs`.
       label:
-        description: >-
-          Short human-readable name for compact rendering
-          (margin glyphs, breadcrumbs, card titles). Optional;
-          tooling falls back to id when absent.
-      type:
-        range: InputType
-        description: >-
-          Type of input. Required when `from` is unset; forbidden
-          when `from` is set (inherited from the source).
+        description: A short display name for the input.
       description:
-        description: Free-prose description of this input.
-      source:
-        description: URI or path to the data source
-      ref:
-        description: Reference to another ASTRA analysis
-      ref_version:
-        description: Version of the referenced analysis
-      use_outputs:
+        description: What the input's data is, in free prose.
+      tags:
         multivalued: true
-        description: Specific outputs to use from referenced analysis
-    rules:
-      # `from_is_pure_alias` — split into one rule per forbidden slot so
-      # gen-json-schema emits `not: {required: [X]}` per slot. A single
-      # rule with multiple ABSENT postconditions translates incorrectly
-      # to `not: {required: [X, Y, ...]}`, which fires only when ALL are
-      # present.
-      - title: from_alias_forbids_type
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {type: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_label
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {label: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_description
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {description: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_source
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {source: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_ref
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {ref: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_ref_version
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {ref_version: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_use_outputs
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {use_outputs: {value_presence: ABSENT}}}
-      - title: type_required_when_not_aliased
+        minimum_cardinality: 1
+        description: Keywords for grouping and finding the input.
+      path:
+        required: true
+        pattern: '^(?![/~])(?!(?:[^\x00-\x1f\x7f]*/)?\.\.(?:/|$))(?![^\x00-\x1f\x7f]*/$)[^\x00-\x1f\x7f\\]+$(?!\n)'
+        annotations:
+          rule: INVALID_PATH
         description: >-
-          A non-aliased Input must declare its type.
-        preconditions:
-          slot_conditions:
-            from:
-              value_presence: ABSENT
-        postconditions:
-          slot_conditions:
-            type:
-              required: true
+          The path of the input's file, relative to the folder of the
+          `astra.yaml`. It is non-empty, doesn't start with `/` or `~`,
+          separates folders with `/` (never `\`), has no `..` segment or ASCII
+          control character (U+0000–U+001F, U+007F), and doesn't end in `/`.
 
   Output:
     description: >-
-      An expected output from the analysis. An Output is either
-      produced locally (with `inputs`, `decisions`, `recipe`) or
-      re-exported from a sub-analysis via `from`.
-
-      Re-export grammar:
-
-        from: child.out_id           -- own child sub's output
-        from: child.grandchild.out_id -- descend into nested children
-
-      A re-exported Output is a pure pointer: only `id`, `from`, and
-      `when` are allowed; type/description/recipe are inherited.
-    slots:
-      - from
-      - when
-    slot_usage:
-      from:
-        description: >-
-          Path to a descendant Output: `child.out_id` for an own
-          child sub-analysis's output, or deeper (`child.grand.out_id`)
-          to descend through nested children. Reaching upward is not
-          allowed — Outputs flow up only via re-export at each layer.
-        pattern: "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+      An artefact the analysis makes, such as a metric, a figure or a table:
+      what it is, what it is made from, and how.
     attributes:
       id:
-        identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
-        description: Unique identifier for the output
+        key: true
+        range: id
+        description: The output's id, written as its key in `outputs`.
       label:
-        description: >-
-          Short human-readable name for compact rendering
-          (margin glyphs, breadcrumbs, card titles). Optional;
-          tooling falls back to id when absent.
+        description: A short display name for the output.
+      description:
+        description: What the output is, in free prose.
+      tags:
+        multivalued: true
+        minimum_cardinality: 1
+        description: Keywords for grouping and finding the output.
       type:
         range: OutputType
-        description: >-
-          Type of output. Required when `from` is unset; forbidden
-          when `from` is set (inherited from the source).
+        required: true
+        description: The kind of artefact the output is.
       format:
-        recommended: true
-        pattern: "^[a-z0-9][a-z0-9_.+-]*$"
+        required: true
+        pattern: '^[a-z0-9][a-z0-9_.+-]*$(?!\n)'
         annotations:
-          required_in: "0.1.0"
+          rule: INVALID_VALUE
         description: >-
-          Concrete serialization of the artifact, as a lowercase token:
-          the file extension the artifact is written with, without the
-          leading dot (`png`, `pdf`, `svg`, `csv`, `parquet`, `json`,
-          `fits`, `hdf5`, `html`, `md`). Where `type` says what the
-          output *is* (figure, table, data), `format` says how it is
-          encoded, so consumers can render, diff, or open it without
-          inspecting the file.
-
-          The value space is deliberately open — any lowercase token
-          matching the pattern is legal, so formats specific to a field
-          (`asdf`, `zarr`, `nc`) need no schema change.
-
-          Recommended, not required, in 0.0.x: validators warn when it
-          is missing. It becomes **required** for non-aliased Outputs in
-          0.1.0. Forbidden when `from` is set (inherited from the
-          source).
-      description:
-        description: Free-prose description of this output.
+          How the output's artefact is encoded, as a lowercase token: the
+          extension of its results' files, without the leading dot, such as
+          `png`, `csv` or `parquet`. Any token that matches the pattern is a
+          format.
       inputs:
         multivalued: true
+        range: reference
+        minimum_cardinality: 1
         description: >-
-          IDs of upstream artifacts this output depends on. Each
-          reference resolves to either an Input declared on the
-          surrounding analysis (an external dataset/file/analysis)
-          or a sibling Output (another artifact in scope). Runners
-          materialize the upstream artifacts before invoking the
-          recipe and surface the resolved input map to it
-          (Snakemake-style `{input.x}` substitution, env vars,
-          sidecar JSON — runner's choice).
-
-          References use plain artifact IDs and resolve through any
-          `from:` chain in the surrounding analysis scope. An aliased
-          Input (one with `from:`) is a valid local reference here;
-          the runner walks the chain to the source.
+          What the output is made from, in order: references to inputs and
+          outputs of the analysis or of analyses it declares. A reference to
+          an output can be pinned to a universe with `#`; a reference to an
+          input can't.
       decisions:
         multivalued: true
+        range: address
+        minimum_cardinality: 1
         description: >-
-          Decision IDs (in the surrounding scope) that parameterize
-          this output. Declares the output's provenance contract:
-          re-running with a different option for any listed decision
-          must be expected to produce a different output.
-
-          Runners use this to (a) compute the per-output cache key,
-          (b) determine the minimal universe set needed to materialize
-          the output, and (c) deliver the active option values to the
-          recipe (via flags, env vars, or a sidecar — runner's choice).
-
-          References use plain decision IDs and resolve through any
-          `from:` chain in the surrounding analysis scope.
+          The addresses of the decisions whose option the output is made with
+          directly, not through what it reads: a different option for any of
+          them, in the universe being built, can give a different result.
+      when:
+        multivalued: true
+        range: condition
+        minimum_cardinality: 1
+        description: >-
+          The conditions under which the output is active. It is active only
+          when every condition holds.
       recipe:
         range: Recipe
+        required: true
         inlined: true
-        description: How to produce this output (pure *how*; dependencies live on the Output via `inputs`/`decisions`)
-    rules:
-      # See note on Input.rules: split per slot so gen-json-schema
-      # emits one `not: {required: [X]}` per forbidden slot.
-      - title: from_alias_forbids_type
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {type: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_format
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {format: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_label
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {label: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_description
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {description: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_inputs
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {inputs: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_decisions
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {decisions: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_recipe
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {recipe: {value_presence: ABSENT}}}
-      - title: type_required_when_not_aliased
-        description: >-
-          A non-aliased Output must declare its type.
-        preconditions:
-          slot_conditions:
-            from:
-              value_presence: ABSENT
-        postconditions:
-          slot_conditions:
-            type:
-              required: true
+        description: How the output is made.
 
   # --- Decisions ---
 
-  Option:
-    description: An option for a decision point
-    attributes:
-      id:
-        identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
-        description: Option identifier (the key in the options map)
-      label:
-        required: true
-        description: Human-readable name for the option
-      description:
-        description: Free-prose description of this option.
-      insights:
-        multivalued: true
-        description: Insight IDs supporting this option
-      incompatible_with:
-        multivalued: true
-        description: Decision.option pairs that cannot be selected together
-      requires:
-        multivalued: true
-        description: Decision.option pairs that must also be selected
-      excluded:
-        range: boolean
-        description: Whether this option was considered and rejected
-      excluded_reason:
-        description: Why this option was excluded
-
   Decision:
     description: >-
-      A decision point in the analysis. Either locally defined (with
-      label and options) or a pure reference to an ancestor decision
-      via `from`.
-
-      Reference grammar:
-
-        from: ../id     -- a parent decision
-        from: ../../id  -- a grandparent decision
-
-      Decisions only flow downward through scopes; sibling-sub or
-      child references are not legal. An aliased Decision is a pure
-      pointer: only `id`, `from`, and `when` may be set.
-    slots:
-      - from
-      - when
-    slot_usage:
-      from:
-        description: >-
-          Path to an ancestor decision: `../id` for a parent decision,
-          `../../id` for a grandparent, and so on. Reaching laterally
-          (`../sibling.id`) or downward (`child.id`) is not allowed —
-          if siblings need a shared decision, lift it to the common
-          ancestor and have each sub `from:` it.
-        pattern: "^(\\.\\./)+[a-z][a-z0-9_]*$"
+      A choice the analysis makes between options, such as which estimator
+      to use.
     attributes:
       id:
-        identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
-        description: Decision identifier (the key in the decisions map)
+        key: true
+        range: id
+        description: The decision's id, written as its key in `decisions`.
       label:
-        description: Human-readable name for the decision
+        description: A short display name for the decision.
       rationale:
-        description: Why this decision exists
+        description: Why the analysis makes this decision, in free prose.
       tags:
         multivalued: true
-        description: Tags for grouping and categorizing
-      default:
-        description: Default option ID for baseline universes
+        minimum_cardinality: 1
+        description: Keywords for grouping and finding the decision.
+      when:
+        multivalued: true
+        range: condition
+        minimum_cardinality: 1
+        description: >-
+          The conditions under which the decision is active. It is active only
+          when every condition holds.
       options:
         range: Option
         multivalued: true
         inlined: true
-        description: Map of option IDs to option specifications
-    rules:
-      # See note on Input.rules: split per slot so gen-json-schema
-      # emits one `not: {required: [X]}` per forbidden slot.
-      - title: from_alias_forbids_label
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {label: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_options
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {options: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_default
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {default: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_rationale
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {rationale: {value_presence: ABSENT}}}
-      - title: from_alias_forbids_tags
-        preconditions: {slot_conditions: {from: {value_presence: PRESENT}}}
-        postconditions: {slot_conditions: {tags: {value_presence: ABSENT}}}
-      - title: label_and_options_required_when_not_aliased
+        required: true
+        minimum_cardinality: 1
         description: >-
-          A non-aliased Decision must declare its label and options.
+          The options the decision chooses between, keyed by id. There is at
+          least one.
+
+  Option:
+    description: One of the options a decision chooses between.
+    attributes:
+      id:
+        key: true
+        range: id
+        description: The option's id, written as its key in `options`.
+      label:
+        description: A short display name for the option.
+      description:
+        description: What the option is, in free prose.
+      tags:
+        multivalued: true
+        minimum_cardinality: 1
+        description: Keywords for grouping and finding the option.
+      insights:
+        multivalued: true
+        range: id
+        minimum_cardinality: 1
+        description: The ids of the prior insights that support the option.
+      requires:
+        multivalued: true
+        range: option_reference
+        minimum_cardinality: 1
+        description: >-
+          The options that are also selected whenever this option is.
+      incompatible_with:
+        multivalued: true
+        range: option_reference
+        minimum_cardinality: 1
+        description: >-
+          The options that are never selected together with this option.
+      excluded:
+        pattern: '[^\x00-\x20\x7f]'
+        annotations:
+          rule: BLANK_EXCLUDED
+        description: >-
+          Why the option is ruled out, as a reason that is not blank; any
+          string is a reason, `no` and `off` included. An option with a reason
+          is excluded: no universe selects it.
+
+  # --- Universes ---
+
+  Universe:
+    description: >-
+      A universe: a selection of one option for every active decision of the
+      analysis and of every analysis reached through a declaration that a
+      universe of the analysis drives. Its effective selection is the
+      effective selection of the universe it is derived from, if any, with
+      its own `decisions` written over it decision by decision and every
+      inherited selection of a decision that isn't active in the result
+      dropped, so a universe that switches a decision on must set it.
+    attributes:
+      id:
+        key: true
+        range: id
+        description: The universe's id, written as its key in `universes`.
+      label:
+        description: >-
+          A short display name for the universe. It is not inherited through
+          `derived_from`.
+      description:
+        description: What the universe is, in free prose.
+      tags:
+        multivalued: true
+        minimum_cardinality: 1
+        description: >-
+          Keywords for grouping and finding the universe. They are not
+          inherited through `derived_from`.
+      derived_from:
+        range: id
+        description: >-
+          The id of another universe of the analysis, whose effective
+          selection this universe's effective selection is built on, so that
+          this universe gives only the decisions it changes.
+      decisions:
+        range: DecisionSelection
+        multivalued: true
+        inlined: true
+        description: >-
+          The options the universe selects, as `<decision>: <option>`, one
+          key per decision. Each key is the id of a decision of the analysis
+          or, for a decision of another analysis, a flat key: the decision's
+          address through the declarations, `<declaration>.<decision>`, such
+          as `stage.method`, or another spelling of either.
+
+  DecisionSelection:
+    description: >-
+      The option a universe selects for one decision, written in the
+      universe's `decisions` as `<decision>: <option>`, such as `model: svm`.
+    attributes:
+      decision:
+        key: true
+        range: address
+        # A map key that doesn't match its key's type is a bad id, whatever
+        # that type (§9), so this names its code over `address`'s.
+        annotations:
+          rule: INVALID_ID
+        description: >-
+          The address of the decision, written as its key in the universe's
+          `decisions`.
+      option:
+        range: id
+        required: true
+        description: The id of the option selected for the decision.
+
+  # --- Declarations ---
+
+  AnalysisDeclaration:
+    description: >-
+      An analysis that this analysis uses, found by exactly one of `path`
+      and `url`. Its elements are addressed through the declaration's id, as
+      `<declaration>.<element>`.
+    attributes:
+      id:
+        key: true
+        range: id
+        description: >-
+          The id this analysis addresses the declared analysis by, written as
+          its key in `analyses`.
+      path:
+        pattern: '^(?![/~])[^\x00-\x1f\x7f\\]+$(?!\n)'
+        annotations:
+          rule: INVALID_PATH
+        description: >-
+          The directory of the declared analysis's `astra.yaml`, relative to
+          the folder of this `astra.yaml` and inside the repository this
+          file is read from, which in the working tree is the root's,
+          submodules included. It is non-empty, doesn't start with `/` or `~`,
+          separates folders with `/` (never `\`), and has no ASCII control
+          character (U+0000–U+001F, U+007F); `..` segments are allowed.
+      url:
+        pattern: '^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$(?!\n)'
+        annotations:
+          rule: INVALID_VALUE
+        description: >-
+          Where git fetches another repository from, as a remote with no ASCII
+          space or control character: `scheme://…`, such as
+          `https://github.com/owner/analysis` or `file:///srv/repo`, or
+          `[user@]host:path`, such as `git@github.com:owner/repo`. The declared
+          analysis is the one at the top level of that repository, at
+          `commit`.
+      commit:
+        range: commit_id
+        description: >-
+          The full id of the commit the declared analysis is read at. A
+          declaration with a `url` has one; with a `path`, it declares the
+          analysis at that path as it was at that commit.
+    # LinkML can't annotate the exactly_one_of list itself, so each branch
+    # names the code, the same one.
+    exactly_one_of:
+      - slot_conditions:
+          path:
+            required: true
+        annotations:
+          rule: INVALID_DECLARATION_SOURCE
+      - slot_conditions:
+          url:
+            required: true
+        annotations:
+          rule: INVALID_DECLARATION_SOURCE
+    rules:
+      - description: A declaration with a `url` has a `commit`.
+        annotations:
+          rule: URL_WITHOUT_COMMIT
         preconditions:
           slot_conditions:
-            from:
-              value_presence: ABSENT
+            url:
+              value_presence: PRESENT
         postconditions:
           slot_conditions:
-            label:
-              required: true
-            options:
-              required: true
+            commit:
+              value_presence: PRESENT
 
-  # --- Analysis (self-similar, recursive) ---
+  # --- Analysis ---
 
   Analysis:
     tree_root: true
     description: >-
-      A self-similar analysis specification. Every level has the same
-      structure: metadata, inputs, outputs, decisions, insights, and
-      optional sub-analyses. A sub-analysis extracted to its own file
-      is a valid Analysis on its own.
+      An analysis: the files it reads, the artefacts it makes and the
+      decisions it makes along the way. It is the content of an
+      `astra.yaml` file.
     attributes:
-      id:
-        identifier: true
-        pattern: "^(?!(inputs|outputs|decisions|findings|prior_insights|analyses|options|content)$)[a-z][a-z0-9_]*$"
-        description: Analysis identifier (used as key when nested as a sub-analysis)
-      version:
-        pattern: "^\\d+\\.\\d+(\\.\\d+)?$"
-        description: ASTRA specification version
-      name:
-        description: Human-readable name for the analysis
-      description:
+      spec_version:
+        range: spec_version
+        required: true
         description: >-
-          Free-prose description of this analysis — the same optional
-          field every other content object carries (Input, Output,
-          Option, Universe). A short human orientation lives here;
-          richer write-ups (figures, citations, multi-page reports)
-          are authored externally and reference analysis elements by
-          tree-path rather than restating them.
+          The version of the ASTRA specification the document is written
+          against, such as `0.1.0`.
+      label:
+        description: A short display name for the analysis.
+      description:
+        description: What the analysis does, in free prose.
       tags:
         multivalued: true
-        description: Tags for categorization
+        minimum_cardinality: 1
+        description: Keywords for grouping and finding the analysis.
       inputs:
         range: Input
         multivalued: true
-        inlined_as_list: true
-        description: Inputs for this analysis
+        inlined: true
+        description: The files the analysis reads, keyed by id.
       outputs:
         range: Output
         multivalued: true
-        inlined_as_list: true
-        description: Expected outputs from this analysis
+        inlined: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          The artefacts the analysis makes, keyed by id. There is at least
+          one.
       decisions:
         range: Decision
         multivalued: true
         inlined: true
-        description: Decision points in this analysis (keyed by decision ID)
+        description: The choices the analysis makes, keyed by id.
+      analyses:
+        range: AnalysisDeclaration
+        multivalued: true
+        inlined: true
+        description: >-
+          The analyses this analysis uses, keyed by the id it addresses them
+          by.
+      universes:
+        range: Universe
+        multivalued: true
+        inlined: true
+        description: The universes of the analysis, keyed by id.
       prior_insights:
         range: Insight
         multivalued: true
         inlined: true
-        description: Prior insights that inform decisions (keyed by insight ID)
+        description: >-
+          What earlier work establishes and the analysis builds on, as
+          insights keyed by id. Options cite them in their `insights`.
       findings:
         range: Insight
         multivalued: true
         inlined: true
-        description: Findings and conclusions from outputs (keyed by insight ID)
+        description: What the analysis concludes, as insights keyed by id.
       container:
         description: >-
-          Default container for recipes in this node.
+          The default container for this analysis's recipes.
           Image names are pulled; file paths are built from source.
-      path:
-        description: >-
-          Path to a directory containing its own astra.yaml.
-          Mutually exclusive with inline content fields
-          (inputs, outputs, decisions, etc.).
-      analyses:
-        range: Analysis
-        multivalued: true
-        inlined: true
-        description: Nested sub-analyses (keyed by analysis ID)

@@ -1,0 +1,40 @@
+spec_version: "0.1.0"
+analyses:
+  stage:
+    path: stage
+  parent:
+    path: ..
+  previous:
+    path: .
+    commit: "0dbb615a0fa1b1d6ecf3158e97e35b57c606beb3"
+  upstream:
+    url: https://github.com/owner/analysis
+    commit: "0f2ce11579a60f84e4dd6a06b8da589991bd078e23f3cab3ab991fc95e373ecf"
+  ssh:
+    url: "git@github.com:owner/repo"
+    commit: "21ca41dd31d8d87c017e04a7b02b0ab7f7d6b30d"
+  local:
+    url: "file:///srv/repo"
+    commit: "18dbdb684ed8956ea319dbe6acbc4e0700577d38"
+  host_c:
+    url: "C:/repo"
+    commit: "6f1ed002ab5595859014ebf0951522d9ad9e7c4b"
+  alias:
+    url: "git@g:owner/repo"
+    commit: "4a4e6ec39fad4f6a37c5c2bd4e0c0a3a3a4c0b5e"
+  spaced:
+    url: "file:///home/me/My%20Repos/upstream"
+    commit: "7c1b3e5a9d2f4c6e8a0b1d3f5e7a9c2b4d6f8e0a"
+  spaced_ssh:
+    url: "ssh://git@nas/~/shares/My%20Repos/upstream"
+    commit: "3e5a7c9b1d2f4e6a8c0b2d4f6a8c0e2b4d6f8a1c"
+  accented:
+    url: "https://example.org/café/repo"
+    commit: "9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b"
+outputs:
+  report:
+    type: report
+    format: pdf
+    inputs: ["upstream.summary#u1", stage.features]
+    recipe:
+      command: python make.py '{output}'

@@ -1,0 +1,13 @@
+# rule: UNKNOWN_FIELD
+# fails at: /inputs/data
+spec_version: "0.1.0"
+inputs:
+  data:
+    path: data/catalog.csv
+    type: data
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'

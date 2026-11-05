@@ -1,0 +1,10 @@
+# rule: DUPLICATE_ENTRY
+# fails at: /tags
+spec_version: "0.1.0"
+tags: [__proto__, __proto__]
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'

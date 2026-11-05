@@ -1,0 +1,10 @@
+# rule: INVALID_SYNTAX
+# fails at: parse
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    description: !include result.md
+    recipe:
+      command: python make.py '{output}'

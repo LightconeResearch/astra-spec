@@ -1,0 +1,15 @@
+# rule: INVALID_ID
+# fails at: /decisions/augment/options
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    decisions: [augment]
+    recipe:
+      command: python make.py '{output}'
+decisions:
+  augment:
+    options:
+      "true": {}
+      true: {}  # yamllint disable-line rule:key-duplicates

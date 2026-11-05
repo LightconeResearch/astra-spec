@@ -66,6 +66,12 @@ jobs:
           just gen-doc
           uv run zensical build
 
+      # The extractor reads §9 as CommonMark, the site renders it with
+      # Python-Markdown: the built page must show each rule's cells as the
+      # same text as rules.json (skipped wherever there is no site/).
+      - name: Check the page's rule catalogue against rules.json
+        run: uv run python -m pytest tests/test_site.py
+
       # https://github.com/rossjrw/pr-preview-action
       - name: Deploy preview
         uses: rossjrw/pr-preview-action@v1.8.1

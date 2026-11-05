@@ -1,0 +1,13 @@
+# rule: EMPTY_COLLECTION
+# fails at: /findings/f/evidence
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'
+findings:
+  f:
+    claim: C
+    evidence: []

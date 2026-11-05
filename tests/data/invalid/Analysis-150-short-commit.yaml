@@ -1,0 +1,22 @@
+# rule: INVALID_COMMIT
+# fails at: /analyses/up/commit
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'
+decisions:
+  model:
+    options:
+      rf: {}
+      svm: {}
+analyses:
+  up:
+    url: https://x/y
+    commit: "abc1234"
+universes:
+  u:
+    decisions:
+      model: rf

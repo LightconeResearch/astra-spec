@@ -1,0 +1,4 @@
+# Fixtures whose bytes are their point: a lone CR, and bytes that aren't
+# UTF-8. Git never converts their line endings.
+tests/data/invalid/Analysis-211-not-utf-8.yaml -text
+tests/data/invalid/Analysis-215-comment-ended-by-cr.yaml -text
