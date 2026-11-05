@@ -664,7 +664,9 @@ through its output's inputs ([`UNDECLARED_READ`](#runner)), since a checker
 sees a change to them only through those inputs. Anything else it uses, its
 own scripts among them, is pinned by the commit or is part of the
 environment. A runner can enforce this, as §9 permits; one that does fails
-the recipe.
+the recipe. The commit pins only its own repository (§8), so a recipe of an
+analysis in a submodule uses files outside the submodule's repository only
+through its output's inputs.
 
 ### Decisions and options
 
@@ -1396,11 +1398,13 @@ the result's `address`, the `content_hash` and `size` (in bytes) of the
 result's bytes, and the run of the recipe that made it, `generated_by`, a
 [Generation](elements/Generation.md):
 
-- `commit`: the full id of the git commit the recipe ran from, the driver's
-  commit for what a driver's universes build (§7). It pins every file of the
-  code and every `astra.yaml`: an analysis in a submodule through the commit
-  the submodule is pinned at, and an analysis from a commit through its
-  declaration's `commit`.
+- `commit`: the full id of the git commit the recipe ran from: a commit of
+  the repository the record is committed in, the submodule's own commit for a
+  result that belongs to an analysis in a submodule (the driver's commit for
+  what a driver's universes build, §7). It pins every file of the code and
+  every `astra.yaml` in that repository: an analysis in a submodule of it
+  through the commit the submodule is pinned at, and an analysis from a
+  commit through its declaration's `commit`.
 - `inputs`: what the recipe read, as one
   [RecordedInput](elements/RecordedInput.md) for each entry the output lists
   in the `astra.yaml` files at the record's `commit`, and no other item,
@@ -1500,8 +1504,8 @@ A checker sees much of a breach afterwards: a result with no record is
 
 A record names the commit its recipe ran from, so it is committed in a later
 commit. That commit adds only records and results, so it makes none of the
-results whose records it adds stale. The commit a record names stays in the
-history of every commit that holds the record, so branches with records
+results whose records it adds stale. The commit a record names has to stay
+in the history of the commits that hold the record, so branches with records
 SHOULD be merged rather than squashed or rebased.
 
 ### When a result is unchanged

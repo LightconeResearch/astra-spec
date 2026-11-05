@@ -22,7 +22,7 @@
       "description": "A run of an output's recipe: the commit it ran from, what it read, the environment it ran in and the runner that ran it.",
       "properties": {
         "commit": {
-          "description": "The full id of the git commit the recipe ran from, the driver's commit for what a driver's universes build. It pins every file of the code and every `astra.yaml`: an analysis in a submodule through the commit the submodule is pinned at, and an analysis from a commit through its declaration's `commit`.",
+          "description": "The full id of the git commit the recipe ran from: a commit of the repository the record is committed in, the submodule's own commit for a result that belongs to an analysis in a submodule (the driver's commit for what a driver's universes build). It pins every file of the code and every `astra.yaml` in that repository: an analysis in a submodule of it through the commit the submodule is pinned at, and an analysis from a commit through its declaration's `commit`.",
           "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)",
           "type": "string"
         },

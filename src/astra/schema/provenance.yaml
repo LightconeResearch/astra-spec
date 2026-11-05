@@ -77,11 +77,13 @@ classes:
         range: commit_id
         required: true
         description: >-
-          The full id of the git commit the recipe ran from, the driver's
-          commit for what a driver's universes build. It pins every file of
-          the code and every `astra.yaml`: an analysis in a submodule through
-          the commit the submodule is pinned at, and an analysis from a commit
-          through its declaration's `commit`.
+          The full id of the git commit the recipe ran from: a commit of the
+          repository the record is committed in, the submodule's own commit for
+          a result that belongs to an analysis in a submodule (the driver's
+          commit for what a driver's universes build). It pins every file of
+          the code and every `astra.yaml` in that repository: an analysis in a
+          submodule of it through the commit the submodule is pinned at, and
+          an analysis from a commit through its declaration's `commit`.
       inputs:
         range: RecordedInput
         multivalued: true
