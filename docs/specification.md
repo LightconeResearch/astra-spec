@@ -49,6 +49,7 @@ doesn't restate them.
 | consuming | using another analysis's element by address, without driving it | §7 |
 | analysis from a commit | a declared analysis as it was at a given commit | §7 |
 | result | what a recipe made for one output in one universe, or once | §8 |
+| planned result | a result a check of the root covers: every result of the root's active outputs, every result those read, transitively, and every result the root's evidence cites | §8 |
 | record | the provenance record of one result | §8 |
 
 **Versions.** Every analysis document and every record states, in
@@ -780,7 +781,8 @@ about one universe's result, and the pin says which. A pin on an output built
 once is redundant ([`REDUNDANT_PIN`](#validator)). The pin names a universe as
 one in `Output.inputs` does (§7), so a finding about results a driver builds
 belongs in the driver's `astra.yaml`. Evidence citing a result is checked through
-that result's record (§8).
+that result's record, and unpinned evidence through the records of the
+output's results (§8).
 
 ## 6. Universes
 
@@ -991,9 +993,10 @@ every `astra.yaml` of the stack, each by the `spec_version` it states
 The universes built are the root's and those a pin names. In the root's
 universes the root is the driver and is never driven, even when a
 declaration in its stack leads back to it. Another analysis's universe is
-used only where a pin names it. That analysis is then its driver, and what
-is built there belongs to it (§8). A validator also checks every other
-universe of the stack (below).
+used only where a pin names it. That analysis is then its driver: like the
+root, it is never driven in that universe, and what is built there belongs
+to it (§8). A validator also checks every other universe of the stack
+(below).
 
 ### Driving and consuming
 
@@ -1030,9 +1033,9 @@ before it, and so by every universe of the driver when the driver's file
 declares it, unless the declaration leads back to an analysis already on the
 chain, the declaring analysis itself included (`self: {path: .}`). Such an
 analysis's outputs built per universe (§6) are then built in each of the
-driver's universes, and those results belong to the driver (§8), while its
-outputs built once still belong to it. An analysis with universes of its own
-keeps them unless a key drives it.
+driver's universes where they are planned (§8), and those results belong to
+the driver, while its outputs built once still belong to it. An analysis with
+universes of its own keeps them unless a key drives it.
 
 - Every universe sets every active decision of every analysis reached
   through a declaration that a universe of its analysis drives
@@ -1280,20 +1283,37 @@ read or driven, and what a driver runs is the declared commit.
 ### Results
 
 A **result** is what a recipe made for one output in one universe, or once
-for an output built once. The results an analysis's outputs and universes
-call for are its **planned** results. An output plans no result in a universe
-where it is inactive (§5).
+for an output built once. The root's **planned** results are:
+
+- the result of each output of the root built once, and, in each of the
+  root's universes, the result of every output of the root active there;
+- every result a planned result reads through its output's `inputs`, through
+  any declaration, pinned or not;
+- every result the root's evidence cites (§5).
+
+An output plans no result in a universe where it is inactive (§5). An output
+of a declared analysis that no planned result reads and no evidence of the
+root cites isn't planned, and building the root doesn't build it. Building it
+on request is the tooling's choice, and a checker gives its record no status
+(below).
 
 A result belongs to the analysis whose universe it was built in. So what a
 driven analysis builds in its driver's universes belongs to the driver. The
-result of an output built once belongs to the analysis whose output it is. In
-that analysis, the result's **name** is the output's id after the ids of the
-declarations its universe is pushed through (`subanalysis1.output1`): driven
-ones, never an undriven one, since a pin through an undriven declaration
-names a universe of an analysis further along its reference (§7). Its
-**address** is the name followed, for a result built in a universe, by `#`
-and the universe's id (`subanalysis1.output1#u1`). The address is the
-record's `address`.
+result of an output built once belongs to the analysis whose output it is,
+and a result read through a pin in a declared analysis's own universe
+belongs to that analysis: a consumed analysis's results stay in its own
+directory. A result's **name** is its output's id after the ids of the
+driven declarations from the analysis it belongs to (`subanalysis1.output1`).
+An undriven declaration, a back-edge such as `iris: {path: ..}` included,
+never adds a name, since a pin through it names a universe of an analysis
+further along its reference (§7). So the result of an output of the
+analysis it belongs to is named by the output's id alone, as the result of an
+output built once always is. Reached through two such chains (`inner` and
+`stage.inner`, when keys go through both), a result is made once, and placed
+and recorded under each name. Its **address** is a name followed, for a
+result built in a universe, by `#` and the universe's id
+(`subanalysis1.output1#u1`). Each address is the `address` of the record at
+its place.
 
 ### Where records and bytes go
 
@@ -1304,10 +1324,11 @@ In the analysis a result belongs to:
 | Its record | `.astra/records/{universe}/{name}.json` | `.astra/records/{name}.json` |
 | Its bytes, at their default place | `results/{universe}/{name}.{format}` | `results/{name}.{format}` |
 
-Both are worked out from the result's address. A record is the record only
-of the result its `address` names ([`MISSING_RECORD`](#check),
+Both are worked out from an address of the result, so a result with two
+names has two of each. A record is the record only of the result its
+`address` names, under that name ([`MISSING_RECORD`](#check),
 [`MISPLACED_RECORD`](#check)). The runner writes the bytes to their default
-place ([`UNRECORDED_RESULT`](#runner)) and tells the recipe where to write
+places ([`UNRECORDED_RESULT`](#runner)) and tells the recipe where to write
 through `{output}`, so a driven analysis's recipes write what they build in
 the driver's universes into the driver's results. For the analysis of §2:
 
@@ -1411,11 +1432,11 @@ on two machines say, show whether the result reproduces: their
 
 ### What a runner does
 
-A runner writes a record for every result it makes, in the analysis the
-result belongs to, and writes the bytes to their default place
-([`UNRECORDED_RESULT`](#runner)). It runs only committed code: while the
-repository has changes other than the results and records it writes, it
-refuses to run ([`UNCOMMITTED_CHANGES`](#runner)). It records each recipe's
+A runner writes a record for every result it makes, at the place of each of
+its names in the analysis the result belongs to, and writes the bytes to their
+default places ([`UNRECORDED_RESULT`](#runner)). It runs only committed code:
+while the repository has changes other than the results and records it writes,
+it refuses to run ([`UNCOMMITTED_CHANGES`](#runner)). It records each recipe's
 environment as an IRI that it can recreate at its version
 ([`UNRECREATABLE_ENVIRONMENT`](#runner)), and should let someone see what that
 environment holds, as PROV for example. It builds an output only when every
@@ -1468,14 +1489,20 @@ the bytes can be kept elsewhere, `absent` is not an error. A tool may report
 more about bytes that are `absent`, such as other bytes at the default place,
 but their status is `absent`.
 
-A checker reads records only through planned results: a record at no planned
-result's place gets no status, and no check rule applies to it.
+A result with two names gets its statuses at each place. A checker reads
+records only through planned results: a record at no planned result's place
+gets no status, and no check rule applies to it.
 
 Evidence citing a result gets the status of that result's record
-([`STALE_EVIDENCE`](#check)). An `artifact` that is pinned, or that names an
-output built once, names exactly one result, and its record is the one that
-result's address gives. A check covers the evidence of the analysis it is run
-on.
+([`STALE_EVIDENCE`](#check)), the record at the place of the result's name
+along the `artifact`'s declarations: evidence citing `stage.inner.out#u1`
+reads the record of `stage.inner.out`, not of `inner.out`. An `artifact` that
+is pinned, or that names an output built once, names exactly one result. An
+`artifact` that names an output built per universe without a pin cites that
+output's results in each of the root's universes where it is active and its
+analysis is built. The evidence gets the worst of their record statuses:
+`missing`, then `stale`. If there are none, it is `missing`. A check covers
+the evidence of the analysis it is run on.
 
 The results of an analysis from a commit that are read or cited get their
 record status (`unchanged`, `stale`, `missing`) by the same rules, through
@@ -1742,7 +1769,11 @@ the schema error (§10).
 
 **Statuses.** A checker gives every planned result two statuses, one for its
 record (`unchanged`, `stale` or `missing`) and one for its bytes (`present`
-or `absent`). Evidence citing a result gets that result's first status.
+or `absent`). Evidence citing a result gets that result's first status. A
+result with two names has its statuses at each place. Evidence citing an
+output built per universe without a pin gets the worst first status of that
+output's results (`missing`, then `stale`), and `missing` when there are
+none.
 
 | Status | Means |
 |---|---|
@@ -1756,13 +1787,13 @@ or `absent`). Evidence citing a result gets that result's first status.
 
 | Code | Level | Rule | Status when broken | Source |
 |---|---|---|---|---|
-| `MISSING_RECORD` | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once) in the analysis it belongs to | `missing` | 0005 §1 |
+| `MISSING_RECORD` | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once), for each of its names, in the analysis it belongs to | `missing` | 0005 §1 |
 | `INVALID_RECORD` | MUST | The record at each planned result's place breaks no parse rule, and no schema rule against the record schema of its `spec_version`, or against the open variant when that version is newer than the checker's | `missing` | 0005 §2, tidy-up, §3, §8 |
-| `MISPLACED_RECORD` | MUST | The record at each planned result's place names that result in its `address` | `missing` | 0005 §1 |
+| `MISPLACED_RECORD` | MUST | The record at each planned result's place has, as its `address`, the address that place is worked out from | `missing` | 0005 §1 |
 | `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
 | `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
 | `ABSENT_RESULT` | SHOULD | Every result's recorded bytes are at its default place | `absent` | 0005 §1 |
-| `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status | 0005 §5 |
+| `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status; without a pin on an output built per universe, the worst of its results' (`missing`, then `stale`) | 0005 §5 |
 
 The results of an analysis from a commit that are read or cited get their
 record status (`unchanged`, `stale`, `missing`) by the same rules, through
@@ -1774,7 +1805,7 @@ status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
 
 | Code | Level | Rule | Source |
 |---|---|---|---|
-| `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, in the analysis the result belongs to, and writes the bytes to their default place | 0005 §1, 0005 §3 |
+| `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places | 0005 §1, 0005 §3 |
 | `UNCOMMITTED_CHANGES` | MUST | A runner runs only when the repository has no changes other than the results and records it writes | 0005 §3 |
 | `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an IRI that it can recreate at its version | 0005 §3 |
 | `UNDECLARED_READ` | MUST | A recipe reads files and results only through its output's inputs | 0005 §3 |

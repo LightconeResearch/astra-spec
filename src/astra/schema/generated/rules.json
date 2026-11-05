@@ -633,7 +633,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "0005 §1",
-      "statement": "Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once) in the analysis it belongs to",
+      "statement": "Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once), for each of its names, in the analysis it belongs to",
       "status": "`missing`"
     },
     {
@@ -649,7 +649,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "0005 §1",
-      "statement": "The record at each planned result's place names that result in its `address`",
+      "statement": "The record at each planned result's place has, as its `address`, the address that place is worked out from",
       "status": "`missing`"
     },
     {
@@ -682,14 +682,14 @@
       "level": "MUST",
       "source": "0005 §5",
       "statement": "Every evidence citing a result cites an unchanged one",
-      "status": "the cited result's status"
+      "status": "the cited result's status; without a pin on an output built per universe, the worst of its results' (`missing`, then `stale`)"
     },
     {
       "code": "UNRECORDED_RESULT",
       "layer": "runner",
       "level": "MUST",
       "source": "0005 §1, 0005 §3",
-      "statement": "A runner writes a record for every result it makes, in the analysis the result belongs to, and writes the bytes to their default place"
+      "statement": "A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places"
     },
     {
       "code": "UNCOMMITTED_CHANGES",
