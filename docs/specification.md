@@ -578,9 +578,10 @@ and finding them.
 
 An [Input](elements/Input.md) is a file tracked in git with the analysis,
 named by its `path`, relative to the folder of the `astra.yaml` (§3). The
-path doesn't start with `/` or `~`, separates folders with `/` (never `\`),
-has no `..` segment and no ASCII control character (U+0000–U+001F, U+007F),
-and doesn't end in `/` ([`INVALID_PATH`](#parse-and-schema)).
+path is non-empty, doesn't start with `/` or `~`, separates folders with `/`
+(never `\`), has no `..` segment and no ASCII control character
+(U+0000–U+001F, U+007F), and doesn't end in `/`
+([`INVALID_PATH`](#parse-and-schema)).
 
 - It names one file ([`MISSING_INPUT_FILE`](#validator)). Data in many files
   is many inputs.
@@ -965,9 +966,10 @@ declared analysis's elements are then addressed through that id, as
 `commit`, which a `url` needs ([`URL_WITHOUT_COMMIT`](#parse-and-schema)).
 
 **`path`** is the directory of the declared analysis's `astra.yaml`, relative
-to the folder of the declaring `astra.yaml` (§3). It doesn't start with `/`
-or `~`, separates folders with `/` (never `\`) and has no ASCII control
-character; `..` segments are allowed ([`INVALID_PATH`](#parse-and-schema)).
+to the folder of the declaring `astra.yaml` (§3). It is non-empty, doesn't
+start with `/` or `~`, separates folders with `/` (never `\`) and has no
+ASCII control character; `..` segments are allowed
+([`INVALID_PATH`](#parse-and-schema)).
 It stays inside the declaring analysis's repository
 ([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)): read in the working tree,
 the root's working tree, submodules included; read at a commit, the
@@ -1797,7 +1799,7 @@ A table that breaks any of this is an error in this specification, and no
 | `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |
 | `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` | 0007 |
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007, tidy-up |
-| `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` starts with neither `/` nor `~` and holds no backslash and no ASCII control character, and an input's `path` also has no `..` segment and doesn't end in `/` | 0004, 0006, tidy-up |
+| `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` is non-empty, starts with neither `/` nor `~` and holds no backslash and no ASCII control character, and an input's `path` also has no `..` segment and doesn't end in `/` | 0004, 0006, tidy-up |
 | `BLANK_EXCLUDED` | schema | MUST | An option's `excluded` reason is not blank | tidy-up |
 | `INVALID_EVIDENCE_SOURCE` | schema | MUST | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
 | `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, a number, an integer, a list or a map | tidy-up, §4, §10 |
