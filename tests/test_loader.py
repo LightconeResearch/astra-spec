@@ -3,16 +3,17 @@ core schema only (design §9, Ruling R19), and a record as strict JSON (spec §3
 
 `tests/yaml-test-suite/` holds cases of yaml-test-suite (https://github.com/yaml/yaml-test-suite, MIT, see its
 LICENSE), each case's `in.yaml` at its id, from the release `data-2022-01-17` (commit 6e6c296a): the 94 cases with an
-`error` file, each a text YAML 1.2.2 makes ill-formed, and, each with its `in.json`, the 217 well-formed cases that use
+`error` file, each a text YAML 1.2.2 makes ill-formed, and, each with its `in.json`, the 219 well-formed cases that use
 nothing spec §3 refuses (an anchor, an alias, a tag outside the core schema, a second document, a `%YAML` directive
-other than 1.2) and whose keys are all strings, but four. JEF9/02 and L24T/01 are left out: each ends the file in a
-block scalar with no line break after it, which the suite reads as if a line break followed, and YAML 1.2.2's grammar
-as the end of the file, and spec §3 doesn't say which reading holds. So are HWV9 and QT73, each a `...` with no
-document before it, which the loader refuses.
+other than 1.2) and whose keys are all strings, but two, and M7A3, two documents with a `...` that ends neither between
+them, whose `in.json` holds a value for each. JEF9/02 and L24T/01 are left out: each ends the file in a block scalar
+with no line break after it, which the suite reads as if a line break followed, and YAML 1.2.2's grammar as the end of
+the file, and spec §3 doesn't say which reading holds.
 """
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from ruamel.yaml.composer import ComposerError
@@ -25,6 +26,7 @@ from .conftest import (
     REPO_ROOT,
     DuplicateNameError,
     JSONError,
+    _core_schema_yaml,
     error_pointers,
     load_document,
     load_json,
@@ -189,7 +191,15 @@ def test_anchors_and_aliases_are_errors(load, text, found):
 
 
 @pytest.mark.parametrize(
-    "text", ["a: 1\n---\n", "a: 1\n---\nb: 2\n", "---\na: 1\n...\n---\n", "---\n---\n"]
+    "text",
+    [
+        "a: 1\n---\n",
+        "a: 1\n---\nb: 2\n",
+        "---\na: 1\n...\n---\n",
+        "---\n---\n",
+        "a: 1\n...\n...\nb: 2\n",
+        "...\na: 1\n...\nb: 2\n",
+    ],
 )
 def test_a_second_document_is_an_error(load, text):
     with pytest.raises(ComposerError, match="a single document"):
@@ -315,13 +325,36 @@ def _suite_cases(*, well_formed: bool) -> list[Path]:
     )
 
 
+def _json_documents(path: Path) -> list[Any]:
+    """The values of the `in.json` beside a case's `in.yaml`, one for each of the case's documents, in order: none
+    for a case with no document, whose `in.json` is empty."""
+    text = path.with_name("in.json").read_text(encoding="utf-8")
+    decoder = json.JSONDecoder()
+    documents, index = [], 0
+    while text[index:].strip():
+        index = len(text) - len(text[index:].lstrip())
+        document, index = decoder.raw_decode(text, index)
+        documents.append(document)
+    return documents
+
+
+def _well_formed_cases(*, streams: bool) -> list[Path]:
+    """The vendored well-formed cases of one document or none, or, with `streams`, those of more."""
+    return [
+        path
+        for path in _suite_cases(well_formed=True)
+        if (len(_json_documents(path)) > 1) == streams
+    ]
+
+
 def _case_id(path: Path) -> str:
     return path.parent.relative_to(YAML_TEST_SUITE).as_posix()
 
 
 def test_the_yaml_test_suite_is_vendored():
     assert len(_suite_cases(well_formed=False)) == 94
-    assert len(_suite_cases(well_formed=True)) == 217
+    assert len(_well_formed_cases(streams=False)) == 219
+    assert [_case_id(path) for path in _well_formed_cases(streams=True)] == ["M7A3"]
 
 
 @pytest.mark.parametrize("path", _suite_cases(well_formed=False), ids=_case_id)
@@ -330,14 +363,93 @@ def test_yaml_test_suite_error_case_raises(path):
         load_yaml(path)
 
 
-@pytest.mark.parametrize("path", _suite_cases(well_formed=True), ids=_case_id)
+@pytest.mark.parametrize("path", _well_formed_cases(streams=False), ids=_case_id)
 def test_yaml_test_suite_well_formed_case_loads_to_its_json(path):
     """Each well-formed case loads to its `in.json`, with JSON's types; an empty `in.json` is a file with no
     document, which is null (spec §3)."""
-    loaded = load_yaml(path)
-    text = path.with_name("in.json").read_text(encoding="utf-8")
-    expected = json.loads(text) if text.strip() else None
-    assert _typed(loaded) == _typed(expected)
+    [expected] = _json_documents(path) or [None]
+    assert _typed(load_yaml(path)) == _typed(expected)
+
+
+@pytest.mark.parametrize("path", _well_formed_cases(streams=True), ids=_case_id)
+def test_yaml_test_suite_case_of_several_documents_reads_as_its_json(path):
+    """A case of more than one document is refused, since a file holds at most one (spec §3); read as a stream, with
+    the loader's own reader, scanner, parser, composer and constructor, its documents are the values of its `in.json`.
+    So M7A3's second `...`, which ends no document, starts none."""
+    with pytest.raises(ComposerError, match="a single document"):
+        load_yaml(path)
+    documents = _core_schema_yaml().load_all(path.read_text(encoding="utf-8"))
+    assert _typed(list(documents)) == _typed(_json_documents(path))
+
+
+_MINIMAL = (
+    'spec_version: "0.1.0"\noutputs:\n  result:\n    type: metric\n    format: json\n'
+)
+"""A minimal valid `astra.yaml`, which the cases of `...` and of tabs (F066's) change."""
+
+
+@pytest.mark.parametrize(
+    "text, value",
+    [
+        ("...\n", None),
+        ("...", None),
+        ("... # c\n", None),
+        ("# c\n...\n", None),
+        ("...\n...\n", None),
+        ("...\n---\n", None),
+        ("...\na: 1\n", {"a": 1}),
+        ("...\n...\n---\na: 1\n", {"a": 1}),
+        ("...\n%YAML 1.2\n---\na: 1\n", {"a": 1}),
+        ("a: 1\n...\n...\n", {"a": 1}),
+        ("a: 1\n...\n# c\n...\n", {"a": 1}),
+        ("---\na: 1\n...\n...\n", {"a": 1}),
+    ],
+)
+def test_a_document_end_marker_with_no_document_before_it_starts_none(
+    load, text, value
+):
+    """A `...` at the start of the file, or after another `...`, ends no document, and starts none either: the stream
+    holds document suffixes with no document between them (YAML 1.2.2 [211] `l-yaml-stream`; yaml-test-suite HWV9,
+    QT73 and M7A3), where ruamel.yaml starts a document at the `...`."""
+    assert load(text) == value
+
+
+@pytest.mark.parametrize(
+    "text", ["... x\n", "... a: 1\n", "...\n... [x]\n", "a: 1\n...\n... x\n"]
+)
+def test_content_after_a_document_end_marker_on_its_line_is_invalid_syntax(load, text):
+    """A `...` with no document before it, as one after a document (yaml-test-suite 3HFZ, an error case), has nothing
+    after it on its line but a comment ([205] `l-document-suffix`)."""
+    with pytest.raises(YAMLError) as raised:
+        load(text)
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
+
+
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("...\n", {"(root)": {"WRONG_TYPE"}}),
+        ("# The analysis comes later.\n...\n", {"(root)": {"WRONG_TYPE"}}),
+        ("...\n" + _MINIMAL, {}),
+        (_MINIMAL + "...\n...\n", {}),
+        ("---\n" + _MINIMAL + "...\n# c\n...\n", {}),
+    ],
+    ids=[
+        "only-a-marker",
+        "a-comment-and-a-marker",
+        "marker-before",
+        "two-markers-after",
+        "explicit-document-and-two-markers-after",
+    ],
+)
+def test_a_document_end_marker_with_no_document_before_it_leaves_the_verdict(
+    text, expected
+):
+    """A file holding only `...` has no document, so it is null and fails as an empty file does (`WRONG_TYPE` at its
+    root, spec §3), and a valid `astra.yaml` with a `...` before it, or two after it, holds one document, and is
+    valid."""
+    document, left_out = load_document(text)
+    check_schema_errors("Analysis", document, expected, left_out)
 
 
 @pytest.mark.parametrize(
@@ -729,12 +841,6 @@ def test_bytes_that_arent_utf_8_are_invalid_syntax(load, data):
     with pytest.raises(ReaderError) as raised:
         load(data)
     assert parse_code(raised.value) == "INVALID_SYNTAX"
-
-
-_MINIMAL = (
-    'spec_version: "0.1.0"\noutputs:\n  result:\n    type: metric\n    format: json\n'
-)
-"""A minimal valid `astra.yaml`, which F066's tab cases change."""
 
 
 @pytest.mark.parametrize(
