@@ -138,7 +138,7 @@ classes:
 
   Input:
     description: >-
-      A file the analysis reads, committed with it and named by its path.
+      A file the analysis reads, tracked in git with it and named by its path.
     attributes:
       id:
         key: true

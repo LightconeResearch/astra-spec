@@ -436,29 +436,29 @@
       "code": "MISSING_DECLARED_ANALYSIS",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004, 0007",
-      "statement": "A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml`"
+      "source": "0004, 0007, §3",
+      "statement": "A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` file, with no symlink on the way (§3)"
     },
     {
       "code": "COMMIT_NOT_FOUND",
       "layer": "validator",
       "level": "MUST",
-      "source": "0007",
-      "statement": "A declaration with a `path` and a `commit` names a commit the repository has"
+      "source": "0007, §3",
+      "statement": "A declaration with a `path` and a `commit`, read from the local repository, names a commit the declaring analysis's repository has"
     },
     {
       "code": "COMMIT_NOT_ANCESTOR",
       "layer": "validator",
       "level": "SHOULD",
-      "source": "0007",
-      "statement": "A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in"
+      "source": "0007, §3",
+      "statement": "A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD or (during a merge) MERGE_HEAD of the repository that holds the declaring file"
     },
     {
       "code": "REMOTE_UNREACHABLE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0007",
-      "statement": "A declaration's `url` can be fetched and has its `commit`"
+      "source": "0007, tidy-up",
+      "statement": "Every commit the stack reads from a remote (a declaration's `url`, or the URL `.gitmodules` gives for a submodule that a path crosses at a commit) can be fetched from it, or was kept from an earlier fetch"
     },
     {
       "code": "DECLARED_ANALYSIS_INVALID",
@@ -471,15 +471,15 @@
       "code": "MISSING_INPUT_FILE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0006",
-      "statement": "An input's `path` names a file, or something the validator recognises as standing in for one (§5)"
+      "source": "0006, §3",
+      "statement": "An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5)"
     },
     {
       "code": "INPUT_NOT_TRACKED",
       "layer": "validator",
       "level": "MUST",
-      "source": "0006",
-      "statement": "An input's file, or what stands in for it, is tracked in git"
+      "source": "0006, §3",
+      "statement": "An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink"
     },
     {
       "code": "INPUT_IN_ANOTHER_ANALYSIS",

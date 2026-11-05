@@ -84,22 +84,22 @@ Rules are enforced in five layers, set apart by what each one sees:
 |---|---|---|
 | **parse** | a YAML 1.2 loader under the core schema, plus §3's checks (`astra.yaml`), or a strict JSON parser (records, §3) | one file's bytes |
 | **schema** | the generated JSON Schema | one file's data |
-| **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git; no results |
-| **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git; records and results |
+| **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git (§3); no results |
+| **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git (§3); records and results |
 | **runner** | whatever runs recipes | its own actions |
 
 Four roles conform to this specification:
 
 - A **document**, an `astra.yaml` or a record, conforms when it breaks no
   parse or schema rule.
-- A **validator** reads an analysis, every `astra.yaml` of its stack and git,
-  and reports every parse, schema and validator rule the analysis breaks,
-  except where §9's *What is checked* leaves one unchecked. An analysis is
-  valid when it breaks none of their `MUST`s.
-- A **checker** reads an analysis, every `astra.yaml` of its stack and git,
-  and its records and results, and gives each planned result its statuses by
-  the check rules (§8). A record that breaks a parse or schema rule leaves its
-  result `missing` ([`INVALID_RECORD`](#check)).
+- A **validator** reads an analysis, every `astra.yaml` of its stack and git
+  (§3), and reports every parse, schema and validator rule the analysis
+  breaks, except where §9's *What is checked* leaves one unchecked. An
+  analysis is valid when it breaks none of their `MUST`s.
+- A **checker** reads an analysis, every `astra.yaml` of its stack and git
+  (§3), and its records and results, and gives each planned result its
+  statuses by the check rules (§8). A record that breaks a parse or schema
+  rule leaves its result `missing` ([`INVALID_RECORD`](#check)).
 - A **runner** runs recipes and writes each result's bytes and record. It
   conforms when it keeps the runner rules.
 
@@ -172,9 +172,9 @@ to the folder of the `astra.yaml` and separate folders with `/` (§5, §7).
 **Paths.** A path in an analysis is written as git writes a path in a commit,
 the same on every machine, and so is each place §8 builds from its ids and
 formats; a tool on Windows maps them onto its own paths, as git does. A path
-names the entry git holds at exactly that path, byte for byte, so case and
-Unicode form count: a match that ignores either names nothing
-([`MISSING_INPUT_FILE`](#validator),
+names the entry git holds at exactly that path, byte for byte, read as
+**Reading git** says (below), so case and Unicode form count: a match that
+ignores either names nothing ([`MISSING_INPUT_FILE`](#validator),
 [`MISSING_DECLARED_ANALYSIS`](#validator)). Two paths that differ only in case
 or Unicode form, such as `data/A.csv` and `data/a.csv`, name two files or
 folders, as in git, so `Stage` and `stage` declare two analyses (§7). An
@@ -184,6 +184,56 @@ folder `C:`, not on a drive, and a name Windows reserves, such as `con` or
 valid. No ASTRA rule bounds the length of an id, a format or a path: a path
 git can't check out on a machine, such as one holding a name longer than its
 file system allows (255 bytes on ext4), can't be used there.
+
+**Reading git.** An analysis is read in the working tree or at a commit
+(§7), and validators and checkers read git one way:
+
+- A path is joined to the folder of the `astra.yaml` that writes it, and its
+  `..` segments are removed as text, never through the file system:
+  `stage/../data` is `data`, whatever `stage` is on disk.
+- In the working tree, a path names an entry on disk below the top of the
+  root's working tree, tracked, untracked or ignored, except an entry named
+  `.git` and everything below it. At a commit, a path names an entry of that
+  commit's tree.
+- A symlink is an entry, and is never followed: at a path, it is neither a
+  file nor a directory, and a path through a symlinked folder names nothing.
+  So a declaration finds no analysis where its path, or its `astra.yaml`, is
+  a symlink or goes through one ([`MISSING_DECLARED_ANALYSIS`](#validator)).
+  An input's path at or through a symlink names a file only where the
+  validator recognises the symlink as standing in for one (§5), and
+  otherwise names none ([`MISSING_INPUT_FILE`](#validator)).
+- A submodule that is checked out is in the working tree, and its entries
+  are read in its own repository. A submodule that isn't checked out is an
+  empty folder, and nothing is fetched for it.
+- At a commit, a path that looks for a file or an analysis goes on through a
+  gitlink into the submodule, at the commit the gitlink pins. Whether an
+  input is tracked never crosses a gitlink.
+- The repository that holds a file is the innermost one: for a file in a
+  submodule, the submodule's own. [`COMMIT_NOT_FOUND`](#validator) and
+  [`COMMIT_NOT_ANCESTOR`](#validator) read the repository that holds the
+  declaring `astra.yaml`, where, in the working tree, HEAD stands for the
+  commit a declaration is in, and during a merge so does MERGE_HEAD (§7).
+  [`INPUT_NOT_TRACKED`](#validator) reads the repository that holds the
+  input's analysis, where a file is tracked when, in the working tree, it is
+  in the index or, at a commit, in that commit's tree, reached through no
+  gitlink. So a staged input is tracked, and an untracked or ignored one
+  isn't, nor is one in a plain data submodule. An intent-to-add entry
+  (`git add -N`) isn't tracked, since a commit made now wouldn't hold it; an
+  unmerged entry during a merge is, since it is in the index.
+- The commit a gitlink pins is got from any repository that has it: the
+  submodule's local repository, or a copy kept from an earlier fetch.
+  Otherwise it is fetched from the URL that `.gitmodules` gives for the
+  submodule: the entry whose `path` is the gitlink's, in the `.gitmodules`
+  blob of the commit that holds the gitlink, never `.git/config`. A relative
+  URL (`../lib.git`) is resolved against the URL that commit was got from:
+  the declaration's `url` for an analysis read from a remote and, in the
+  local repository, the superproject's default remote, as `git submodule`
+  resolves it. A pinned commit that can't be got is unreachable
+  ([`REMOTE_UNREACHABLE`](#validator), §7).
+- At a commit, a file is the blob git stores, byte for byte, with no filter,
+  `.gitattributes` conversion or end-of-line change, whatever the reader's
+  git configuration. So an `astra.yaml` at a commit is parsed from its blob.
+  In the working tree, it is parsed from the file on disk.
 
 **`astra.yaml`** is YAML 1.2 ([YAML](https://yaml.org/spec/1.2.2/)), read
 strictly, under the core schema only
@@ -500,11 +550,11 @@ and finding them.
 
 ### Inputs
 
-An [Input](elements/Input.md) is a file committed with the analysis, named by
-its `path`, relative to the folder of the `astra.yaml` (§3). The path doesn't
-start with `/` or `~`, separates folders with `/` (never `\`), has no `..`
-segment and no ASCII control character (U+0000–U+001F, U+007F), and doesn't
-end in `/` ([`INVALID_PATH`](#parse-and-schema)).
+An [Input](elements/Input.md) is a file tracked in git with the analysis,
+named by its `path`, relative to the folder of the `astra.yaml` (§3). The
+path doesn't start with `/` or `~`, separates folders with `/` (never `\`),
+has no `..` segment and no ASCII control character (U+0000–U+001F, U+007F),
+and doesn't end in `/` ([`INVALID_PATH`](#parse-and-schema)).
 
 - It names one file ([`MISSING_INPUT_FILE`](#validator)). Data in many files
   is many inputs.
@@ -512,24 +562,28 @@ end in `/` ([`INVALID_PATH`](#parse-and-schema)).
   within it, a directory with an `astra.yaml` of its own
   ([`INPUT_IN_ANOTHER_ANALYSIS`](#validator)). Another analysis reads it by
   address (`iris.data`), not by a path.
-- The path names the file itself, or something the tooling recognises as
-  standing in for it ([`MISSING_INPUT_FILE`](#validator)). The file, or what
-  stands in for it, is tracked in git ([`INPUT_NOT_TRACKED`](#validator)).
-  Which stand-ins a tool recognises, and where it looks for them, is the
-  tool's: the specification names none, and two tools may judge the same
-  input differently. How a file's bytes are stored and got is the runner's,
-  and every record names its runner (§8). Something standing in for the
-  content isn't the content.
+- The path names the file itself (not a symlink, §3), or something the
+  tooling recognises as standing in for it
+  ([`MISSING_INPUT_FILE`](#validator)). The file, or what stands in for it,
+  is tracked in git ([`INPUT_NOT_TRACKED`](#validator)), in the repository
+  that holds the analysis (§3). Which stand-ins a tool recognises, and where
+  it looks for them, is the tool's: the specification names none, and two
+  tools may judge the same input differently. How a file's bytes are stored
+  and got is the runner's, and every record names its runner (§8).
+  Something standing in for the content isn't the content.
 
 `astra.yaml` holds no hash of an input. The record of each result that reads
 the input holds the hash of what it read (§8), so a change to the file makes
 those results stale.
 
-Data that isn't committed with the analysis, such as a download, a loader's
-output or a query's answer, comes in through an output whose recipe gets it.
-That output is built once, or per universe when it depends on a decision
-such as which data release to use, and its record holds the hash of what came
-back.
+Data that isn't tracked in git with the analysis, such as a download, a
+loader's output or a query's answer, comes in through an output whose recipe
+gets it. That output is built once, or per universe when it depends on a
+decision such as which data release to use, and its record holds the hash of
+what came back. Data kept in another repository, a git submodule say, isn't
+tracked in git with the analysis either (§3), so it isn't an input. It
+belongs in the analysis's own repository or in another analysis, as that
+analysis's input, or comes in through an output whose recipe gets it.
 
 ### Outputs
 
@@ -860,9 +914,10 @@ It stays inside the declaring analysis's repository
 the root's working tree, submodules included; read at a commit, the
 repository that holds that commit. The directory it names holds an
 `astra.yaml` ([`MISSING_DECLARED_ANALYSIS`](#validator)). A declared
-analysis can be a git submodule. A submodule that declares something outside
-its own repository, such as its parent with `..`, can be validated and built
-only from a root whose repository holds what it declares.
+analysis can be a git submodule, read as §3 says. A submodule that declares
+something outside its own repository, such as its parent with `..`, can be
+validated and built only from a root whose repository holds what it
+declares.
 
 **`url`** is a remote that git fetches another repository from, in one of
 git's two forms: `scheme://…` (`https://github.com/owner/analysis`,
@@ -890,16 +945,16 @@ declaration with a `commit` declares an analysis from a commit (below).
 **Identity.** A declaration names a directory, read at a commit or in the
 working tree. With a `url`, it is the top level of that repository; with a
 `path`, it is the `path` resolved against the folder of the declaring
-`astra.yaml`. It is read at the declaration's `commit` or, without one, as
-the declaring analysis is read. The root, and every analysis reached from it
-by `path` alone, is read in the working tree. The directory is a path from
-the top of the repository that holds the commit it is read at or, read in the
-working tree, from the top of the root's working tree. Two declarations name
-the same analysis when their directories are the same path, compared as git
-compares paths (§3), read at the same commit or both in the working tree. A
-URL says only where to get the commit, so a fork or a mirror with the same
-commit gives the same analysis. *Another analysis*, everywhere in this
-specification, is one with a different identity.
+`astra.yaml`, as **Reading git** in §3 says. It is read at the declaration's
+`commit` or, without one, as the declaring analysis is read. The root, and
+every analysis reached from it by `path` alone, is read in the working tree.
+The directory is a path from the top of the repository that holds the commit
+it is read at or, read in the working tree, from the top of the root's working
+tree. Two declarations name the same analysis when their directories are the
+same path, compared as git compares paths (§3), read at the same commit or
+both in the working tree. A URL says only where to get the commit, so a fork
+or a mirror with the same commit gives the same analysis. *Another analysis*,
+everywhere in this specification, is one with a different identity.
 
 One analysis, whichever analysis declares it and by whatever id, is read
 once, and each of its results is made at most once, however many
@@ -1080,19 +1135,23 @@ What is built in a driver's universes belongs to the driver (§8).
 A declaration with a `commit` names an **analysis from a commit**: the
 declared analysis as it was at that commit. With a `url`, it is the analysis
 at the top level of that repository at the commit. With a `path`, it is the
-analysis at that path at the commit, which the repository has
-([`COMMIT_NOT_FOUND`](#validator)) and which should be an ancestor of the
-commit the declaration is in ([`COMMIT_NOT_ANCESTOR`](#validator)). It is
-read from the local repository or, when the declaring analysis is itself read
-from a remote, from that remote. Every rule of this specification applies to
-an analysis from a commit as it is, with its files read at its commit.
+analysis at that path at the commit, which the declaring analysis's
+repository has ([`COMMIT_NOT_FOUND`](#validator)) and which should be an
+ancestor of the commit the declaration is in or, for a declaration read in
+the working tree, of HEAD or, during a merge, MERGE_HEAD
+([`COMMIT_NOT_ANCESTOR`](#validator)). It is read from the local repository
+or, when the declaring analysis is itself read from a remote, from that
+remote, and each submodule it reaches through a gitlink as §3 says. Every
+rule of this specification applies to an analysis from a commit as it is,
+with its files read at its commit.
 
 **Identity.** An analysis from a commit is its directory at its commit,
 whatever URL it is got from, as **Identity** under Declarations says (above).
 
 **What is read.** An analysis from a commit is read from git at its commit,
-and git checks everything read against the commit id. None of its code runs,
-and no checkout is needed. Only these are read:
+each file as the blob git stores (§3), and git checks everything read against
+the commit id. None of its code runs, and no checkout is needed. Only these
+are read:
 
 - the `astra.yaml` of the declared analysis and of every analysis it
   declares;
@@ -1102,7 +1161,9 @@ and no checkout is needed. Only these are read:
   was made from;
 - which files there are at a commit, and which differ between two commits,
   without their contents;
-- the bytes of each result or input file that a recipe reads.
+- the bytes of each result or input file that a recipe reads;
+- the `.gitmodules` of each commit whose gitlink a path crosses, and the
+  submodule at the commit the gitlink pins (§3).
 
 Where a tool keeps what it read is the tool's choice, and validators,
 checkers and runners can work offline from what they kept. None of it is
@@ -1133,12 +1194,13 @@ analysis is an error in the declaring one
 recorded and unchanged is the checker's to tell (§8).
 
 **Results.** A result of an analysis from a commit is read through its record
-at the declared commit, in the analysis the result belongs to (§8), in that
-analysis's repository. If the declared analysis itself declares an analysis
-from a commit, that analysis's records are read in its own repository, at the
-commit named for it. A result can be read only once its record is
-committed, so the declaration names a commit that holds the records, `B`,
-later than the commit their recipes ran from, `A`, which the records name.
+at the declared commit, in the analysis the result belongs to (§8), in the
+repository that holds that analysis at the commit it is read at (§3). If the
+declared analysis itself declares an analysis from a commit, that analysis's
+records are read in its own repository, at the commit named for it. A result
+can be read only once its record is committed, so the declaration names a
+commit that holds the records, `B`, later than the commit their recipes ran
+from, `A`, which the records name.
 The result is unchanged if nothing that [`STALE_RESULT`](#check) compares
 changed between `A` and `B`, and the results it was made from are unchanged
 too. Their content hashes are taken from their records, without their
@@ -1146,8 +1208,9 @@ bytes. When a recipe reads the result, the runner gets its bytes from what
 the declared commit holds at the result's default place, or through
 something there it recognises as standing in for them (§5), and they are
 checked against the record. An input of the declared analysis read by
-address is got from its `path` at the declared commit, or through what the
-runner recognises as standing in for it (§5).
+address is got from its `path` at the declared commit, in the repository
+that holds the declared analysis (§3), or through what the runner recognises
+as standing in for it (§5).
 
 **Driving.** A driver's universes can drive an analysis from a commit, as any
 declared analysis. Its recipes then run on exactly its files at the declared
@@ -1575,13 +1638,13 @@ A table that breaks any of this is an error in this specification, and no
 | `UNDECLARED_TEMPLATE_REF` | MUST | Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
 | `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | tidy-up, §4 |
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the declaring analysis's repository | 0004, 0007 §1 |
-| `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` | 0004, 0007 |
-| `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit` names a commit the repository has | 0007 |
-| `COMMIT_NOT_ANCESTOR` | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in | 0007 |
-| `REMOTE_UNREACHABLE` | MUST | A declaration's `url` can be fetched and has its `commit` | 0007 |
+| `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` file, with no symlink on the way (§3) | 0004, 0007, §3 |
+| `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit`, read from the local repository, names a commit the declaring analysis's repository has | 0007, §3 |
+| `COMMIT_NOT_ANCESTOR` | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD or (during a merge) MERGE_HEAD of the repository that holds the declaring file | 0007, §3 |
+| `REMOTE_UNREACHABLE` | MUST | Every commit the stack reads from a remote (a declaration's `url`, or the URL `.gitmodules` gives for a submodule that a path crosses at a commit) can be fetched from it, or was kept from an earlier fetch | 0007, tidy-up |
 | `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit | 0007 |
-| `MISSING_INPUT_FILE` | MUST | An input's `path` names a file, or something the validator recognises as standing in for one (§5) | 0006 |
-| `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it, is tracked in git | 0006 |
+| `MISSING_INPUT_FILE` | MUST | An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5) | 0006, §3 |
+| `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink | 0006, §3 |
 | `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own) | 0006 |
 | `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis | 0003 |
 | `DERIVED_FROM_CYCLE` | MUST | No universe's chain of `derived_from` loops | 0003 |

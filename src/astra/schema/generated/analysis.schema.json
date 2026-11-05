@@ -251,7 +251,7 @@
     },
     "Input__identifier_optional": {
       "additionalProperties": false,
-      "description": "A file the analysis reads, committed with it and named by its path.",
+      "description": "A file the analysis reads, tracked in git with it and named by its path.",
       "properties": {
         "description": {
           "description": "What the input's data is, in free prose.",
