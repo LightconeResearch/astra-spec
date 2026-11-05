@@ -1536,10 +1536,11 @@ is rebuilt. How a checker finds this out is the tooling's choice.
 A checker gives every planned result two statuses ([check](#check)): one for
 its record, `unchanged`, `stale`, or `missing` when it has no valid record
 where its address says; and one for its bytes, `present` when the bytes at
-its default place have its record's hash and size, `absent` otherwise. Since
-the bytes can be kept elsewhere, `absent` is not an error. A tool may report
-more about bytes that are `absent`, such as other bytes at the default place,
-but their status is `absent`.
+its default place have its record's hash and size, `absent` otherwise. A
+result of an analysis from a commit that no recipe reads gets only the first
+(below). Since the bytes can be kept elsewhere, `absent` is not an error. A
+tool may report more about bytes that are `absent`, such as other bytes at
+the default place, but their status is `absent`.
 
 A result with two names gets its statuses at each place. A checker reads
 records only through planned results: a record at no planned result's place
@@ -1823,7 +1824,8 @@ the schema error (§10).
 
 **Statuses.** A checker gives every planned result two statuses, one for its
 record (`unchanged`, `stale` or `missing`) and one for its bytes (`present`
-or `absent`). Evidence citing a result gets that result's first status. A
+or `absent`). A result of an analysis from a commit that no recipe reads has
+only the first. Evidence citing a result gets that result's first status. A
 result with two names has its statuses at each place. Evidence citing an
 output built per universe without a pin gets the worst first status of that
 output's results (`missing`, then `stale`), and `missing` when there are
