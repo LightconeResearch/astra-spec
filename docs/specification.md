@@ -478,11 +478,13 @@ unique within their map because keys are
 ([`DUPLICATE_KEY`](#parse-and-schema)), and the order of a map carries no
 meaning. A map's entries are objects, except those of `Universe.decisions`,
 each of which is the id of the option selected (`model: svm`)
-([`WRONG_TYPE`](#parse-and-schema)). Lists hold only what is a list: an
-insight's `evidence`, a record's `inputs`, and lists of strings. No list of
-strings holds the same entry twice ([`DUPLICATE_ENTRY`](#parse-and-schema)),
-nor two spellings of one entry ([`DUPLICATE_ELEMENT`](#validator)), so an
-output lists each of its inputs, decisions and conditions once.
+([`WRONG_TYPE`](#parse-and-schema)). A list where a map is expected, as in
+`outputs: [f1_score]`, is [`WRONG_TYPE`](#parse-and-schema) too. Lists hold
+only what is a list: an insight's `evidence`, a record's `inputs`, and lists
+of strings. No list of strings holds the same entry twice
+([`DUPLICATE_ENTRY`](#parse-and-schema)), nor two spellings of one entry
+([`DUPLICATE_ELEMENT`](#validator)), so an output lists each of its inputs,
+decisions and conditions once.
 
 Every id has the one grammar `id`, and no id is reserved (not even a name
 Windows reserves, §3): an address's kind comes from the field it is written
@@ -580,8 +582,8 @@ and doesn't end in `/` ([`INVALID_PATH`](#parse-and-schema)).
 
 - It names one file ([`MISSING_INPUT_FILE`](#validator)). Data in many files
   is many inputs.
-- The file is inside the analysis's directory and outside every analysis
-  within it, a directory with an `astra.yaml` of its own
+- The file is inside the analysis's directory and outside every directory
+  below it that holds an `astra.yaml` of its own
   ([`INPUT_IN_ANOTHER_ANALYSIS`](#validator)). Another analysis reads it by
   address (`iris.data`), not by a path.
 - The file is outside the places that belong to runners: the path is not,
@@ -1751,11 +1753,13 @@ text to read:
   Its Code is one code span holding a capital letter, then capitals, digits
   and underscores (`[A-Z][A-Z0-9_]*`), and no other row has it. Its Layer is
   `parse` or `schema`, and its Level `MUST`, `SHOULD` or, in the runner table
-  only, `MAY`. Its Rule uses no RFC 2119 keyword in capitals of another
-  level, in its text, in a code span, or as the Rule cell reads once rendered
-  (`MU*ST*` reads as `MUST`). Its Source is plain text: tokens separated by a
-  comma and a space, each an RFC number with an optional `§n`, `tidy-up`,
-  `main`, `#n` or `§n`.
+  only, `MAY`. Its Rule is one sentence: as the cell reads once rendered,
+  outside its code spans, no `.`, `?` or `!` is followed by white space,
+  even after a closing bracket or quote. Its Rule uses no RFC 2119 keyword in
+  capitals of another level, in its text, in a code span, or as the Rule cell
+  reads once rendered (`MU*ST*` reads as `MUST`). Its Source is plain text:
+  tokens separated by a comma and a space, each an RFC number with an
+  optional `§n`, `tidy-up`, `main`, `#n` or `§n`.
 - **Cells** are inline Markdown, as CommonMark with GFM tables reads them,
   and the published page shows each cell as the same text. They hold only
   text, code spans, emphasis, links and inline HTML.
@@ -1772,19 +1776,19 @@ A table that breaks any of this is an error in this specification, and no
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
 | `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is UTF-8 and a well-formed YAML 1.2 stream of at most one document under the core schema, with no `%YAML` directive other than 1.2, no anchor or alias and no tag but the core schema's; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark | 0005, tidy-up, §3 |
-| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.) | 0003, 0004, tidy-up, §3, §4 |
+| `DUPLICATE_KEY` | parse | MUST | Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read | 0003, 0004, tidy-up, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key is a string, and matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
-| `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition matches its grammar | 0003, 0004 |
+| `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar | 0003, 0004 |
 | `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main |
 | `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | tidy-up, §10 |
 | `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry | 0004, main |
 | `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |
 | `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` | 0007 |
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007, tidy-up |
-| `INVALID_PATH` | schema | MUST | A declaration's `path` is relative (no leading `/` or `~`), `/`-separated, with no backslash and no ASCII control character. An input's `path` is the same, and also has no `..` segment and doesn't end in `/` | 0004, 0006, tidy-up |
+| `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` starts with neither `/` nor `~` and holds no backslash and no ASCII control character, and an input's `path` also has no `..` segment and doesn't end in `/` | 0004, 0006, tidy-up |
 | `BLANK_EXCLUDED` | schema | MUST | An option's `excluded` reason is not blank | tidy-up |
 | `INVALID_EVIDENCE_SOURCE` | schema | MUST | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
-| `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails) | tidy-up, §4, §10 |
+| `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, a number, an integer, a list or a map | tidy-up, §4, §10 |
 | `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | tidy-up, §4 |
 | `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, tidy-up, main, #73 |
 
@@ -1794,7 +1798,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 
 | Code | Level | Rule | Source |
 |---|---|---|---|
-| `UNSUPPORTED_SPEC_VERSION` | MUST | Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of (the file is then validated against the schema of its minor version, by the schema layer) | 0007 §6, §1 |
+| `UNSUPPORTED_SPEC_VERSION` | MUST | Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of | 0007 §6, §1 |
 | `UNRESOLVED_ADDRESS` | MUST | Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact` | 0004 |
 | `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003, 0004 |
 | `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | main |
@@ -1809,7 +1813,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit, `REMOTE_UNREACHABLE` aside | 0007, §7 |
 | `MISSING_INPUT_FILE` | MUST | An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5) | 0006, §3 |
 | `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink | 0006, §3 |
-| `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own) | 0006 |
+| `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` of its own | 0006 |
 | `RESERVED_PATH` | MUST | No input's `path` and no declaration's `path`, with `.`, `..` and repeated `/` resolved, is or lies in the `results/` or `.astra/` of an analysis of the stack | tidy-up, §3 |
 | `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis | 0003 |
 | `DERIVED_FROM_CYCLE` | MUST | No universe's chain of `derived_from` loops | 0003 |
@@ -1891,7 +1895,7 @@ status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
 | `UNCOMMITTED_CHANGES` | MUST | A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones, and what a tool keeps of, or puts in place to drive, an analysis from a commit | 0005 §3, 0007 §2, 0007 §7 |
 | `WRONG_WORKING_DIRECTORY` | MUST | A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it | 0004 §1, 0004 §5 |
 | `NOT_AT_COMMIT` | MUST | A runner drives an analysis from a commit on exactly its files at that commit | 0007 §7 |
-| `REBUILT_FROM_COMMIT` | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each such result through its record at the commit that analysis is read at | 0007 §3, 0007 §7 |
+| `REBUILT_FROM_COMMIT` | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each of those results through its record at the commit that analysis is read at | 0007 §3, 0007 §7 |
 | `STALE_INPUT` | MUST | A runner builds no output that reads a result belonging to an analysis from a commit, or to an analysis reached from it through declarations, while that result is `missing` or `stale`, or its bytes can't be got or aren't the recorded ones | 0007 §4, 0007 §5 |
 | `UNDECLARED_READ` | SHOULD | A recipe reads the files inputs name, and other outputs' results, only through its output's inputs | 0005 §3, tidy-up |
 

@@ -283,7 +283,7 @@
       "layer": "parse",
       "level": "MUST",
       "source": "0003, 0004, tidy-up, §3, §4",
-      "statement": "Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read. (This makes the ids of inputs, outputs, decisions, options, insights, universes and declarations unique.)"
+      "statement": "Every key of a map is distinct: no two are equal YAML nodes, with the same tag and canonical form; and every name of a record's object is distinct once its escapes are read"
     },
     {
       "code": "INVALID_ID",
@@ -297,7 +297,7 @@
       "layer": "schema",
       "level": "MUST",
       "source": "0003, 0004",
-      "statement": "Every address, reference, option reference and condition matches its grammar"
+      "statement": "Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar"
     },
     {
       "code": "MISSING_FIELD",
@@ -346,7 +346,7 @@
       "layer": "schema",
       "level": "MUST",
       "source": "0004, 0006, tidy-up",
-      "statement": "A declaration's `path` is relative (no leading `/` or `~`), `/`-separated, with no backslash and no ASCII control character. An input's `path` is the same, and also has no `..` segment and doesn't end in `/`"
+      "statement": "Every declaration's and input's `path` starts with neither `/` nor `~` and holds no backslash and no ASCII control character, and an input's `path` also has no `..` segment and doesn't end in `/`"
     },
     {
       "code": "BLANK_EXCLUDED",
@@ -367,7 +367,7 @@
       "layer": "schema",
       "level": "MUST",
       "source": "tidy-up, §4, §10",
-      "statement": "Every value has the JSON type its field takes: a string, an integer, a list or a map (so `excluded: true`, or a list where a map is expected, fails)"
+      "statement": "Every value has the JSON type its field takes: a string, a number, an integer, a list or a map"
     },
     {
       "code": "DUPLICATE_ENTRY",
@@ -388,7 +388,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0007 §6, §1",
-      "statement": "Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of (the file is then validated against the schema of its minor version, by the schema layer)"
+      "statement": "Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of"
     },
     {
       "code": "UNRESOLVED_ADDRESS",
@@ -493,7 +493,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0006",
-      "statement": "An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own)"
+      "statement": "An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` of its own"
     },
     {
       "code": "RESERVED_PATH",
@@ -745,7 +745,7 @@
       "layer": "runner",
       "level": "MUST",
       "source": "0007 §3, 0007 §7",
-      "statement": "A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each such result through its record at the commit that analysis is read at"
+      "statement": "A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each of those results through its record at the commit that analysis is read at"
     },
     {
       "code": "STALE_INPUT",

@@ -297,6 +297,21 @@ MALFORMED = {
             "a zero-width space": "MU\u200bST",
         }.items()
     },
+    "two sentences in a rule": (
+        "No reference to an output built once has a pin",
+        "No reference to an output built once has a pin. A pin is redundant there",
+        r"LOOSE_PIN.*more than one sentence",
+    ),
+    "two sentences in a rule, after a closing bracket": (
+        "Every planned result has a record |",
+        "Every planned result has a record (§8.) It is valid |",
+        r"NO_RECORD.*more than one sentence",
+    ),
+    "two sentences in a rule, the mark in emphasis": (
+        "A runner runs each recipe in a sandbox",
+        "A runner runs each recipe in a *sandbox.* It may",
+        r"NO_SANDBOX.*more than one sentence",
+    ),
     "escape lost when written back": (
         "No reference to an output built once has a pin",
         r"No reference to an \*output\* built once has a pin",
@@ -369,6 +384,14 @@ def test_keywords_that_agree_with_the_level_are_allowed():
     )
     statements = [rule["statement"] for rule in extract_rules(text)]
     assert "A runner MAY run each recipe in a sandbox" in statements
+
+
+def test_a_mark_that_ends_no_sentence_is_allowed():
+    """A `.` in a code span, against one, inside a number or ending the cell leaves the rule one sentence."""
+    rule = "Every `{inputs.<entry>}` names an entry of `a. b`, written in.`x` with 0.5 cores."
+    text = VALID.replace("Every planned result has a record", rule)
+    (found,) = [r for r in extract_rules(text) if r["code"] == "NO_RECORD"]
+    assert found["statement"] == rule
 
 
 def test_every_form_of_source_token_is_allowed():

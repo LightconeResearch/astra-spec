@@ -8,11 +8,13 @@
   one out of their order; a rule table outside them, or a subsection without exactly one; a missing, unknown or
   repeated column; a row that doesn't write one cell per column (counted on its source line, blockquote markers
   aside); an empty cell; a Code cell that isn't one code span holding a code, or a code already used; an unknown layer
-  or level, or a ``MAY`` row outside the runner table; a rule whose RFC 2119 keyword contradicts its level, in its
-  text, in a code span or as the cell reads once rendered; a Source cell that isn't plain text, or holds a token other
-  than an RFC number with an optional ``§n``, ``tidy-up``, ``main``, ``#n`` or ``§n``, the tokens separated by ``, ``;
-  a cell holding anything but text, code spans, emphasis, links and inline HTML; or a cell whose Markdown can't be
-  rebuilt from its tokens, is an error. Cells are read as CommonMark with GFM tables, as §9 says.
+  or level, or a ``MAY`` row outside the runner table; a rule of more than one sentence (as the cell reads once
+  rendered, outside its code spans, a ``.``, ``?`` or ``!`` followed by white space, even after a closing bracket or
+  quote); a rule whose RFC 2119 keyword contradicts its level, in its text, in a code span or as the cell reads once
+  rendered; a Source cell that isn't plain text, or holds a token other than an RFC number with an optional ``§n``,
+  ``tidy-up``, ``main``, ``#n`` or ``§n``, the tokens separated by ``, ``; a cell holding anything but text, code
+  spans, emphasis, links and inline HTML; or a cell whose Markdown can't be rebuilt from its tokens, is an error. Cells
+  are read as CommonMark with GFM tables, as §9 says.
 - ``errors``: for each keyword of the generated JSON Schemas whose error can make the instance fail, its absolute
   keyword location (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it
   enforces. The code comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type
@@ -75,6 +77,12 @@ KEYWORDS = {
     "OPTIONAL": "MAY",
 }
 """The RFC 2119 keywords, in capitals, with the level each states (`NOT` changes none)."""
+
+SENTENCE_ENDS = {".", "?", "!"}
+"""The marks that end a sentence: a Rule cell has none followed by white space, since a rule is one sentence."""
+
+CLOSERS = {")", "]", '"', "'", "\u2019", "\u201d"}
+"""The closing brackets and quotes that may stand between the end of a sentence and the white space after it."""
 
 ANNOTATION = "rule"
 """The LinkML annotation that names the code of the constraint it is on."""
@@ -260,6 +268,30 @@ def _keywords(text: str) -> list[str]:
     return [word for word in words if word in KEYWORDS]
 
 
+def _sentence_break(tokens: list[Token]) -> bool:
+    """Whether inline tokens hold a sentence break: as they render, outside code spans, a `.`, `?` or `!`, with any
+    closing brackets or quotes after it, followed by white space.
+
+    Each code span stands as one letter, so a mark inside one (`` `{inputs.<entry>}` ``), or one written against one
+    (``a.`b` ``), is no break. Inline HTML is left out and format characters are dropped, as `_rendered` and
+    `_keywords` do.
+    """
+    text = "".join(
+        t.content if t.type == "text" else "x"
+        for t in tokens
+        if t.type in ("text", "code_inline")
+    )
+    shown = "".join(c for c in text if unicodedata.category(c) != "Cf")
+    for i, c in enumerate(shown):
+        if c in SENTENCE_ENDS:
+            after = i + 1
+            while after < len(shown) and shown[after] in CLOSERS:
+                after += 1
+            if after < len(shown) and shown[after].isspace():
+                return True
+    return False
+
+
 def _sections(tokens: list[Token]) -> list[tuple[str, int, list[list[Token]]]]:
     """`(heading, line, tables)` for each `###` subsection of §9, each table as its tokens."""
     starts = [
@@ -420,6 +452,10 @@ def extract_rules(markdown: str) -> list[dict]:
                     f"a MAY row is allowed only in the {MAY_TABLE} table"
                 )
             statement = cell["Rule"].children or []
+            if _sentence_break(statement):
+                raise row.error(
+                    "its Rule cell has more than one sentence, but a rule is one sentence"
+                )
             for keyword in _keywords(_text(statement)) + _keywords(
                 _rendered(statement)
             ):
