@@ -443,8 +443,8 @@
       "code": "COMMIT_NOT_FOUND",
       "layer": "validator",
       "level": "MUST",
-      "source": "0007, §3",
-      "statement": "A declaration with a `path` and a `commit`, read from the local repository, names a commit the declaring analysis's repository has"
+      "source": "0007, §3, §7",
+      "statement": "A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit the declaring analysis's repository has"
     },
     {
       "code": "COMMIT_NOT_ANCESTOR",
@@ -457,15 +457,15 @@
       "code": "REMOTE_UNREACHABLE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0007, tidy-up",
-      "statement": "Every commit the stack reads from a remote (a declaration's `url`, or the URL `.gitmodules` gives for a submodule that a path crosses at a commit) can be fetched from it, or was kept from an earlier fetch"
+      "source": "0007 §6, tidy-up, §3, §7",
+      "statement": "Every commit the stack gets from a remote, through a `url`, a file read from a remote or a gitlink crossed at a commit, can be fetched from that remote or was kept from an earlier fetch"
     },
     {
       "code": "DECLARED_ANALYSIS_INVALID",
       "layer": "validator",
       "level": "MUST",
-      "source": "0007",
-      "statement": "An analysis from a commit, with everything it declares, is valid at that commit"
+      "source": "0007, §7",
+      "statement": "An analysis from a commit, with everything it declares, is valid at that commit, `REMOTE_UNREACHABLE` aside"
     },
     {
       "code": "MISSING_INPUT_FILE",

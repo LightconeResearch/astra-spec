@@ -1136,7 +1136,8 @@ A declaration with a `commit` names an **analysis from a commit**: the
 declared analysis as it was at that commit. With a `url`, it is the analysis
 at the top level of that repository at the commit. With a `path`, it is the
 analysis at that path at the commit, which the declaring analysis's
-repository has ([`COMMIT_NOT_FOUND`](#validator)) and which should be an
+repository has ([`COMMIT_NOT_FOUND`](#validator) or, in a file read from a
+remote, [`REMOTE_UNREACHABLE`](#validator)) and which should be an
 ancestor of the commit the declaration is in or, for a declaration read in
 the working tree, of HEAD or, during a merge, MERGE_HEAD
 ([`COMMIT_NOT_ANCESTOR`](#validator)). It is read from the local repository
@@ -1166,23 +1167,38 @@ are read:
   submodule at the commit the gitlink pins (§3).
 
 Where a tool keeps what it read is the tool's choice, and validators,
-checkers and runners can work offline from what they kept. None of it is
-part of the declaring analysis's code, and none of it is a change to the
-declaring analysis's repository that stops a runner from running
-([`UNCOMMITTED_CHANGES`](#runner)).
+checkers and runners can work offline from what they kept: a commit kept
+from an earlier fetch counts as got ([`REMOTE_UNREACHABLE`](#validator)).
+None of it is part of the declaring analysis's code, and none of it is a
+change to the declaring analysis's repository that stops a runner from
+running ([`UNCOMMITTED_CHANGES`](#runner)).
 
 **Validity.** The declared analysis, with everything it declares, is valid
 at its commit ([`DECLARED_ANALYSIS_INVALID`](#validator)), each `astra.yaml`
 read by the `spec_version` it states. A rule broken inside an analysis from a
 commit is reported twice: `DECLARED_ANALYSIS_INVALID` on the declaration, in
 the file the author can edit, and the rule's own code at its place in the
-commit's file, which says why. A commit's files never change, so
-neither does the answer, and a validator can remember it for a commit it has
-validated. A published analysis SHOULD declare only remotes its readers can
-fetch. That isn't a `MUST`, since a remote can be private while the analysis
-is being worked on, but a remote that can't be fetched, or doesn't have the
-commit, is an error in the declaring analysis
-([`REMOTE_UNREACHABLE`](#validator)).
+commit's file, which says why. Getting a commit from a remote is checked
+apart from that validity ([`REMOTE_UNREACHABLE`](#validator)). A commit is
+got from a remote when it is a declaration's `url` and `commit`, a `path`
+and `commit` declared in a file read from a remote, or the commit a gitlink
+pins, crossed at a commit (§3). The remote is the `url`, the remote the file
+was read from, or the submodule's URL (§3). Files at a commit never change,
+but remotes do. So getting a commit is checked each time, and a commit kept
+from an earlier fetch counts as got. Whether the declared analysis is
+otherwise valid can't change, and a validator can remember the answer for a
+commit it has validated, with the schemas it has.
+
+A commit that can't be got is an error on one declaration in a file outside
+every analysis from a commit, read in the working tree, which the author can
+edit: the declaration of the outermost analysis from a commit on the way to
+it. It is reported once for each such declaration, so two declarations of
+one commit, such as a driven and an undriven one, get one report each. Where
+the root declares `sub` by `path`, `sub` declares `upstream` by `url`, and
+`upstream` declares `nested` by `url`, if `nested`'s commit can't be got, the
+error is on `sub`'s declaration of `upstream`. A published analysis SHOULD
+declare only remotes its readers can fetch. That isn't a `MUST`, since a
+remote can be private while the analysis is being worked on.
 
 **Use.** Unless it is driven, none of the recipes of an analysis from a
 commit run, so the rules above let it give only its outputs in its own
@@ -1503,14 +1519,15 @@ both reported, even when one edit fixes both.
    undetermined (5).
 4. **A declaration that can't be read.** On a declaration whose own analysis
    can't be got, because it breaks
-   [`DECLARATION_OUTSIDE_REPOSITORY`](#validator),
-   [`COMMIT_NOT_FOUND`](#validator), or
-   [`REMOTE_UNREACHABLE`](#validator) for its own `url`, neither
+   [`DECLARATION_OUTSIDE_REPOSITORY`](#validator) or
+   [`COMMIT_NOT_FOUND`](#validator), or because a commit that analysis is
+   read from can't be got ([`REMOTE_UNREACHABLE`](#validator), §7), neither
    [`MISSING_DECLARED_ANALYSIS`](#validator) nor
    [`DECLARED_ANALYSIS_INVALID`](#validator) is checked. On one that breaks
-   `COMMIT_NOT_FOUND`, [`COMMIT_NOT_ANCESTOR`](#validator) isn't checked
-   either. Its analysis is undetermined (5), and so is the analysis of a
-   declaration that breaks `MISSING_DECLARED_ANALYSIS`.
+   `COMMIT_NOT_FOUND`, or whose own `commit` can't be got,
+   [`COMMIT_NOT_ANCESTOR`](#validator) isn't checked either. Its analysis is
+   undetermined (5), and so is the analysis of a declaration that breaks
+   `MISSING_DECLARED_ANALYSIS`.
    `DECLARED_ANALYSIS_INVALID` isn't checked on an analysis from a commit
    whose file breaks [`UNSUPPORTED_SPEC_VERSION`](#validator). Where
    `REMOTE_UNREACHABLE` is reported on a declaration for a commit further in
@@ -1639,10 +1656,10 @@ A table that breaks any of this is an error in this specification, and no
 | `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | tidy-up, §4 |
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the declaring analysis's repository | 0004, 0007 §1 |
 | `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` file, with no symlink on the way (§3) | 0004, 0007, §3 |
-| `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit`, read from the local repository, names a commit the declaring analysis's repository has | 0007, §3 |
+| `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit the declaring analysis's repository has | 0007, §3, §7 |
 | `COMMIT_NOT_ANCESTOR` | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD or (during a merge) MERGE_HEAD of the repository that holds the declaring file | 0007, §3 |
-| `REMOTE_UNREACHABLE` | MUST | Every commit the stack reads from a remote (a declaration's `url`, or the URL `.gitmodules` gives for a submodule that a path crosses at a commit) can be fetched from it, or was kept from an earlier fetch | 0007, tidy-up |
-| `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit | 0007 |
+| `REMOTE_UNREACHABLE` | MUST | Every commit the stack gets from a remote, through a `url`, a file read from a remote or a gitlink crossed at a commit, can be fetched from that remote or was kept from an earlier fetch | 0007 §6, tidy-up, §3, §7 |
+| `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit, `REMOTE_UNREACHABLE` aside | 0007, §7 |
 | `MISSING_INPUT_FILE` | MUST | An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5) | 0006, §3 |
 | `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink | 0006, §3 |
 | `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is outside every analysis within its analysis's directory (a directory below it with an `astra.yaml` of its own) | 0006 |
