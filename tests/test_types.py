@@ -52,7 +52,7 @@ TABLE = {
         ["sha256:" + HEX_64],
         [
             HEX_64,
-            "sha1:" + HEX_40,
+            "sha1:" + HEX_64,
             "sha256:" + HEX_64.upper(),
             "sha256:" + HEX_64[:63],
             "sha256:" + HEX_64 + "\n",

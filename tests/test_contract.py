@@ -12,11 +12,20 @@ from typing import Any
 
 import pytest
 from jsonschema import Draft201909Validator
+from jsonschema_generator import generate
 from jsonschema_specifications import REGISTRY
 from referencing import Registry
 from referencing.jsonschema import DRAFT201909
 
-from .conftest import DATA, GENERATED, REPO_ROOT, load_fixture, load_yaml
+from .conftest import (
+    DATA,
+    GENERATED,
+    REPO_ROOT,
+    load_fixture,
+    load_yaml,
+    rules_catalogue,
+)
+from .test_types import HARNESS
 
 SOURCES = REPO_ROOT / "src" / "astra" / "schema"
 
@@ -224,13 +233,154 @@ def pattern_problems(pattern: str) -> list[str]:
     return problems
 
 
+TYPED = {
+    ("Analysis", "spec_version"): "spec_version",
+    ("Output", "inputs"): "reference",
+    ("Output", "decisions"): "address",
+    ("Output", "when"): "condition",
+    ("Decision", "when"): "condition",
+    ("Option", "insights"): "id",
+    ("Option", "requires"): "option_reference",
+    ("Option", "incompatible_with"): "option_reference",
+    ("Universe", "derived_from"): "id",
+    ("DecisionSelection", "option"): "id",
+    ("AnalysisDeclaration", "commit"): "commit_id",
+    ("Evidence", "artifact"): "reference",
+    ("FragmentSelector", "conforms_to"): "iri",
+    ("ProvenanceRecord", "spec_version"): "spec_version",
+    ("ProvenanceRecord", "address"): "reference",
+    ("ProvenanceRecord", "content_hash"): "content_hash",
+    ("Generation", "commit"): "commit_id",
+    ("Generation", "started"): "timestamp",
+    ("Generation", "finished"): "timestamp",
+    ("RecordedInput", "entry"): "reference",
+    ("RecordedInput", "content_hash"): "content_hash",
+    ("Environment", "iri"): "iri",
+}
+"""The named type of each slot that takes one, a map's key aside (spec §4, Named types), written by hand."""
+
+KEY_TYPES = {("Universe", "decisions"): "address"}
+"""The type of the keys of each map not keyed by an `id`: `Universe.decisions`, keyed by a decision's address."""
+
+
+@functools.cache
+def named_types() -> dict[str, dict]:
+    """The named types of `types.yaml`, by name, as written."""
+    return load_yaml(SOURCES / "types.yaml")["types"]
+
+
+@functools.cache
+def type_patterns() -> dict[str, str]:
+    """The pattern of each named type, as the generator writes it on a field of that type (the types harness)."""
+    return {
+        name: sub["pattern"] for name, sub in generate(HARNESS)["properties"].items()
+    }
+
+
+def located_fields(name: str) -> Iterator[tuple[tuple[str, str], str, dict]]:
+    """`((class, slot), pointer, subschema)` for each property of the root and of each `$defs` entry of the generated
+    schema `name`."""
+    schema = load(name)
+    for owner, field, sub in fields(schema):
+        if owner == "(root)":
+            yield (ROOTS[name], field), f"/properties/{field}", sub
+        else:
+            pointer = f"/$defs/{owner}/properties/{field}"
+            yield (owner.removesuffix(ENTRY_SUFFIX), field), pointer, sub
+
+
+def typed_values(name: str) -> dict[tuple[str, str], tuple[str, dict]]:
+    """For each `(class, slot)` of the generated schema `name`, the pointer and subschema of its value: of each item of
+    a list, and for a map in the compact form, of the one slot of the entry's class besides its key."""
+    values = {}
+    for (class_name, field), pointer, sub in located_fields(name):
+        if is_map(sub):
+            if "$ref" not in sub["additionalProperties"]:
+                entry = source_slots(class_name)[field]["range"]
+                (slot,) = [
+                    n for n, s in source_slots(entry).items() if not s.get("key")
+                ]
+                values[(entry, slot)] = (
+                    pointer + "/additionalProperties",
+                    sub["additionalProperties"],
+                )
+        elif sub.get("type") == "array":
+            values[(class_name, field)] = (pointer + "/items", sub["items"])
+        else:
+            values[(class_name, field)] = (pointer, sub)
+    return values
+
+
+def test_typed_slots_are_those_of_the_sources():
+    """`TYPED` lists exactly the slots whose range is a named type, keys aside, each with that type."""
+    assert {
+        (class_name, name): slot["range"]
+        for class_name in source_classes()
+        for name, slot in source_slots(class_name).items()
+        if slot.get("range") in named_types() and not slot.get("key")
+    } == TYPED
+
+
+def test_every_typed_slot_is_in_the_contract():
+    """Each slot of `TYPED` has a value in some generated schema, so that the next test checks it."""
+    found = set().union(*(typed_values(name) for name in ROOTS))
+    assert sorted(set(TYPED) - found) == []
+
+
 @pytest.mark.parametrize("name", ROOTS)
-def test_every_map_constrains_its_keys(name):
-    assert [
-        pointer
-        for pointer, node in maps(load(name))
-        if not isinstance(key_pattern(node), str)
-    ] == []
+def test_every_typed_slot_takes_its_types_pattern_and_code(name):
+    """A slot of a named type checks its values with exactly the type's pattern, whose errors take the type's code:
+    no pattern or `rule` of its own (spec §4)."""
+    prefix = load(name)["$id"] + "#"
+    error_map = rules_catalogue()["errors"]
+    values = typed_values(name)
+    found = {
+        slot: (
+            values[slot][1].get("pattern"),
+            error_map.get(prefix + values[slot][0] + "/pattern"),
+        )
+        for slot in TYPED
+        if slot in values
+    }
+    expected = {
+        slot: (
+            type_patterns()[TYPED[slot]],
+            named_types()[TYPED[slot]]["annotations"]["rule"],
+        )
+        for slot in found
+    }
+    assert found
+    assert found == expected
+
+
+@pytest.mark.parametrize("name", ROOTS)
+def test_every_map_key_takes_its_types_pattern_and_is_an_id(name):
+    """Every map's keys take `id`'s pattern, but those of `Universe.decisions`, which take `address`'s; a bad key is
+    `INVALID_ID` whatever its type (spec §4, §9)."""
+    schema = load(name)
+    prefix = schema["$id"] + "#"
+    error_map = rules_catalogue()["errors"]
+    keys = {
+        pointer: (slot, sub)
+        for slot, pointer, sub in located_fields(name)
+        if is_map(sub)
+    }
+    assert sorted(pointer for pointer, _ in maps(schema)) == sorted(keys)
+    found = {
+        pointer: (
+            key_pattern(sub),
+            {
+                error_map.get(prefix + pointer + "/propertyNames" + keyword)
+                for keyword in ("", "/type", "/pattern")
+            },
+        )
+        for pointer, (_, sub) in keys.items()
+    }
+    expected = {
+        pointer: (type_patterns()[KEY_TYPES.get(slot, "id")], {"INVALID_ID"})
+        for pointer, (slot, _) in keys.items()
+    }
+    assert found == expected
 
 
 @pytest.mark.parametrize("name", ROOTS)

@@ -76,6 +76,19 @@ def test_open_variant_still_checks_known_fields():
     assert error_pointers(open_, invalid_fixture("210")) == {"/generated_by/commit"}
 
 
+TYPED_TERMS = {
+    "generated_by": "@id",
+    "inputs": "@id",
+    "environment": "@id",
+    "runner": "@id",
+    "started": str(XSD.dateTime),
+    "finished": str(XSD.dateTime),
+    "size": str(XSD.integer),
+}
+"""The `@type` of each term of the context that has one, written by hand: a node for each object, `xsd:dateTime` for
+each time and `xsd:integer` for each size. No other term has one."""
+
+
 def test_context_maps_the_record_onto_prov():
     terms = context(CONTEXT)
     slots = [
@@ -96,10 +109,11 @@ def test_context_maps_the_record_onto_prov():
         "finished": str(PROV.endedAtTime),
         "version": str(SCHEMA_ORG.softwareVersion),
     }
-    times = ["started", "finished"]
-    assert {time: terms[time].get("@type") for time in times} == dict.fromkeys(
-        times, str(XSD.dateTime)
-    )
+    assert {
+        term: definition["@type"]
+        for term, definition in terms.items()
+        if isinstance(definition, dict) and "@type" in definition
+    } == TYPED_TERMS
     assert terms["iri"] == "@id"
 
 

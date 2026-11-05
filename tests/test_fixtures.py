@@ -3,7 +3,9 @@
 Why is read from `rules.json`, as a tool reads it: each error's absolute keyword location maps to its code (D13).
 """
 
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -58,19 +60,37 @@ def check_invalid_fixture(path: Path) -> None:
         assert code == rule
         return
     assert layer_of(rule) == "schema", f"{rule} is not a schema-layer code"
-    expected = {fails_at: rule}
+    expected = {fails_at: {rule}}
     if also is not None:
         also_code, also_at = also
         assert layer_of(also_code) == "schema", (
             f"{also_code} is not a schema-layer code"
         )
         assert also_at != fails_at, "'# also:' names the place it fails at"
-        expected[also_at] = also_code
-    error_map = rules_catalogue()["errors"]
+        expected[also_at] = {also_code}
     document, left_out = (
         (load_json(path), []) if path.suffix == ".json" else load_document(path)
     )
-    found = errors(validator(root_of(path)), document)
+    check_schema_errors(root_of(path), document, expected, left_out)
+
+
+def check_schema_errors(
+    root: str,
+    document: Any,
+    expected: dict[str, set[str]],
+    left_out: Sequence[tuple[str, str]] = (),
+    *,
+    closed: bool = True,
+) -> None:
+    """Assert that `document`, rooted at `root`, fails the committed schema (its open variant if not `closed`) exactly
+    as `expected` says: at each of its pointers, with errors that `rules.json` gives exactly that pointer's codes, and
+    nowhere else.
+
+    An error that explains a failing `oneOf` at its own pointer adds no code. Each of `left_out`, the map pointer and
+    key of an entry `load_document` left out since its key isn't a string, is an `INVALID_ID` error at that map.
+    """
+    error_map = rules_catalogue()["errors"]
+    found = errors(validator(root, closed=closed), document)
     assert sorted({location for _, location, _ in found} - error_map.keys()) == []
     keys = {(pointer, "INVALID_ID") for pointer, _ in left_out}
     elsewhere = {
@@ -86,7 +106,7 @@ def check_invalid_fixture(path: Path) -> None:
         | {code for pointer, code in keys if pointer == at}
         for at in expected
     }
-    assert codes == {at: {code} for at, code in expected.items()}
+    assert codes == expected
 
 
 @pytest.mark.parametrize("path", fixtures("valid"), ids=lambda path: path.stem)
