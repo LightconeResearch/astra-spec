@@ -506,8 +506,8 @@
       "code": "MISSING_DECISION",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003, 0004",
-      "statement": "Every universe's effective selection sets every active decision of its analysis and of every analysis it drives"
+      "source": "0003, 0004, tidy-up, §6, §7",
+      "statement": "Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that a universe of its analysis drives"
     },
     {
       "code": "INACTIVE_DECISION",
@@ -541,8 +541,8 @@
       "code": "PARTIALLY_DRIVEN",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004",
-      "statement": "Every declaration is driven by all of the driver's universes or by none"
+      "source": "0004, tidy-up, §6, §7",
+      "statement": "Every chain of declarations from an analysis's file is driven by all of the analysis's universes or by none, judged on their effective selections"
     },
     {
       "code": "DUPLICATE_ELEMENT",
@@ -555,8 +555,8 @@
       "code": "CONFLICTING_SELECTIONS",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004",
-      "statement": "Every spelling of one decision in a universe selects the same option"
+      "source": "0004, tidy-up, §6, §7",
+      "statement": "Every spelling of one decision in a universe's effective selection selects the same option"
     },
     {
       "code": "NOT_BUILT_IN_UNIVERSE",
@@ -569,8 +569,8 @@
       "code": "UNDRIVEN_DECLARATION",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004",
-      "statement": "In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, goes through a declaration that the file's universes drive"
+      "source": "0004, tidy-up, §7",
+      "statement": "In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain)"
     },
     {
       "code": "INPUT_NOT_BUILT",
@@ -590,8 +590,8 @@
       "code": "UNKNOWN_PIN_UNIVERSE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003, 0004",
-      "statement": "Every pin names a universe of the driver, through a driven declaration, or otherwise of the analysis the output belongs to"
+      "source": "0003, 0004, tidy-up, §7",
+      "statement": "Every pin, read in the file it is written in, names a universe of the first analysis along its reference, starting from that file's own, whose universes drive the reference's declarations from that analysis's file to its last, or, where there is none, of the analysis whose output it is"
     },
     {
       "code": "PIN_INACTIVE",

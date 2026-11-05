@@ -291,11 +291,12 @@ classes:
   Universe:
     description: >-
       A universe: a selection of one option for every active decision of the
-      analysis and of every analysis it drives. Its effective selection is
-      the effective selection of the universe it is derived from, if any,
-      with its own `decisions` written over it and every inherited selection
-      of a decision that isn't active in the result dropped, so a universe
-      that switches a decision on must set it.
+      analysis and of every analysis reached through a declaration that a
+      universe of the analysis drives. Its effective selection is the
+      effective selection of the universe it is derived from, if any, with
+      its own `decisions` written over it decision by decision and every
+      inherited selection of a decision that isn't active in the result
+      dropped, so a universe that switches a decision on must set it.
     attributes:
       id:
         key: true
@@ -325,10 +326,9 @@ classes:
         description: >-
           The options the universe selects, as `<decision>: <option>`, one
           key per decision. Each key is the id of a decision of the analysis
-          or, for a decision of an analysis it drives, a flat key: the
-          decision's address through the declarations,
-          `<declaration>.<decision>`, such as `stage.method`, or another
-          spelling of either.
+          or, for a decision of another analysis, a flat key: the decision's
+          address through the declarations, `<declaration>.<decision>`, such
+          as `stage.method`, or another spelling of either.
 
   DecisionSelection:
     description: >-
