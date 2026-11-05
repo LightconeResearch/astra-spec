@@ -1476,17 +1476,17 @@ on two machines say, show whether the result reproduces: their
   IRI that it can recreate at its version
   ([`UNRECREATABLE_ENVIRONMENT`](#runner)), and should let someone see what
   that environment holds, as PROV for example.
-- It runs only committed code. It runs each recipe in a checkout of the
-  commit the record names, with no changes but the results and records it
-  writes itself, the results the recipe reads, at their recorded bytes, and
-  what a tool keeps of, or puts in place to drive, an analysis from a commit
-  ([`UNCOMMITTED_CHANGES`](#runner)). That checkout is the working tree when
-  the working tree has no other changes. When it has, the runner refuses to
-  run, or runs in a checkout of its own, at HEAD say, and writes the results
-  and records into the working tree. Either way the records are committed in
-  a commit that has the commit they name in its history (below). It runs
-  each recipe in its analysis's directory in that checkout
-  ([`WRONG_WORKING_DIRECTORY`](#runner)).
+- It runs only committed code. It runs each recipe in a checkout of a
+  commit, the repository's own working tree or one it makes for the run (a
+  git worktree, say), and refuses to run while that checkout has changes
+  other than the records and results it writes itself, each result's bytes
+  the recorded ones, and what a tool keeps of, or puts in place to drive, an
+  analysis from a commit ([`UNCOMMITTED_CHANGES`](#runner)). Changes outside
+  that checkout don't stop it: a runner that runs in a checkout of its own
+  while the working tree has changes writes the results and records into the
+  working tree, and they are committed in a commit that has the commit they
+  name in its history (below). It runs each recipe in its analysis's
+  directory in that checkout ([`WRONG_WORKING_DIRECTORY`](#runner)).
 - It builds no result of an analysis from a commit (§7)
   ([`REBUILT_FROM_COMMIT`](#runner)), and builds no output that reads such a
   result while it is `missing` or `stale` or its bytes can't be got or
@@ -1862,7 +1862,7 @@ status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
 | `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places | 0005 §1, 0005 §3 |
 | `FALSE_RECORD` | MUST | Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times | 0005 §2, 0005 §3 |
 | `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an IRI that it can recreate at its version | 0005 §3 |
-| `UNCOMMITTED_CHANGES` | MUST | A runner runs each recipe in a checkout of the commit its record names, with no changes but the results and records it writes itself, the results the recipe reads, at their recorded bytes, and what a tool keeps of, or puts in place to drive, an analysis from a commit | 0005 §3, 0007 §2, 0007 §7 |
+| `UNCOMMITTED_CHANGES` | MUST | A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones, and what a tool keeps of, or puts in place to drive, an analysis from a commit | 0005 §3, 0007 §2, 0007 §7 |
 | `WRONG_WORKING_DIRECTORY` | MUST | A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it | 0004 §1, 0004 §5 |
 | `NOT_AT_COMMIT` | MUST | A runner drives an analysis from a commit on exactly its files at that commit | 0007 §7 |
 | `REBUILT_FROM_COMMIT` | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each such result through its record at the commit that analysis is read at | 0007 §3, 0007 §7 |

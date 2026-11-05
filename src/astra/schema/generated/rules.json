@@ -724,7 +724,7 @@
       "layer": "runner",
       "level": "MUST",
       "source": "0005 §3, 0007 §2, 0007 §7",
-      "statement": "A runner runs each recipe in a checkout of the commit its record names, with no changes but the results and records it writes itself, the results the recipe reads, at their recorded bytes, and what a tool keeps of, or puts in place to drive, an analysis from a commit"
+      "statement": "A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones, and what a tool keeps of, or puts in place to drive, an analysis from a commit"
     },
     {
       "code": "WRONG_WORKING_DIRECTORY",
