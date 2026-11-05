@@ -58,6 +58,5 @@ outputs:
     format: png
     description: Scatter plot of extracted features
     inputs: [features]
-    decisions: [method, n_components]
     recipe:
       command: python src/plot.py --features {inputs.features} --out {output}

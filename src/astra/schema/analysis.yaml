@@ -30,18 +30,18 @@ imports:
 enums:
 
   OutputType:
-    description: Type of analysis output
+    description: The kind of artefact an output is.
     permissible_values:
       metric:
-        description: A metric or measurement
+        description: A metric or measurement.
       figure:
-        description: A figure or visualization
+        description: A figure or visualisation.
       table:
-        description: A table of data
+        description: A table of data.
       data:
-        description: A data file or dataset
+        description: A data file or dataset.
       report:
-        description: A report or document
+        description: A report or document.
 
 # ==========================================================================
 # Classes
@@ -197,13 +197,16 @@ classes:
         range: reference
         description: >-
           What the output is made from, in order: references to inputs and
-          outputs, each of which can be pinned to a universe with `#`.
+          outputs of the analysis or of analyses it declares. A reference to
+          an output can be pinned to a universe with `#`; a reference to an
+          input can't.
       decisions:
         multivalued: true
         range: address
         description: >-
-          The addresses of the decisions the output depends on: a different
-          option for any of them can give a different result.
+          The addresses of the decisions whose option the output is made with
+          directly, not through what it reads: a different option for any of
+          them, in the universe being built, can give a different result.
       when:
         multivalued: true
         range: condition

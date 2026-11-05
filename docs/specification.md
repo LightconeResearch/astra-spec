@@ -628,9 +628,16 @@ format. It is the extension of the result's default place (§8).
   inputs and outputs of the analysis or of analyses it declares. A reference
   to an output can be pinned (§6). Their order counts, since `{inputs}`
   passes them to the recipe in that order.
-- `decisions` lists the addresses of the decisions the output depends on: a
-  different option for any of them can give a different result. Their order
-  carries no meaning.
+- `decisions` lists the addresses of the decisions whose option the output
+  is made with directly, not through what it reads: a different option for
+  any of them, in the universe being built, can give a different result.
+  Their order carries no meaning. Listing a decision that reaches the output
+  through an unpinned input gives the output the same results, though
+  listing a decision of another analysis consumes it, and the address it is
+  listed under is then held to §7's rules on consuming
+  ([`UNDRIVEN_DECLARATION`](#validator)). Listing a decision that only a
+  pinned input brings in makes the output built per universe (§6), so a
+  comparison between universes lists none.
 - `when` makes the output conditional (below).
 - `recipe` says how the output is made (below).
 

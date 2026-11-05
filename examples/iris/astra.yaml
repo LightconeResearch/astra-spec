@@ -39,7 +39,6 @@ outputs:
     format: json
     description: Classification accuracy on held-out test set
     inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
     recipe:
       command: >-
         python src/evaluate.py --model {inputs.trained_output}
@@ -50,7 +49,6 @@ outputs:
     format: json
     description: Macro-averaged F1 score
     inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
     recipe:
       command: >-
         python src/evaluate.py --model {inputs.trained_output}
@@ -61,7 +59,6 @@ outputs:
     format: png
     description: Confusion matrix heatmap
     inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
     recipe:
       command: >-
         python src/evaluate.py --model {inputs.trained_output}
