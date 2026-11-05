@@ -112,6 +112,7 @@
           "items": {
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -121,6 +122,7 @@
             "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }
@@ -271,6 +273,7 @@
           "items": {
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }
@@ -314,6 +317,7 @@
           "items": {
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }
@@ -344,6 +348,7 @@
             "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -353,6 +358,7 @@
             "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -366,6 +372,7 @@
             "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -374,6 +381,7 @@
           "items": {
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }
@@ -403,6 +411,7 @@
             "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n)",
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -421,6 +430,7 @@
             "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -437,6 +447,7 @@
           "items": {
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -450,6 +461,7 @@
             "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }
@@ -569,6 +581,7 @@
           "items": {
             "type": "string"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }
@@ -671,6 +684,7 @@
       "items": {
         "type": "string"
       },
+      "minItems": 1,
       "type": "array",
       "uniqueItems": true
     },

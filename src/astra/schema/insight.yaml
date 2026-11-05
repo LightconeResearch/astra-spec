@@ -170,4 +170,5 @@ classes:
         description: The conditions under which the claim holds, in free prose.
       tags:
         multivalued: true
+        minimum_cardinality: 1
         description: Keywords for grouping and finding the insight.

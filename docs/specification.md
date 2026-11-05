@@ -484,7 +484,9 @@ only what is a list: an insight's `evidence`, a record's `inputs`, and lists
 of strings. No list of strings holds the same entry twice
 ([`DUPLICATE_ENTRY`](#parse-and-schema)), nor two spellings of one entry
 ([`DUPLICATE_ELEMENT`](#validator)), so an output lists each of its inputs,
-decisions and conditions once.
+decisions and conditions once. No list of strings is empty: a field with
+nothing to list is left out ([`EMPTY_COLLECTION`](#parse-and-schema)), so an
+output lists `decisions` or has a `when` only when it names at least one.
 
 Every id has the one grammar `id`, and no id is reserved (not even a name
 Windows reserves, §3): an address's kind comes from the field it is written
@@ -1788,7 +1790,7 @@ A table that breaks any of this is an error in this specification, and no
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar | 0003, 0004 |
 | `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main |
 | `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | tidy-up, §10 |
-| `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry | 0004, main |
+| `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry, and no list of strings in an `astra.yaml` is empty | 0004, tidy-up, main |
 | `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |
 | `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` | 0007 |
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007, tidy-up |

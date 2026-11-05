@@ -441,6 +441,20 @@ def test_lists_of_strings_hold_no_entry_twice(name):
     assert found == expected
 
 
+def test_no_list_of_strings_in_an_analysis_is_empty():
+    """`minItems: 1` on every list of scalars of `astra.yaml` (`EMPTY_COLLECTION`): a field with nothing to list is
+    left out (spec §4)."""
+    schema = load("analysis.schema.json")
+    minimum = {
+        pointer: node.get("minItems")
+        for pointer, node in nodes(schema)
+        if node.get("type") == "array"
+        and item_type(node["items"], schema["$defs"]) != "object"
+    }
+    assert minimum
+    assert minimum == dict.fromkeys(minimum, 1)
+
+
 CHECK_KEYWORDS = {"oneOf", "anyOf", "not", "if", "then", "else"}
 """Keywords that would hold a class-level check outside the `allOf` that guards each one."""
 

@@ -150,6 +150,7 @@ classes:
         description: What the input's data is, in free prose.
       tags:
         multivalued: true
+        minimum_cardinality: 1
         description: Keywords for grouping and finding the input.
       path:
         required: true
@@ -177,6 +178,7 @@ classes:
         description: What the output is, in free prose.
       tags:
         multivalued: true
+        minimum_cardinality: 1
         description: Keywords for grouping and finding the output.
       type:
         range: OutputType
@@ -195,6 +197,7 @@ classes:
       inputs:
         multivalued: true
         range: reference
+        minimum_cardinality: 1
         description: >-
           What the output is made from, in order: references to inputs and
           outputs of the analysis or of analyses it declares. A reference to
@@ -203,6 +206,7 @@ classes:
       decisions:
         multivalued: true
         range: address
+        minimum_cardinality: 1
         description: >-
           The addresses of the decisions whose option the output is made with
           directly, not through what it reads: a different option for any of
@@ -210,6 +214,7 @@ classes:
       when:
         multivalued: true
         range: condition
+        minimum_cardinality: 1
         description: >-
           The conditions under which the output is active. It is active only
           when every condition holds.
@@ -235,10 +240,12 @@ classes:
         description: Why the analysis makes this decision, in free prose.
       tags:
         multivalued: true
+        minimum_cardinality: 1
         description: Keywords for grouping and finding the decision.
       when:
         multivalued: true
         range: condition
+        minimum_cardinality: 1
         description: >-
           The conditions under which the decision is active. It is active only
           when every condition holds.
@@ -265,19 +272,23 @@ classes:
         description: What the option is, in free prose.
       tags:
         multivalued: true
+        minimum_cardinality: 1
         description: Keywords for grouping and finding the option.
       insights:
         multivalued: true
         range: id
+        minimum_cardinality: 1
         description: The ids of the prior insights that support the option.
       requires:
         multivalued: true
         range: option_reference
+        minimum_cardinality: 1
         description: >-
           The options that are also selected whenever this option is.
       incompatible_with:
         multivalued: true
         range: option_reference
+        minimum_cardinality: 1
         description: >-
           The options that are never selected together with this option.
       excluded:
@@ -313,6 +324,7 @@ classes:
         description: What the universe is, in free prose.
       tags:
         multivalued: true
+        minimum_cardinality: 1
         description: >-
           Keywords for grouping and finding the universe. They are not
           inherited through `derived_from`.
@@ -442,6 +454,7 @@ classes:
         description: What the analysis does, in free prose.
       tags:
         multivalued: true
+        minimum_cardinality: 1
         description: Keywords for grouping and finding the analysis.
       inputs:
         range: Input

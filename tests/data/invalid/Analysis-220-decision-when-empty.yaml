@@ -1,0 +1,12 @@
+# rule: EMPTY_COLLECTION
+# fails at: /decisions/d/when
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+decisions:
+  d:
+    when: []
+    options:
+      a: {}
