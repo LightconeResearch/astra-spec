@@ -25,8 +25,7 @@ with a code, such as [`MISSING_DECISION`](#validator). The other sections
 explain what the rules are about and link to their codes. The two
 recommendations no tool can check are stated where they apply (§7, §8), and
 the runner's recommendation and permission, which no tool can check either,
-after the runner's rules (§9). Warnings a tool gives of its own, under codes
-§9 doesn't define, are not rules (§2).
+after the runner's rules (§9).
 
 **Fields.** Every class of the format has a page in the
 [schema reference](elements/index.md), generated from the schema, whose
@@ -48,7 +47,7 @@ doesn't restate them.
 | root | the analysis being validated or built | §7 |
 | analysis stack | the root and every analysis it declares, directly or through others | §7 |
 | driver, driven | the analysis whose universes drive, and an analysis reached through a declaration they drive; the analysis whose universe is being built is never driven in it | §7 |
-| consuming | using another analysis's element by address, without driving it | §7 |
+| consuming | using another analysis's element by address | §7 |
 | import | an entry of `universes` that names one of another analysis's universes, in which that analysis is the driver; it selects nothing and is not one of the importing analysis's universes | §6, §7 |
 | analysis from a commit | a declared analysis as it was at a given commit | §7 |
 | result | what a recipe made for one output in one universe, or once | §8 |
@@ -70,8 +69,7 @@ the schema of the minor version it states, so a validator that reads one
 patch of a minor version reads them all
 ([`UNSUPPORTED_SPEC_VERSION`](#validator)). A file whose `spec_version` is
 missing or malformed is checked against the schema of the validator's own
-minor version, and every schema error in it is reported. What one minor
-version promises about another is left to ASTRA's versioning policy.
+minor version, and every schema error in it is reported.
 
 ## 2. Overview
 
@@ -81,8 +79,8 @@ ASTRA describes an analysis in two kinds of document:
   write: what the analysis reads, makes and decides, the universes it makes
   its results in, the other analyses it uses, and its insights. Its root is
   [Analysis](elements/Analysis.md).
-- the **provenance record**, one JSON file for each result, which the runner
-  that made the result writes: what the result is and the run that made it.
+- the **provenance record**, a JSON file at each place of a result, written
+  by the runner that made it: what the result is and the run that made it.
   Its root is [ProvenanceRecord](elements/ProvenanceRecord.md).
 
 Rules are enforced in five layers, set apart by what each one sees:
@@ -115,8 +113,7 @@ Four roles conform to this specification:
   earlier version has a record schema.
 - A **runner** runs recipes and writes each result's bytes and record. A
   record is its runner's testimony, and names it. A runner conforms when it
-  keeps the runner `MUST`s, which keep its records true. How it stores bytes
-  or builds environments is its own.
+  keeps the runner `MUST`s, which keep its records true.
 
 An analysis that reads a file, makes one artefact per universe and compares
 two universes in a third:
