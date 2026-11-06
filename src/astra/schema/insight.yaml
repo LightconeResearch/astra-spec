@@ -62,8 +62,9 @@ classes:
           rule: INVALID_VALUE
         description: >-
           The fragment identifier, without the leading `#`, such as `page=6`.
-          It is non-empty and holds no ASCII space or control character, none
-          of ``"#<>[\]^`{|}``, and `%` only before two hex digits.
+          It is non-empty, holds no ASCII space or control character and none
+          of `"`, `#`, `<`, `>`, `[`, `\`, `]`, `^`, the backtick, `{`, `|`
+          and `}`, and has `%` only before two hex digits.
       conforms_to:
         slot_uri: dcterms:conformsTo
         range: iri

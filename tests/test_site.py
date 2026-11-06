@@ -1,4 +1,5 @@
-"""The published page shows every cell of §9's rule tables as the same text as `rules.json`.
+"""The published page shows every cell of §9's rule tables as the same text as `rules.json`, and the field reference
+shows every pattern as the LinkML sources write it.
 
 `tools/rules.py` reads §9 as CommonMark with GFM tables, as §9 says, but the site renders it with Python-Markdown and
 Zensical's extensions. So a cell could read one way in `rules.json` and another on the page: `~~`, `==`, `^^`, emoji,
@@ -6,20 +7,31 @@ smart symbols (`-->`, `1/2`), `$…$`, footnotes, attribute lists, `\\|` in a co
 paragraph, which Python-Markdown doesn't read as a table. Pinning the site's extensions can't remove the last two.
 
 This test reads the built page and compares the text of each cell of its §9 rule tables (the tables with a Code column)
-with the matching field of `rules.json`, rendered by markdown-it: the same rules, in the same order, word for word. It
-runs in CI after `zensical build` (`test_pages_build.yaml`), and is skipped when there is no `site/`.
+with the matching field of `rules.json`, rendered by markdown-it: the same rules, in the same order, word for word.
+
+The field reference's pages are built from `gen-doc`'s Markdown, where a pattern's backtick, `|`, `[^` or `^` would be
+read as Markdown. So another test reads each element's page and compares its Regex Pattern cell with the pattern the
+LinkML sources write. The tests run in CI after `zensical build` (`test_pages_build.yaml`), and are skipped when there
+is no `site/`.
 """
 
+from collections import defaultdict
 from html.parser import HTMLParser
 from typing import Any
 
 import pytest
+from linkml_runtime.utils.formatutils import camelcase
 from markdown_it import MarkdownIt
+from ruamel.yaml import YAML
 
 from .conftest import REPO_ROOT, rules_catalogue
 
 SITE = REPO_ROOT / "site"
 PAGE = SITE / "specification" / "index.html"
+ELEMENTS = SITE / "elements"
+"""The field reference: one directory per element, named as `gen-doc` names its page."""
+SOURCES = REPO_ROOT / "src" / "astra" / "schema"
+"""The LinkML sources."""
 SECTION = "9. Conformance"
 """The text of the `<h2>` whose rule tables are the catalogue, its permalink left out."""
 
@@ -185,3 +197,98 @@ def test_page_shows_every_rule_as_rules_json_words_it():
                     f"{rule['code']}, {column}: the page shows {text!r}, rules.json {expected!r}"
                 )
     assert differences == []
+
+
+class _Rows(HTMLParser):
+    """The text of each cell of each table row of a page, as written: character references decoded, white space
+    kept."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.rows: list[list[str]] = []
+        self._row: list[str] | None = None
+        self._cell: list[str] | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "tr":
+            self._row = []
+        elif tag in ("th", "td") and self._row is not None:
+            self._cell = []
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in ("th", "td") and self._cell is not None and self._row is not None:
+            self._row.append("".join(self._cell))
+            self._cell = None
+        elif tag == "tr" and self._row is not None:
+            self.rows.append(self._row)
+            self._row = None
+
+    def handle_data(self, data: str) -> None:
+        if self._cell is not None:
+            self._cell.append(data)
+
+
+def shown_patterns() -> dict[str, list[str]]:
+    """The text of each Regex Pattern cell of the field reference, keyed by its element's page."""
+    shown = {}
+    for page in sorted(ELEMENTS.glob("*/index.html")):
+        parser = _Rows()
+        parser.feed(page.read_text(encoding="utf-8"))
+        parser.close()
+        cells = [
+            row[1]
+            for row in parser.rows
+            if len(row) == 2 and row[0].strip() == "Regex Pattern"
+        ]
+        if cells:
+            shown[page.parent.name] = cells
+    return shown
+
+
+def schema_patterns() -> dict[str, list[str]]:
+    """Each pattern the LinkML sources write, as they write it, keyed by the page that shows it.
+
+    A named type's page, under its CamelCase name, shows its `pattern`, or its structured pattern's syntax, which
+    `gen-doc` shows uninterpolated. A slot's page, under its own name, shows the pattern every class that defines the
+    slot gives it. A slot that classes define with different patterns, as `Input.path` and `AnalysisDeclaration.path`,
+    has one page, which shows none."""
+    yaml = YAML(typ="safe", pure=True)
+    expected = {}
+    slots = defaultdict(set)
+    for module in sorted(SOURCES.glob("*.yaml")):
+        source = yaml.load(module.read_text(encoding="utf-8"))
+        for name, definition in (source.get("types") or {}).items():
+            pattern = definition.get("pattern") or (
+                definition.get("structured_pattern") or {}
+            ).get("syntax")
+            if pattern:
+                expected[camelcase(name)] = [pattern]
+        for definition in (source.get("classes") or {}).values():
+            for name, slot in ((definition or {}).get("attributes") or {}).items():
+                slots[name].add((slot or {}).get("pattern"))
+    for name, patterns in slots.items():
+        if len(patterns) == 1 and None not in patterns:
+            expected[name] = list(patterns)
+    return expected
+
+
+def test_element_pages_show_their_patterns():
+    """Every Regex Pattern cell of the field reference shows its element's pattern exactly as the LinkML sources
+    write it, and every pattern they write has its cell, whatever backtick, `|`, `[^` or `^` it holds.
+
+    The description of `FragmentSelector.value` lists characters one by one, `[`, `\\` and `]` among them: its page
+    shows it word for word, as markdown-it renders it."""
+    assert ELEMENTS.is_dir(), (
+        f"{ELEMENTS} is missing: build the site with `zensical build`"
+    )
+    assert shown_patterns() == schema_patterns()
+
+    yaml = YAML(typ="safe", pure=True)
+    source = yaml.load((SOURCES / "insight.yaml").read_text(encoding="utf-8"))
+    description = source["classes"]["FragmentSelector"]["attributes"]["value"][
+        "description"
+    ]
+    page = (ELEMENTS / "value" / "index.html").read_text(encoding="utf-8")
+    assert html_text(MarkdownIt("commonmark").renderInline(description)) in html_text(
+        page
+    )
