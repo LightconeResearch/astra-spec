@@ -200,9 +200,14 @@ declare two analyses (§7).
 **Reading git.** An analysis is read in the working tree or at a commit
 (§7), and validators and checkers read git one way:
 
-- A path is joined to the folder of the `astra.yaml` that writes it, and its
-  `..` segments are removed as text, never through the file system:
-  `stage/../data` is `data`, whatever `stage` is on disk.
+- A path is joined to the folder of the `astra.yaml` that writes it and
+  tidied as text, never through the file system: empty and `.` segments are
+  dropped, and each `..` removes the segment before it. So `./data.csv` is
+  `data.csv`, `subanalysis/` is `subanalysis`, and `stage/../data` is
+  `data`, whatever `stage` is on disk. A path is measured from the top of
+  the root's working tree or, at a commit, from the top of the repository
+  that holds it, and a declaration's path that goes above that top breaks
+  [`DECLARATION_OUTSIDE_REPOSITORY`](#validator).
 - In the working tree, a path names an entry on disk below the top of the
   root's working tree, tracked, untracked or ignored. At a commit, a path
   names an entry of that commit's tree.
@@ -268,11 +273,10 @@ is left out: no field takes `null`.
 
 `results/` and `.astra/` belong to runners. No input's `path` and no
 declaration's `path` is, or lies in, them ([`RESERVED_PATH`](#validator)):
-joined to the folder of the `astra.yaml` that writes it, with its `.` and
-`..` segments and repeated `/` resolved as text, a path is not the
-`results/` or `.astra/` of any analysis of the stack (§7), and is not inside
-one. So a run never writes over an input or a declared analysis, and a
-result is read by its address (§5), never by a path.
+tidied as **Reading git** says (above), a path is not the `results/` or
+`.astra/` of any analysis of the stack (§7), and is not inside one. So a run
+never writes over an input or a declared analysis, and a result is read by
+its address (§5), never by a path.
 
 ## 4. Names and grammars
 
@@ -455,7 +459,7 @@ path is non-empty and doesn't start with `/`
   address (`iris.data`), not by a path.
 - The file is outside the places that belong to runners: the path is not,
   and doesn't lie in, the `results/` or `.astra/` of an analysis of the
-  stack, as §3 resolves it ([`RESERVED_PATH`](#validator)). A result is read
+  stack, tidied as §3 says ([`RESERVED_PATH`](#validator)). A result is read
   by its address, never by a path.
 - The path names the file itself (not a symlink, §3), or something the
   validator recognises as standing in for it
@@ -860,11 +864,10 @@ declared analysis's elements are then addressed through that id, as
 **`path`** is the directory of the declared analysis's `astra.yaml`, relative
 to the folder of the declaring `astra.yaml` (§3). It is non-empty and
 doesn't start with `/` ([`INVALID_PATH`](#parse-and-schema)).
-It stays inside the declaring analysis's repository
-([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)): read in the working tree,
-the root's working tree, submodules included; read at a commit, the
-repository that holds that commit. It is not, and doesn't lie in, the
-`results/` or `.astra/` of an analysis of the stack, as §3 resolves it
+Tidied as §3 says, it doesn't go above the top of the root's working tree
+or, read at a commit, of the repository that holds that commit
+([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)). It is not, and doesn't lie
+in, the `results/` or `.astra/` of an analysis of the stack
 ([`RESERVED_PATH`](#validator)), so a run never writes over a declared
 analysis. The directory it names holds an `astra.yaml`
 ([`MISSING_DECLARED_ANALYSIS`](#validator)). A declared analysis can be a
@@ -897,8 +900,8 @@ declaration with a `commit` declares an analysis from a commit (below).
 
 **Identity.** A declaration names a directory, read at a commit or in the
 working tree. With a `url`, it is the top level of that repository; with a
-`path`, it is the `path` resolved against the folder of the declaring
-`astra.yaml`, as **Reading git** in §3 says. It is read at the declaration's
+`path`, it is the `path` joined to the folder of the declaring `astra.yaml`
+and tidied, as **Reading git** in §3 says. It is read at the declaration's
 `commit` or, without one, as the declaring analysis is read. The root, and
 every analysis reached from it by `path` alone, is read in the working tree.
 The directory is a path from the top of the repository that holds the commit
@@ -1873,7 +1876,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `UNDECLARED_TEMPLATE_REF` | MUST | Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left (§5), and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
 | `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | tidy-up, §4 |
 | `CLASHING_RESULT_NAME` | MUST | No output shares its id with a declaration of the same analysis | tidy-up, §4, §8 |
-| `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the declaring analysis's repository | 0004, 0007 §1 |
+| `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path`, tidied (§3), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit | 0004, 0007 §1 |
 | `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` file, with no symlink on the way (§3) | 0004, 0007, §3 |
 | `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit the declaring analysis's repository has | 0007, §3, §7 |
 | `COMMIT_NOT_ANCESTOR` | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD of the repository that holds the declaring file | 0007, §3 |
@@ -1882,7 +1885,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `MISSING_INPUT_FILE` | MUST | An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5) | 0006, §3 |
 | `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink | 0006, §3 |
 | `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` of its own | 0006 |
-| `RESERVED_PATH` | MUST | No input's `path` and no declaration's `path`, with `.`, `..` and repeated `/` resolved, is or lies in the `results/` or `.astra/` of an analysis of the stack | tidy-up, §3 |
+| `RESERVED_PATH` | MUST | No input's `path` and no declaration's `path`, tidied (§3), is or lies in the `results/` or `.astra/` of an analysis of the stack | tidy-up, §3 |
 | `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis, never an import | 0003, §6 |
 | `DERIVED_FROM_CYCLE` | MUST | No universe's chain of `derived_from` loops | 0003 |
 | `MISSING_DECISION` | MUST | Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that its analysis's universes drive | 0003, 0004, tidy-up, §6, §7 |

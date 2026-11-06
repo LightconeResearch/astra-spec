@@ -134,6 +134,10 @@ A path is joined to the folder of the `astra.yaml` that writes it. It is measure
 
 A `..` that goes above the top is `DECLARATION_OUTSIDE_REPOSITORY`. Tidying doesn't change what can be written. `RESERVED_PATH` and a declaration's identity use the same tidied path.
 
+In spec §3 since the audit of 2026-11-06 (its D4), stated once in *Reading git*, which identity, `RESERVED_PATH` and `DECLARATION_OUTSIDE_REPOSITORY` link to. What changes:
+- **Identity.** It removed only `..`, so whether `subanalysis/` and `subanalysis` were one analysis was open. They are one now.
+- **`DECLARATION_OUTSIDE_REPOSITORY`.** Its statement was "stays inside the declaring analysis's repository", which for a declaration in a checked-out submodule could read as the submodule's own repository, refusing a `..` into the superproject that §7 allowed (X04, the audit's I3). It now reads "doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit", as §7 said. Its statement and `RESERVED_PATH`'s change in `rules.json`; `RESERVED_PATH` drops its own tidying clause, and no verdict changes.
+
 ### A path is non-empty and doesn't start with `/`
 
 Decided on 2026-11-06 (the audit's H18). `INVALID_PATH` keeps only what makes a path a relative one: every declaration's and input's `path` is non-empty and doesn't start with `/`, and both patterns are `^[^/]`. What went, each a change of meaning:

@@ -454,7 +454,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0004, 0007 §1",
-      "statement": "A declaration's `path` stays inside the declaring analysis's repository"
+      "statement": "A declaration's `path`, tidied (§3), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit"
     },
     {
       "code": "MISSING_DECLARED_ANALYSIS",
@@ -517,7 +517,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "tidy-up, §3",
-      "statement": "No input's `path` and no declaration's `path`, with `.`, `..` and repeated `/` resolved, is or lies in the `results/` or `.astra/` of an analysis of the stack"
+      "statement": "No input's `path` and no declaration's `path`, tidied (§3), is or lies in the `results/` or `.astra/` of an analysis of the stack"
     },
     {
       "code": "UNKNOWN_DERIVED_FROM",
