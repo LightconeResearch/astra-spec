@@ -1809,15 +1809,14 @@ recipe and reports the code.
 
 ## 10. Schema artefacts
 
-The schema is written in [LinkML](https://linkml.io/), in
-`src/astra/schema/`: `types.yaml` (the named types of §4), `analysis.yaml`
-(the analysis document), `insight.yaml` (insights and evidence) and
-`provenance.yaml` (the record). Their descriptions are the normative
-definitions of the fields, published as the
+The schema is written in [LinkML](https://linkml.io/), in four modules:
+`types` (the named types of §4), `analysis` (the analysis document),
+`insight` (insights and evidence) and `provenance` (the record). Their
+descriptions are the normative definitions of the fields, published as the
 [schema reference](elements/index.md). These artefacts are generated from
-them (and `rules.json` also from §9), into `src/astra/schema/generated/`,
-and each is published at `https://w3id.org/astra/`, its minor version (`0.1`
-for every 0.1.x) and `/`, followed by its file name:
+them (and `rules.json` also from §9), and each is published at
+`https://w3id.org/astra/`, its minor version (`0.1` for every 0.1.x) and
+`/`, followed by its file name:
 
 | File | URI | What it is |
 |---|---|---|
@@ -1828,15 +1827,10 @@ for every 0.1.x) and `/`, followed by its file name:
 | `rules.json` | `https://w3id.org/astra/0.1/rules.json` | the rule catalogue of §9, with the code of each JSON Schema error that makes an instance fail |
 
 Each JSON Schema's `$id` is its URI. So the closed and open record schemas are
-distinct resources, and so are the schemas of two minor versions, which a
-checker can hold side by side. The patches of one minor version share each
-URI: a patch release never changes what is valid (§1), so the URI names one
-schema whichever patch's file a tool holds, and a tool keeps the latest. A
-pre-release is `X.Y.Z` followed by `aN`, `bN` or `rcN`, such as `0.1.0rc1`.
-It is a candidate for `X.Y.Z`: its URIs carry its whole version
-(`https://w3id.org/astra/0.1.0rc1/analysis.schema.json`), and the documents it
-checks state `X.Y.Z`. A JSON Schema's top level holds only standard JSON
-Schema keywords, so that strict validators (such as Ajv) compile it, and the
+distinct resources, and so are the schemas of two minor versions. The patches
+of one minor version share each URI: a patch release never changes what is
+valid (§1), so the URI names one schema whichever patch's file a tool holds.
+A JSON Schema's top level holds only standard JSON Schema keywords, and the
 version of the release it was generated from is in its `$comment`.
 
 **The contract.** `analysis.schema.json` is the contract for `astra.yaml`: a
@@ -1852,9 +1846,9 @@ reading a record of a greater minor version than its own validates the record
 against it, and so ignores the fields that version adds
 ([`INVALID_RECORD`](#check)).
 
-**The rule catalogue.** `rules.json` is derived from this specification and
-the schema, never written by hand, so that every tool reports the same code
-for the same error and words each rule the same way. It holds:
+**The rule catalogue.** `rules.json` is made from this specification and the
+schema, so that every tool reports the same code for the same error and
+words each rule the same way. It holds:
 
 - `rules`: one entry per rule of §9, in §9's order. Each has its `code`;
   its `layer` (`parse`, `schema`, `validator`, `check` or `runner`); its
@@ -1871,13 +1865,7 @@ for the same error and words each rule the same way. It holds:
   `$id`. Each code is a schema-layer rule's.
 - `$comment`: the version of the release it was made from.
 
-In the schema's sources, each constraint names the rule it enforces: a
-pattern by its type or field, a class rule or an exactly-one-of by itself.
-The keywords whose code never varies take a default: `required` outside such
-a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
-(`WRONG_TYPE`); `minProperties` and `minItems` of 1 (`EMPTY_COLLECTION`);
-`uniqueItems` (`DUPLICATE_ENTRY`); and `enum` and `minimum`
-(`INVALID_VALUE`). An abridged `rules.json`:
+An abridged `rules.json`:
 
 <!-- excerpt: rules.json -->
 ```json
@@ -1926,11 +1914,9 @@ no `@context`), plus each node's class URI as its `rdf:type`: the root node
 are `prov:Entity`, `generated_by` is a `prov:Activity`, and the `runner` a
 `prov:SoftwareAgent`. The context maps a record's terms onto
 [W3C PROV-O](https://www.w3.org/TR/prov-o/), with ASTRA's own, where PROV has
-none, in the `https://w3id.org/astra/` namespace. It writes every IRI in full,
-and no term carries JSON-LD 1.1's prefix flag, so an `iri` is its node's `@id`
-exactly as written, whatever its scheme (`prov:env:1` too). It declares
-`"@version": 1.1`, so a JSON-LD 1.0 processor, which would read a term as a
-prefix, rejects it. Read this way, a record is PROV-O. The root node stands
+none, in the `https://w3id.org/astra/` namespace. The context is JSON-LD 1.1,
+and an `iri` is its node's `@id` exactly as written, whatever its scheme
+(`prov:env:1` too). Read this way, a record is PROV-O. The root node stands
 for the result: a `prov:Entity` that `prov:wasGeneratedBy` its `generated_by`,
 the run, which `prov:used` its inputs and its environment and
 `prov:wasAssociatedWith` its runner. The root node's `address`,
@@ -1938,7 +1924,3 @@ the run, which `prov:used` its inputs and its environment and
 record. The run's `started` and `finished` are `prov:startedAtTime` and
 `prov:endedAtTime`, typed `xsd:dateTime`, and the runner's `version` is
 `schema:softwareVersion`.
-
-**The package.** The `astra-spec` Python package holds the LinkML sources and
-these artefacts, as the namespace package `astra.schema`, read through
-`importlib.resources`. It ships no Python models and has no dependencies.

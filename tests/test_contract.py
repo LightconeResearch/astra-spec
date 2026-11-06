@@ -464,7 +464,7 @@ def test_the_harness_refuses_what_ecma_262_reads_otherwise(pattern):
 
 
 def series(version: str) -> str:
-    """The series of a stamped `version` (spec §10): `X.Y` for a release `X.Y.Z`, otherwise the whole version."""
+    """The series of a stamped `version`: `X.Y` for a release `X.Y.Z` (spec §10), else the whole version (CLAUDE.md)."""
     release = re.fullmatch(r"([0-9]+\.[0-9]+)\.[0-9]+", version)
     return release[1] if release else version
 
