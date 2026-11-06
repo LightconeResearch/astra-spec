@@ -22,10 +22,9 @@ such as `DIGIT`. Patterns are regular expressions as JSON Schema reads them
 
 **Rules.** Section 9 states every rule that a tool checks or keeps, each
 with a code, such as [`MISSING_DECISION`](#validator). The other sections
-explain what the rules are about and link to their codes. The two
-recommendations no tool can check are stated where they apply (§7, §8), and
-the runner's recommendation and permission, which no tool can check either,
-after the runner's rules (§9).
+explain what the rules are about and link to their codes. The
+recommendations and the permission that have no code are stated where they
+apply: one in §7, one in §8, and the runner's after its rules (§9).
 
 **Fields.** Every class of the format has a page in the
 [schema reference](elements/index.md), generated from the schema, whose

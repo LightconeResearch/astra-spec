@@ -220,12 +220,17 @@ Settled on 2026-11-06 (the audit's I14-I16, I20 and O7), with no verdict changed
 
 ### Slips corrected
 
-- Results reached through an analysis from a commit are read "at the commit each is read at", and the analysis's code doesn't run "unless it is driven". Today two pairs of sentences contradict each other on this.
-- "Which option a reference reads" becomes "which universe".
-- "Makes the file invalid" becomes "makes the analysis invalid".
-- A runner's lowercase "should" becomes SHOULD.
-- The error-mapping rule covers any failing combinator, `anyOf` included.
-- `INPUT_IN_ANOTHER_ANALYSIS` says "an `astra.yaml` file", the test a declaration uses.
+In the spec since the audit of 2026-11-06 (its D3):
+- Results reached through an analysis from a commit are read "at the commit each is read at", and the analysis's code doesn't run "unless it is driven". Two pairs of sentences contradicted each other on this. Spec §7 now says each is read at the commit its analysis is read at, and "unless it is driven, none of its code runs".
+- "Which option a reference reads" becomes "which universe". The sentence went with *No privileged universe* (the audit's N18).
+- "Makes the file invalid" becomes "makes the analysis invalid", in spec §9's layer table, and a parse, schema or validator rule decides whether "a document or an analysis" is valid (I23).
+- A runner's lowercase "should" becomes SHOULD: the recommendation that a runner let someone see what an environment it recorded holds is stated once, after the runner table, and spec §8 links to it (I14).
+- The error-mapping rule covers any failing combinator, `anyOf` included (with H32, above).
+- `INPUT_IN_ANOTHER_ANALYSIS` says "an `astra.yaml` file", the test a declaration uses. Its statement changes in `rules.json`.
+
+### The rest of the audit of 2026-11-06, with no change of meaning
+
+The audit's other accepted items (§2's O items but O23, which stays as an explanation of the model, §4's I items and §6's N items) changed wording only: each cut a sentence about a library, a platform, this repository, advice or what is left open, stated a fact once, or made a description say what the rules say. No verdict changes, and no rule's reach changes beyond the entries above. Among them, `rules.json` changes only in `STALE_EVIDENCE`'s `status` (I16) and, recorded above, the statements of `COMMIT_NOT_FOUND`, `ABSENT_RESULT` and `INPUT_IN_ANOTHER_ANALYSIS`.
 
 ## 5. The new specification
 
