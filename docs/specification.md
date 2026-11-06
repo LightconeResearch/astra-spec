@@ -307,7 +307,7 @@ is `iris.random_seed.seed_42`.
 | [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits | `ProvenanceRecord.content_hash`, `RecordedInput.content_hash` |
 | [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros | `Analysis.spec_version`, `ProvenanceRecord.spec_version` |
 | [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, each field in its range; whether the day exists in its month, such as 30 February, isn't checked | `Generation.started`, `Generation.finished` |
-| [`iri`](elements/Iri.md) | an IRI ([RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)), never a CURIE: a scheme, `:`, then RFC 3987's characters, `%` only before two hex digits and at most one `#`; its structure (authority, port, IP literal) isn't checked | `Environment.iri`, `FragmentSelector.conforms_to` |
+| [`iri`](elements/Iri.md) | an IRI, never a CURIE: a scheme, `:`, then characters other than ASCII spaces and controls, C1 controls, `<`, `>`, `"`, `{`, `}`, the vertical bar, `\`, `^`, the backtick and the bidi formatting characters U+200E, U+200F and U+202A–U+202E, with `%` only before two hex digits and at most one `#` | `Environment.iri`, `FragmentSelector.conforms_to` |
 
 A value that doesn't take its type's form fails: a map key or an `id` as
 [`INVALID_ID`](#parse-and-schema), any other address, reference, option
@@ -1481,11 +1481,10 @@ result's bytes, and the run of the recipe that made it, `generated_by`, a
   later change to the list makes the result `stale`
   ([`STALE_RESULT`](#check)), not `missing`.
 - `environment`: an [Environment](elements/Environment.md), whose `iri` is an
-  IRI (RFC 3987) naming exactly the environment the recipe ran in, enough for
-  its runner, at the version the record gives, to recreate it. It needn't
-  resolve online: a `urn:` IRI or a scheme of the runner's own will do. The
-  record schema checks its scheme, characters and percent-encoding, not its
-  structure (§4, [`INVALID_VALUE`](#parse-and-schema)).
+  IRI of the form §4 gives ([`INVALID_VALUE`](#parse-and-schema)), naming
+  exactly the environment the recipe ran in, enough for its runner, at the
+  version the record gives, to recreate it. It needn't resolve online: a
+  `urn:` IRI or a scheme of the runner's own will do.
 - `runner`: a [Runner](elements/Runner.md), the runner's `id`, ideally unique
   (an IRI, say), and its `version`.
 - `started` and `finished`: when the recipe started and finished, in UTC to

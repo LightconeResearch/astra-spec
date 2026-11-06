@@ -141,11 +141,11 @@ types:
   iri:
     typeof: string
     description: >-
-      An IRI (RFC 3987), never a CURIE: a scheme, `:`, then RFC 3987's
-      characters, with `%` only before two hex digits and at most one `#`,
-      such as `http://tools.ietf.org/rfc/rfc7111`. The schema checks its
-      scheme, characters and percent-encoding, not its structure (authority,
-      port, IP literal).
+      An IRI, never a CURIE: a scheme, `:`, then characters other than ASCII
+      spaces and controls, C1 controls, `<`, `>`, `"`, `{`, `}`, the vertical
+      bar, `\`, `^`, the backtick and the bidi formatting characters U+200E,
+      U+200F and U+202A–U+202E, with `%` only before two hex digits and at
+      most one `#`, such as `http://tools.ietf.org/rfc/rfc7111`.
     pattern: '^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$'
     annotations:
       rule: INVALID_VALUE
