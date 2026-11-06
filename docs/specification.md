@@ -189,19 +189,12 @@ and separate folders with `/` (§5, §7).
 
 **Paths.** A path in an analysis is written as git writes a path in a commit,
 the same on every machine, and so is each place §8 builds from its ids and
-formats; a tool on Windows maps them onto its own paths, as git does. A path
-names the entry git holds at exactly that path, byte for byte, read as
-**Reading git** says (below), so case and Unicode form count: a match that
-ignores either names nothing ([`MISSING_INPUT_FILE`](#validator),
+formats. A path names the entry git holds at exactly that path, byte for
+byte, read as **Reading git** says (below), so case and Unicode form count: a
+match that ignores either names nothing ([`MISSING_INPUT_FILE`](#validator),
 [`MISSING_DECLARED_ANALYSIS`](#validator)). Two paths that differ only in case
 or Unicode form, such as `data/A.csv` and `data/a.csv`, name two files or
-folders, as in git, so `Stage` and `stage` declare two analyses (§7). An
-`astra.yaml` needn't be one Windows can check out. The path `C:/x` is `x` in a
-folder `C:`, not on a drive, and a name Windows reserves, such as `con` or
-`aux`, or a name ending in `.`, such as one built from `format: "csv."`, is
-valid. No ASTRA rule bounds the length of an id, a format or a path: a path
-git can't check out on a machine, such as one holding a name longer than its
-file system allows (255 bytes on ext4), can't be used there.
+folders, as in git, so `Stage` and `stage` declare two analyses (§7).
 
 **Reading git.** An analysis is read in the working tree or at a commit
 (§7), and validators and checkers read git one way:
@@ -217,9 +210,9 @@ file system allows (255 bytes on ext4), can't be used there.
   file nor a directory, and a path through a symlinked folder names nothing.
   So a declaration finds no analysis where its path, or its `astra.yaml`, is
   a symlink or goes through one ([`MISSING_DECLARED_ANALYSIS`](#validator)).
-  An input's path at or through a symlink names a file only where the
-  validator recognises the symlink as standing in for one (§5), and
-  otherwise names none ([`MISSING_INPUT_FILE`](#validator)).
+  An input's path that is a symlink names a file only where the validator
+  recognises the symlink as standing in for one (§5), and otherwise names
+  none ([`MISSING_INPUT_FILE`](#validator)).
 - A submodule that is checked out is in the working tree, and its entries
   are read in its own repository. A submodule that isn't checked out is an
   empty folder, and nothing is fetched for it.
@@ -281,7 +274,7 @@ is left out: no field takes `null`.
 | Path | Holds |
 |---|---|
 | `astra.yaml` | the analysis document |
-| `.astra/records/{universe}/{name}.json`, `.astra/records/{name}.json` | the records of the results that belong to the analysis, tracked in git (§8) |
+| `.astra/records/{universe}/{name}.json`, `.astra/records/{name}.json` | the records of the results that belong to the analysis (§8) |
 | `results/{universe}/{name}.{format}`, `results/{name}.{format}` | the default places of those results' bytes (§8) |
 
 `results/` and `.astra/` belong to runners. No input's `path` and no
@@ -291,9 +284,6 @@ joined to the folder of the `astra.yaml` that writes it, with its `.` and
 `results/` or `.astra/` of any analysis of the stack (§7), and is not inside
 one. So a run never writes over an input or a declared analysis, and a
 result is read by its address (§5), never by a path.
-
-Universes are declared only in `astra.yaml` (§6). A `universes/` directory
-means nothing to ASTRA.
 
 ## 4. Names and grammars
 
@@ -395,12 +385,11 @@ field with nothing to list is left out
 ([`EMPTY_COLLECTION`](#parse-and-schema)), so an output lists `decisions`
 or has a `when` only when it names at least one.
 
-Every id has the one grammar `id`, and no id is reserved (not even a name
-Windows reserves, §3): an address's kind comes from the field it is written
-in, so an element can be called `inputs`. Ids of different kinds can be the
-same, with two exceptions. An input and an output never share an id, since
-`Output.inputs` takes both ([`AMBIGUOUS_ID`](#validator)). An output never
-shares its id with a declaration of its analysis, since their results'
+Every id has the one grammar `id`; an address's kind comes from the field it
+is written in, so an element can be called `inputs`. Ids of different kinds
+can be the same, with two exceptions. An input and an output never share an
+id, since `Output.inputs` takes both ([`AMBIGUOUS_ID`](#validator)). An output
+never shares its id with a declaration of its analysis, since their results'
 default places could then be the same (§8,
 [`CLASHING_RESULT_NAME`](#validator)).
 
@@ -505,7 +494,7 @@ path is non-empty, doesn't start with `/` or `~`, separates folders with `/`
   stack, as §3 resolves it ([`RESERVED_PATH`](#validator)). A result is read
   by its address, never by a path.
 - The path names the file itself (not a symlink, §3), or something the
-  tooling recognises as standing in for it
+  validator recognises as standing in for it
   ([`MISSING_INPUT_FILE`](#validator)). The file, or what stands in for it,
   is tracked in git ([`INPUT_NOT_TRACKED`](#validator)), in the repository
   that holds the analysis (§3). Which stand-ins a tool recognises, and where
@@ -630,8 +619,7 @@ contains a character other than an ASCII space or control, one outside
 U+0000–U+0020 and U+007F ([`BLANK_EXCLUDED`](#parse-and-schema)), so a
 reason made only of non-ASCII spaces, format characters or C1 controls still
 counts (§4). `excluded: true` is not a reason
-([`WRONG_TYPE`](#parse-and-schema)), while `excluded: no` or `off` is the
-reason `no` or `off` (§3), so the option is excluded.
+([`WRONG_TYPE`](#parse-and-schema)).
 
 An option's `insights` are the ids of the prior insights that support it
 ([`INVALID_INSIGHT_REF`](#validator)).
@@ -1508,12 +1496,12 @@ results/
 A result is one file, which its recipe writes at `{output}`. An artefact of
 many files is written as an archive, or as several outputs.
 
-Records are tracked in git with the analysis, as its `astra.yaml` is, so they
-can be read whether or not the bytes are there. The bytes needn't stay at
-their default place ([`ABSENT_RESULT`](#check) is a `SHOULD`): a runner may
-keep them elsewhere and leave something standing in for them (§5). Anything
-else at the default place, something standing in for the bytes, other bytes
-or nothing, leaves the result's bytes `absent` ([`ABSENT_RESULT`](#check)).
+A record at a commit can be read whether or not the commit holds the bytes.
+The bytes needn't stay at their default place ([`ABSENT_RESULT`](#check) is a
+`SHOULD`): a runner may keep them elsewhere and leave something standing in
+for them (§5). Anything else at the default place, something standing in for
+the bytes, other bytes or nothing, leaves the result's bytes `absent`
+([`ABSENT_RESULT`](#check)).
 
 ### What a record holds
 
@@ -1584,18 +1572,15 @@ Every hash names its algorithm: `sha256:`, then the SHA-256 digest
 
 A record holds only what its commit can't give: the output's declaration, the
 options of its decisions and its format are in the `astra.yaml` files at that
-commit. The order of a record's fields carries no meaning: two records with
-the same keys and values are the same record. A record holds only the fields
-its `spec_version` defines, and is read by its minor version's record schema
-(§1). A checker reading a record of a greater minor version than its own
-validates it against the open variant of the record schema, which ignores
-the fields the checker doesn't know, rather than calling the record
-`missing`. A record whose minor version is smaller than the checker's and has
-no record schema, such as `0.0.9`, is `missing`. A record whose
-`spec_version` is missing or malformed is validated against the checker's
-own record schema, so every error is a reason
-([`INVALID_RECORD`](#check), §10). Read as RDF (§10), a record is W3C
-PROV-O.
+commit. A record holds only the fields its `spec_version` defines, and is read
+by its minor version's record schema (§1). A checker reading a record of a
+greater minor version than its own validates it against the open variant of
+the record schema, which ignores the fields the checker doesn't know, rather
+than calling the record `missing`. A record whose minor version is smaller
+than the checker's and has no record schema, such as `0.0.9`, is `missing`. A
+record whose `spec_version` is missing or malformed is validated against the
+checker's own record schema, so every error is a reason
+([`INVALID_RECORD`](#check), §10). Read as RDF (§10), a record is W3C PROV-O.
 
 Two records of one result with the same commit, inputs and environment, made
 on two machines say, show whether the result reproduces: their
