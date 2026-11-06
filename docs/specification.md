@@ -810,8 +810,8 @@ Evidence isn't built in a universe. Citing an output built per universe, it
 may pin it: the claim is then about one universe's result, and the pin says
 which. The pin names a universe as one in `Output.inputs` does (§4, §7). A
 check covers the evidence of the analysis it is run on (§8), so a finding
-about results built in a driver's universes belongs in the driver's
-`astra.yaml`, not in that of an analysis the driver drives there.
+about results that a driver builds for an analysis it drives belongs in the
+driver's `astra.yaml`, not in the driven analysis's.
 Evidence citing a result is checked through that result's record, and
 unpinned evidence through the records of the output's results (§8).
 
@@ -832,7 +832,8 @@ nor `derived_from` ([`INVALID_IMPORT`](#parse-and-schema)). It is not one of
 the analysis's universes. Both are written as a
 [Universe](elements/Universe.md) object, and an import's `label`,
 `description` and `tags` are its own: they describe the universe it imports
-under the import's id:
+under the import's id. In this file, `main` is a universe and `catalog_main`
+an import:
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -849,9 +850,8 @@ universes:
 The universe an import names is an **imported universe** of the importing
 file: a pin there names it by the import's id (§4), and it is checked as a
 universe of its own analysis, which is its only driver, and built as one
-where a pin names it (§7). A
-pin whose file has no entry with its id imports a universe in the same way
-(§7).
+where a pin names it (§7). A pin whose file has no entry with its id imports
+a universe in the same way (§7).
 
 A universe's `decisions` map decisions to options
 ([DecisionSelection](elements/DecisionSelection.md)), as
@@ -1223,9 +1223,11 @@ An earlier commit's results are read the same way. Where the declaration
 `previous` names the analysis's own directory at a commit, its universes
 often have the ids of the analysis's own. If both have a `fast`,
 `previous.counts#fast` names the analysis's own `fast`. Where `previous` has
-decisions and no key of that `fast` goes through it, a planned read of
-`counts`, built per universe, breaks [`UNDRIVEN_DECLARATION`](#validator)
-and [`NOT_BUILT_IN_UNIVERSE`](#validator). With the import
+decisions and no key of the analysis's universes goes through it, the
+analysis doesn't build `previous` in its `fast`: a planned result's output
+that reads `counts`, built per universe, through this pin breaks
+[`UNDRIVEN_DECLARATION`](#validator) and
+[`NOT_BUILT_IN_UNIVERSE`](#validator). With the import
 `previous_fast: {analysis: previous, universe: fast}`,
 `previous.counts#previous_fast` reads `counts` as it was built in `fast` at
 that commit, through its record, and no recipe runs (*Analyses from a
@@ -1270,8 +1272,8 @@ file's analysis, so what it names is the same under every root:
 - Where the file's `universes` has an entry `u`, the pin names it: one of
   the file's analysis's universes, or the universe an import there names
   (*Imported universes*, above).
-- Where it has none, the pin names the universe `u` of the analysis whose
-  element the reference names, as an import of it would: one of that
+- Where it has no entry `u`, the pin names the universe `u` of the analysis
+  whose element the reference names, as an import of it would: one of that
   analysis's universes, never an import in its file.
 - Where that analysis has no universe `u` either, as for an element of the
   file's own analysis, the pin names nothing
@@ -1879,8 +1881,8 @@ both reported, even when one edit fixes both.
    import that names nothing or whose address runs through an undetermined
    analysis (5), names no universe: it builds none, and neither
    `PIN_INACTIVE` nor a rule on the universe being built (§7) is checked
-   for it. A selection that names nothing isn't
-   checked by [`INACTIVE_DECISION`](#validator),
+   for it. A selection that names nothing isn't checked by
+   [`INACTIVE_DECISION`](#validator),
    [`MISSING_REQUIRED_OPTION`](#validator),
    [`INCOMPATIBLE_OPTIONS`](#validator) or
    [`EXCLUDED_OPTION_SELECTED`](#validator). A `requires` or
@@ -2047,10 +2049,9 @@ or `absent`). A result of an analysis from a commit that no recipe reads has
 only the first. A result with two names has its statuses at each place.
 Evidence citing a result gets that result's first status, at the name its
 `artifact`'s declarations give or, where they give none of its names, the
-worst at its names (§8). Evidence citing an
-output built per universe without a pin gets the worst first status of that
-output's results (`missing`, then `stale`), and `missing` when there are
-none.
+worst at its names (§8). Evidence citing an output built per universe
+without a pin gets the worst first status of that output's results
+(`missing`, then `stale`), and `missing` when there are none.
 
 | Status | Means |
 |---|---|
