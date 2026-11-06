@@ -20,7 +20,7 @@ A tool that follows the specification and uses the schemas conforms. astra-tools
 
 - The generated files are what the sources give, and the build tools do what they claim.
 - Each schema constraint refuses what it should, and each parse and schema code has a document that breaks it.
-- The schemas are standard JSON Schema that reads the same in any validator: portable patterns, standard keywords, a strict compile, one `$id` per minor version.
+- The schemas are standard JSON Schema that reads the same in any validator: ECMA-262 patterns as JSON Schema reads them, standard keywords, a strict compile, one `$id` per minor version.
 - `rules.json` matches the specification and the schemas.
 - The specification's grammars match the schema's patterns, and its examples break no parse or schema rule.
 - The JSON-LD context reads a record as the specification's PROV-O mapping says.
@@ -296,11 +296,11 @@ The specification is one page: Part I, Part II, a glossary, then Part III.
 
 **Glossary.** Normative and alphabetical, with one line per term, for every term a rule relies on.
 - A concept points to the section that defines it.
-- A technical term is defined here, with Annex B giving the detail: tracked (the index, intent-to-add and unmerged entries, submodules), lies inside, stand-in, and the repository that holds a file.
+- A technical term is defined here, with Annex B giving the detail: tracked (in git's index), lies inside, stand-in, and the repository that holds a file.
 
 **Part III: For tool builders.** Normative and terse.
-- **A. Reading files:** the parse layer, with what follows from YAML marked.
-- **B. Paths and git:** tidying a path, case and Unicode form, symlinks, submodules, shallow clones, and the glossary's git terms in full.
+- **A. Reading files:** what an `astra.yaml` and a record are, in full: YAML 1.2 whose content is a JSON value, and JSON. Since the audit of 2026-11-06 this is a few lines.
+- **B. Paths and git:** tidying a path as text, symlinks, gitlinks crossed at a commit, and the glossary's git terms in full.
 - **C. Grammars and patterns:** the ABNF, each pattern, and the characters of fragment identifiers.
 - **D. When a rule isn't checked.**
 - **E. The schema files and `rules.json`:** how an error maps to its code, records as RDF, and the `rules.json` excerpt.
@@ -343,11 +343,11 @@ For example:
 > - An input is one file. Data in many files is many inputs.
 > - The file is in the analysis's folder, but not in a folder below it that has an `astra.yaml` file of its own: that folder is another analysis.
 > - It is tracked in the analysis's repository, so a file in a git submodule can't be an input.
-> - It may be a stand-in kept in git in place of the data, such as a large-file tool's pointer. Which stand-ins count is up to the tool.
+> - It may be a stand-in kept in git in place of the data, such as a large-file tool's pointer, where the validator recognises it.
 >
 > | Code | Layer | Level | Rule |
 > |---|---|---|---|
-> | `INVALID_PATH` | schema | MUST | A declaration's or input's `path` is non-empty, doesn't start with `/` or `~`, and has no `\` and no ASCII control character; an input's `path` also has no `..` segment and doesn't end in `/` |
+> | `INVALID_PATH` | schema | MUST | A declaration's or input's `path` is non-empty and doesn't start with `/` |
 > | `MISSING_INPUT_FILE` | validator | MUST | An input's `path` names a file (not a folder, a symlink or a submodule), or a stand-in for one that the validator recognises |
 > | `INPUT_NOT_TRACKED` | validator | MUST | An input's file, or its stand-in, is [tracked](#glossary) in the repository that holds its analysis |
 > | `INPUT_IN_ANOTHER_ANALYSIS` | validator | MUST | An input's file is inside its analysis's folder, and not inside a folder below it that has an `astra.yaml` file of its own |
@@ -366,7 +366,7 @@ The starting placement:
 | 5. The `astra.yaml` file | INVALID_SYNTAX, DUPLICATE_KEY, MISSING_FIELD, UNKNOWN_FIELD, WRONG_TYPE, EMPTY_COLLECTION, DUPLICATE_ENTRY, INVALID_VALUE, UNSUPPORTED_SPEC_VERSION, NOT_IN_REPOSITORY |
 | 6. Names | INVALID_ID, INVALID_REFERENCE, UNRESOLVED_ADDRESS |
 | 7. Inputs | INVALID_PATH, MISSING_INPUT_FILE, INPUT_NOT_TRACKED, INPUT_IN_ANOTHER_ANALYSIS, RESERVED_PATH |
-| 8. Decisions and options | BLANK_EXCLUDED, UNKNOWN_OPTION |
+| 8. Decisions and options | UNKNOWN_OPTION |
 | 10. Outputs | OUTPUT_CYCLE, AMBIGUOUS_ID |
 | 11. Recipes | UNDECLARED_TEMPLATE_REF |
 | 12. Universes | UNKNOWN_DERIVED_FROM, DERIVED_FROM_CYCLE, INACTIVE_DECISION, MISSING_REQUIRED_OPTION, INCOMPATIBLE_OPTIONS, EXCLUDED_OPTION_SELECTED, INVALID_IMPORT |
@@ -424,7 +424,7 @@ There is one running example, built up through the spec, with neutral names:
    - Reduce the tests to ASTRA's rules, and remove the vendored YAML suite.
    - Then trim any test or fixture that doesn't serve §1, handing the cases to the conformance list.
 
-   The baseline is the spec at `3905eab`, which adds today's composition changes and imported universes.
+   The baseline B is the spec at `c17a491`. It adds the composition changes of 2026-11-06, imported universes, and the content audit's decisions (`80ddb20`..`c17a491`): the smaller parse layer, plain ECMA-262 patterns, and the rules and text the audit cut. Tom's answers are in the handover scratch, `rewrite/audit/AUDIT.md`. The audit's thirteen open questions (Q1-Q13) stay open: the rewrite transcribes B's text where they apply.
 2. **Tooling.** `tools/rules.py`, its tests and the generated page change first, run on today's content adapted to the new table form.
 3. **The rewrite.**
    - It goes section by section, following the inventory's destination map as amended by §5. The inventory's line numbers (made at `ad50115`) are first mapped to the baseline.
