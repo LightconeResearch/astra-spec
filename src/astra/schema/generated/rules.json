@@ -433,7 +433,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0003, 0004",
-      "statement": "Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written"
+      "statement": "Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left (§5), and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written"
     },
     {
       "code": "AMBIGUOUS_ID",

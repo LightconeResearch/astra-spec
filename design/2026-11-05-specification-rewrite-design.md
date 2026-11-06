@@ -152,6 +152,10 @@ Decided on 2026-11-06 (the audit's H25). An option with an `excluded` reason is 
 
 Decided on 2026-11-06 (the audit's H26). `Evidence.doi` keeps `10.`, the registrant's digit runs joined by `.`, `/` and a suffix, which is now only non-empty, and shortDOIs stay refused (X42). The suffix's bans on an ASCII space at either end and on control characters go: they guarded against paste slips, and the field's description never stated them. So `10.1234/x ` and a suffix with a tab are valid now. Analysis-196 and -197 went to scratch `for-conformance.md`.
 
+### What a placeholder is
+
+Decided on 2026-11-06 (the audit's H31). A recipe's `command` is read from the left: `{{` and `}}` are a literal `{` and `}`, and any other `{` opens a placeholder, which ends at the next `}`. `UNDECLARED_TEMPLATE_REF` now covers a stray brace too: a `{` with no `}` after it, or a `}` that ends no placeholder, as in `echo }`. Before, what counted as a placeholder wasn't defined, so whether those broke the rule was open; a shell's own braces are written doubled, as `awk '{{print $1}}'`. The rule's statement changes in `rules.json`, and its cases went to scratch `for-conformance.md`.
+
 ### Shallow clones and unborn branches
 
 Ancestry is judged on the history that is available:

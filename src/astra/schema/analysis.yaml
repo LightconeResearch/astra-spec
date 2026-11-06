@@ -91,8 +91,11 @@ classes:
         required: true
         description: >-
           The POSIX shell command that makes the output, such as
-          `python src/train.py`. It is a template, whose placeholders a
-          runner substitutes before running it:
+          `python src/train.py`. It is a template. Read from the left, `{{`
+          stands for a literal `{` and `}}` for a literal `}`, and any other
+          `{` opens a placeholder, which ends at the next `}`. A runner
+          substitutes each placeholder, and each `{{` and `}}`, before running
+          the command:
 
             {inputs.<entry>}     the path of what an entry of the output's
                                  `inputs` names, with <entry> written
@@ -107,9 +110,9 @@ classes:
             {inputs}             the paths of all the output's inputs, in
                                  the order of `inputs`, separated by spaces
             {output}             the path the result is written to
-            {{ and }}            a literal { and }
 
-          Every placeholder takes one of these forms, and the <entry> of an
+          Every brace belongs to a `{{`, a `}}` or a placeholder, every
+          placeholder takes one of these forms, and the <entry> of an
           {inputs.<entry>} or {decisions.<entry>} is an entry of the output's
           `inputs` or `decisions`, exactly as written.
       resources:

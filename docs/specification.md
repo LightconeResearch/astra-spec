@@ -534,8 +534,10 @@ an image, or a Containerfile it is built from. `Analysis.container` is the
 default container of the analysis's recipes. A recipe runs in its analysis's
 directory ([`WRONG_WORKING_DIRECTORY`](#runner)).
 
-The `command` is a POSIX shell command and a template. A runner substitutes
-its placeholders before running it:
+The `command` is a POSIX shell command and a template. Read from the left,
+`{{` stands for a literal `{` and `}}` for a literal `}`, and any other `{`
+opens a placeholder, which ends at the next `}`. A runner substitutes each
+placeholder, and each `{{` and `}}`, before running the command:
 
 | Placeholder | Becomes |
 |---|---|
@@ -543,7 +545,6 @@ its placeholders before running it:
 | `{decisions.<entry>}` | the id of the option selected for the decision an entry of the output's `decisions` names |
 | `{inputs}` | the paths of all the output's inputs, in the order of `inputs`, separated by spaces |
 | `{output}` | the path the result is written to |
-| `{{`, `}}` | a literal `{`, `}` |
 
 A placeholder gives a path the recipe can open from the directory it runs
 in; whether it is relative or absolute is the runner's. A runner substitutes
@@ -559,7 +560,9 @@ output's `inputs` or `decisions` exactly as written, dots and `#` included:
 Two pins of one output are two entries, each with its own placeholder. Any
 other placeholder breaks [`UNDECLARED_TEMPLATE_REF`](#validator): one naming
 an entry the output doesn't list, such as `{inputs.data}` when `data` isn't
-among its `inputs`, or one of none of these forms, such as `{foo}`.
+among its `inputs`, or one of none of these forms, such as `{foo}`. So does a
+stray brace: a `{` with no `}` after it, or a `}` that ends no placeholder, as
+in `echo }`.
 
 A recipe should read the files inputs name, and other outputs' results, only
 through its output's inputs ([`UNDECLARED_READ`](#runner)), since a checker
@@ -1880,7 +1883,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `UNRESOLVED_ADDRESS` | MUST | Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact`, one of another analysis's universes in an import | 0004, §7 |
 | `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003, 0004 |
 | `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | main |
-| `UNDECLARED_TEMPLATE_REF` | MUST | Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
+| `UNDECLARED_TEMPLATE_REF` | MUST | Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left (§5), and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
 | `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | tidy-up, §4 |
 | `CLASHING_RESULT_NAME` | MUST | No output shares its id with a declaration of the same analysis | tidy-up, §4, §8 |
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path` stays inside the declaring analysis's repository | 0004, 0007 §1 |
