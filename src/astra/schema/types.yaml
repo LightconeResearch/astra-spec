@@ -67,8 +67,8 @@ types:
       A reference to an element: its address, optionally followed by `#` and a
       universe id, which pins the reference to that universe, such as
       `f1_score#rf_standard`. In an `astra.yaml`, the id is that of an entry of
-      the file's `universes` or, where the file has none, of a universe of the
-      analysis whose element the reference names.
+      the file's `universes` or, where the file has no entry with that id, of a
+      universe of the analysis whose element the reference names.
     structured_pattern:
       syntax: '^{id}(\.{id})*(#{id})?$(?!\n)'
       interpolated: true
