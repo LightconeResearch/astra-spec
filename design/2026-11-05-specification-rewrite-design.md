@@ -172,6 +172,14 @@ Decided on 2026-11-06 (the audit's H11-H17 and H19-H21). Spec §3 keeps the read
 
 Restated with no change of meaning: case and Unicode form (H11: a path names the entry at exactly that path, so `data/A.csv` and `data/a.csv` are two paths, and identity compares "the same path"), a submodule that isn't checked out (H13), getting the commit a gitlink pins (H16: from the URL that the `.gitmodules` of the commit holding the gitlink gives, a relative one resolved as git resolves it), and a file's bytes at a commit (H17: the blob git stores).
 
+### Records: what makes a result stale, and what a runner's checkout may hold
+
+Decided on 2026-11-06 (the audit's H23, H24 and H37).
+- **The options of a result's decisions** (H23). `STALE_RESULT` compared "the options of its decisions", which read literally made a result stale when an option was added to one of its decisions. It now compares the options its decisions select: a result is stale in its universe if any of its decisions selects a different option there than at the commit its record names. This is the reading agreed in X53 (1) on 2026-11-04, brought forward from RFC L; X53 (2) and (3) stay there. The rule's statement changes in `rules.json`.
+- **`UNCOMMITTED_CHANGES` has no exemption** (H37). A runner's checkout could also hold what a tool keeps of, or puts in place to drive, an analysis from a commit. Now its only changes are the records and results the runner writes itself, each result's bytes the recorded ones; where a tool puts a driven commit's files is its own business, and they mustn't be changes in that checkout. The rule's statement changes in `rules.json`, and §7's two restatements of the exemption go.
+
+With no change of meaning: "the commit a record names has to stay in the history" read as a rule with no code. It is now the recommendation alone (H24): branches that hold records SHOULD be merged, not squashed or rebased.
+
 ### Where codes are reported
 
 - `UNSUPPORTED_SPEC_VERSION` at `/spec_version`;

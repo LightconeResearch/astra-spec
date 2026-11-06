@@ -675,7 +675,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "0005 §4",
-      "statement": "Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads",
+      "statement": "Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads",
       "status": "`stale`"
     },
     {
@@ -720,7 +720,7 @@
       "layer": "runner",
       "level": "MUST",
       "source": "0005 §3, 0007 §2, 0007 §7",
-      "statement": "A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones, and what a tool keeps of, or puts in place to drive, an analysis from a commit"
+      "statement": "A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones"
     },
     {
       "code": "WRONG_WORKING_DIRECTORY",

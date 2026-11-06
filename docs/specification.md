@@ -1288,9 +1288,6 @@ are read:
 Where a tool keeps what it read is the tool's choice, and validators,
 checkers and runners can work offline from what they kept: a commit kept
 from an earlier fetch counts as got ([`REMOTE_UNREACHABLE`](#validator)).
-None of it is part of the declaring analysis's code, and none of it is a
-change to the declaring analysis's repository that stops a runner from
-running ([`UNCOMMITTED_CHANGES`](#runner)).
 
 **Validity.** The declared analysis, with everything it declares, is valid
 at its commit ([`DECLARED_ANALYSIS_INVALID`](#validator)), each `astra.yaml`
@@ -1356,11 +1353,8 @@ as standing in for it (§5).
 
 **Driving.** A driver's universes can drive an analysis from a commit, as any
 declared analysis. Its recipes then run on exactly its files at the declared
-commit ([`NOT_AT_COMMIT`](#runner)). Where the tool puts those files is the
-tool's choice, and they aren't part of the declaring analysis's code and
-aren't a change that stops a runner from running
-([`UNCOMMITTED_CHANGES`](#runner)). Which environment the recipes run in is
-the runner's choice, as for any recipe, and is recorded in the driver's
+commit ([`NOT_AT_COMMIT`](#runner)). Which environment the recipes run in
+is the runner's choice, as for any recipe, and is recorded in the driver's
 records. Its outputs built once aren't built: like the rest of its results,
 they are read through their records at the declared commit
 ([`REBUILT_FROM_COMMIT`](#runner)). Only what the driver's universes build is
@@ -1535,10 +1529,10 @@ Every hash names its algorithm: `sha256:`, then the SHA-256 digest
 ```
 
 A record holds only what its commit can't give: the output's declaration, the
-options of its decisions and its format are in the `astra.yaml` files at that
-commit. A record holds only the fields its `spec_version` defines, and is read
-by its minor version's record schema (§1). A checker reading a record of a
-greater minor version than its own validates it against the open variant of
+options its decisions select and its format are in the `astra.yaml` files at
+that commit. A record holds only the fields its `spec_version` defines, and is
+read by its minor version's record schema (§1). A checker reading a record of
+a greater minor version than its own validates it against the open variant of
 the record schema, which ignores the fields the checker doesn't know, rather
 than calling the record `missing`. A record whose minor version is smaller
 than the checker's and has no record schema, such as `0.0.9`, is `missing`. A
@@ -1564,8 +1558,7 @@ on two machines say, show whether the result reproduces: their
   commit, the repository's own working tree or one it makes for the run (a
   git worktree, say), and refuses to run while that checkout has changes
   other than the records and results it writes itself, each result's bytes
-  the recorded ones, and what a tool keeps of, or puts in place to drive, an
-  analysis from a commit ([`UNCOMMITTED_CHANGES`](#runner)). Changes outside
+  the recorded ones ([`UNCOMMITTED_CHANGES`](#runner)). Changes outside
   that checkout don't stop it: a runner that runs in a checkout of its own
   while the working tree has changes writes the results and records into the
   working tree, and they are committed in a commit that has the commit they
@@ -1584,9 +1577,9 @@ A checker sees much of a breach afterwards: a result with no record is
 
 A record names the commit its recipe ran from, so it is committed in a later
 commit. That commit adds only records and results, so it makes none of the
-results whose records it adds stale. The commit a record names has to stay
-in the history of the commits that hold the record, so branches with records
-SHOULD be merged rather than squashed or rebased.
+results whose records it adds stale. Branches that hold records SHOULD be
+merged, not squashed or rebased, so that the commit each record names stays
+in their history.
 
 ### When a result is unchanged
 
@@ -1597,7 +1590,9 @@ if, since that commit, nothing has changed in ([`STALE_RESULT`](#check)):
 - its output's declaration: its recipe's command, its inputs and their order
   (`{inputs}` passes them in that order), its decisions, in any order (each
   reaches the recipe by name), and its format;
-- the options of its decisions;
+- the options its decisions select: a result is stale in its universe if any
+  of its decisions selects a different option there than at the commit its
+  record names;
 - the content of its inputs, never what stands in for it;
 - the results it reads. A result made from a stale one is stale, and once that
   one is rebuilt, it is unchanged again if the rebuilt bytes are the same.
@@ -1951,7 +1946,7 @@ without a pin gets the worst first status of that output's results
 | `INVALID_RECORD` | MUST | The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema, or against the open variant when that minor version is greater than the checker's | `missing` | 0005 §2, tidy-up, §3, §8 |
 | `MISPLACED_RECORD` | MUST | The record at each planned result's place has, as its `address`, the address that place is worked out from | `missing` | 0005 §1 |
 | `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
-| `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
+| `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
 | `ABSENT_RESULT` | SHOULD | Every result's recorded bytes are at its default place | `absent` | 0005 §1 |
 | `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status; without a pin on an output built per universe, the worst of its results' (`missing`, then `stale`) | 0005 §5 |
 
@@ -1968,7 +1963,7 @@ status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
 | `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places | 0005 §1, 0005 §3 |
 | `FALSE_RECORD` | MUST | Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times | 0005 §2, 0005 §3 |
 | `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an RFC 3987 IRI that it can recreate at its version | 0005 §3 |
-| `UNCOMMITTED_CHANGES` | MUST | A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones, and what a tool keeps of, or puts in place to drive, an analysis from a commit | 0005 §3, 0007 §2, 0007 §7 |
+| `UNCOMMITTED_CHANGES` | MUST | A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones | 0005 §3, 0007 §2, 0007 §7 |
 | `WRONG_WORKING_DIRECTORY` | MUST | A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it | 0004 §1, 0004 §5 |
 | `NOT_AT_COMMIT` | MUST | A runner drives an analysis from a commit on exactly its files at that commit | 0007 §7 |
 | `REBUILT_FROM_COMMIT` | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each of those results through its record at the commit that analysis is read at | 0007 §3, 0007 §7 |
