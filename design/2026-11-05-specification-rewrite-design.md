@@ -156,11 +156,15 @@ Decided on 2026-11-06 (the audit's H26). `Evidence.doi` keeps `10.`, the registr
 
 Decided on 2026-11-06 (the audit's H31). A recipe's `command` is read from the left: `{{` and `}}` are a literal `{` and `}`, and any other `{` opens a placeholder, which ends at the next `}`. `UNDECLARED_TEMPLATE_REF` now covers a stray brace too: a `{` with no `}` after it, or a `}` that ends no placeholder, as in `echo }`. Before, what counted as a placeholder wasn't defined, so whether those broke the rule was open; a shell's own braces are written doubled, as `awk '{{print $1}}'`. The rule's statement changes in `rules.json`, and its cases went to scratch `for-conformance.md`.
 
-### Shallow clones and unborn branches
+### Reading git: the corners of git's state go
 
-Ancestry is judged on the history that is available:
-- where a shallow clone can't decide, `COMMIT_NOT_ANCESTOR` isn't reported;
-- with no commit yet (an unborn HEAD and no MERGE_HEAD), it isn't checked, which is an Annex D case.
+Decided on 2026-11-06 (the audit's H11-H17 and H19-H21). Spec §3 keeps the reading of git that ASTRA needs: the exact path, on disk in the working tree or in the commit's tree; symlinks never followed; gitlinks crossed at a commit; the innermost repository; what is tracked; and the blob git stores. What went, each a change of meaning:
+- **`.git`** (H12). In the working tree, a path names any entry on disk below the top, `.git` included. Git never tracks `.git`, so an input there is `INPUT_NOT_TRACKED`.
+- **Intent-to-add and unmerged entries** (H14). "In the index" reads as git's index does, so an intent-to-add entry (`git add -N`) is tracked now, as an unmerged one already was.
+- **MERGE_HEAD** (H15, with H21). `COMMIT_NOT_ANCESTOR` stays, and in the working tree HEAD alone stands for the commit a declaration is in, so during a merge a declaration merged in from the other branch may draw the warning until the merge is committed. The rule's statement changes in `rules.json`.
+- **Shallow clones and unborn branches** (H19, H20). Decided on 2026-11-05 but never in the spec: where a shallow clone couldn't decide, `COMMIT_NOT_ANCESTOR` wasn't to be reported, and with no commit yet it wasn't to be checked, an Annex D case. Both are left out. The rule means ancestry, which is exact; how a tool decides it on a history it lacks is the tool's. With no commit yet, HEAD stands for the first commit, of which no declared commit is an ancestor, so the warning is the rule's answer. Annex D has no such case.
+
+Restated with no change of meaning: case and Unicode form (H11: a path names the entry at exactly that path, so `data/A.csv` and `data/a.csv` are two paths, and identity compares "the same path"), a submodule that isn't checked out (H13), getting the commit a gitlink pins (H16: from the URL that the `.gitmodules` of the commit holding the gitlink gives, a relative one resolved as git resolves it), and a file's bytes at a commit (H17: the blob git stores).
 
 ### Where codes are reported
 
