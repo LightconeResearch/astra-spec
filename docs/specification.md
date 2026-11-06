@@ -726,7 +726,7 @@ A universe selecting `correction.none` has neither `calibration_prior` nor
 `calibrated_table`. It doesn't set an inactive decision itself
 ([`INACTIVE_DECISION`](#validator)) and needn't set it at all
 ([`MISSING_DECISION`](#validator)). An inactive output isn't built in that
-universe: nothing reads it there without a pin
+universe: no output with a result planned there (§8) reads it without a pin
 ([`INPUT_NOT_BUILT`](#validator)), and no pin names it there
 ([`PIN_INACTIVE`](#validator)).
 
@@ -1098,8 +1098,9 @@ universe of `sub`'s own that leaves one of `sub`'s active decisions unset
 breaks `MISSING_DECISION`, though the root's universes don't use it. The
 rules on the universe being built (below:
 [`NOT_BUILT_IN_UNIVERSE`](#validator), [`UNDRIVEN_DECLARATION`](#validator),
-[`INPUT_NOT_BUILT`](#validator)) hold only in the universes built, as
-[`RESULT_IN_TWO_PLACES`](#validator) does (§8). Checking another analysis's
+[`INPUT_NOT_BUILT`](#validator)) hold only in the universes built, and for
+an output only where its result is planned (§8), as
+[`RESULT_IN_TWO_PLACES`](#validator) does. Checking another analysis's
 universes doesn't make it the root: the root, and so its working tree, stays
 the same, and each declaration is judged once
 ([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)).
@@ -1116,8 +1117,10 @@ universe in several analyses. When an analysis is built in one of its
 universes, that universe is pushed through every declaration the analysis's
 universes drive: it is the universe being built in every analysis they reach.
 An unpinned entry of `inputs` reads its output in that universe, and a
-consumed decision has the option that universe selects. So, wherever an output
-built per universe is read without a pin, or a decision is consumed:
+consumed decision has the option that universe selects. So, wherever the
+output of a result planned in the universe being built (§8) reads an output
+built per universe without a pin, or consumes a decision, and wherever a
+decision's `when` or a constraint consumes one:
 
 1. The analysis it belongs to is built in the universe being built
    ([`NOT_BUILT_IN_UNIVERSE`](#validator)). The analysis whose universe is
@@ -1131,8 +1134,9 @@ built per universe is read without a pin, or a decision is consumed:
    the first rule alone.
 
 An output built once has one result, so it is read without a pin from any
-universe, through any declaration. And every output read without a pin, of
-the analysis itself or of another, is active in the universe being built
+universe, through any declaration. And every output that the output of a
+result planned in the universe being built reads without a pin, of the
+analysis itself or of another, is active there
 ([`INPUT_NOT_BUILT`](#validator)).
 
 A pin `#u` resolves in the file it is written in, whatever drives that
@@ -1832,9 +1836,9 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | main, tidy-up |
 | `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
 | `LOOPING_KEY` | MUST | No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included | main, §6, §7 |
-| `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built | 0004 |
-| `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
-| `INPUT_NOT_BUILT` | MUST | Every output read without a pin is active (its `when` holds) in the universe being built | 0004 |
+| `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, and every decision of another analysis that such an output, a decision's `when` or a constraint consumes, belongs to an analysis built in that universe | 0004 |
+| `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, or by which such an output, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
+| `INPUT_NOT_BUILT` | MUST | Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there | 0004 |
 | `PIN_ON_INPUT` | MUST | Every pinned reference names an output | 0003 |
 | `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin, read in the file it is written in, names a universe of the first analysis along its reference, starting from that file's own, whose universes drive the reference's declarations from that analysis's file to its last, or, where there is none, of the analysis whose output it is | 0003, 0004, tidy-up, §7 |
 | `PIN_INACTIVE` | MUST | Every pinned output is active in the universe it is pinned to | 0003 |

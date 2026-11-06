@@ -585,21 +585,21 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0004",
-      "statement": "Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built"
+      "statement": "Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, and every decision of another analysis that such an output, a decision's `when` or a constraint consumes, belongs to an analysis built in that universe"
     },
     {
       "code": "UNDRIVEN_DECLARATION",
       "layer": "validator",
       "level": "MUST",
       "source": "0004, tidy-up, §7",
-      "statement": "In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain)"
+      "statement": "In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, or by which such an output, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain)"
     },
     {
       "code": "INPUT_NOT_BUILT",
       "layer": "validator",
       "level": "MUST",
       "source": "0004",
-      "statement": "Every output read without a pin is active (its `when` holds) in the universe being built"
+      "statement": "Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there"
     },
     {
       "code": "PIN_ON_INPUT",
