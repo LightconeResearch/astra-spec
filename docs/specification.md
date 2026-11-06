@@ -45,7 +45,7 @@ doesn't restate them.
 | pin | `#` and a universe id ending a reference, after its address, which reads the output in that universe | §4 |
 | root | the analysis being validated or built | §7 |
 | analysis stack | the root and every analysis it declares, directly or through others | §7 |
-| driver, driven | in the root's universes, the root, and an analysis reached through a declaration they drive; the root is never driven | §7 |
+| driver, driven | the analysis whose universes drive, and an analysis reached through a declaration they drive; the analysis whose universe is being built is never driven in it | §7 |
 | consuming | using another analysis's element by address, without driving it | §7 |
 | analysis from a commit | a declared analysis as it was at a given commit | §7 |
 | result | what a recipe made for one output in one universe, or once | §8 |
@@ -1020,8 +1020,11 @@ universes the root is the driver and is never driven, even when a
 declaration in its stack leads back to it. Another analysis's universe is
 used only where a pin names it. That analysis is then its driver: like the
 root, it is never driven in that universe, and what is built there belongs
-to it (§8). A validator also checks every other universe of the stack
-(below).
+to it (§8). The root is not the driver there: a declaration that leads back
+to it, such as `parent: {path: ..}`, is an ordinary declaration, and where
+that analysis's universes drive it, as the key `parent.decision1` does, the
+root is driven and built in that universe like any other analysis. A
+validator also checks every other universe of the stack (below).
 
 ### Driving and consuming
 
@@ -1073,8 +1076,8 @@ universes of its own keeps them unless a key drives it.
   set under either spelling (`stage.inner.d` or `inner.d`), but a universe
   sets it under one key, a derived universe that inherits it under the key
   it inherits ([`DUPLICATE_ELEMENT`](#validator)).
-- In the root's universes, a driven analysis's own universes don't set its
-  decisions. A pin in its own file, or through an undriven declaration,
+- In a universe being built, a driven analysis's own universes don't set
+  its decisions. A pin in its own file, or through an undriven declaration,
   still reads one of them (below). Each universe being built has one driver,
   the analysis whose universe it is.
 
@@ -1338,12 +1341,17 @@ and a result read through a pin in a declared analysis's own universe
 belongs to that analysis: a consumed analysis's results stay in its own
 directory. A result's **name** is its output's id after the ids of the
 driven declarations from the analysis it belongs to (`subanalysis1.output1`).
-An undriven declaration never adds a name, since a pin through it names a
-universe of an analysis further along its reference (§7). No declaration
-that leads back to an analysis already on the chain from the driver, such as
-`feature_extraction`'s `iris` in the root's universes, is driven (§6, §7).
-So the result of an output of the analysis it belongs to is named by the
-output's id alone, as the result of an output built once always is. Reached through two such chains (`inner` and
+An undriven declaration, such as `iris: {path: ..}` in
+`feature_extraction`'s file in the root's universes, never adds a name,
+since a pin through it names a universe of an analysis further along its
+reference (§7). No declaration that leads back to an analysis already on
+the chain from the driver is driven (§6, §7), but a sub-analysis's
+declaration of its parent doesn't lead back where the sub-analysis is the
+driver: the parent's `output0`, built in the sub-analysis's universe `v1`
+through a driven `parent: {path: ..}`, is named `parent.output0` in the
+sub-analysis's records. So the result of an output of the analysis it
+belongs to is named by the output's id alone, as the result of an output
+built once always is. Reached through two such chains (`inner` and
 `stage.inner`, when keys go through both), a result is made once, and placed
 and recorded under each name, though a planned result should have one
 ([`RESULT_IN_TWO_PLACES`](#validator)). The rule is judged on the planned
