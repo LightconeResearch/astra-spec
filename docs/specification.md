@@ -329,8 +329,8 @@ id as [`INVALID_COMMIT`](#parse-and-schema), and the others as
 Above U+007F a class leaves out only what it names, so these fields take
 characters that aren't visible:
 
-- `Option.excluded` and `AnalysisDeclaration.url` take `[^\x00-\x20\x7f]`,
-  and `FragmentSelector.value` takes it less ``"#<>[\]^`{|}`` and `%` (which
+- `AnalysisDeclaration.url` takes `[^\x00-\x20\x7f]`, and
+  `FragmentSelector.value` takes it less ``"#<>[\]^`{|}`` and `%` (which
   it takes only to start a percent-encoding). Each admits every character
   above U+007F: non-ASCII spaces (U+00A0, U+3000), format characters (U+200B,
   U+FEFF, U+202E), U+2028, U+2029 and the C1 controls.
@@ -596,12 +596,8 @@ analysis's decision.
 
 An option with an `excluded` reason is excluded: no effective selection
 selects it ([`EXCLUDED_OPTION_SELECTED`](#validator)). It stays listed, so the
-analysis records what it considered and why it ruled it out. The reason
-contains a character other than an ASCII space or control, one outside
-U+0000–U+0020 and U+007F ([`BLANK_EXCLUDED`](#parse-and-schema)), so a
-reason made only of non-ASCII spaces, format characters or C1 controls still
-counts (§4). `excluded: true` is not a reason
-([`WRONG_TYPE`](#parse-and-schema)).
+analysis records what it considered and why it ruled it out. `excluded: true`
+is not a reason ([`WRONG_TYPE`](#parse-and-schema)).
 
 An option's `insights` are the ids of the prior insights that support it
 ([`INVALID_INSIGHT_REF`](#validator)).
@@ -1876,7 +1872,6 @@ A table that breaks any of this is an error in this specification, and no
 | `INVALID_IMPORT` | schema | MUST | An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from` | §6, §7 |
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007, tidy-up |
 | `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` is non-empty and doesn't start with `/` | 0004, 0006, tidy-up |
-| `BLANK_EXCLUDED` | schema | MUST | An option's `excluded` reason is not blank | tidy-up |
 | `INVALID_EVIDENCE_SOURCE` | schema | MUST | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
 | `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, a number, an integer, a list or a map | tidy-up, §4, §10 |
 | `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | tidy-up, §4 |

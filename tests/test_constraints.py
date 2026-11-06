@@ -287,7 +287,6 @@ NEGATIVE = [
         "DUPLICATE_ENTRY",
     ),
     Case("core", SMALL + "/excluded", True, "WRONG_TYPE"),
-    Case("core", SMALL + "/excluded", " ", "BLANK_EXCLUDED"),
     # --- Universe, and the selections of its `decisions` ---
     Case("universes", SVM, "rf_standard", "WRONG_TYPE"),
     Case("universes", SVM + "/id", "svm_standard", "UNKNOWN_FIELD", SVM),
@@ -643,13 +642,6 @@ FACETS = {
             "page=6\x7f",
             "page=6\n",
         ],
-    ),
-    ("Option", "excluded"): (
-        "core",
-        SMALL + "/excluded",
-        "BLANK_EXCLUDED",
-        ["no", "off", "Too few galaxies.", " x ", "x\n", "\u00a0", "\u3000"],
-        ["", " ", "\t", "\n", " \t\r\n", "\x7f"],
     ),
 }
 """For each slot that writes its own pattern: a valid fixture, the pointer of the slot's value in it, the slot's code,

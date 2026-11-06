@@ -80,7 +80,6 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Insight__identifier_optional/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/additionalProperties": "UNKNOWN_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/description/type": "WRONG_TYPE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/excluded/pattern": "BLANK_EXCLUDED",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/excluded/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/incompatible_with/items/pattern": "INVALID_REFERENCE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/incompatible_with/items/type": "WRONG_TYPE",
@@ -372,13 +371,6 @@
       "level": "MUST",
       "source": "0004, 0006, tidy-up",
       "statement": "Every declaration's and input's `path` is non-empty and doesn't start with `/`"
-    },
-    {
-      "code": "BLANK_EXCLUDED",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "tidy-up",
-      "statement": "An option's `excluded` reason is not blank"
     },
     {
       "code": "INVALID_EVIDENCE_SOURCE",

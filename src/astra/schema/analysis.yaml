@@ -292,13 +292,9 @@ classes:
         description: >-
           The options that are never selected together with this option.
       excluded:
-        pattern: '[^\x00-\x20\x7f]'
-        annotations:
-          rule: BLANK_EXCLUDED
         description: >-
-          Why the option is ruled out, as a reason that is not blank; any
-          string is a reason, `no` and `off` included. An option with a reason
-          is excluded: no universe selects it.
+          Why the option is ruled out. An option with a reason is excluded: no
+          effective selection selects it.
 
   # --- Universes ---
 

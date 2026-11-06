@@ -337,8 +337,7 @@
           "type": "string"
         },
         "excluded": {
-          "description": "Why the option is ruled out, as a reason that is not blank; any string is a reason, `no` and `off` included. An option with a reason is excluded: no universe selects it.",
-          "pattern": "[^\\x00-\\x20\\x7f]",
+          "description": "Why the option is ruled out. An option with a reason is excluded: no effective selection selects it.",
           "type": "string"
         },
         "incompatible_with": {

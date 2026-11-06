@@ -614,8 +614,6 @@ CODES = {
     + "/$defs/Input__identifier_optional/properties/path/pattern": "INVALID_PATH",
     ANALYSIS + DECLARATION + "/properties/path/pattern": "INVALID_PATH",
     ANALYSIS
-    + "/$defs/Option__identifier_optional/properties/excluded/pattern": "BLANK_EXCLUDED",
-    ANALYSIS
     + "/$defs/Output__identifier_optional/properties/format/pattern": "INVALID_VALUE",
     ANALYSIS + "/$defs/Evidence/properties/doi/pattern": "INVALID_VALUE",
     ANALYSIS + DECLARATION + "/properties/url/pattern": "INVALID_VALUE",
