@@ -683,7 +683,7 @@
       "layer": "check",
       "level": "SHOULD",
       "source": "0005 §1",
-      "statement": "Every result's recorded bytes are at its default place",
+      "statement": "Every planned result's recorded bytes are at its default place",
       "status": "`absent`"
     },
     {
@@ -692,7 +692,7 @@
       "level": "MUST",
       "source": "0005 §5",
       "statement": "Every evidence citing a result cites an unchanged one",
-      "status": "the cited result's status; without a pin on an output built per universe, the worst of its results' (`missing`, then `stale`)"
+      "status": "the cited result's status (Statuses)"
     },
     {
       "code": "UNRECORDED_RESULT",

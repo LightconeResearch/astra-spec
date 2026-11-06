@@ -210,6 +210,14 @@ Cut on 2026-11-06 (the audit's H33 (a), H34 and H38), each a promise with no cod
 - **An RDF reading of the evidence selectors** (H33 (a)). §10 said no RDF reading of `astra.yaml` was published, then gave the selectors one: their W3C terms, `conforms_to` as `dcterms:conformsTo`, a location without it read as RFC 3778's, and `oa:refinedBy` for a quote within a location. That goes, and so does §5's `oa:refinedBy` clause. §5 still states the meaning in plain words, and the schema's `class_uri` and `slot_uri` stay as mappings.
 - **The unversioned URL** (H34). "`https://w3id.org/astra/` followed by a file name alone redirects to the latest release's file" is a hosting detail. Keeping that redirect up to date belongs to the release process (scratch `asides.md`).
 
+### The catalogue: `ABSENT_RESULT`, levels and statuses
+
+Settled on 2026-11-06 (the audit's I14-I16, I20 and O7), with no verdict changed:
+- **`ABSENT_RESULT`** (I20). Its statement read "every result's recorded bytes", but only planned results get statuses (spec §8). It now reads "every planned result's recorded bytes are at its default place". The statement changes in `rules.json`, and so does spec §10's excerpt.
+- **No `MAY` level** (I15). No rule of the catalogue was a `MAY`, so spec §9 defined a category no table used. A level is now `MUST` or `SHOULD`, in spec §9 and in `rules.json`'s `level`, and `tools/rules.py` refuses a `MAY` row. The runner's permission to enforce `UNDECLARED_READ` stays a permission, stated after the runner table with the runner's recommendation, each once (I14); spec §8 and the layer table link to them.
+- **Statuses once** (I16). Spec §9 kept the status table and dropped its restatement of spec §8's statuses. `STALE_EVIDENCE`'s *Status when broken* is "the cited result's status (Statuses)", linking spec §8, so its `status` in `rules.json` changes.
+- **The catalogue as data** (O7). How `tools/rules.py` reads spec §9's tables (subsections, columns, rows, cells) left the spec for the extractor's docstring. Spec §9 keeps what the Code, Level and Rule columns mean, and spec §10 still says `rules.json`'s cells are inline CommonMark.
+
 ### Slips corrected
 
 - Results reached through an analysis from a commit are read "at the commit each is read at", and the analysis's code doesn't run "unless it is driven". Today two pairs of sentences contradict each other on this.

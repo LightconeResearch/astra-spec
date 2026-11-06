@@ -68,8 +68,7 @@ version has one schema of `astra.yaml` and one of a record, and every
 the schema of the minor version it states, so a validator that reads one
 patch of a minor version reads them all
 ([`UNSUPPORTED_SPEC_VERSION`](#validator)). A file whose `spec_version` is
-missing or malformed is checked against the schema of the validator's own
-minor version, and every schema error in it is reported.
+missing or malformed is checked as §9's *What is checked* says.
 
 ## 2. Overview
 
@@ -522,8 +521,7 @@ A recipe should read the files inputs name, and other outputs' results, only
 through its output's inputs ([`UNDECLARED_READ`](#runner)), since a checker
 sees a change to them only through those inputs. Anything else it uses, its
 own scripts among them, is pinned by the commit or is part of the
-environment. A runner can enforce this, as §9 permits; one that does fails
-the recipe.
+environment. A runner may enforce this, as §9 permits.
 
 ### Decisions and options
 
@@ -1428,10 +1426,8 @@ options its decisions select and its format are in the `astra.yaml` files at
 that commit. A record holds only the fields its `spec_version` defines, and is
 read by its minor version's record schema (§1). A checker reading a record of
 a greater minor version than its own validates it against the open variant of
-its own record schema, which ignores the fields it doesn't know. A record
-whose `spec_version` is missing or malformed is validated against the
-checker's own record schema, so every error is a reason
-([`INVALID_RECORD`](#check), §10). Read as RDF (§10), a record is W3C PROV-O.
+its own record schema, which ignores the fields it doesn't know
+([`INVALID_RECORD`](#check)). Read as RDF (§10), a record is W3C PROV-O.
 
 Two records of one result with the same commit, inputs and environment, made
 on two machines say, show whether the result reproduces: their
@@ -1445,8 +1441,8 @@ on two machines say, show whether the result reproduces: their
 - Every field of the record is true of the run
   ([`FALSE_RECORD`](#runner)). It records each recipe's environment as an
   RFC 3987 IRI that it can recreate at its version
-  ([`UNRECREATABLE_ENVIRONMENT`](#runner)), and should let someone see what
-  that environment holds, as PROV for example.
+  ([`UNRECREATABLE_ENVIRONMENT`](#runner)), and letting someone see what that
+  environment holds, as PROV for example, is recommended (§9, *runner*).
 - It runs only committed code. It runs each recipe in a checkout of a
   commit, the repository's own working tree or one it makes for the run (a
   git worktree, say), and refuses to run while that checkout has changes
@@ -1462,8 +1458,8 @@ on two machines say, show whether the result reproduces: their
   result is unchanged*, below).
 
 A checker sees much of a breach afterwards: a result with no record is
-`missing`, and bytes that aren't the recorded ones are `absent`. Enforcing
-[`UNDECLARED_READ`](#runner) is the runner's choice (§5).
+`missing`, and bytes that aren't the recorded ones are `absent`. A runner may
+enforce [`UNDECLARED_READ`](#runner), as §9 permits (§5).
 
 A record names the commit its recipe ran from, so it is committed in a later
 commit. Records and results are no input and no part of a declaration, so
@@ -1539,17 +1535,14 @@ commit (§7).
 This section is the rule catalogue: the only place this specification states
 a rule that a tool checks or keeps. The layers are those of §2.
 
-**The rule is always what must (or should, or may) hold. What you get when it
-is broken is always in a column of its own.** This is true in every layer:
+**The rule is always what must (or should) hold. What you get when it is
+broken is always in a column of its own.** This is true in every layer:
 
 - **Rule:** one sentence saying what holds in a conforming file, record or
-  run. It is in the present tense, and its subject is what the rule is about
-  ("A declaration has …", "Every pin names …", "No output …"). It never says
-  what happens when it is broken.
-- **Level:** `MUST`, `SHOULD` or `MAY` (RFC 2119), applied to that sentence,
-  and `MAY` only in the runner table.
+  run.
+- **Level:** `MUST` or `SHOULD` (RFC 2119), applied to that sentence.
 - **Code:** names what is wrong when the rule is broken. It is what a tool
-  reports.
+  reports. Each code is unique and matches `[A-Z][A-Z0-9_]*`.
 - **Source:** every source of the rule, as plain comma-separated tokens:
   the RFCs it comes from, and the section of this specification that
   explains it.
@@ -1573,19 +1566,14 @@ What breaking a rule leads to depends on the layer:
 
 | Layer | When a rule is broken |
 |---|---|
-| parse, schema, validator | A broken `MUST` is reported as an **error** and makes the file invalid (a checker reports a record's as a reason of [`INVALID_RECORD`](#check)); a broken `SHOULD` is reported as a **warning**, and the file stays valid |
+| parse, schema, validator | A broken `MUST` is reported as an **error** and makes the analysis invalid (in a record, it breaks [`INVALID_RECORD`](#check) instead); a broken `SHOULD` is reported as a **warning**, and the analysis stays valid |
 | check | A broken `MUST` is reported as an **error** and a broken `SHOULD` as a **warning**. Nothing fails, and **the result gets a status**, given in the check table's extra column, *Status when broken* |
-| runner | A runner that breaks a `MUST` doesn't conform. It runs no recipe while `UNCOMMITTED_CHANGES` would be broken, and builds no output while `STALE_INPUT` would be, and when it refuses for either it reports the code. `UNDECLARED_READ` binds the recipe: breaking it leaves the analysis valid, and a runner that enforces it fails the recipe and reports the code |
+| runner | A runner that breaks a `MUST` doesn't conform. It runs no recipe while `UNCOMMITTED_CHANGES` would be broken, and builds no output while `STALE_INPUT` would be, and when it refuses for either it reports the code. `UNDECLARED_READ` binds the recipe, and breaking it leaves the analysis valid; a runner may enforce it (*runner*, below) |
 
 The check layer is the only one laid out differently, with that extra
 column, because breaking one of its rules changes what a result is. A parse,
-schema or validator rule decides whether a file is valid, and only through
-its `MUST`s.
-
-A `MAY` row states what a tool may do. Leaving it out breaks nothing and
-makes no tool non-conforming. The code is what a tool that does it reports.
-Only the runner table, whose rules are about a tool's own actions, can have
-`MAY` rows.
+schema or validator rule decides whether a document or an analysis is valid,
+and only through its `MUST`s.
 
 **What is checked.** A tool reports every rule broken, except in the cases
 below, and the list is closed. In each case another broken rule leaves what a
@@ -1595,11 +1583,15 @@ invalid analysis valid, or a `missing` result anything else: it changes only
 which codes are reported. Two rules whose subjects are both determined are
 both reported, even when one edit fixes both.
 
-1. **A file that can't be read.** A file that breaks a parse rule is checked
-   no further. A file whose `spec_version` is missing or malformed isn't
-   checked by [`UNSUPPORTED_SPEC_VERSION`](#validator): it is checked against
-   the validator's own schema (§1). A file whose well-formed `spec_version`
-   breaks `UNSUPPORTED_SPEC_VERSION` isn't checked by the schema layer.
+1. **A file that can't be read, or whose version has no schema.** A file that
+   breaks a parse rule is checked no further. A file whose `spec_version` is
+   missing or malformed isn't checked by
+   [`UNSUPPORTED_SPEC_VERSION`](#validator): it is checked against the schema
+   of the tool's own minor version, the validator's schema of `astra.yaml` or
+   the checker's record schema, and every schema error in it is reported, a
+   record's as a reason of [`INVALID_RECORD`](#check). A file whose
+   well-formed `spec_version` breaks `UNSUPPORTED_SPEC_VERSION` isn't checked
+   by the schema layer.
 2. **A file that isn't a valid document.** A file that breaks a parse or
    schema rule, or [`UNSUPPORTED_SPEC_VERSION`](#validator), isn't checked by
    the validator layer, and its declarations aren't followed. Its analysis is
@@ -1697,40 +1689,6 @@ both reported, even when one edit fixes both.
     and its declarations aren't followed, so only its own `astra.yaml` is
     checked, by the parse and schema rules.
 
-**The catalogue as data.** The rules are extracted from this section into
-`rules.json` (§10), so its tables are a format that tools parse, not only
-text to read:
-
-- **Subsections.** This section has four `###` subsections, `parse and
-  schema`, `validator`, `check` and `runner`, in that order, and no others.
-- **Rule tables.** A rule table is a table whose header has a Code column.
-  Each subsection has exactly one, and no rule table stands outside them.
-  Other tables, such as the check layer's statuses, are not read.
-- **Columns** are found by the names in a rule table's header: Code, Level,
-  Rule and Source, with Layer in the parse and schema table and Status when
-  broken in the check table, each once, and no others.
-- **Rows.** Each row is one rule, with one cell per column and none empty.
-  Its Code is one code span holding a capital letter, then capitals, digits
-  and underscores (`[A-Z][A-Z0-9_]*`), and no other row has it. Its Layer is
-  `parse` or `schema`, and its Level `MUST`, `SHOULD` or, in the runner table
-  only, `MAY`. Its Rule is one sentence: as the cell reads once rendered,
-  outside its code spans, no `.`, `?` or `!` is followed by white space,
-  even after a closing bracket or quote. Its Rule uses no RFC 2119 keyword in
-  capitals of another level, in its text, in a code span, or as the Rule cell
-  reads once rendered (`MU*ST*` reads as `MUST`). Its Source is plain text:
-  tokens separated by a comma and a space, each an RFC number with an
-  optional `§n`, `tidy-up`, `main`, `#n` or `§n`.
-- **Cells** are inline Markdown, as CommonMark with GFM tables reads them,
-  and the published page shows each cell as the same text. They hold only
-  text, code spans, emphasis, links and inline HTML.
-  `rules.json` records a cell as Markdown rebuilt from what it parses to,
-  with each link reduced to its text, so the rebuilt Markdown must parse the
-  same way: an escape whose loss would change the cell, such as `\*` before
-  text that would then become emphasis, is not allowed.
-
-A table that breaks any of this is an error in this specification, and no
-`rules.json` is made from it.
-
 ### parse and schema
 
 | Code | Layer | Level | Rule | Source |
@@ -1807,15 +1765,7 @@ reports `INVALID_RECORD` with each code the record breaks as its reason, the
 parser's (`INVALID_SYNTAX` or `DUPLICATE_KEY`) or the one `rules.json` gives
 the schema error (§10).
 
-**Statuses.** A checker gives every planned result two statuses, one for its
-record (`unchanged`, `stale` or `missing`) and one for its bytes (`present`
-or `absent`). A result of an analysis from a commit that no recipe reads has
-only the first. A result with two names has its statuses at each place.
-Evidence citing a result gets that result's first status, at the name its
-`artifact`'s declarations give or, where they give none of its names, the
-worst at its names (§8). Evidence citing an output built per universe
-without a pin gets the worst first status of that output's results
-(`missing`, then `stale`), and `missing` when there are none.
+The statuses, which §8's *Statuses* gives:
 
 | Status | Means |
 |---|---|
@@ -1834,14 +1784,8 @@ without a pin gets the worst first status of that output's results
 | `MISPLACED_RECORD` | MUST | The record at each planned result's place has, as its `address`, the address that place is worked out from | `missing` | 0005 §1 |
 | `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
 | `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
-| `ABSENT_RESULT` | SHOULD | Every result's recorded bytes are at its default place | `absent` | 0005 §1 |
-| `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status; without a pin on an output built per universe, the worst of its results' (`missing`, then `stale`) | 0005 §5 |
-
-The results of an analysis from a commit that are read or cited get their
-record status (`unchanged`, `stale`, `missing`) by the same rules, through
-their records at the declared commit. Only those a recipe reads get a bytes
-status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
-§4–5).
+| `ABSENT_RESULT` | SHOULD | Every planned result's recorded bytes are at its default place | `absent` | 0005 §1 |
+| `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status ([Statuses](#statuses)) | 0005 §5 |
 
 ### runner
 
@@ -1857,10 +1801,11 @@ status (`ABSENT_RESULT`), from what git holds at the declared commit (0007
 | `STALE_INPUT` | MUST | A runner builds no output that reads a result belonging to an analysis from a commit, or to an analysis reached from it through declarations, while that result is `missing` or `stale`, or its bytes can't be got or aren't the recorded ones | 0007 §4, 0007 §5 |
 | `UNDECLARED_READ` | SHOULD | A recipe reads the files inputs name, and other outputs' results, only through its output's inputs | 0005 §3, tidy-up |
 
-A recommendation and a permission. Neither is a rule of its own, because
-nothing can check them: a runner SHOULD let someone see what an environment
-it recorded holds, and MAY enforce `UNDECLARED_READ`, with a sandbox say. §5
-and §8 explain them.
+Recommendation: a runner SHOULD let someone see what an environment it
+recorded holds.
+
+Permission: a runner MAY enforce `UNDECLARED_READ`; one that does fails the
+recipe and reports the code.
 
 ## 10. Schema artefacts
 
@@ -1913,7 +1858,7 @@ for the same error and words each rule the same way. It holds:
 
 - `rules`: one entry per rule of §9, in §9's order. Each has its `code`;
   its `layer` (`parse`, `schema`, `validator`, `check` or `runner`); its
-  `level` (`MUST`, `SHOULD` or `MAY`); and its `statement`, its `source`
+  `level` (`MUST` or `SHOULD`); and its `statement`, its `source`
   and, for a rule of the check layer, its `status`: the Rule, Source and
   Status when broken cells, as inline CommonMark with each link reduced to
   its text. A `status` is display text naming the status a result, or
@@ -1956,7 +1901,7 @@ a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
       "layer": "check",
       "level": "SHOULD",
       "source": "0005 §1",
-      "statement": "Every result's recorded bytes are at its default place",
+      "statement": "Every planned result's recorded bytes are at its default place",
       "status": "`absent`"
     }
   ]
@@ -1972,13 +1917,6 @@ naming the field. Only the failures that make the document fail are
 reported, not those inside an `if` or a `not`, or inside a branch of a
 combinator that doesn't fail. So any JSON Schema 2019-09 validator gives the
 same set of pairs of an instance location and a code.
-
-A checker maps a record's errors the same way, through the record schema it
-reads the record by, closed or open. It doesn't report them as errors of
-their own: it reports [`INVALID_RECORD`](#check) for the record's result, with
-the code of each error as its reason, and with the parser's code
-([`INVALID_SYNTAX`](#parse-and-schema) or
-[`DUPLICATE_KEY`](#parse-and-schema)) for a record that fails at parse (§3).
 
 **RDF.** A record's RDF is what the
 [JSON-LD 1.1](https://www.w3.org/TR/json-ld11-api/) toRdf algorithm gives for

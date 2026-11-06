@@ -78,7 +78,7 @@ CHECK = """\
 RUNNER_TABLE = """\
 | Code | Level | Rule | Source |
 |---|---|---|---|
-| `NO_SANDBOX` | MAY | A runner runs each recipe in a sandbox | main |
+| `NO_SANDBOX` | SHOULD | A runner runs each recipe in a sandbox | main |
 """
 
 RUNNER = "### runner\n\n" + RUNNER_TABLE + "\n"
@@ -166,7 +166,7 @@ def test_extracts_the_rule_tables_of_section_9():
         {
             "code": "NO_SANDBOX",
             "layer": "runner",
-            "level": "MAY",
+            "level": "SHOULD",
             "statement": "A runner runs each recipe in a sandbox",
             "source": "main",
         },
@@ -246,20 +246,15 @@ MALFORMED = {
         "| `LOOSE_PIN` | Should |",
         r"LOOSE_PIN.*Should",
     ),
-    "MAY row in the parse and schema table": (
-        "| `BAD_ID` | schema | MUST |",
-        "| `BAD_ID` | schema | MAY |",
-        r"BAD_ID.*a MAY row is allowed only in the runner table",
+    "MAY row": (
+        "| `NO_SANDBOX` | SHOULD |",
+        "| `NO_SANDBOX` | MAY |",
+        r"NO_SANDBOX.*unknown level 'MAY': a level is MUST or SHOULD",
     ),
-    "MAY row in the validator table": (
-        "| `LOOSE_PIN` | SHOULD |",
-        "| `LOOSE_PIN` | MAY |",
-        r"LOOSE_PIN.*a MAY row is allowed only in the runner table",
-    ),
-    "MAY row in the check table": (
-        "| `NO_RECORD` | MUST |",
-        "| `NO_RECORD` | MAY |",
-        r"NO_RECORD.*a MAY row is allowed only in the runner table",
+    "MAY in a rule": (
+        "A runner runs each recipe in a sandbox",
+        "A runner MAY run each recipe in a sandbox",
+        r"NO_SANDBOX.*says MAY, which contradicts its level, SHOULD",
     ),
     "keyword contradicts level": (
         "No reference to an output built once has a pin",
@@ -376,13 +371,13 @@ def test_keywords_that_agree_with_the_level_are_allowed():
     """A keyword of the rule's own level is fine, and a code that contains a keyword's letters is not one."""
     text = VALID.replace(
         "A runner runs each recipe in a sandbox",
-        "A runner MAY run each recipe in a sandbox",
+        "A runner SHOULD run each recipe in a sandbox",
     ).replace(
         "No reference to an output built once has a pin",
         "No reference SHOULD have a pin, as `MISSING_REQUIRED_OPTION` says",
     )
     statements = [rule["statement"] for rule in extract_rules(text)]
-    assert "A runner MAY run each recipe in a sandbox" in statements
+    assert "A runner SHOULD run each recipe in a sandbox" in statements
 
 
 def test_a_mark_that_ends_no_sentence_is_allowed():
