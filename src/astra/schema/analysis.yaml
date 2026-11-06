@@ -76,16 +76,11 @@ classes:
 
   Recipe:
     description: >-
-      A build rule that produces an output. A recipe is pure *how*:
-      a `command` to invoke and the execution context
-      (`resources`, `container`).
-
-      Recipes do not declare what the output depends on. Provenance
-      — upstream inputs, decision-driven parameterization, and
-      activation conditions — is declared on the parent Output
-      (`inputs`, `decisions`, `when`). Runners surface the resolved
-      input map and active decision values to the recipe via
-      `{...}` template substitution (see `command`).
+      How an output is made: a `command` and the context it runs in
+      (`resources`, `container`). What the output is made from, the
+      decisions it is made with and when it is active are the output's
+      `inputs`, `decisions` and `when`; the command reaches the inputs and
+      decisions through its placeholders.
     attributes:
       command:
         required: true
@@ -101,12 +96,12 @@ classes:
                                  `inputs` names, with <entry> written
                                  exactly as the entry is, dots and `#`
                                  included, as in
-                                 {inputs.classification.accuracy#baseline}
+                                 {inputs.subanalysis.output1#u1}
             {decisions.<entry>}  the id of the option selected for the
                                  decision an entry of the output's
                                  `decisions` names, with <entry> written
                                  exactly as the entry is, as in
-                                 {decisions.iris.random_seed}
+                                 {decisions.subanalysis.decision1}
             {inputs}             the paths of all the output's inputs, in
                                  the order of `inputs`, separated by spaces
             {output}             the path the result is written to
@@ -181,8 +176,7 @@ classes:
         description: >-
           How the output's artefact is encoded, as a lowercase token: the
           extension of its results' files, without the leading dot, such as
-          `png`, `csv` or `parquet`. Any token that matches the pattern is a
-          format.
+          `png`, `csv` or `parquet`.
       inputs:
         multivalued: true
         range: reference
@@ -333,8 +327,8 @@ classes:
           key per decision. Each key is the id of a decision of the analysis
           or, for a decision of another analysis, a flat key: the decision's
           address through the declarations, `<declaration>.<decision>`, such
-          as `stage.method`, or another spelling of that address, through no
-          declaration back to an analysis already on its chain.
+          as `subanalysis.decision1`, or another spelling of that address,
+          through no declaration back to an analysis already on its chain.
       analysis:
         range: address
         description: >-

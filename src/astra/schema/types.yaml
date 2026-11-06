@@ -34,7 +34,7 @@ types:
     typeof: string
     description: >-
       An id: a lowercase ASCII letter, then any number of lowercase ASCII
-      letters, ASCII digits (`0`–`9`) and underscores, such as `seed_42`.
+      letters, ASCII digits (`0`–`9`) and underscores, such as `input1`.
     structured_pattern:
       syntax: '^{id}$'
       interpolated: true
@@ -47,7 +47,7 @@ types:
     description: >-
       The address of an element: the ids of the declared analyses that lead to
       it, if any, then the element's own id, joined by `.`, such as
-      `iris.random_seed`.
+      `subanalysis.decision1`.
     structured_pattern:
       syntax: '^{id}(\.{id})*$'
       interpolated: true
@@ -60,7 +60,7 @@ types:
     description: >-
       A reference to an element: its address, optionally followed by `#` and a
       universe id, which pins the reference to that universe, such as
-      `f1_score#rf_standard`. In an `astra.yaml`, the id is that of an entry of
+      `output1#u1`. In an `astra.yaml`, the id is that of an entry of
       the file's `universes` or, where the file has no entry with that id, of a
       universe of the analysis whose element the reference names.
     structured_pattern:
@@ -75,8 +75,8 @@ types:
     description: >-
       A reference to an option: the address of its decision, then `.` and the
       option's id. The last segment is always the option, so
-      `iris.random_seed.seed_42` is the option `seed_42` of the decision
-      `random_seed` of the declared analysis `iris`.
+      `subanalysis.decision1.a` is the option `a` of the decision
+      `decision1` of the declared analysis `subanalysis`.
     structured_pattern:
       syntax: '^{id}(\.{id})+$'
       interpolated: true

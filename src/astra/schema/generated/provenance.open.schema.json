@@ -70,7 +70,7 @@
           "type": "string"
         },
         "entry": {
-          "description": "The entry exactly as the output's `inputs` lists it in the `astra.yaml` files at the record's `commit`, such as `iris.data`.",
+          "description": "The entry exactly as the output's `inputs` lists it in the `astra.yaml` files at the record's `commit`, such as `input1`.",
           "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
           "type": "string"
         },

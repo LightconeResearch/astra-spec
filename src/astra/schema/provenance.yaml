@@ -131,7 +131,7 @@ classes:
         required: true
         description: >-
           The entry exactly as the output's `inputs` lists it in the
-          `astra.yaml` files at the record's `commit`, such as `iris.data`.
+          `astra.yaml` files at the record's `commit`, such as `input1`.
       content_hash:
         range: content_hash
         required: true

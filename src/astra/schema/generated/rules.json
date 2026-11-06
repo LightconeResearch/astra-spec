@@ -517,7 +517,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0006",
-      "statement": "An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` of its own"
+      "statement": "An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` file of its own"
     },
     {
       "code": "RESERVED_PATH",

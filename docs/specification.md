@@ -180,14 +180,12 @@ the analysis has three results, each with a record (§8).
 An **analysis** is a directory with an `astra.yaml` at its top, in a git
 repository: in its working tree, or at one of its commits
 ([`NOT_IN_REPOSITORY`](#validator)). Its recipes run in that directory
-([`WRONG_WORKING_DIRECTORY`](#runner)). The paths of
-its inputs and declarations are relative to the folder of the `astra.yaml`
-and separate folders with `/` (§5, §7).
+([`WRONG_WORKING_DIRECTORY`](#runner)).
 
-**Paths.** A path in an analysis is written as git writes a path in a commit,
-the same on every machine, and so is each place §8 builds from its ids and
-formats. A path names the entry at exactly that path, on disk in the working
-tree or in the commit's tree at a commit, read as **Reading git** says (below)
+**Paths.** The path of an input or a declaration (§5, §7) is relative to the
+folder of the `astra.yaml` that writes it, with `/` between folders, and is
+tidied as text (**Reading git**, below). It names the entry at exactly that
+path, on disk in the working tree or in the commit's tree at a commit
 ([`MISSING_INPUT_FILE`](#validator),
 [`MISSING_DECLARED_ANALYSIS`](#validator)). So `data/A.csv` and `data/a.csv`
 are two paths, which name two files or folders, and `Stage` and `stage`
@@ -312,25 +310,6 @@ reference or condition as [`INVALID_REFERENCE`](#parse-and-schema), a commit
 id as [`INVALID_COMMIT`](#parse-and-schema), and the others as
 [`INVALID_VALUE`](#parse-and-schema).
 
-### Patterns
-
-Above U+007F a class leaves out only what it names, so these fields take
-characters that aren't visible:
-
-- `AnalysisDeclaration.url` takes `[^\x00-\x20\x7f]`, and
-  `FragmentSelector.value` takes it less ``"#<>[\]^`{|}`` and `%` (which
-  it takes only to start a percent-encoding). Each admits every character
-  above U+007F: non-ASCII spaces (U+00A0, U+3000), format characters (U+200B,
-  U+FEFF, U+202E), U+2028, U+2029 and the C1 controls.
-- An `iri` (`Environment.iri`, `FragmentSelector.conforms_to`) takes
-  `[^\x00-\x20\x7f-\x9f]` less `<>"{}|\^`, the backtick, `%` and `#`
-  (which it takes only to start a percent-encoding and a fragment) and the
-  bidi formatting characters RFC 3987 §4.1 forbids (U+200E, U+200F,
-  U+202A–U+202E). Above U+009F it admits non-ASCII spaces, the other
-  format characters (U+200B, U+FEFF), U+2028 and U+2029, which RFC 3987
-  allows, and characters it doesn't, such as noncharacters, and private-use
-  characters outside a query.
-
 ### Ids and maps
 
 Every element the author names is an entry of a map keyed by its id: inputs,
@@ -415,21 +394,16 @@ unambiguous. A decision's address never takes a pin: the entries of
 `Universe.decisions` ([`INVALID_ID`](#parse-and-schema)).
 
 In YAML, `#` inside a token is literal, so `f1_score#svm` needs no quotes.
-After a space it starts a comment: `- f1_score #svm` is the plain
-reference `f1_score`, followed by a comment. Write a pin with no space before
-its `#`.
 
 ### Report addresses
 
-A report on an analysis, written outside `astra.yaml` in whatever authoring
-framework its authors choose, refers to the analysis's elements by address
+A report on an analysis, written outside `astra.yaml`, refers to the
+analysis's elements by address
 ([RFC 0002](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md)):
 `<id>` for an element of the analysis, `<declaration>.<id>` for an element of
 a declared analysis, and so on, in the grammar above. Inputs, outputs,
 decisions, universes, imports, prior insights, findings and declared analyses
-are addressable, and an import's address names the universe it imports. How
-a report writes a reference, and which kind of element it means, belongs to
-its framework, not to this specification.
+are addressable, and an import's address names the universe it imports.
 
 ## 5. The analysis
 
@@ -450,35 +424,29 @@ path is non-empty and doesn't start with `/`
 - It names one file ([`MISSING_INPUT_FILE`](#validator)). Data in many files
   is many inputs.
 - The file is inside the analysis's directory and outside every directory
-  below it that holds an `astra.yaml` of its own
+  below it that holds an `astra.yaml` file of its own
   ([`INPUT_IN_ANOTHER_ANALYSIS`](#validator)). Another analysis reads it by
   address (`iris.data`), not by a path.
 - The file is outside the places that belong to runners: the path is not,
   and doesn't lie in, the `results/` or `.astra/` of an analysis of the
   stack, tidied as §3 says ([`RESERVED_PATH`](#validator)). A result is read
   by its address, never by a path.
-- The path names the file itself (not a symlink, §3), or something the
-  validator recognises as standing in for it
-  ([`MISSING_INPUT_FILE`](#validator)). The file, or what stands in for it,
-  is tracked in git ([`INPUT_NOT_TRACKED`](#validator)), in the repository
-  that holds the analysis (§3). Which stand-ins a tool recognises, and where
-  it looks for them, is the tool's: the specification names none, and two
-  tools may judge the same input differently. How a file's bytes are stored
-  and got is the runner's, and every record names its runner (§8).
-  Something standing in for the content isn't the content.
+- The path names the file itself (not a symlink, §3), or a stand-in for it
+  ([`MISSING_INPUT_FILE`](#validator)). A stand-in is something the
+  validator recognises as standing in for the file, such as a large-file
+  tool's pointer. The file, or its stand-in, is tracked in git
+  ([`INPUT_NOT_TRACKED`](#validator)), in the repository that holds the
+  analysis (§3). Something standing in for the content isn't the content.
 
-`astra.yaml` holds no hash of an input. The record of each result that reads
-the input holds the hash of what it read (§8), so a change to the file makes
-those results stale.
+The record of each result that reads an input holds the hash of what it read
+(§8), so a change to the file makes those results stale.
 
 Data that isn't tracked in git with the analysis, such as a download, a
 loader's output or a query's answer, comes in through an output whose recipe
 gets it. That output is built once, or per universe when it depends on a
 decision such as which data release to use, and its record holds the hash of
 what came back. Data kept in another repository, a git submodule say, isn't
-tracked in git with the analysis either (§3), so it isn't an input. It
-belongs in the analysis's own repository or in another analysis, as that
-analysis's input, or comes in through an output whose recipe gets it.
+tracked in git with the analysis either (§3), so it isn't an input.
 
 ### Outputs
 
@@ -488,8 +456,8 @@ An [Output](elements/Output.md) is an artefact the analysis makes. It has a
 and a `recipe` ([`MISSING_FIELD`](#parse-and-schema)). The `format` is how the artefact is
 encoded, as a lowercase token, `^[a-z0-9][a-z0-9_.+-]*$`: the file extension
 it is written with, without the leading dot, such as `png`, `csv` or
-`parquet` ([`INVALID_VALUE`](#parse-and-schema)). Any token of that form is a
-format. It is the extension of the result's default place (§8).
+`parquet` ([`INVALID_VALUE`](#parse-and-schema)). It is the extension of the
+result's default place (§8).
 
 - `inputs` lists what the output is made from, in order: references (§4) to
   inputs and outputs of the analysis or of analyses it declares. A reference
@@ -534,13 +502,11 @@ placeholder, and each `{{` and `}}`, before running the command:
 | `{inputs}` | the paths of all the output's inputs, in the order of `inputs`, separated by spaces |
 | `{output}` | the path the result is written to |
 
-A placeholder gives a path the recipe can open from the directory it runs
-in; whether it is relative or absolute is the runner's. A runner substitutes
-each placeholder verbatim, with no shell quoting, so quoting is the author's
-job: a path may hold a space or a character the shell treats specially, and a
-command that may meet one quotes the placeholder, as in
-`--data '{inputs.data}'`. Single quotes keep every character a path may hold
-but `'`, and double quotes every one but `$`, the backtick, `"` and `\`.
+A placeholder gives a path, relative or absolute, that the recipe can open
+from the directory it runs in. A runner substitutes each placeholder
+verbatim, with no shell quoting, so quoting is the author's job: a path may
+hold a space or a character the shell treats specially, and a command that
+may meet one quotes the placeholder, as in `--data '{inputs.data}'`.
 
 In `{inputs.<entry>}` and `{decisions.<entry>}`, `<entry>` is an entry of the
 output's `inputs` or `decisions` exactly as written, dots and `#` included:
@@ -557,17 +523,15 @@ through its output's inputs ([`UNDECLARED_READ`](#runner)), since a checker
 sees a change to them only through those inputs. Anything else it uses, its
 own scripts among them, is pinned by the commit or is part of the
 environment. A runner can enforce this, as §9 permits; one that does fails
-the recipe. The commit pins only its own repository (§8), so a recipe of an
-analysis in a submodule uses files outside the submodule's repository only
-through its output's inputs.
+the recipe.
 
 ### Decisions and options
 
 A [Decision](elements/Decision.md) is a choice the analysis makes, such as
 which estimator to use, with the `rationale` for making it. Its `options`
 hold at least one [Option](elements/Option.md)
-([`EMPTY_COLLECTION`](#parse-and-schema)). A decision singles out none of its
-options: each universe chooses which one is used (§6).
+([`EMPTY_COLLECTION`](#parse-and-schema)). Each universe chooses which of a
+decision's options is used (§6).
 
 An option constrains every selection it is part of:
 
@@ -678,23 +642,18 @@ RFC 8118. PDF parameters are joined with `&`, never with `#` as RFC 3778
 allowed, and a space or `"` in a value, as in `search=`, is percent-encoded:
 `page=6&search=%22label%20noise%22`.
 
-`value` is read by the syntax `conforms_to` names. A tool that knows that
-syntax may parse it; one that doesn't shows it as written. Whether `value`
-follows the syntax, and whether the syntax fits the cited work or output,
-isn't checked. The schema checks only its characters: `value` is non-empty
-and holds no ASCII space or control character, none of ``"#<>[\]^`{|}``, and
-`%` only before two hex digits; any other character is allowed
-([`INVALID_VALUE`](#parse-and-schema)). `conforms_to` is an
+`value` is read by the syntax `conforms_to` names. It is non-empty, holds no
+ASCII space or control character and none of `"`, `#`, `<`, `>`, `[`, `\`,
+`]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before two hex
+digits ([`INVALID_VALUE`](#parse-and-schema)). `conforms_to` is an
 [`iri`](elements/Iri.md) (§4, [`INVALID_VALUE`](#parse-and-schema)).
 
 Evidence isn't built in a universe. Citing an output built per universe, it
 may pin it: the claim is then about one universe's result, and the pin says
 which. The pin names a universe as one in `Output.inputs` does (§4, §7). A
-check covers the evidence of the analysis it is run on (§8), so a finding
-about results that a driver builds for an analysis it drives belongs in the
-driver's `astra.yaml`, not in the driven analysis's.
-Evidence citing a result is checked through that result's record, and
-unpinned evidence through the records of the output's results (§8).
+check covers the evidence of the analysis it is run on (§8). Evidence citing
+a result is checked through that result's record, and unpinned evidence
+through the records of the output's results (§8).
 
 ## 6. Universes
 
@@ -1879,7 +1838,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit, `REMOTE_UNREACHABLE` aside | 0007, §7 |
 | `MISSING_INPUT_FILE` | MUST | An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5) | 0006, §3 |
 | `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink | 0006, §3 |
-| `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` of its own | 0006 |
+| `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` file of its own | 0006 |
 | `RESERVED_PATH` | MUST | No input's `path` and no declaration's `path`, tidied (§3), is or lies in the `results/` or `.astra/` of an analysis of the stack | tidy-up, §3 |
 | `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis, never an import | 0003, §6 |
 | `DERIVED_FROM_CYCLE` | MUST | No universe's chain of `derived_from` loops | 0003 |

@@ -95,7 +95,7 @@ classes:
         description: >-
           A reference to the cited output, written as in an output's
           `inputs`. It may pin the output to a universe, the one the claim is
-          about, such as `f1_score#svm_standard`.
+          about, such as `output1#u1`.
       version:
         range: integer
         minimum_value: 1
@@ -156,7 +156,7 @@ classes:
         description: A short display name for the insight.
       claim:
         required: true
-        description: What the insight asserts, in one or two sentences.
+        description: What the insight asserts.
       description:
         description: The reasoning behind the claim, in free prose.
       evidence:
