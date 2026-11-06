@@ -1739,9 +1739,12 @@ both reported, even when one edit fixes both.
    [`PIN_INACTIVE`](#validator) aren't checked for such an output, nor
    [`RESULT_IN_TWO_PLACES`](#validator) for its result, nor
    [`NOT_BUILT_IN_UNIVERSE`](#validator), [`UNDRIVEN_DECLARATION`](#validator)
-   or `INPUT_NOT_BUILT` for what it reads or lists in `decisions`, nor any of
-   these four for a result planned only through it, and step 3 of the
-   effective selection (§6) doesn't drop such a decision.
+   or `INPUT_NOT_BUILT` for what it reads or lists in `decisions`. Nor are
+   those three or `RESULT_IN_TWO_PLACES` checked for a result planned only
+   through it, for the `when` of an output whose result would be planned
+   only through it, or in a universe built only through a pin in its
+   `inputs`. Step 3 of the effective selection (§6) doesn't drop such a
+   decision.
 8. **A universe with no effective selection.** A universe has none when its
    `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#validator), or its chain
    breaks [`DERIVED_FROM_CYCLE`](#validator) or reaches a universe that has
