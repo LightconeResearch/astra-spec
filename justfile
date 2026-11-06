@@ -118,7 +118,10 @@ docs-serve: _docs-prep
 docs-clean:
   rm -rf site
 
+# Prepare the docs: the field reference, the published schema files, and the
+# All rules page, written from the specification (`tools/rules_page.py`)
 _docs-prep: gen-doc docs-install
+  uv run python tools/rules_page.py docs/specification.md docs/rules.md
 
 # Run all tests: the generated files are current, pytest, and the schema lints clean
 [group('model development')]

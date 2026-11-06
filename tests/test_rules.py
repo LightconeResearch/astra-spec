@@ -20,6 +20,7 @@ from jschon import JSON, JSONSchema, create_catalog
 from jsonschema import Draft201909Validator
 from jsonschema_generator import generate
 from linkml_runtime import SchemaView
+from markdown_it import MarkdownIt
 from rules import (
     build_catalogue,
     build_error_map,
@@ -28,6 +29,7 @@ from rules import (
     extract_section_rules,
     json_pointer,
 )
+from rules_page import anchor, read_specification, render_rules_page
 
 from .conftest import (
     GENERATED,
@@ -765,6 +767,187 @@ def test_a_note_outside_part_ii_fails(old, new, line):
     for extract in (extract_notes, extract_section_rules):
         with pytest.raises(ValueError, match=message):
             extract(text)
+
+
+# --- The All rules page ---
+
+PAGE_RULES = [
+    {
+        "code": "LOOSE_PIN",
+        "layer": "validator",
+        "level": "SHOULD",
+        "statement": "No input has a pin",
+        "source": "§7 Inputs",
+    },
+    {
+        "code": "BAD_ID",
+        "layer": "schema",
+        "level": "MUST",
+        "statement": "Every `id` matches the *id* grammar",
+        "source": "§5 The astra.yaml file",
+    },
+    {
+        "code": "NO_RECORD",
+        "layer": "check",
+        "level": "MUST",
+        "statement": "Every planned result has a record",
+        "status": "`missing`",
+        "source": "§20 Checking results",
+    },
+    {
+        "code": "EMPTY_MAP",
+        "layer": "schema",
+        "level": "MUST",
+        "statement": "No map is empty",
+        "source": "§5 The astra.yaml file",
+    },
+]
+"""Rules of three layers, out of the layers' order."""
+
+PAGE_NOTES = [
+    {
+        "kind": "recommendation",
+        "level": "SHOULD",
+        "text": "branches that hold records SHOULD be merged, not squashed or rebased.",
+        "source": "§19 Records",
+    },
+    {
+        "kind": "permission",
+        "level": "MAY",
+        "text": "a runner MAY enforce `UNDECLARED_READ`.",
+        "source": "§21 Runners",
+    },
+]
+
+
+def page_blocks(page: str) -> list[tuple[str, Any]]:
+    """The headings, tables and list items of a page, in order: `(h1 or h2, its text)`, `("table", (header, rows))`
+    with each cell's inline Markdown, and `("li", its inline Markdown)`."""
+    tokens = MarkdownIt("commonmark").enable("table").parse(page)
+    blocks: list[tuple[str, Any]] = []
+    for i, t in enumerate(tokens):
+        if t.type == "heading_open":
+            blocks.append((t.tag, tokens[i + 1].content))
+        elif t.type == "table_open":
+            blocks.append(("table", ([], [])))
+        elif t.type == "tr_open":
+            blocks[-1][1][1].append([])
+        elif t.type == "inline" and tokens[i - 1].type in ("th_open", "td_open"):
+            header, rows = blocks[-1][1]
+            (header if tokens[i - 1].type == "th_open" else rows[-1]).append(t.content)
+        elif t.type == "inline" and tokens[i - 2].type == "list_item_open":
+            blocks.append(("li", t.content))
+    for kind, value in blocks:
+        if kind == "table":
+            value[1].pop(0)  # The header's row.
+    return blocks
+
+
+def test_rules_page_groups_by_layer_in_order():
+    """One table per layer that has rules, in the layers' order, each rule linked to its section's anchor."""
+    blocks = page_blocks(render_rules_page(PAGE_RULES, []))
+    assert blocks[0] == ("h1", "All rules")
+    assert blocks[1:] == [
+        ("h2", "Schema"),
+        (
+            "table",
+            (
+                ["Code", "Level", "Rule", "Section"],
+                [
+                    [
+                        "`BAD_ID`",
+                        "MUST",
+                        "Every `id` matches the *id* grammar",
+                        "[§5 The astra.yaml file](specification.md#5-the-astrayaml-file)",
+                    ],
+                    [
+                        "`EMPTY_MAP`",
+                        "MUST",
+                        "No map is empty",
+                        "[§5 The astra.yaml file](specification.md#5-the-astrayaml-file)",
+                    ],
+                ],
+            ),
+        ),
+        ("h2", "Validator"),
+        (
+            "table",
+            (
+                ["Code", "Level", "Rule", "Section"],
+                [
+                    [
+                        "`LOOSE_PIN`",
+                        "SHOULD",
+                        "No input has a pin",
+                        "[§7 Inputs](specification.md#7-inputs)",
+                    ]
+                ],
+            ),
+        ),
+        ("h2", "Check"),
+        (
+            "table",
+            (
+                ["Code", "Level", "Rule", "Status when broken", "Section"],
+                [
+                    [
+                        "`NO_RECORD`",
+                        "MUST",
+                        "Every planned result has a record",
+                        "`missing`",
+                        "[§20 Checking results](specification.md#20-checking-results)",
+                    ]
+                ],
+            ),
+        ),
+    ]
+
+
+def test_rules_page_lists_notes():
+    """After the rules, one item per recommendation or permission, linked to its section."""
+    blocks = page_blocks(render_rules_page(PAGE_RULES, PAGE_NOTES))
+    assert blocks[-3:] == [
+        ("h2", "Recommendations and permissions"),
+        (
+            "li",
+            "**Recommendation** ([§19 Records](specification.md#19-records)): branches that hold records SHOULD be"
+            " merged, not squashed or rebased.",
+        ),
+        (
+            "li",
+            "**Permission** ([§21 Runners](specification.md#21-runners)): a runner MAY enforce `UNDECLARED_READ`.",
+        ),
+    ]
+
+
+ANCHORS = {
+    "§5 The astra.yaml file": "5-the-astrayaml-file",
+    "§9 Conformance": "9-conformance",
+    "§13 Pins, and outputs built per universe or once": "13-pins-and-outputs-built-per-universe-or-once",
+    "§17 Analyses from another commit or repository": "17-analyses-from-another-commit-or-repository",
+}
+"""Sources, with the anchor the site gives their section's heading (`### 5. The astra.yaml file`)."""
+
+
+@pytest.mark.parametrize("source, expected", ANCHORS.items(), ids=ANCHORS)
+def test_section_links_use_the_sites_anchors(source, expected):
+    assert anchor(source) == expected
+
+
+def test_rules_page_reads_section_9_without_a_part_ii():
+    """A specification without a Part II states its rules in §9's tables, so each is linked to §9, with no notes."""
+    rules, notes = read_specification(specification())
+    assert rules == [
+        {**rule, "source": "§9 Conformance"} for rule in rules_catalogue()["rules"]
+    ]
+    assert notes == []
+
+
+def test_rules_page_reads_part_ii():
+    assert read_specification(SECTIONS) == (
+        extract_section_rules(SECTIONS),
+        extract_notes(SECTIONS),
+    )
 
 
 # --- rules.json: the rules ---
