@@ -17,7 +17,8 @@ they appear in all capitals, as shown here.
 
 **Notation.** Grammars are written in ABNF
 ([RFC 5234](https://www.rfc-editor.org/rfc/rfc5234)) and use its core rules,
-such as `DIGIT`. Patterns are regular expressions, written as §4 says.
+such as `DIGIT`. Patterns are regular expressions as JSON Schema reads them
+(ECMA-262).
 
 **Rules.** Section 9 states every rule that a tool checks or keeps, each
 with a code, such as [`MISSING_DECISION`](#validator). The other sections
@@ -324,23 +325,6 @@ id as [`INVALID_COMMIT`](#parse-and-schema), and the others as
 [`INVALID_VALUE`](#parse-and-schema).
 
 ### Patterns
-
-The schema checks these forms, and the others it checks, with regular
-expressions in the subset that ECMA-262 and Python's `re` share, so that a
-validator in either language accepts the same values. Every `$` outside a
-lookahead is written `$(?!\n)`, and every anchored pattern ends in one:
-Python's `$` also matches before a final newline and ECMA-262's doesn't, so
-without the lookahead `"a\n"`, which a YAML block scalar gives, would be an
-`id` in Python and not in JavaScript. For the same
-reason no pattern uses `.`, `\s`, `\S`, `\d`, `\w` or `\b`, which the two
-define differently (Python's `.` matches `\r`, and its `\s` includes
-U+001C–U+001F). Patterns use explicit classes instead: `[0-9]` for a digit,
-`[^\x00-\x20\x7f]` for a character other than an ASCII space or control (one
-outside U+0000–U+0020 and U+007F), `[^\x00-\x1f\x7f]` for any character but
-an ASCII control, and `[^\x00-\x20\x7f-\x9f]` and `[^\x00-\x1f\x7f-\x9f]` for
-the same two that also leave out the C1 controls (U+0080–U+009F).
-This specification writes patterns in a short form, for readability; the
-schema holds them in full.
 
 Above U+007F a class leaves out only what it names, so these fields take
 characters that aren't visible:
@@ -2050,9 +2034,7 @@ document breaks no schema rule exactly when a JSON Schema draft 2019-09
 validator reports no error for it against this file. `provenance.schema.json`
 is the contract for records in the same way. Both are closed: a field they
 don't define is an error ([`UNKNOWN_FIELD`](#parse-and-schema)), and no
-optional field takes `null`. Their patterns stay in the subset of regular
-expressions that ECMA-262 and Python share (§4), so validators in either
-language agree.
+optional field takes `null`.
 
 **The open variant.** `provenance.open.schema.json` differs from
 `provenance.schema.json` only in allowing fields it doesn't define. A checker

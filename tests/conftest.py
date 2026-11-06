@@ -1,5 +1,5 @@
-"""The fixture harness: YAML 1.2 and JSON loading, the generated validators, `rules.json` and the fixture headers
-(design §9)."""
+"""The fixture harness: YAML 1.2 and JSON loading, the generated validators with ECMA-262 patterns, `rules.json` and the
+fixture headers (design §9)."""
 
 import functools
 import json
@@ -8,7 +8,7 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft201909Validator, ValidationError
+from jsonschema import Draft201909Validator, ValidationError, validators
 from ruamel.yaml import YAML
 from ruamel.yaml.events import (
     AliasEvent,
@@ -297,9 +297,73 @@ def load_fixture(path: Path) -> Any:
     return load_json(path) if path.suffix == ".json" else load_yaml(path)
 
 
+# --- The validators: JSON Schema 2019-09, with patterns matched as ECMA-262 matches them ---
+
+_ECMA_262_GROUPS = ("(?:", "(?=", "(?!")
+"""The groups but `(` that `ecma_262` reads: each means the same in ECMA-262 and in Python's `re`."""
+
+_ECMA_262_ESCAPES = frozenset("xuntr")
+"""The letters `ecma_262` reads after a backslash, each the same in ECMA-262 and in Python's `re`. A backslash before a
+character that is no letter or digit stands for that character in both."""
+
+
 @functools.cache
-def validator(root: str, *, closed: bool = True) -> Draft201909Validator:
-    """A validator for documents rooted at `root`, from the committed schema (its open variant if not `closed`).
+def ecma_262(pattern: str) -> re.Pattern[str]:
+    """`pattern`, a JSON Schema pattern, compiled for Python's `re` so that it matches as ECMA-262 does (JSON Schema
+    2019-09 Validation §4.3).
+
+    With no flag, ECMA-262's `$` matches only at the end of the value, and Python's also before a final newline, so
+    each `$` outside a class becomes `\\Z`. The rest of the pattern must be read alike by the two: raises `ValueError`
+    on `.`, on an escape of a letter or digit but `\\x`, `\\u`, `\\n`, `\\t` and `\\r` (`\\d`, `\\s`, `\\w` and `\\b` are
+    read otherwise, `\\Z` is Python's alone), on a group but `(`, `(?:`, `(?=` and `(?!` (a lookbehind or a named
+    group), and on a class that starts with `]`, which ends it in ECMA-262 only.
+    """
+    translated, in_class, i = [], False, 0
+    while i < len(pattern):
+        char, step, problem = pattern[i], 1, None
+        if char == "\\":
+            escaped = pattern[i + 1 : i + 2]
+            if escaped.isalnum() and escaped not in _ECMA_262_ESCAPES:
+                problem = f"\\{escaped}"
+            char, step = pattern[i : i + 2], 2
+        elif in_class:
+            in_class = char != "]"
+        elif char == "[":
+            in_class = True
+            if pattern.startswith(("[]", "[^]"), i):
+                problem = "a class that starts with ]"
+        elif char == ".":
+            problem = "."
+        elif pattern.startswith("(?", i) and not pattern.startswith(
+            _ECMA_262_GROUPS, i
+        ):
+            problem = pattern[i : i + 3]
+        elif char == "$":
+            char = "\\Z"
+        if problem is not None:
+            raise ValueError(
+                f"{pattern!r}: {problem} at {i}, which ECMA-262 and Python's re read otherwise"
+            )
+        translated.append(char)
+        i += step
+    return re.compile("".join(translated))
+
+
+def _pattern(validator: Any, pattern: str, instance: Any, schema: dict) -> Iterator:
+    """JSON Schema's `pattern` keyword, matched as ECMA-262 matches it (`ecma_262`), where `jsonschema`'s own takes the
+    pattern as Python's `re` reads it."""
+    if validator.is_type(instance, "string") and not ecma_262(pattern).search(instance):
+        yield ValidationError(f"{instance!r} does not match {pattern!r}")
+
+
+Validator = validators.extend(Draft201909Validator, {"pattern": _pattern})
+"""A JSON Schema draft 2019-09 validator whose `pattern` matches as ECMA-262 does: the validator every test checks
+documents with."""
+
+
+@functools.cache
+def validator(root: str, *, closed: bool = True) -> Validator:
+    """A `Validator` for documents rooted at `root`, from the committed schema (its open variant if not `closed`).
 
     Made once for each schema, so that each schema is read, and indexed for `absolute_keyword_location`, once.
     """
@@ -307,8 +371,8 @@ def validator(root: str, *, closed: bool = True) -> Draft201909Validator:
     schema = json.loads(
         (GENERATED / f"{_SCHEMA_NAMES[root]}{suffix}").read_text(encoding="utf-8")
     )
-    Draft201909Validator.check_schema(schema)
-    return Draft201909Validator(schema)
+    Validator.check_schema(schema)
+    return Validator(schema)
 
 
 @functools.cache
@@ -343,7 +407,7 @@ def _subschema_pointers(schema: dict) -> dict[int, str]:
     return _SUBSCHEMAS[id(schema)][1]
 
 
-def absolute_keyword_location(v: Draft201909Validator, error: ValidationError) -> str:
+def absolute_keyword_location(v: Validator, error: ValidationError) -> str:
     """The absolute keyword location of `error`: the URI of the schema resource, `#`, and the JSON Pointer to the keyword.
 
     That is the keyword's place once every `$ref` is resolved, as JSON Schema 2019-09 defines it and as `rules.json`
@@ -364,7 +428,7 @@ def absolute_keyword_location(v: Draft201909Validator, error: ValidationError) -
     return v.schema["$id"] + "#" + pointer + json_pointer([error.validator])
 
 
-def errors(v: Draft201909Validator, doc: Any) -> set[tuple[str, str, bool]]:
+def errors(v: Validator, doc: Any) -> set[tuple[str, str, bool]]:
     """`(pointer, location, explains)` for every error `v` reports for `doc`, and for every error in each one's context.
 
     `location` is the error's absolute keyword location. `explains` is true for an error in the context of an error
@@ -380,7 +444,7 @@ def errors(v: Draft201909Validator, doc: Any) -> set[tuple[str, str, bool]]:
     return found
 
 
-def error_pointers(v: Draft201909Validator, doc: Any) -> set[str]:
+def error_pointers(v: Validator, doc: Any) -> set[str]:
     """The JSON Pointer of every error `v` reports for `doc`, and of every error in each one's context."""
     return {pointer for pointer, _, _ in errors(v, doc)}
 

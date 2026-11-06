@@ -3,9 +3,10 @@
 from pathlib import Path
 
 import pytest
-from jsonschema import Draft201909Validator
 
 from jsonschema_generator import generate
+
+from .conftest import Validator
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 HARNESS = REPO_ROOT / "tests" / "generator" / "types_harness.yaml"
@@ -14,7 +15,7 @@ HEX_40 = "0123456789abcdef0123456789abcdef01234567"
 HEX_64 = "0123456789abcdef" * 4
 
 # Each type: the values it accepts, then the values it rejects. Each type rejects a
-# valid value plus a final "\n", which Python's `$` alone would let through.
+# valid value plus a final "\n", as ECMA-262 reads the pattern's `$`.
 TABLE = {
     "id": (
         ["a", "f1_score", "seed_42", "a_"],
@@ -117,7 +118,7 @@ CASES = [
 
 @pytest.fixture(scope="module")
 def validator():
-    return Draft201909Validator(generate(HARNESS))
+    return Validator(generate(HARNESS))
 
 
 def failures(validator, instance):

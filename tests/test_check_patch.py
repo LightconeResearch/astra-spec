@@ -81,7 +81,7 @@ def test_a_pre_release_of_a_patch_is_compared_without_its_series():
 def test_a_changed_pattern_fails():
     release, patch = contract(), contract(version="0.1.2")
     properties = patch["analysis.schema.json"]["properties"]
-    properties["spec_version"]["pattern"] = "^[0-9]+$(?!\\n)"
+    properties["spec_version"]["pattern"] = "^[0-9]+$"
     lines = differences(texts(release), texts(patch), "v0.1.0")
     assert lines[:2] == [
         "--- v0.1.0:analysis.schema.json\n",
@@ -159,9 +159,7 @@ def test_the_cli_compares_with_a_tag_through_git(tmp_path):
     assert passed.returncode == 0, passed.stderr
     assert passed.stdout.startswith("Nothing a patch release may not change")
 
-    patch["analysis.schema.json"]["properties"]["spec_version"]["pattern"] = (
-        "^x$(?!\\n)"
-    )
+    patch["analysis.schema.json"]["properties"]["spec_version"]["pattern"] = "^x$"
     write(patch)
     failed = run()
     assert failed.returncode == 1

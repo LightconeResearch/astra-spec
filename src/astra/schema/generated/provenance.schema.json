@@ -7,7 +7,7 @@
       "properties": {
         "iri": {
           "description": "An IRI (RFC 3987), never a CURIE, naming exactly that environment, enough for its runner, at the version the record gives, to recreate it; the schema checks its scheme, characters and percent-encoding, not its structure (authority, port, IP literal). It need not resolve online: a `urn:` IRI or a scheme of the runner's own will do, such as `urn:example-runner:env:sha256:\u2026`.",
-          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$(?!\\n)",
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$",
           "type": "string"
         }
       },
@@ -23,7 +23,7 @@
       "properties": {
         "commit": {
           "description": "The full id of the git commit the recipe ran from: a commit of the repository the record is committed in, the submodule's own commit for a result that belongs to an analysis in a submodule (the driver's commit for what a driver's universes build). It pins every file of the code and every `astra.yaml` in that repository: an analysis in a submodule of it through the commit the submodule is pinned at, and an analysis from a commit through its declaration's `commit`.",
-          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
           "type": "string"
         },
         "environment": {
@@ -32,7 +32,7 @@
         },
         "finished": {
           "description": "When the recipe finished, in UTC to the millisecond, such as `2026-10-26T14:00:02.000Z`.",
-          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$(?!\\n)",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
           "type": "string"
         },
         "inputs": {
@@ -48,7 +48,7 @@
         },
         "started": {
           "description": "When the recipe started, in UTC to the millisecond, such as `2026-10-26T14:00:00.000Z`.",
-          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$(?!\\n)",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
           "type": "string"
         }
       },
@@ -66,12 +66,12 @@
       "properties": {
         "content_hash": {
           "description": "The SHA-256 digest of the content the recipe read through the entry, another output's result or the file an input names, never of something standing in for it.",
-          "pattern": "^sha256:[0-9a-f]{64}$(?!\\n)",
+          "pattern": "^sha256:[0-9a-f]{64}$",
           "type": "string"
         },
         "entry": {
           "description": "The entry exactly as the output's `inputs` lists it in the `astra.yaml` files at the record's `commit`, such as `iris.data`.",
-          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
           "type": "string"
         },
         "size": {
@@ -116,12 +116,12 @@
   "properties": {
     "address": {
       "description": "The result as the analysis it belongs to addresses it: the output's id, after the ids of the declared analyses that lead to it, then `#` and the universe's id when the result is built in a universe, such as `subanalysis1.output1#u1`.",
-      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
       "type": "string"
     },
     "content_hash": {
       "description": "The SHA-256 digest of the result's file, never of something standing in for it.",
-      "pattern": "^sha256:[0-9a-f]{64}$(?!\\n)",
+      "pattern": "^sha256:[0-9a-f]{64}$",
       "type": "string"
     },
     "generated_by": {
@@ -135,7 +135,7 @@
     },
     "spec_version": {
       "description": "The version of the ASTRA specification the record follows, such as `0.1.0`.",
-      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
       "type": "string"
     }
   },

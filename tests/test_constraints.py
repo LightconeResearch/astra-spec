@@ -658,8 +658,8 @@ FACETS = {
 }
 """For each slot that writes its own pattern: a valid fixture, the pointer of the slot's value in it, the slot's code,
 values the pattern accepts, and values it rejects, at least one for each facet its description states (as
-`test_types` does for the named types). An anchored pattern also rejects a valid value with a final `\\n`, which
-Python's `$` alone would let through."""
+`test_types` does for the named types). An anchored pattern also rejects a valid value with a final `\\n`, as
+ECMA-262 reads its `$`."""
 
 
 @functools.cache
