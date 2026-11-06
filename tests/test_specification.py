@@ -2,11 +2,13 @@
 
 Its rule catalogue (section 9), read by `tools/rules.py`'s extractor, the one parser of it: every layer's table, every
 code once, every fixture's rule a parse or schema code in it, and every parse and schema code with a fixture and a
-loader error or a place in the schema that enforces it. Its links to the schema reference, and every example block:
-whole documents validated, marked fragments validated over a stub, and the `rules.json` excerpt a subset of the
-generated file. Section 4's ABNF is matched with the named types' patterns in `test_grammar.py`.
+loader error or a place in the schema that enforces it. Its links to the schema reference, and every example block,
+once the commits, hashes and sizes it shows as placeholders are filled: whole documents validated, marked fragments
+validated over a stub, and the `rules.json` excerpt a subset of the generated file. Section 4's ABNF is matched with
+the named types' patterns in `test_grammar.py`.
 """
 
+import hashlib
 import json
 import re
 from collections import Counter
@@ -130,7 +132,7 @@ class Example(NamedTuple):
     marker: str | None
     """The comment on the line before it, if that is a marker, as written."""
     document: Any
-    """Its text, read as its kind of file is."""
+    """Its text, its placeholders filled, read as its kind of file is."""
 
 
 def _tokens() -> list[Token]:
@@ -142,8 +144,27 @@ def _language(fence: Token) -> str:
     return fence.info.split()[0] if fence.info.strip() else ""
 
 
+COMMIT = "0123456789abcdef0123456789abcdef01234567"
+"""The commit id that fills `<commit>`."""
+
+_HASH = re.compile(r"sha256:<hash of ([^>]*)>")
+_SIZE = re.compile(r"<size of ([^>]*)>")
+
+
+def fill_placeholders(text: str) -> str:
+    """`text` with the placeholders an example may show filled in: `<commit>` with a commit id, `sha256:<hash of X>`
+    with `sha256:` and the SHA-256 of `X`, and `<size of X>` with the length of `X`, in bytes, both of `X` in UTF-8.
+    Any other `<…>` is left as it is."""
+    text = text.replace("<commit>", COMMIT)
+    text = _HASH.sub(
+        lambda m: "sha256:" + hashlib.sha256(m[1].encode("utf-8")).hexdigest(), text
+    )
+    return _SIZE.sub(lambda m: str(len(m[1].encode("utf-8"))), text)
+
+
 def examples() -> list[Example]:
-    """Every fenced YAML or JSON block of the specification, with the marker before it, if any."""
+    """Every fenced YAML or JSON block of the specification, with the marker before it, if any, its placeholders filled
+    (`fill_placeholders`)."""
     tokens = _tokens()
     found = []
     for i, token in enumerate(tokens):
@@ -157,7 +178,7 @@ def examples() -> list[Example]:
             and _MARKER_LIKE.match(before.content)
             else None
         )
-        text = token.content
+        text = fill_placeholders(token.content)
         document = load_json(text) if _language(token) == "json" else load_yaml(text)
         found.append(Example(token.map[0] + 1, _language(token), marker, document))
     return found
@@ -223,6 +244,77 @@ def test_every_example_is_whole_or_marked():
 def test_specification_has_whole_examples():
     """Both kinds of document appear whole at least once, so the next test checks something."""
     assert {example.language for example in WHOLE_EXAMPLES} == set(EXAMPLE_ROOTS)
+
+
+PLACEHOLDER_RECORD = """\
+{
+  "spec_version": "0.1.0",
+  "address": "output1#u1",
+  "content_hash": "sha256:<hash of output1>",
+  "size": <size of output1>,
+  "generated_by": {
+    "commit": "<commit>",
+    "inputs": [
+      {
+        "entry": "input1",
+        "content_hash": "sha256:<hash of input1>",
+        "size": <size of input1>
+      }
+    ],
+    "environment": {"iri": "urn:example:env:1"},
+    "runner": {"id": "example-runner", "version": "1.2.0"}
+  }
+}
+"""
+"""A record written as an example writes one: its commit, hashes and sizes as placeholders."""
+
+
+def test_placeholders_are_filled():
+    """Once filled, the record is valid: a full commit id, each hash the SHA-256 of its text, each size its length."""
+    record = load_json(fill_placeholders(PLACEHOLDER_RECORD))
+    v = validator("ProvenanceRecord")
+    assert [
+        f"{list(e.absolute_path)}: {e.message}" for e in v.iter_errors(record)
+    ] == []
+    assert (
+        record["generated_by"]["commit"] == "0123456789abcdef0123456789abcdef01234567"
+    )
+    assert record["content_hash"] == "sha256:" + hashlib.sha256(b"output1").hexdigest()
+    assert record["size"] == len(b"output1")
+    (read,) = record["generated_by"]["inputs"]
+    assert read["content_hash"] == "sha256:" + hashlib.sha256(b"input1").hexdigest()
+    assert read["size"] == len(b"input1")
+
+
+def test_fill_placeholders_leaves_unknown_ones():
+    text = 'a: "<other>"\nb: "<hash of input1>"\nc: "sha256:<other>"\nd: "<size>"\n'
+    assert fill_placeholders(text) == text
+
+
+PLACEHOLDER = re.compile(r"<[^>]+>")
+"""A value that is a placeholder: `<`, then anything but `>`, then `>`."""
+
+
+def placeholders(value: Any) -> list[str]:
+    """The strings in `value`, keys included, that are a placeholder, `<…>`, or hold `sha256:<`."""
+    if isinstance(value, dict):
+        return [
+            found for item in [*value, *value.values()] for found in placeholders(item)
+        ]
+    if isinstance(value, list):
+        return [found for item in value for found in placeholders(item)]
+    if isinstance(value, str) and (PLACEHOLDER.fullmatch(value) or "sha256:<" in value):
+        return [value]
+    return []
+
+
+def test_no_example_keeps_a_placeholder():
+    """Every placeholder of an example is one `fill_placeholders` fills."""
+    assert {
+        _id(example): placeholders(example.document)
+        for example in EXAMPLES
+        if placeholders(example.document)
+    } == {}
 
 
 @pytest.mark.parametrize("example", WHOLE_EXAMPLES, ids=_id)
