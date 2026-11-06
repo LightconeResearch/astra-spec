@@ -61,12 +61,13 @@ doesn't restate them.
 as `0.1.0` ([`INVALID_VALUE`](#parse-and-schema)). Versions are ordered by
 MAJOR, then MINOR, then PATCH, each compared as an integer, so `0.10.0` comes
 after `0.9.0`. A version's minor version is its MAJOR and MINOR: `0.1` for
-`0.1.3`. A patch release never changes what is valid: a document or a record
-is valid under `X.Y.Z` exactly when it is valid under every other `X.Y`
-version. So each minor version has one schema of `astra.yaml` and one of a
-record, and every `0.1.x` document is read by 0.1's. A validator reads each
-`astra.yaml` by the schema of the minor version it states, so a validator
-that reads one patch of a minor version reads them all
+`0.1.3`. A patch release never changes what is valid, nor the code a broken
+rule is reported under: a document or a record is valid under `X.Y.Z`
+exactly when it is valid under every other `X.Y` version. So each minor
+version has one schema of `astra.yaml` and one of a record, and every
+`0.1.x` document is read by 0.1's. A validator reads each `astra.yaml` by
+the schema of the minor version it states, so a validator that reads one
+patch of a minor version reads them all
 ([`UNSUPPORTED_SPEC_VERSION`](#validator)). A file whose `spec_version` is
 missing or malformed is checked against the schema of the validator's own
 minor version, and every schema error in it is reported. What one minor
@@ -116,10 +117,6 @@ Four roles conform to this specification:
   record is its runner's testimony, and names it. A runner conforms when it
   keeps the runner `MUST`s, which keep its records true. How it stores bytes
   or builds environments is its own.
-
-A validator or checker may also warn about what no rule covers, under a code
-§9 doesn't define. Such a warning never makes an analysis invalid or changes
-a status.
 
 An analysis that reads a file, makes one artefact per universe and compares
 two universes in a third:
@@ -658,8 +655,7 @@ writes it, with the `prefix` and `suffix` around it; and `location`, a
 [FragmentSelector](elements/FragmentSelector.md) (`oa:FragmentSelector`), the
 place in the work or output the claim rests on. For a `doi`, the cited
 resource is the work's full text. With both a `quote` and a `location`, the
-quote is sought within the location: the FragmentSelector is `oa:refinedBy`
-the TextQuoteSelector (§10).
+quote is sought within the location.
 
 A location's `value` is a fragment identifier of the cited work or output,
 without the `#`. An optional `conforms_to` is the IRI of the specification
@@ -1687,7 +1683,7 @@ What breaking a rule leads to depends on the layer:
 | Layer | When a rule is broken |
 |---|---|
 | parse, schema, validator | A broken `MUST` is reported as an **error** and makes the file invalid (a checker reports a record's as a reason of [`INVALID_RECORD`](#check)); a broken `SHOULD` is reported as a **warning**, and the file stays valid |
-| check | Nothing fails. The code is reported and **the result gets a status**, given in the check table's extra column, *Status when broken* |
+| check | A broken `MUST` is reported as an **error** and a broken `SHOULD` as a **warning**. Nothing fails, and **the result gets a status**, given in the check table's extra column, *Status when broken* |
 | runner | A runner that breaks a `MUST` doesn't conform. It runs no recipe while `UNCOMMITTED_CHANGES` would be broken, and builds no output while `STALE_INPUT` would be, and when it refuses for either it reports the code. `UNDECLARED_READ` binds the recipe: breaking it leaves the analysis valid, and a runner that enforces it fails the recipe and reports the code |
 
 The check layer is the only one laid out differently, with that extra
@@ -2003,11 +1999,9 @@ schema whichever patch's file a tool holds, and a tool keeps the latest. A
 pre-release is `X.Y.Z` followed by `aN`, `bN` or `rcN`, such as `0.1.0rc1`.
 It is a candidate for `X.Y.Z`: its URIs carry its whole version
 (`https://w3id.org/astra/0.1.0rc1/analysis.schema.json`), and the documents it
-checks state `X.Y.Z`. `https://w3id.org/astra/` followed by a file name alone
-redirects to the latest release's file and is no schema's `$id`. A JSON
-Schema's top level holds only standard JSON Schema keywords, so that strict
-validators (such as Ajv) compile it, and the version of the release it was
-generated from is in its `$comment`.
+checks state `X.Y.Z`. A JSON Schema's top level holds only standard JSON
+Schema keywords, so that strict validators (such as Ajv) compile it, and the
+version of the release it was generated from is in its `$comment`.
 
 **The contract.** `analysis.schema.json` is the contract for `astra.yaml`: a
 document breaks no schema rule exactly when a JSON Schema draft 2019-09
@@ -2116,15 +2110,7 @@ record. The run's `started` and `finished` are `prov:startedAtTime` and
 `prov:endedAtTime`, typed `xsd:dateTime`, and the runner's `version` is
 `schema:softwareVersion`. The schema doesn't check that a time's day exists
 in its month (§4), so a time such as 30 February converts to an ill-typed
-`xsd:dateTime`. No RDF reading of `astra.yaml` is published yet. In the
-schema, the evidence selectors are W3C Web Annotation's
-`oa:TextQuoteSelector` (with `oa:exact`, `oa:prefix` and `oa:suffix`) and
-`oa:FragmentSelector` (with `rdf:value` and `dcterms:conformsTo`). A
-location's `conforms_to` is its `dcterms:conformsTo`, whose object is the IRI
-it names, and a location without one reads as one with
-`http://tools.ietf.org/rfc/rfc3778`. With both a `quote` and a `location`,
-the location is the `oa:FragmentSelector` that is `oa:refinedBy` the quote's
-`oa:TextQuoteSelector`.
+`xsd:dateTime`.
 
 **The package.** The `astra-spec` Python package holds the LinkML sources and
 these artefacts, as the namespace package `astra.schema`, read through

@@ -86,7 +86,7 @@ Done in `c18febe` to `b8f5597` (Tom, 2026-11-06). Sharing stays by identity (§5
 - **The build rules are judged on planned results (O1).** `NOT_BUILT_IN_UNIVERSE`, `UNDRIVEN_DECLARATION` and `INPUT_NOT_BUILT` hold for what planned results read and consume, as `RESULT_IN_TWO_PLACES` already did. An output's own `when` is judged where its result would be planned if the `when` held. The universes built are the root's and those named by a pin on an output built per universe, in a planned result's `inputs` or in the root's evidence.
 - **An analysis with no decisions is driven wherever the chain before it is**, universes of its own or not (`8782a5b`, kept). The words "and no universes of its own" go.
 - **Imported universes, and a pin names its own file's universe** (`732e9c1` to `3905eab`). An entry of `universes` can import another analysis's universe (`{analysis: catalog, universe: main}`, new code `INVALID_IMPORT`). A pin `#u` names its file's entry `u`, or, where there is none, the universe `u` of the analysis whose element it reads. The pin search and the second-declaration trick go. In an imported universe that universe's analysis is the only driver (O4). Rules 1 and 2 cover pinned reads. Tom: quoting another analysis's results should need nothing extra, and driving is the added benefit.
-- **Five rules that only flagged likely slips go:** `NO_UNIVERSES`, `PIN_ON_INPUT`, `REDUNDANT_PIN`, `UNPINNED_EVIDENCE`, and the list half of `DUPLICATE_ELEMENT`. A tool may warn about these under codes of its own, which never make an analysis invalid (spec §2).
+- **Five rules that only flagged likely slips go:** `NO_UNIVERSES`, `PIN_ON_INPUT`, `REDUNDANT_PIN`, `UNPINNED_EVIDENCE`, and the list half of `DUPLICATE_ELEMENT`. A tool may warn about these under codes of its own, which never make an analysis invalid: an analysis is valid when its stack breaks none of the specification's `MUST`s (spec §2).
 
 ### An analysis is in a git repository
 
@@ -189,6 +189,19 @@ With no change of meaning: "the commit a record names has to stay in the history
 How a report names things (a diagnostic's `key`, the report's shape) is for the conformance suite.
 
 In spec §10's *From an error to its code* since the audit of 2026-11-06 (its D6), with a schema error at its instance location, and an error on a key or an unknown field at its map or object, naming the key or field. The same paragraph now gives the filter by its outcome (H32), with no change of meaning: only the failures that make the document fail are reported, not those inside an `if` or a `not`, or inside a branch of a combinator that doesn't fail, so any JSON Schema 2019-09 validator gives the same pairs of an instance location and a code. Its list of how validators shape their output goes, and the rule covers any failing combinator, `anyOf` included, which settles that slip (below). `rules.json`'s entries for an `if` and a whole `propertyNames` stay, each with the code of the keyword that fails inside it.
+
+### A patch release keeps codes, and the check layer reports errors and warnings
+
+Both were decided before the audit of 2026-11-06 but not stated, and are in the spec since it (its D8 and D9):
+- **A patch release never changes what is valid, nor the code a broken rule is reported under** (spec §1; X30, extended by Tom on 2026-11-05). The spec promised only validity. `tools/check_patch.py` already compares `rules.json`'s `errors`, keys and codes, between patches.
+- **In the check layer, a broken `MUST` is reported as an error and a broken `SHOULD` as a warning** (spec §9's layer table; X58). Nothing fails, as before, and the result gets its status.
+
+### What §2 and §10 no longer say
+
+Cut on 2026-11-06 (the audit's H33 (a), H34 and H38), each a promise with no code:
+- **A tool's own warnings** (H38). "A validator or checker may also warn about what no rule covers, under a code §9 doesn't define. Such a warning never makes an analysis invalid or changes a status." The second sentence follows from the definitions: validity comes only from `MUST`s, and statuses only from the check rules. The first is a "tool may" sentence, which needn't be stated (principle 9).
+- **An RDF reading of the evidence selectors** (H33 (a)). §10 said no RDF reading of `astra.yaml` was published, then gave the selectors one: their W3C terms, `conforms_to` as `dcterms:conformsTo`, a location without it read as RFC 3778's, and `oa:refinedBy` for a quote within a location. That goes, and so does §5's `oa:refinedBy` clause. §5 still states the meaning in plain words, and the schema's `class_uri` and `slot_uri` stay as mappings.
+- **The unversioned URL** (H34). "`https://w3id.org/astra/` followed by a file name alone redirects to the latest release's file" is a hosting detail. Keeping that redirect up to date belongs to the release process (scratch `asides.md`).
 
 ### Slips corrected
 
