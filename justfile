@@ -220,10 +220,13 @@ release version:
 # Generate md documentation for the schema and add artifacts: both roots, the
 # analysis document and the provenance record, in one run (`--include`), so
 # that the slots the two share get one page each, rather than one run
-# overwriting the other's
+# overwriting the other's. Each Regex Pattern cell is then written as HTML,
+# every character but an ASCII letter or digit as a character reference, so
+# that the site shows the pattern exactly (`tools/pattern_cells.py`)
 [group('model development')]
 gen-doc: _stage-versioned _gen-yaml && _add-artifacts
   uv run gen-doc {{gen_doc_args}} --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
+  uv run python tools/pattern_cells.py {{docdir}}
 
 # ============== Migrations recipes for Copier ==============
 

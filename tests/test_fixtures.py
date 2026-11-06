@@ -3,7 +3,6 @@
 Why is read from `rules.json`, as a tool reads it: each error's absolute keyword location maps to its code (D13).
 """
 
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -16,9 +15,8 @@ from .conftest import (
     fixture_header,
     fixtures,
     header_file,
-    load_document,
     load_fixture,
-    load_json,
+    load_yaml,
     parse_code,
     rules_catalogue,
     validator,
@@ -43,9 +41,7 @@ def check_invalid_fixture(path: Path) -> None:
     A record (`.json`) is read by `load_json`, and its header is in its sidecar (`header_file`). A parse fixture's
     loader error has its rule's code (`parse_code`), and the fixture has no `# also:` line. A schema fixture's errors
     are reported at `fails at`, where `rules.json` gives them its rule, and nowhere else but at the pointer of its
-    `# also:` line, if it has one, where they must be reported too, with that line's code. A key of an `astra.yaml`
-    that isn't a string is an `INVALID_ID` error at its map: `load_document` reports it and leaves its entry out, so
-    it isn't found through `rules.json`, and the validator checks the rest of the document (spec §3).
+    `# also:` line, if it has one, where they must be reported too, with that line's code.
     """
     rule, fails_at, also = fixture_header(path)
     if fails_at == "parse":
@@ -68,34 +64,24 @@ def check_invalid_fixture(path: Path) -> None:
         )
         assert also_at != fails_at, "'# also:' names the place it fails at"
         expected[also_at] = {also_code}
-    document, left_out = (
-        (load_json(path), []) if path.suffix == ".json" else load_document(path)
-    )
-    check_schema_errors(root_of(path), document, expected, left_out)
+    check_schema_errors(root_of(path), load_fixture(path), expected)
 
 
 def check_schema_errors(
-    root: str,
-    document: Any,
-    expected: dict[str, set[str]],
-    left_out: Sequence[tuple[str, str]] = (),
-    *,
-    closed: bool = True,
+    root: str, document: Any, expected: dict[str, set[str]], *, closed: bool = True
 ) -> None:
     """Assert that `document`, rooted at `root`, fails the committed schema (its open variant if not `closed`) exactly
     as `expected` says: at each of its pointers, with errors that `rules.json` gives exactly that pointer's codes, and
     nowhere else.
 
-    An error that explains a failing `oneOf` at its own pointer adds no code. Each of `left_out`, the map pointer and
-    key of an entry `load_document` left out since its key isn't a string, is an `INVALID_ID` error at that map.
+    An error that explains a failing `oneOf` at its own pointer adds no code.
     """
     error_map = rules_catalogue()["errors"]
     found = errors(validator(root, closed=closed), document)
     assert sorted({location for _, location, _ in found} - error_map.keys()) == []
-    keys = {(pointer, "INVALID_ID") for pointer, _ in left_out}
     elsewhere = {
         (pointer, location) for pointer, location, _ in found if pointer not in expected
-    } | {(pointer, code) for pointer, code in keys if pointer not in expected}
+    }
     assert elsewhere == set()
     codes = {
         at: {
@@ -103,7 +89,6 @@ def check_schema_errors(
             for pointer, location, explains in found
             if pointer == at and not explains
         }
-        | {code for pointer, code in keys if pointer == at}
         for at in expected
     }
     assert codes == expected
@@ -141,8 +126,7 @@ def test_a_file_without_spec_version_reports_every_schema_error():
     in it is reported (spec §1, §9 *What is checked*): a pre-0.1 file lacks `spec_version` (MISSING_FIELD) and has
     `version` and `name` (UNKNOWN_FIELD), both at the document. An invalid fixture names one code at each place, so
     this is a test of its own."""
-    document, left_out = load_document(_PRE_0_1)
-    assert left_out == []
+    document = load_yaml(_PRE_0_1)
     error_map = rules_catalogue()["errors"]
     found = errors(validator("Analysis"), document)
     assert {

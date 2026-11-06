@@ -1,5 +1,6 @@
-# `svm_standard` is `rf_standard` with one decision changed, and the flat key
-# `stage.method` drives the decision `method` of the declared analysis `stage`.
+# `svm_standard` is `rf_standard` with one decision changed, the flat key
+# `stage.method` drives the decision `method` of the declared analysis `stage`,
+# and `stage_alone` imports `stage`'s own universe `alone`.
 spec_version: "0.1.0"
 analyses:
   stage:
@@ -34,3 +35,7 @@ universes:
     derived_from: rf_standard
     decisions:
       model: svm
+  stage_alone:
+    label: The stage on its own
+    analysis: stage
+    universe: alone

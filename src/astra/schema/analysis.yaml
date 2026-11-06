@@ -50,90 +50,74 @@ enums:
 classes:
 
   # --- Execution ---
-  #
-  # ASTRA is a specification layer: a recipe describes *what* to run
-  # and *what it needs*, not how a runner schedules or instruments it.
-  # Field names follow modern container / cluster conventions so the
-  # spec reads naturally to anyone familiar with Docker, Kubernetes,
-  # Slurm, or batch schedulers.
 
   Resources:
-    description: >-
-      Compute resource requirements for a recipe. Values follow
-      cloud-native conventions (string-with-units for sized
-      quantities) so cluster executors can consume them directly.
+    description: The compute resources a recipe asks for.
     attributes:
       cpus:
         range: float
         minimum_value: 0
         description: >-
-          CPU cores requested. Fractional values are allowed
-          (e.g., 0.5) for runners that support CPU shares.
+          The number of CPU cores the recipe asks for, which may be
+          fractional, such as 0.5.
       memory:
         description: >-
-          Memory requirement as a string with units
-          (e.g., '16Gi', '512Mi', '8GB').
+          The memory the recipe asks for, as free text, such as `16Gi`.
       time_limit:
         description: >-
-          Maximum wall time as a duration string
-          (e.g., '2h', '30m', '1h30m').
+          The longest the recipe may run, as free text, such as `2h`.
       disk:
         description: >-
-          Disk requirement as a string with units
-          (e.g., '10Gi', '500Mi').
+          The disk space the recipe asks for, as free text, such as `10Gi`.
       gpus:
         range: integer
         minimum_value: 1
-        description: Number of GPUs
+        description: The number of GPUs the recipe asks for.
 
   Recipe:
     description: >-
-      A build rule that produces an output. A recipe is pure *how*:
-      a `command` to invoke and the execution context
-      (`resources`, `container`).
-
-      Recipes do not declare what the output depends on. Provenance
-      — upstream inputs, decision-driven parameterization, and
-      activation conditions — is declared on the parent Output
-      (`inputs`, `decisions`, `when`). Runners surface the resolved
-      input map and active decision values to the recipe via
-      `{...}` template substitution (see `command`).
+      How an output is made: a `command` and the context it runs in
+      (`resources`, `container`). What the output is made from, the
+      decisions it is made with and when it is active are the output's
+      `inputs`, `decisions` and `when`; the command reaches the inputs and
+      decisions through its placeholders.
     attributes:
       command:
         required: true
         description: >-
           The POSIX shell command that makes the output, such as
-          `python src/train.py`. It is a template, whose placeholders a
-          runner substitutes before running it:
+          `python src/train.py`. It is a template. Read from the left, `{{`
+          stands for a literal `{` and `}}` for a literal `}`, and any other
+          `{` opens a placeholder, which ends at the next `}`. A runner
+          substitutes each placeholder, and each `{{` and `}}`, before running
+          the command:
 
             {inputs.<entry>}     the path of what an entry of the output's
                                  `inputs` names, with <entry> written
                                  exactly as the entry is, dots and `#`
                                  included, as in
-                                 {inputs.classification.accuracy#baseline}
+                                 {inputs.subanalysis.output1#u1}
             {decisions.<entry>}  the id of the option selected for the
                                  decision an entry of the output's
                                  `decisions` names, with <entry> written
                                  exactly as the entry is, as in
-                                 {decisions.iris.random_seed}
+                                 {decisions.subanalysis.decision1}
             {inputs}             the paths of all the output's inputs, in
                                  the order of `inputs`, separated by spaces
             {output}             the path the result is written to
-            {{ and }}            a literal { and }
 
-          Every placeholder takes one of these forms, and the <entry> of an
+          Every brace belongs to a `{{`, a `}}` or a placeholder, every
+          placeholder takes one of these forms, and the <entry> of an
           {inputs.<entry>} or {decisions.<entry>} is an entry of the output's
           `inputs` or `decisions`, exactly as written.
       resources:
         range: Resources
         inlined: true
-        description: Compute resource requirements (cpus, memory, time_limit, …)
+        description: The compute resources the recipe asks for.
       container:
         description: >-
-          Container image name or path to a Containerfile.
-          Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are
-          pulled as pre-built images; file paths (e.g., 'Containerfile',
-          'containers/Dockerfile') are built from source.
+          The container the recipe runs in: an image, or a Containerfile it
+          is built from.
 
   # --- Inputs and outputs ---
 
@@ -155,14 +139,13 @@ classes:
         description: Keywords for grouping and finding the input.
       path:
         required: true
-        pattern: '^(?![/~])(?!(?:[^\x00-\x1f\x7f]*/)?\.\.(?:/|$))(?![^\x00-\x1f\x7f]*/$)[^\x00-\x1f\x7f\\]+$(?!\n)'
+        pattern: '^[^/]'
         annotations:
           rule: INVALID_PATH
         description: >-
           The path of the input's file, relative to the folder of the
-          `astra.yaml`. It is non-empty, doesn't start with `/` or `~`,
-          separates folders with `/` (never `\`), has no `..` segment or ASCII
-          control character (U+0000–U+001F, U+007F), and doesn't end in `/`.
+          `astra.yaml`, with `/` between folders. It is non-empty and doesn't
+          start with `/`.
 
   Output:
     description: >-
@@ -187,23 +170,21 @@ classes:
         description: The kind of artefact the output is.
       format:
         required: true
-        pattern: '^[a-z0-9][a-z0-9_.+-]*$(?!\n)'
+        pattern: '^[a-z0-9][a-z0-9_.+-]*$'
         annotations:
           rule: INVALID_VALUE
         description: >-
           How the output's artefact is encoded, as a lowercase token: the
           extension of its results' files, without the leading dot, such as
-          `png`, `csv` or `parquet`. Any token that matches the pattern is a
-          format.
+          `png`, `csv` or `parquet`.
       inputs:
         multivalued: true
         range: reference
         minimum_cardinality: 1
         description: >-
           What the output is made from, in order: references to inputs and
-          outputs of the analysis or of analyses it declares. A reference to
-          an output can be pinned to a universe with `#`; a reference to an
-          input can't.
+          outputs of the analysis or of analyses it declares. A reference can
+          be pinned to a universe with `#`.
       decisions:
         multivalued: true
         range: address
@@ -294,48 +275,46 @@ classes:
         description: >-
           The options that are never selected together with this option.
       excluded:
-        pattern: '[^\x00-\x20\x7f]'
-        annotations:
-          rule: BLANK_EXCLUDED
         description: >-
-          Why the option is ruled out, as a reason that is not blank; any
-          string is a reason, `no` and `off` included. An option with a reason
-          is excluded: no universe selects it.
+          Why the option is ruled out. An option with a reason is excluded: no
+          effective selection selects it.
 
   # --- Universes ---
 
   Universe:
     description: >-
-      A universe: a selection of one option for every active decision of the
-      analysis and of every analysis reached through a declaration that a
-      universe of the analysis drives. Its effective selection is the
-      effective selection of the universe it is derived from, if any, with
-      its own `decisions` written over it decision by decision and every
-      inherited selection of a decision that isn't active in the result
-      dropped, so a universe that switches a decision on must set it.
+      An entry of `universes`: a universe of the analysis, a selection of one
+      option for every active decision of the analysis and of every analysis
+      reached through a declaration that the analysis's universes drive, or
+      an import, which has an `analysis` and a `universe`, names one of
+      another analysis's universes and selects nothing. A universe's
+      effective selection is the effective selection of the universe it is
+      derived from, if any, with its own `decisions` written over it decision
+      by decision and every inherited selection of a decision that isn't
+      active in the result dropped, so a universe that switches a decision on
+      must set it.
     attributes:
       id:
         key: true
         range: id
-        description: The universe's id, written as its key in `universes`.
-      label:
         description: >-
-          A short display name for the universe. It is not inherited through
-          `derived_from`.
+          The entry's id, written as its key in `universes`: for an import,
+          the id the analysis gives the universe it imports.
+      label:
+        description: A short display name for the universe.
       description:
         description: What the universe is, in free prose.
       tags:
         multivalued: true
         minimum_cardinality: 1
-        description: >-
-          Keywords for grouping and finding the universe. They are not
-          inherited through `derived_from`.
+        description: Keywords for grouping and finding the universe.
       derived_from:
         range: id
         description: >-
-          The id of another universe of the analysis, whose effective
-          selection this universe's effective selection is built on, so that
-          this universe gives only the decisions it changes.
+          The id of another universe of the analysis, never an import, whose
+          effective selection this universe's effective selection is built
+          on, so that this universe gives only the decisions it changes. The
+          universe inherits only that selection.
       decisions:
         range: DecisionSelection
         multivalued: true
@@ -345,7 +324,66 @@ classes:
           key per decision. Each key is the id of a decision of the analysis
           or, for a decision of another analysis, a flat key: the decision's
           address through the declarations, `<declaration>.<decision>`, such
-          as `stage.method`, or another spelling of either.
+          as `subanalysis.decision1`, or another spelling of that address,
+          through no declaration back to an analysis already on its chain.
+      analysis:
+        range: address
+        description: >-
+          For an import, the address of the declaration that leads to the
+          analysis whose universe it imports, through as many declarations as
+          lead to it, such as `catalog` or `stage.inner`.
+      universe:
+        range: id
+        description: >-
+          For an import, the id of the universe it imports: a universe of the
+          analysis that `analysis` leads to, never an import of that analysis.
+    rules:
+      - description: An import has a `universe`.
+        annotations:
+          rule: INVALID_IMPORT
+        preconditions:
+          slot_conditions:
+            analysis:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            universe:
+              value_presence: PRESENT
+      # Each absent field has a rule of its own: LinkML writes two absent
+      # fields in one postcondition as "not both".
+      - description: An import has no `decisions`.
+        annotations:
+          rule: INVALID_IMPORT
+        preconditions:
+          slot_conditions:
+            analysis:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            decisions:
+              value_presence: ABSENT
+      - description: An import has no `derived_from`.
+        annotations:
+          rule: INVALID_IMPORT
+        preconditions:
+          slot_conditions:
+            analysis:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            derived_from:
+              value_presence: ABSENT
+      - description: An entry with a `universe` has an `analysis`.
+        annotations:
+          rule: INVALID_IMPORT
+        preconditions:
+          slot_conditions:
+            universe:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            analysis:
+              value_presence: PRESENT
 
   DecisionSelection:
     description: >-
@@ -382,18 +420,15 @@ classes:
           The id this analysis addresses the declared analysis by, written as
           its key in `analyses`.
       path:
-        pattern: '^(?![/~])[^\x00-\x1f\x7f\\]+$(?!\n)'
+        pattern: '^[^/]'
         annotations:
           rule: INVALID_PATH
         description: >-
           The directory of the declared analysis's `astra.yaml`, relative to
-          the folder of this `astra.yaml` and inside the repository this
-          file is read from, which in the working tree is the root's,
-          submodules included. It is non-empty, doesn't start with `/` or `~`,
-          separates folders with `/` (never `\`), and has no ASCII control
-          character (U+0000–U+001F, U+007F); `..` segments are allowed.
+          the folder of this `astra.yaml`, with `/` between folders. It is
+          non-empty and doesn't start with `/`.
       url:
-        pattern: '^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$(?!\n)'
+        pattern: '^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$'
         annotations:
           rule: INVALID_VALUE
         description: >-
@@ -488,7 +523,10 @@ classes:
         range: Universe
         multivalued: true
         inlined: true
-        description: The universes of the analysis, keyed by id.
+        description: >-
+          The universes of the analysis, and the universes of other analyses
+          it imports, keyed by id. An import has an `analysis` and a
+          `universe`.
       prior_insights:
         range: Insight
         multivalued: true
@@ -503,5 +541,5 @@ classes:
         description: What the analysis concludes, as insights keyed by id.
       container:
         description: >-
-          The default container for this analysis's recipes.
-          Image names are pulled; file paths are built from source.
+          The default container of the analysis's recipes: an image, or a
+          Containerfile it is built from.

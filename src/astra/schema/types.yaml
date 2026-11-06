@@ -22,12 +22,6 @@ imports:
   - linkml:types
 
 # The id grammar, written once: the structured patterns below are built from it.
-# Every pattern ends in `$(?!\n)`, because Python's `$` also matches before a
-# final newline and ECMA-262's does not.
-#
-# Each structured pattern's syntax is already anchored, so it sets
-# `partial_match: true`: without it LinkML wraps the syntax as `^(?:…)$`,
-# whose final bare `$` breaks the rule above.
 #
 # Each pattern names the rule it enforces, a code of the specification's §9,
 # in a `rule` annotation: `rules.json` maps its errors to that code.
@@ -40,9 +34,9 @@ types:
     typeof: string
     description: >-
       An id: a lowercase ASCII letter, then any number of lowercase ASCII
-      letters, ASCII digits (`0`–`9`) and underscores, such as `seed_42`.
+      letters, ASCII digits (`0`–`9`) and underscores, such as `input1`.
     structured_pattern:
-      syntax: '^{id}$(?!\n)'
+      syntax: '^{id}$'
       interpolated: true
       partial_match: true
     annotations:
@@ -53,9 +47,9 @@ types:
     description: >-
       The address of an element: the ids of the declared analyses that lead to
       it, if any, then the element's own id, joined by `.`, such as
-      `iris.random_seed`.
+      `subanalysis.decision1`.
     structured_pattern:
-      syntax: '^{id}(\.{id})*$(?!\n)'
+      syntax: '^{id}(\.{id})*$'
       interpolated: true
       partial_match: true
     annotations:
@@ -66,9 +60,11 @@ types:
     description: >-
       A reference to an element: its address, optionally followed by `#` and a
       universe id, which pins the reference to that universe, such as
-      `f1_score#rf_standard`.
+      `output1#u1`. In an `astra.yaml`, the id is that of an entry of
+      the file's `universes` or, where the file has no entry with that id, of a
+      universe of the analysis whose element the reference names.
     structured_pattern:
-      syntax: '^{id}(\.{id})*(#{id})?$(?!\n)'
+      syntax: '^{id}(\.{id})*(#{id})?$'
       interpolated: true
       partial_match: true
     annotations:
@@ -79,10 +75,10 @@ types:
     description: >-
       A reference to an option: the address of its decision, then `.` and the
       option's id. The last segment is always the option, so
-      `iris.random_seed.seed_42` is the option `seed_42` of the decision
-      `random_seed` of the declared analysis `iris`.
+      `subanalysis.decision1.a` is the option `a` of the decision
+      `decision1` of the declared analysis `subanalysis`.
     structured_pattern:
-      syntax: '^{id}(\.{id})+$(?!\n)'
+      syntax: '^{id}(\.{id})+$'
       interpolated: true
       partial_match: true
     annotations:
@@ -95,7 +91,7 @@ types:
       when that option is selected; with `~` it holds when that option is not
       selected.
     structured_pattern:
-      syntax: '^~?{id}(\.{id})+$(?!\n)'
+      syntax: '^~?{id}(\.{id})+$'
       interpolated: true
       partial_match: true
     annotations:
@@ -106,7 +102,7 @@ types:
     description: >-
       A full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64
       (SHA-256).
-    pattern: "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)"
+    pattern: "^([0-9a-f]{40}|[0-9a-f]{64})$"
     annotations:
       rule: INVALID_COMMIT
 
@@ -115,7 +111,7 @@ types:
     description: >-
       A SHA-256 digest of content: `sha256:` followed by 64 lowercase
       hexadecimal digits.
-    pattern: "^sha256:[0-9a-f]{64}$(?!\\n)"
+    pattern: "^sha256:[0-9a-f]{64}$"
     annotations:
       rule: INVALID_VALUE
 
@@ -125,7 +121,7 @@ types:
       A version of the ASTRA specification, `MAJOR.MINOR.PATCH`: three
       non-negative integers without leading zeros, joined by `.`, such as
       `0.1.0`.
-    pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)"
+    pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
     annotations:
       rule: INVALID_VALUE
 
@@ -134,22 +130,20 @@ types:
     uri: xsd:dateTime
     description: >-
       A date and time in UTC to the millisecond, written
-      `YYYY-MM-DDThh:mm:ss.sssZ` with each field in its range (month 01–12,
-      day 01–31, hour 00–23, minute and second 00–59), such as
-      `2026-10-26T14:00:00.000Z`. Whether the day exists in its month, such
-      as 30 February, isn't checked.
-    pattern: "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$(?!\\n)"
+      `YYYY-MM-DDThh:mm:ss.sssZ`, with month 01–12, day 01–31, hour 00–23,
+      and minute and second 00–59, such as `2026-10-26T14:00:00.000Z`.
+    pattern: "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$"
     annotations:
       rule: INVALID_VALUE
 
   iri:
     typeof: string
     description: >-
-      An IRI (RFC 3987), never a CURIE: a scheme, `:`, then RFC 3987's
-      characters, with `%` only before two hex digits and at most one `#`,
-      such as `http://tools.ietf.org/rfc/rfc7111`. The schema checks its
-      scheme, characters and percent-encoding, not its structure (authority,
-      port, IP literal).
-    pattern: '^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$(?!\n)'
+      An IRI, never a CURIE: a scheme, `:`, then characters other than ASCII
+      spaces and controls, C1 controls, `<`, `>`, `"`, `{`, `}`, the vertical
+      bar, `\`, `^`, the backtick and the bidi formatting characters U+200E,
+      U+200F and U+202A–U+202E, with `%` only before two hex digits and at
+      most one `#`, such as `http://tools.ietf.org/rfc/rfc7111`.
+    pattern: '^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$'
     annotations:
       rule: INVALID_VALUE

@@ -57,13 +57,14 @@ classes:
       value:
         required: true
         slot_uri: rdf:value
-        pattern: '^([^\x00-\x20\x7f"#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$(?!\n)'
+        pattern: '^([^\x00-\x20\x7f"#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$'
         annotations:
           rule: INVALID_VALUE
         description: >-
           The fragment identifier, without the leading `#`, such as `page=6`.
-          It is non-empty and holds no ASCII space or control character, none
-          of ``"#<>[\]^`{|}``, and `%` only before two hex digits.
+          It is non-empty, holds no ASCII space or control character and none
+          of `"`, `#`, `<`, `>`, `[`, `\`, `]`, `^`, the backtick, `{`, `|`
+          and `}`, and has `%` only before two hex digits.
       conforms_to:
         slot_uri: dcterms:conformsTo
         range: iri
@@ -82,20 +83,19 @@ classes:
       `version` only with a `doi`.
     attributes:
       doi:
-        pattern: '^10\.[0-9]+(\.[0-9]+)*/[^\x00-\x20\x7f-\x9f]([^\x00-\x1f\x7f-\x9f]*[^\x00-\x20\x7f-\x9f])?$(?!\n)'
+        pattern: '^10\.[0-9]+(\.[0-9]+)*/(?!$)'
         annotations:
           rule: INVALID_VALUE
         description: >-
           The DOI name of the cited work, under the `10` directory: `10.`, the
-          registrant code, `/` and the suffix, such as
+          registrant code, `/` and a non-empty suffix, such as
           `10.48550/arXiv.1706.03762`.
       artifact:
         range: reference
         description: >-
           A reference to the cited output, written as in an output's
-          `inputs`. It may pin the output to a universe, and should when the
-          output is built per universe: to the universe the claim is about,
-          such as `f1_score#svm_standard`.
+          `inputs`. It may pin the output to a universe, the one the claim is
+          about, such as `output1#u1`.
       version:
         range: integer
         minimum_value: 1
@@ -156,7 +156,7 @@ classes:
         description: A short display name for the insight.
       claim:
         required: true
-        description: What the insight asserts, in one or two sentences.
+        description: What the insight asserts.
       description:
         description: The reasoning behind the claim, in free prose.
       evidence:

@@ -28,8 +28,7 @@ from .conftest import (
     errors,
     fixture_header,
     fixtures,
-    load_document,
-    load_json,
+    load_fixture,
     rules_catalogue,
     validator,
 )
@@ -79,7 +78,7 @@ CHECK = """\
 RUNNER_TABLE = """\
 | Code | Level | Rule | Source |
 |---|---|---|---|
-| `NO_SANDBOX` | MAY | A runner runs each recipe in a sandbox | main |
+| `NO_SANDBOX` | SHOULD | A runner runs each recipe in a sandbox | main |
 """
 
 RUNNER = "### runner\n\n" + RUNNER_TABLE + "\n"
@@ -167,7 +166,7 @@ def test_extracts_the_rule_tables_of_section_9():
         {
             "code": "NO_SANDBOX",
             "layer": "runner",
-            "level": "MAY",
+            "level": "SHOULD",
             "statement": "A runner runs each recipe in a sandbox",
             "source": "main",
         },
@@ -247,20 +246,15 @@ MALFORMED = {
         "| `LOOSE_PIN` | Should |",
         r"LOOSE_PIN.*Should",
     ),
-    "MAY row in the parse and schema table": (
-        "| `BAD_ID` | schema | MUST |",
-        "| `BAD_ID` | schema | MAY |",
-        r"BAD_ID.*a MAY row is allowed only in the runner table",
+    "MAY row": (
+        "| `NO_SANDBOX` | SHOULD |",
+        "| `NO_SANDBOX` | MAY |",
+        r"NO_SANDBOX.*unknown level 'MAY': a level is MUST or SHOULD",
     ),
-    "MAY row in the validator table": (
-        "| `LOOSE_PIN` | SHOULD |",
-        "| `LOOSE_PIN` | MAY |",
-        r"LOOSE_PIN.*a MAY row is allowed only in the runner table",
-    ),
-    "MAY row in the check table": (
-        "| `NO_RECORD` | MUST |",
-        "| `NO_RECORD` | MAY |",
-        r"NO_RECORD.*a MAY row is allowed only in the runner table",
+    "MAY in a rule": (
+        "A runner runs each recipe in a sandbox",
+        "A runner MAY run each recipe in a sandbox",
+        r"NO_SANDBOX.*says MAY, which contradicts its level, SHOULD",
     ),
     "keyword contradicts level": (
         "No reference to an output built once has a pin",
@@ -377,13 +371,13 @@ def test_keywords_that_agree_with_the_level_are_allowed():
     """A keyword of the rule's own level is fine, and a code that contains a keyword's letters is not one."""
     text = VALID.replace(
         "A runner runs each recipe in a sandbox",
-        "A runner MAY run each recipe in a sandbox",
+        "A runner SHOULD run each recipe in a sandbox",
     ).replace(
         "No reference to an output built once has a pin",
         "No reference SHOULD have a pin, as `MISSING_REQUIRED_OPTION` says",
     )
     statements = [rule["statement"] for rule in extract_rules(text)]
-    assert "A runner MAY run each recipe in a sandbox" in statements
+    assert "A runner SHOULD run each recipe in a sandbox" in statements
 
 
 def test_a_mark_that_ends_no_sentence_is_allowed():
@@ -603,10 +597,9 @@ CODES = {
     RECORD + "/$defs/Generation/properties/started/pattern": "INVALID_VALUE",
     RECORD + "/$defs/Generation/properties/commit/pattern": "INVALID_COMMIT",
     RECORD + "/properties/address/pattern": "INVALID_REFERENCE",
-    # Map keys, whatever their key's type, and whatever the key's own type
+    # Map keys, whatever their key's type
     ANALYSIS + "/properties/outputs/propertyNames": "INVALID_ID",
     ANALYSIS + "/properties/outputs/propertyNames/pattern": "INVALID_ID",
-    ANALYSIS + "/properties/outputs/propertyNames/type": "INVALID_ID",
     ANALYSIS
     + "/$defs/Universe__identifier_optional/properties/decisions/propertyNames": "INVALID_ID",
     ANALYSIS
@@ -615,8 +608,6 @@ CODES = {
     ANALYSIS
     + "/$defs/Input__identifier_optional/properties/path/pattern": "INVALID_PATH",
     ANALYSIS + DECLARATION + "/properties/path/pattern": "INVALID_PATH",
-    ANALYSIS
-    + "/$defs/Option__identifier_optional/properties/excluded/pattern": "BLANK_EXCLUDED",
     ANALYSIS
     + "/$defs/Output__identifier_optional/properties/format/pattern": "INVALID_VALUE",
     ANALYSIS + "/$defs/Evidence/properties/doi/pattern": "INVALID_VALUE",
@@ -665,8 +656,9 @@ def test_open_variant_has_no_unknown_fields():
 
 
 def test_every_map_key_is_an_id():
-    """A map key that doesn't match its key's type is `INVALID_ID`, whatever that type (an `address` included), and so
-    is a key that isn't a string: every keyword under a `propertyNames` takes the key's code, its `type` too."""
+    """A map key that doesn't match its key's type is `INVALID_ID`, whatever that type (an `address` included): every
+    keyword under a `propertyNames`, and the `propertyNames` itself, takes the key's code. A key is never of another
+    JSON type (spec §3), so a `propertyNames` holds only its `pattern`."""
     keys = {
         location: code
         for location, code in rules_catalogue()["errors"].items()
@@ -679,7 +671,10 @@ def test_every_map_key_is_an_id():
         if "/propertyNames" in pointer
     }
     assert sorted(keys) == sorted(expected)
-    assert any(location.endswith("/propertyNames/type") for location in keys)
+    assert {location.rsplit("/propertyNames", 1)[1] for location in keys} == {
+        "",
+        "/pattern",
+    }
     assert {code for code in keys.values()} == {"INVALID_ID"}
 
 
@@ -1029,8 +1024,9 @@ NAMED = {"$defs", "properties"}
 INDEXED = {"allOf", "anyOf", "oneOf"}
 """The keywords that hold a list of subschemas: in a keyword location, the index follows the keyword."""
 LISTED_ABOVE = {"properties", "items", "$ref", "allOf", "then"}
-"""The applicators that standard output lists above an error, with an `additionalProperties` that holds a schema: a
-tool drops them, as it drops the subschemas listed there (spec §10)."""
+"""The applicators that standard output lists above an error, with an `additionalProperties` that holds a schema: each
+fails only through the keyword that fails inside it, and has no entry, so a tool drops them, as it drops the subschemas
+listed there, and reports that keyword (spec §10)."""
 OUTPUT_SCHEMAS = {
     "Analysis": "analysis.schema.json",
     "ProvenanceRecord": "provenance.schema.json",
@@ -1110,8 +1106,8 @@ def _schema_at(schema: dict[str, Any], location: str) -> Any:
 
 
 def listed_above(unit: dict[str, Any], schema: dict[str, Any]) -> bool:
-    """True if `unit` is what standard output lists above an error (spec §10): a subschema (the root, `…/allOf/0`) or
-    an applicator."""
+    """True if `unit` is what standard output lists above an error: a subschema (the root, `…/allOf/0`) or an
+    applicator, which fails only through the keyword that fails inside it (spec §10)."""
     steps = keyword_steps(unit["keywordLocation"])
     if not steps or steps[-1][1] is not None:
         return True
@@ -1181,10 +1177,8 @@ SCHEMA_FIXTURES = [
 
 
 def fixture_document(path: Path) -> tuple[str, Any]:
-    """`(root, document)` for a fixture: the class it is a document of, and its JSON form, with any entry whose key
-    isn't a string left out (spec §3)."""
-    document = load_json(path) if path.suffix == ".json" else load_document(path)[0]
-    return path.name.split("-", 1)[0], document
+    """`(root, document)` for a fixture: the class it is a document of, and its JSON value (spec §3)."""
+    return path.name.split("-", 1)[0], load_fixture(path)
 
 
 @pytest.mark.parametrize("output_format", ["basic", "verbose"])
@@ -1208,6 +1202,12 @@ LEAKS = {
     "Analysis-150-short-commit": {
         # The failing branch of a `oneOf` that passes: its entry's code would be wrong.
         ANALYSIS + DECLARATION + "/allOf/0/then/oneOf/0/required",
+        # The `if`s of an import's four rules, which an ordinary universe fails.
+        *(
+            ANALYSIS + "/$defs/Universe__identifier_optional/allOf/" + f"{n}/if" + tail
+            for n in range(4)
+            for tail in ("", "/required")
+        ),
     },
     "Analysis-166-doi-directory-not-10": {
         ANALYSIS + "/$defs/Evidence/allOf/0/then/oneOf/1/required",

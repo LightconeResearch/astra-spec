@@ -20,7 +20,7 @@ from collections.abc import Callable, Iterator
 import pytest
 from markdown_it import MarkdownIt
 
-from .conftest import GENERATED, REPO_ROOT, load_yaml
+from .conftest import GENERATED, REPO_ROOT, ecma_262, load_yaml
 
 SPECIFICATION = REPO_ROOT / "docs" / "specification.md"
 TYPES = REPO_ROOT / "src" / "astra" / "schema" / "types.yaml"
@@ -289,9 +289,10 @@ def strings() -> Iterator[str]:
 def differences(abnf: str, pattern: str) -> list[str]:
     """The strings that the ABNF regular expression `abnf`, matched whole, and the JSON Schema `pattern` disagree on.
 
-    A JSON Schema pattern isn't anchored (JSON Schema 2019-09 Validation §6.3.3), so both are run with `re.search`.
+    A JSON Schema pattern isn't anchored (JSON Schema 2019-09 Validation §6.3.3), and is matched as ECMA-262 matches it
+    (`ecma_262`), so both are run with `re.search`.
     """
-    whole, schema = re.compile(rf"\A{abnf}\Z"), re.compile(pattern)
+    whole, schema = re.compile(rf"\A{abnf}\Z"), ecma_262(pattern)
     return [s for s in strings() if bool(whole.search(s)) != bool(schema.search(s))]
 
 

@@ -66,17 +66,17 @@
       "properties": {
         "commit": {
           "description": "The full id of the commit the declared analysis is read at. A declaration with a `url` has one; with a `path`, it declares the analysis at that path as it was at that commit.",
-          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$(?!\\n)",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
           "type": "string"
         },
         "path": {
-          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml` and inside the repository this file is read from, which in the working tree is the root's, submodules included. It is non-empty, doesn't start with `/` or `~`, separates folders with `/` (never `\\`), and has no ASCII control character (U+0000\u2013U+001F, U+007F); `..` segments are allowed.",
-          "pattern": "^(?![/~])[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
+          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml`, with `/` between folders. It is non-empty and doesn't start with `/`.",
+          "pattern": "^[^/]",
           "type": "string"
         },
         "url": {
           "description": "Where git fetches another repository from, as a remote with no ASCII space or control character: `scheme://\u2026`, such as `https://github.com/owner/analysis` or `file:///srv/repo`, or `[user@]host:path`, such as `git@github.com:owner/repo`. The declared analysis is the one at the top level of that repository, at `commit`.",
-          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$(?!\\n)",
+          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$",
           "type": "string"
         }
       },
@@ -98,8 +98,7 @@
           "description": "The options the decision chooses between, keyed by id. There is at least one.",
           "minProperties": 1,
           "propertyNames": {
-            "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-            "type": "string"
+            "pattern": "^[a-z][a-z0-9_]*$"
           },
           "type": "object"
         },
@@ -119,7 +118,7 @@
         "when": {
           "description": "The conditions under which the decision is active. It is active only when every condition holds.",
           "items": {
-            "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
+            "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
             "type": "string"
           },
           "minItems": 1,
@@ -204,13 +203,13 @@
       "description": "What a claim rests on: a published work, cited by its `doi`, or an output, cited as an `artifact`. It has exactly one of the two, and a `version` only with a `doi`.",
       "properties": {
         "artifact": {
-          "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, and should when the output is built per universe: to the universe the claim is about, such as `f1_score#svm_standard`.",
-          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
+          "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, the one the claim is about, such as `output1#u1`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
           "type": "string"
         },
         "doi": {
-          "description": "The DOI name of the cited work, under the `10` directory: `10.`, the registrant code, `/` and the suffix, such as `10.48550/arXiv.1706.03762`.",
-          "pattern": "^10\\.[0-9]+(\\.[0-9]+)*/[^\\x00-\\x20\\x7f-\\x9f]([^\\x00-\\x1f\\x7f-\\x9f]*[^\\x00-\\x20\\x7f-\\x9f])?$(?!\\n)",
+          "description": "The DOI name of the cited work, under the `10` directory: `10.`, the registrant code, `/` and a non-empty suffix, such as `10.48550/arXiv.1706.03762`.",
+          "pattern": "^10\\.[0-9]+(\\.[0-9]+)*/(?!$)",
           "type": "string"
         },
         "location": {
@@ -236,12 +235,12 @@
       "properties": {
         "conforms_to": {
           "description": "The IRI of the specification of the fragment syntax `value` follows, as W3C Web Annotation gives it, such as `http://tools.ietf.org/rfc/rfc7111` for a CSV. Without it, `value` is a PDF fragment identifier (RFC 8118).",
-          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$(?!\\n)",
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$",
           "type": "string"
         },
         "value": {
-          "description": "The fragment identifier, without the leading `#`, such as `page=6`. It is non-empty and holds no ASCII space or control character, none of ``\"#<>[\\]^`{|}``, and `%` only before two hex digits.",
-          "pattern": "^([^\\x00-\\x20\\x7f\"#%<>\\[\\\\\\]^`{|}]|%[0-9A-Fa-f]{2})+$(?!\\n)",
+          "description": "The fragment identifier, without the leading `#`, such as `page=6`. It is non-empty, holds no ASCII space or control character and none of `\"`, `#`, `<`, `>`, `[`, `\\`, `]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before two hex digits.",
+          "pattern": "^([^\\x00-\\x20\\x7f\"#%<>\\[\\\\\\]^`{|}]|%[0-9A-Fa-f]{2})+$",
           "type": "string"
         }
       },
@@ -264,8 +263,8 @@
           "type": "string"
         },
         "path": {
-          "description": "The path of the input's file, relative to the folder of the `astra.yaml`. It is non-empty, doesn't start with `/` or `~`, separates folders with `/` (never `\\`), has no `..` segment or ASCII control character (U+0000\u2013U+001F, U+007F), and doesn't end in `/`.",
-          "pattern": "^(?![/~])(?!(?:[^\\x00-\\x1f\\x7f]*/)?\\.\\.(?:/|$))(?![^\\x00-\\x1f\\x7f]*/$)[^\\x00-\\x1f\\x7f\\\\]+$(?!\\n)",
+          "description": "The path of the input's file, relative to the folder of the `astra.yaml`, with `/` between folders. It is non-empty and doesn't start with `/`.",
+          "pattern": "^[^/]",
           "type": "string"
         },
         "tags": {
@@ -289,7 +288,7 @@
       "description": "A claim backed by evidence: as a prior insight, what earlier work establishes and the analysis builds on; as a finding, what the analysis concludes.",
       "properties": {
         "claim": {
-          "description": "What the insight asserts, in one or two sentences.",
+          "description": "What the insight asserts.",
           "type": "string"
         },
         "description": {
@@ -338,14 +337,13 @@
           "type": "string"
         },
         "excluded": {
-          "description": "Why the option is ruled out, as a reason that is not blank; any string is a reason, `no` and `off` included. An option with a reason is excluded: no universe selects it.",
-          "pattern": "[^\\x00-\\x20\\x7f]",
+          "description": "Why the option is ruled out. An option with a reason is excluded: no effective selection selects it.",
           "type": "string"
         },
         "incompatible_with": {
           "description": "The options that are never selected together with this option.",
           "items": {
-            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
             "type": "string"
           },
           "minItems": 1,
@@ -355,7 +353,7 @@
         "insights": {
           "description": "The ids of the prior insights that support the option.",
           "items": {
-            "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
+            "pattern": "^[a-z][a-z0-9_]*$",
             "type": "string"
           },
           "minItems": 1,
@@ -369,7 +367,7 @@
         "requires": {
           "description": "The options that are also selected whenever this option is.",
           "items": {
-            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
             "type": "string"
           },
           "minItems": 1,
@@ -408,7 +406,7 @@
         "decisions": {
           "description": "The addresses of the decisions whose option the output is made with directly, not through what it reads: a different option for any of them, in the universe being built, can give a different result.",
           "items": {
-            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n)",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
             "type": "string"
           },
           "minItems": 1,
@@ -420,14 +418,14 @@
           "type": "string"
         },
         "format": {
-          "description": "How the output's artefact is encoded, as a lowercase token: the extension of its results' files, without the leading dot, such as `png`, `csv` or `parquet`. Any token that matches the pattern is a format.",
-          "pattern": "^[a-z0-9][a-z0-9_.+-]*$(?!\\n)",
+          "description": "How the output's artefact is encoded, as a lowercase token: the extension of its results' files, without the leading dot, such as `png`, `csv` or `parquet`.",
+          "pattern": "^[a-z0-9][a-z0-9_.+-]*$",
           "type": "string"
         },
         "inputs": {
-          "description": "What the output is made from, in order: references to inputs and outputs of the analysis or of analyses it declares. A reference to an output can be pinned to a universe with `#`; a reference to an input can't.",
+          "description": "What the output is made from, in order: references to inputs and outputs of the analysis or of analyses it declares. A reference can be pinned to a universe with `#`.",
           "items": {
-            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
             "type": "string"
           },
           "minItems": 1,
@@ -458,7 +456,7 @@
         "when": {
           "description": "The conditions under which the output is active. It is active only when every condition holds.",
           "items": {
-            "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$(?!\\n)",
+            "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
             "type": "string"
           },
           "minItems": 1,
@@ -476,19 +474,19 @@
     },
     "Recipe": {
       "additionalProperties": false,
-      "description": "A build rule that produces an output. A recipe is pure *how*: a `command` to invoke and the execution context (`resources`, `container`).\nRecipes do not declare what the output depends on. Provenance \u2014 upstream inputs, decision-driven parameterization, and activation conditions \u2014 is declared on the parent Output (`inputs`, `decisions`, `when`). Runners surface the resolved input map and active decision values to the recipe via `{...}` template substitution (see `command`).",
+      "description": "How an output is made: a `command` and the context it runs in (`resources`, `container`). What the output is made from, the decisions it is made with and when it is active are the output's `inputs`, `decisions` and `when`; the command reaches the inputs and decisions through its placeholders.",
       "properties": {
         "command": {
-          "description": "The POSIX shell command that makes the output, such as `python src/train.py`. It is a template, whose placeholders a runner substitutes before running it:\n\n  {inputs.<entry>}     the path of what an entry of the output's\n                       `inputs` names, with <entry> written\n                       exactly as the entry is, dots and `#`\n                       included, as in\n                       {inputs.classification.accuracy#baseline}\n  {decisions.<entry>}  the id of the option selected for the\n                       decision an entry of the output's\n                       `decisions` names, with <entry> written\n                       exactly as the entry is, as in\n                       {decisions.iris.random_seed}\n  {inputs}             the paths of all the output's inputs, in\n                       the order of `inputs`, separated by spaces\n  {output}             the path the result is written to\n  {{ and }}            a literal { and }\n\nEvery placeholder takes one of these forms, and the <entry> of an {inputs.<entry>} or {decisions.<entry>} is an entry of the output's `inputs` or `decisions`, exactly as written.",
+          "description": "The POSIX shell command that makes the output, such as `python src/train.py`. It is a template. Read from the left, `{{` stands for a literal `{` and `}}` for a literal `}`, and any other `{` opens a placeholder, which ends at the next `}`. A runner substitutes each placeholder, and each `{{` and `}}`, before running the command:\n\n  {inputs.<entry>}     the path of what an entry of the output's\n                       `inputs` names, with <entry> written\n                       exactly as the entry is, dots and `#`\n                       included, as in\n                       {inputs.subanalysis.output1#u1}\n  {decisions.<entry>}  the id of the option selected for the\n                       decision an entry of the output's\n                       `decisions` names, with <entry> written\n                       exactly as the entry is, as in\n                       {decisions.subanalysis.decision1}\n  {inputs}             the paths of all the output's inputs, in\n                       the order of `inputs`, separated by spaces\n  {output}             the path the result is written to\n\nEvery brace belongs to a `{{`, a `}}` or a placeholder, every placeholder takes one of these forms, and the <entry> of an {inputs.<entry>} or {decisions.<entry>} is an entry of the output's `inputs` or `decisions`, exactly as written.",
           "type": "string"
         },
         "container": {
-          "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
+          "description": "The container the recipe runs in: an image, or a Containerfile it is built from.",
           "type": "string"
         },
         "resources": {
           "$ref": "#/$defs/Resources",
-          "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
+          "description": "The compute resources the recipe asks for."
         }
       },
       "required": [
@@ -499,28 +497,28 @@
     },
     "Resources": {
       "additionalProperties": false,
-      "description": "Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.",
+      "description": "The compute resources a recipe asks for.",
       "properties": {
         "cpus": {
-          "description": "CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.",
+          "description": "The number of CPU cores the recipe asks for, which may be fractional, such as 0.5.",
           "minimum": 0,
           "type": "number"
         },
         "disk": {
-          "description": "Disk requirement as a string with units (e.g., '10Gi', '500Mi').",
+          "description": "The disk space the recipe asks for, as free text, such as `10Gi`.",
           "type": "string"
         },
         "gpus": {
-          "description": "Number of GPUs",
+          "description": "The number of GPUs the recipe asks for.",
           "minimum": 1,
           "type": "integer"
         },
         "memory": {
-          "description": "Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').",
+          "description": "The memory the recipe asks for, as free text, such as `16Gi`.",
           "type": "string"
         },
         "time_limit": {
-          "description": "Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').",
+          "description": "The longest the recipe may run, as free text, such as `2h`.",
           "type": "string"
         }
       },
@@ -552,24 +550,130 @@
     },
     "Universe__identifier_optional": {
       "additionalProperties": false,
-      "description": "A universe: a selection of one option for every active decision of the analysis and of every analysis reached through a declaration that a universe of the analysis drives. Its effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` written over it decision by decision and every inherited selection of a decision that isn't active in the result dropped, so a universe that switches a decision on must set it.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "universe": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "universe": {}
+            },
+            "required": [
+              "universe"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "decisions": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "decisions": {}
+              },
+              "required": [
+                "decisions"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "derived_from": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "derived_from": {}
+              },
+              "required": [
+                "derived_from"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "universe": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "universe"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "analysis": {}
+            },
+            "required": [
+              "analysis"
+            ]
+          }
+        }
+      ],
+      "description": "An entry of `universes`: a universe of the analysis, a selection of one option for every active decision of the analysis and of every analysis reached through a declaration that the analysis's universes drive, or an import, which has an `analysis` and a `universe`, names one of another analysis's universes and selects nothing. A universe's effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` written over it decision by decision and every inherited selection of a decision that isn't active in the result dropped, so a universe that switches a decision on must set it.",
       "properties": {
+        "analysis": {
+          "description": "For an import, the address of the declaration that leads to the analysis whose universe it imports, through as many declarations as lead to it, such as `catalog` or `stage.inner`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
         "decisions": {
           "additionalProperties": {
             "description": "The id of the option selected for the decision.",
-            "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
+            "pattern": "^[a-z][a-z0-9_]*$",
             "type": "string"
           },
-          "description": "The options the universe selects, as `<decision>: <option>`, one key per decision. Each key is the id of a decision of the analysis or, for a decision of another analysis, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `stage.method`, or another spelling of either.",
+          "description": "The options the universe selects, as `<decision>: <option>`, one key per decision. Each key is the id of a decision of the analysis or, for a decision of another analysis, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `subanalysis.decision1`, or another spelling of that address, through no declaration back to an analysis already on its chain.",
           "propertyNames": {
-            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n)",
-            "type": "string"
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
           },
           "type": "object"
         },
         "derived_from": {
-          "description": "The id of another universe of the analysis, whose effective selection this universe's effective selection is built on, so that this universe gives only the decisions it changes.",
-          "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
+          "description": "The id of another universe of the analysis, never an import, whose effective selection this universe's effective selection is built on, so that this universe gives only the decisions it changes. The universe inherits only that selection.",
+          "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
         },
         "description": {
@@ -577,17 +681,22 @@
           "type": "string"
         },
         "label": {
-          "description": "A short display name for the universe. It is not inherited through `derived_from`.",
+          "description": "A short display name for the universe.",
           "type": "string"
         },
         "tags": {
-          "description": "Keywords for grouping and finding the universe. They are not inherited through `derived_from`.",
+          "description": "Keywords for grouping and finding the universe.",
           "items": {
             "type": "string"
           },
           "minItems": 1,
           "type": "array",
           "uniqueItems": true
+        },
+        "universe": {
+          "description": "For an import, the id of the universe it imports: a universe of the analysis that `analysis` leads to, never an import of that analysis.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
         }
       },
       "title": "Universe",
@@ -605,13 +714,12 @@
       },
       "description": "The analyses this analysis uses, keyed by the id it addresses them by.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$"
       },
       "type": "object"
     },
     "container": {
-      "description": "The default container for this analysis's recipes. Image names are pulled; file paths are built from source.",
+      "description": "The default container of the analysis's recipes: an image, or a Containerfile it is built from.",
       "type": "string"
     },
     "decisions": {
@@ -620,8 +728,7 @@
       },
       "description": "The choices the analysis makes, keyed by id.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$"
       },
       "type": "object"
     },
@@ -635,8 +742,7 @@
       },
       "description": "What the analysis concludes, as insights keyed by id.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$"
       },
       "type": "object"
     },
@@ -646,8 +752,7 @@
       },
       "description": "The files the analysis reads, keyed by id.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$"
       },
       "type": "object"
     },
@@ -662,8 +767,7 @@
       "description": "The artefacts the analysis makes, keyed by id. There is at least one.",
       "minProperties": 1,
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$"
       },
       "type": "object"
     },
@@ -673,14 +777,13 @@
       },
       "description": "What earlier work establishes and the analysis builds on, as insights keyed by id. Options cite them in their `insights`.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$"
       },
       "type": "object"
     },
     "spec_version": {
       "description": "The version of the ASTRA specification the document is written against, such as `0.1.0`.",
-      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$(?!\\n)",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
       "type": "string"
     },
     "tags": {
@@ -696,10 +799,9 @@
       "additionalProperties": {
         "$ref": "#/$defs/Universe__identifier_optional"
       },
-      "description": "The universes of the analysis, keyed by id.",
+      "description": "The universes of the analysis, and the universes of other analyses it imports, keyed by id. An import has an `analysis` and a `universe`.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$"
       },
       "type": "object"
     }

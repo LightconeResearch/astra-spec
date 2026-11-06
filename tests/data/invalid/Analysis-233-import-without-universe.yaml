@@ -1,0 +1,16 @@
+# rule: INVALID_IMPORT
+# fails at: /universes/upstream_u1
+spec_version: "0.1.0"
+analyses:
+  upstream:
+    path: upstream
+outputs:
+  report:
+    type: report
+    format: pdf
+    inputs: ["upstream.summary#upstream_u1"]
+    recipe:
+      command: python make.py '{output}'
+universes:
+  upstream_u1:
+    analysis: upstream

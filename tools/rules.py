@@ -3,27 +3,39 @@
 `rules.json` holds:
 
 - ``rules``: one entry per rule of the specification's ``## 9. Conformance``, in order, extracted from its four rule
-  tables with a Markdown parser (markdown-it-py). Extraction is strict, enforcing §9's "The catalogue as data": no
-  ``## 9. Conformance`` heading, or more than one; a subsection other than the four, a missing or repeated one, or
-  one out of their order; a rule table outside them, or a subsection without exactly one; a missing, unknown or
-  repeated column; a row that doesn't write one cell per column (counted on its source line, blockquote markers
-  aside); an empty cell; a Code cell that isn't one code span holding a code, or a code already used; an unknown layer
-  or level, or a ``MAY`` row outside the runner table; a rule of more than one sentence (as the cell reads once
-  rendered, outside its code spans, a ``.``, ``?`` or ``!`` followed by white space, even after a closing bracket or
-  quote); a rule whose RFC 2119 keyword contradicts its level, in its text, in a code span or as the cell reads once
-  rendered; a Source cell that isn't plain text, or holds a token other than an RFC number with an optional ``§n``,
-  ``tidy-up``, ``main``, ``#n`` or ``§n``, the tokens separated by ``, ``; a cell holding anything but text, code
-  spans, emphasis, links and inline HTML; or a cell whose Markdown can't be rebuilt from its tokens, is an error. Cells
-  are read as CommonMark with GFM tables, as §9 says.
+  tables with a Markdown parser (markdown-it-py), which reads the specification as CommonMark with GFM tables. §9's
+  tables are a format this extractor parses, and it is strict:
+
+  - **Subsections.** §9 has four ``###`` subsections, ``parse and schema``, ``validator``, ``check`` and ``runner``,
+    in that order, and no others.
+  - **Rule tables.** A rule table is a table whose header has a Code column. Each subsection has exactly one, and no
+    rule table stands outside them. Other tables, such as the check layer's statuses, are not read.
+  - **Columns** are found by the names in a rule table's header: Code, Level, Rule and Source, with Layer in the parse
+    and schema table and Status when broken in the check table, each once, and no others.
+  - **Rows.** Each row is one rule, with one cell per column (counted on its source line, blockquote markers aside)
+    and none empty. Its Code is one code span holding a capital letter, then capitals, digits and underscores
+    (``[A-Z][A-Z0-9_]*``), and no other row has it. Its Layer is ``parse`` or ``schema``, and its Level ``MUST`` or
+    ``SHOULD``. Its Rule is one sentence: as the cell reads once rendered, outside its code spans, no ``.``, ``?`` or
+    ``!`` is followed by white space, even after a closing bracket or quote. Its Rule uses no RFC 2119 keyword in
+    capitals of another level, in its text, in a code span, or as the cell reads once rendered (``MU*ST*`` reads as
+    ``MUST``). Its Source is plain text: tokens separated by a comma and a space, each an RFC number with an optional
+    ``§n``, ``tidy-up``, ``main``, ``#n`` or ``§n``.
+  - **Cells** are inline Markdown, and the published page shows each cell as the same text. They hold only text, code
+    spans, emphasis, links and inline HTML. ``rules.json`` records a cell as Markdown rebuilt from what it parses to,
+    with each link reduced to its text, so the rebuilt Markdown must parse the same way: an escape whose loss would
+    change the cell, such as ``\\*`` before text that would then become emphasis, is not allowed.
+
+  A specification that breaks any of this, or has no ``## 9. Conformance`` heading or more than one, is an error, and
+  no ``rules.json`` is made from it.
 - ``errors``: for each keyword of the generated JSON Schemas whose error can make the instance fail, its absolute
   keyword location (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it
   enforces. The code comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type
   or slot that defines a pattern, on a class rule, on each branch of an ``exactly_one_of``), or, for the keywords whose
-  code never varies, from a default. A map's keys take their key's code for both their ``type`` and their ``pattern``. A
-  class's checks (its exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the
-  keywords of its ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does, since no error there
-  makes the instance fail (spec §10, "From an error to its code"). Every such keyword has exactly one code, every code
-  is a schema-layer rule of §9, and every ``rule`` annotation gives some keyword its code.
+  code never varies, from a default. A map's keys take their key's code for their ``pattern``. A class's checks (its
+  exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the keywords of its
+  ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does, since no error there makes the
+  instance fail (spec §10, "From an error to its code"). Every such keyword has exactly one code, every code is a
+  schema-layer rule of §9, and every ``rule`` annotation gives some keyword its code.
 """
 
 import argparse
@@ -56,10 +68,8 @@ FIELDS = {"Rule": "statement", "Source": "source", "Status when broken": "status
 LAYERS = {"parse and schema": {"parse", "schema"}}
 """The layers a subsection's Layer column may name; a subsection without one is its own layer."""
 
-LEVELS = {"MUST", "SHOULD", "MAY"}
-
-MAY_TABLE = "runner"
-"""The one subsection whose rule table may have `MAY` rows: its rules are about a tool's own actions."""
+LEVELS = {"MUST", "SHOULD"}
+"""The levels a rule can have. A permission (`MAY`) is no rule: the specification states it outside the tables."""
 
 SOURCE_WORDS = {"tidy-up", "main"}
 """The Source tokens that are words: the draft RFC *Settling the schema for v0.1*, and the specification before 0.1."""
@@ -98,9 +108,8 @@ DEFAULTS = {
 """The keywords whose code never varies, with that code. Also `required` outside a rule (`MISSING_FIELD`) and
 `additionalProperties: false` (`UNKNOWN_FIELD`).
 
-Two take their default only where it is what they check. A map key's `type` takes the key's code, as its `pattern`
-does. `minProperties` and `minItems` take `EMPTY_COLLECTION` ("at least one entry") only with a value of 1 (see
-`ONE_ENTRY`): any other minimum has no code, as `maxItems` has none."""
+`minProperties` and `minItems` take their default, `EMPTY_COLLECTION` ("at least one entry"), only where it is what they
+check, with a value of 1 (see `ONE_ENTRY`): any other minimum has no code, as `maxItems` has none."""
 
 ONE_ENTRY = {"minProperties", "minItems"}
 """The keywords whose default, `EMPTY_COLLECTION`, holds only when their value is 1."""
@@ -444,13 +453,7 @@ def extract_rules(markdown: str) -> list[dict]:
                 )
             level = cell["Level"].content
             if level not in LEVELS:
-                raise row.error(
-                    f"unknown level {level!r}: a level is MUST, SHOULD or MAY"
-                )
-            if level == "MAY" and heading != MAY_TABLE:
-                raise row.error(
-                    f"a MAY row is allowed only in the {MAY_TABLE} table"
-                )
+                raise row.error(f"unknown level {level!r}: a level is MUST or SHOULD")
             statement = cell["Rule"].children or []
             if _sentence_break(statement):
                 raise row.error(
@@ -615,11 +618,11 @@ class _ErrorMap:
                 raise self.unknown(pointer, keyword)
 
     def key(self, node: dict, pointer: list[Any], code: str) -> None:
-        """A map's keys: their `type` and `pattern` both take the key's code, since either fails on a key that isn't one."""
+        """A map's keys: their `pattern` takes the key's code."""
         for keyword in node:
             if keyword in METADATA:
                 continue
-            if keyword not in ("type", "pattern"):
+            if keyword != "pattern":
                 raise self.unknown(pointer, keyword)
             self.add([*pointer, keyword], code)
 

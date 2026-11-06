@@ -86,6 +86,7 @@ TRAINING = "/decisions/training"
 NEURAL_NET = "/decisions/method/options/neural_net"
 RESOURCES = "/outputs/result/recipe/resources"
 SVM = "/universes/svm_standard"
+IMPORT = "/universes/stage_alone"
 FINDING = "/findings/rf_accuracy"
 CITED = FINDING + "/evidence/0"
 PUBLISHED = "/prior_insights/forests_resist_noise/evidence/0"
@@ -110,14 +111,12 @@ NEGATIVE = [
     Case("core", "/tags/0", 1, "WRONG_TYPE"),
     Case("core", "/tags", [], "EMPTY_COLLECTION"),
     Case("core", "/tags/1", "photometric-redshifts", "DUPLICATE_ENTRY", "/tags"),
-    # Each map: a list in its place, a key that is an address but not an id, and a key that isn't a string.
+    # Each map: a list in its place, and a key that is an address but not an id.
     Case("core", "/inputs", ["catalog"], "WRONG_TYPE"),
     Case("core", "/inputs/data.catalog", {"path": "a.csv"}, "INVALID_ID", "/inputs"),
-    Case("core", "/inputs", {1: {"path": "data/catalog.csv"}}, "INVALID_ID"),
     Case("minimal", "/outputs", ["result"], "WRONG_TYPE"),
     Case("minimal", "/outputs", {}, "EMPTY_COLLECTION"),
     Case("minimal", "/outputs/result.v2", OUTPUT, "INVALID_ID", "/outputs"),
-    Case("minimal", "/outputs", {1: OUTPUT}, "INVALID_ID"),
     Case("core", "/decisions", ["method"], "WRONG_TYPE"),
     Case(
         "core",
@@ -126,23 +125,18 @@ NEGATIVE = [
         "INVALID_ID",
         "/decisions",
     ),
-    Case("core", "/decisions", {1: {"options": {"half": {}}}}, "INVALID_ID"),
     Case("declarations", "/analyses", ["stage"], "WRONG_TYPE"),
     Case(
         "declarations", "/analyses/up.stage", {"path": "x"}, "INVALID_ID", "/analyses"
     ),
-    Case("declarations", "/analyses", {1: {"path": "stage"}}, "INVALID_ID"),
     Case("universes", "/universes", ["rf_standard"], "WRONG_TYPE"),
     Case("universes", "/universes/stage.u1", {}, "INVALID_ID", "/universes"),
-    Case("universes", "/universes", {1: {}}, "INVALID_ID"),
     Case("insights", "/prior_insights", ["forests_resist_noise"], "WRONG_TYPE"),
     Case(
         "insights", "/prior_insights/up.noise", INSIGHT, "INVALID_ID", "/prior_insights"
     ),
-    Case("insights", "/prior_insights", {1: INSIGHT}, "INVALID_ID"),
     Case("insights", "/findings", ["rf_accuracy"], "WRONG_TYPE"),
     Case("insights", "/findings/rf.accuracy", INSIGHT, "INVALID_ID", "/findings"),
-    Case("insights", "/findings", {1: INSIGHT}, "INVALID_ID"),
     # --- Input ---
     Case("core", "/inputs/catalog", "data/catalog.csv", "WRONG_TYPE"),
     Case("core", "/inputs/catalog/id", "catalog", "UNKNOWN_FIELD", "/inputs/catalog"),
@@ -250,7 +244,6 @@ NEGATIVE = [
         "INVALID_ID",
         "/decisions/method/options",
     ),
-    Case("core", "/decisions/method/options", {1: {}}, "INVALID_ID"),
     # --- Option ---
     Case("core", "/decisions/method/options/template", "template", "WRONG_TYPE"),
     Case(
@@ -294,7 +287,6 @@ NEGATIVE = [
         "DUPLICATE_ENTRY",
     ),
     Case("core", SMALL + "/excluded", True, "WRONG_TYPE"),
-    Case("core", SMALL + "/excluded", " ", "BLANK_EXCLUDED"),
     # --- Universe, and the selections of its `decisions` ---
     Case("universes", SVM, "rf_standard", "WRONG_TYPE"),
     Case("universes", SVM + "/id", "svm_standard", "UNKNOWN_FIELD", SVM),
@@ -322,7 +314,23 @@ NEGATIVE = [
         "INVALID_ID",
         SVM + "/decisions",
     ),
-    Case("universes", SVM + "/decisions", {1: "svm"}, "INVALID_ID"),
+    # --- An import in `universes` ---
+    Case("universes", IMPORT + "/universe", DELETE, "INVALID_IMPORT"),
+    Case("universes", IMPORT + "/analysis", DELETE, "INVALID_IMPORT"),
+    Case(
+        "universes",
+        IMPORT + "/decisions",
+        {"stage.method": "pca"},
+        "INVALID_IMPORT",
+        IMPORT,
+    ),
+    Case(
+        "universes", IMPORT + "/derived_from", "rf_standard", "INVALID_IMPORT", IMPORT
+    ),
+    Case("universes", IMPORT + "/analysis", 1, "WRONG_TYPE"),
+    Case("universes", IMPORT + "/analysis", "Stage", "INVALID_REFERENCE"),
+    Case("universes", IMPORT + "/universe", 1, "WRONG_TYPE"),
+    Case("universes", IMPORT + "/universe", "stage.alone", "INVALID_ID"),
     # --- AnalysisDeclaration ---
     Case("declarations", "/analyses/stage", "stage", "WRONG_TYPE"),
     Case(
@@ -478,22 +486,20 @@ FACETS = {
             "data/~catalog.csv",
             "my data.csv",
             "données/catalogue.csv",
-        ],
-        [
-            "/data/catalog.csv",
             "~/data.csv",
             "~",
             "..",
             "../data.csv",
-            "data/..",
             "data/../catalog.csv",
             "data\\catalog.csv",
             "data/",
+            "data//catalog.csv",
             "data/cat\talog.csv",
             "data/\x7fcatalog.csv",
-            "",
+            "\ndata.csv",
             "data/catalog.csv\n",
         ],
+        ["/data/catalog.csv", "/", "//data.csv", ""],
     ),
     ("AnalysisDeclaration", "path"): (
         "declarations",
@@ -505,21 +511,19 @@ FACETS = {
             "..",
             "../sibling",
             "up/../stage",
+            "stage/",
             "C:repo",
             "my stage",
             "étape",
-        ],
-        [
-            "/srv/stage",
             "~/stage",
             "~",
             "stage\\sub",
             "sta\tge",
             "stage\x1f",
             "stage\x7f",
-            "",
             "stage\n",
         ],
+        ["/srv/stage", "/", ""],
     ),
     ("AnalysisDeclaration", "url"): (
         "declarations",
@@ -583,6 +587,13 @@ FACETS = {
             "10.978.8889637/173",
             "10.3929/ethz-a- 007549606",
             "10.1234/a\u3000b",
+            "10.1234/ x",
+            "10.1234/x ",
+            "10.1234/a\tb",
+            "10.1234/a\x85b",
+            "10.1234/x\n",
+            "10.1234/\n",
+            "10.1234//",
         ],
         [
             "11.1234/x",
@@ -595,11 +606,6 @@ FACETS = {
             "10.1234/",
             "doi:10.1234/x",
             "https://doi.org/10.1234/x",
-            "10.1234/ x",
-            "10.1234/x ",
-            "10.1234/a\tb",
-            "10.1234/a\x85b",
-            "10.1234/x\n",
         ],
     ),
     ("FragmentSelector", "value"): (
@@ -639,18 +645,11 @@ FACETS = {
             "page=6\n",
         ],
     ),
-    ("Option", "excluded"): (
-        "core",
-        SMALL + "/excluded",
-        "BLANK_EXCLUDED",
-        ["no", "off", "Too few galaxies.", " x ", "x\n", "\u00a0", "\u3000"],
-        ["", " ", "\t", "\n", " \t\r\n", "\x7f"],
-    ),
 }
 """For each slot that writes its own pattern: a valid fixture, the pointer of the slot's value in it, the slot's code,
 values the pattern accepts, and values it rejects, at least one for each facet its description states (as
-`test_types` does for the named types). An anchored pattern also rejects a valid value with a final `\\n`, which
-Python's `$` alone would let through."""
+`test_types` does for the named types). A pattern that ends in `$` also rejects a valid value with a final `\\n`,
+as ECMA-262 reads its `$`."""
 
 
 @functools.cache

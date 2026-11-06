@@ -43,10 +43,10 @@ classes:
         range: reference
         required: true
         description: >-
-          The result as the analysis it belongs to addresses it: the output's
-          id, after the ids of the declared analyses that lead to it, then `#`
-          and the universe's id when the result is built in a universe, such
-          as `subanalysis1.output1#u1`.
+          The result's address, as the analysis it belongs to names it: the
+          output's id after the ids of the driven declarations that lead to
+          it, then, for a result built in a universe, `#` and that universe's
+          own id, never an import's, such as `subanalysis1.output1#u1`.
       content_hash:
         range: content_hash
         required: true
@@ -131,7 +131,7 @@ classes:
         required: true
         description: >-
           The entry exactly as the output's `inputs` lists it in the
-          `astra.yaml` files at the record's `commit`, such as `iris.data`.
+          `astra.yaml` files at the record's `commit`, such as `input1`.
       content_hash:
         range: content_hash
         required: true
@@ -156,12 +156,10 @@ classes:
         range: iri
         required: true
         description: >-
-          An IRI (RFC 3987), never a CURIE, naming exactly that environment,
-          enough for its runner, at the version the record gives, to recreate
-          it; the schema checks its scheme, characters and percent-encoding,
-          not its structure (authority, port, IP literal). It need not resolve
-          online: a `urn:` IRI or a scheme of the runner's own will do, such as
-          `urn:example-runner:env:sha256:…`.
+          An IRI naming exactly that environment, enough for its runner, at
+          the version the record gives, to recreate it, such as a `urn:` IRI
+          (`urn:example:env:sha256:…`) or one in a scheme of the runner's
+          own.
 
   Runner:
     class_uri: prov:SoftwareAgent
@@ -170,8 +168,7 @@ classes:
       id:
         required: true
         description: >-
-          The runner's name, ideally unique (an IRI, say), such as
-          `example-runner`.
+          The runner's name, such as `example-runner`.
       version:
         required: true
         slot_uri: schema:softwareVersion

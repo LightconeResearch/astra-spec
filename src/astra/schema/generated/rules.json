@@ -20,7 +20,6 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/options/minProperties": "EMPTY_COLLECTION",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/options/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/options/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/options/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/options/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/rationale/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/tags/items/type": "WRONG_TYPE",
@@ -81,7 +80,6 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Insight__identifier_optional/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/additionalProperties": "UNKNOWN_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/description/type": "WRONG_TYPE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/excluded/pattern": "BLANK_EXCLUDED",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/excluded/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/incompatible_with/items/pattern": "INVALID_REFERENCE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Option__identifier_optional/properties/incompatible_with/items/type": "WRONG_TYPE",
@@ -153,11 +151,20 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/TextQuoteSelector/required": "MISSING_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/TextQuoteSelector/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/additionalProperties": "UNKNOWN_FIELD",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/allOf/0/if": "INVALID_IMPORT",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/allOf/0/then/required": "INVALID_IMPORT",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/allOf/1/if": "INVALID_IMPORT",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/allOf/1/then/not": "INVALID_IMPORT",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/allOf/2/if": "INVALID_IMPORT",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/allOf/2/then/not": "INVALID_IMPORT",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/allOf/3/if": "INVALID_IMPORT",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/allOf/3/then/required": "INVALID_IMPORT",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/analysis/pattern": "INVALID_REFERENCE",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/analysis/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/decisions/additionalProperties/pattern": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/decisions/additionalProperties/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/decisions/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/decisions/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/decisions/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/decisions/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/derived_from/pattern": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/derived_from/type": "WRONG_TYPE",
@@ -167,35 +174,31 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/tags/minItems": "EMPTY_COLLECTION",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/tags/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/tags/uniqueItems": "DUPLICATE_ENTRY",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/universe/pattern": "INVALID_ID",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/properties/universe/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Universe__identifier_optional/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/additionalProperties": "UNKNOWN_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/analyses/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/analyses/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/properties/analyses/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/analyses/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/container/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/decisions/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/decisions/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/properties/decisions/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/decisions/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/description/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/findings/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/findings/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/properties/findings/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/findings/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/inputs/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/inputs/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/properties/inputs/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/inputs/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/label/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/minProperties": "EMPTY_COLLECTION",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/prior_insights/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/prior_insights/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/properties/prior_insights/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/prior_insights/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/spec_version/pattern": "INVALID_VALUE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/spec_version/type": "WRONG_TYPE",
@@ -205,7 +208,6 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/tags/uniqueItems": "DUPLICATE_ENTRY",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/universes/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/universes/propertyNames/pattern": "INVALID_ID",
-    "https://w3id.org/astra/dev/analysis.schema.json#/properties/universes/propertyNames/type": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/universes/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/required": "MISSING_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/type": "WRONG_TYPE",
@@ -291,21 +293,21 @@
       "layer": "parse",
       "level": "MUST",
       "source": "0005, tidy-up, §3",
-      "statement": "Every `astra.yaml` is UTF-8, holds none of the raw characters §3 excludes, has no directive but `%YAML 1.2`, at most one `---`, before its content, and at most one `...`, after it, no alias, no tag and no escape of a surrogate, and is otherwise a well-formed YAML 1.2 stream under the core schema; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark"
+      "statement": "Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8"
     },
     {
       "code": "DUPLICATE_KEY",
       "layer": "parse",
       "level": "MUST",
       "source": "0003, 0004, tidy-up, §3, §4",
-      "statement": "No two string keys of one map in an `astra.yaml` are equal once their escapes are read, and no two names of one object in a record are"
+      "statement": "No map in an `astra.yaml` has two equal keys, and no object in a record has two equal names"
     },
     {
       "code": "INVALID_ID",
       "layer": "schema",
       "level": "MUST",
       "source": "tidy-up, main, §3, §4",
-      "statement": "Every map key is a string, and matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar"
+      "statement": "Every map key matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar"
     },
     {
       "code": "INVALID_REFERENCE",
@@ -350,6 +352,13 @@
       "statement": "A declaration with a `url` has a `commit`"
     },
     {
+      "code": "INVALID_IMPORT",
+      "layer": "schema",
+      "level": "MUST",
+      "source": "§6, §7",
+      "statement": "An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from`"
+    },
+    {
       "code": "INVALID_COMMIT",
       "layer": "schema",
       "level": "MUST",
@@ -361,14 +370,7 @@
       "layer": "schema",
       "level": "MUST",
       "source": "0004, 0006, tidy-up",
-      "statement": "Every declaration's and input's `path` is non-empty, starts with neither `/` nor `~` and holds no backslash and no ASCII control character, and an input's `path` also has no `..` segment and doesn't end in `/`"
-    },
-    {
-      "code": "BLANK_EXCLUDED",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "tidy-up",
-      "statement": "An option's `excluded` reason is not blank"
+      "statement": "Every declaration's and input's `path` is non-empty and doesn't start with `/`"
     },
     {
       "code": "INVALID_EVIDENCE_SOURCE",
@@ -399,6 +401,13 @@
       "statement": "Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1"
     },
     {
+      "code": "NOT_IN_REPOSITORY",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§3",
+      "statement": "The folder of the analysis being validated is in the working tree of a git repository"
+    },
+    {
       "code": "UNSUPPORTED_SPEC_VERSION",
       "layer": "validator",
       "level": "MUST",
@@ -409,8 +418,8 @@
       "code": "UNRESOLVED_ADDRESS",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004",
-      "statement": "Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact`"
+      "source": "0004, §7",
+      "statement": "Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact`, one of another analysis's universes in an import"
     },
     {
       "code": "UNKNOWN_OPTION",
@@ -431,7 +440,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0003, 0004",
-      "statement": "Every recipe placeholder is `{inputs}`, `{output}`, `{{`, `}}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written"
+      "statement": "Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left (§5), and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written"
     },
     {
       "code": "AMBIGUOUS_ID",
@@ -452,7 +461,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0004, 0007 §1",
-      "statement": "A declaration's `path` stays inside the declaring analysis's repository"
+      "statement": "A declaration's `path`, tidied (§3), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit"
     },
     {
       "code": "MISSING_DECLARED_ANALYSIS",
@@ -466,14 +475,14 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0007, §3, §7",
-      "statement": "A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit the declaring analysis's repository has"
+      "statement": "A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the repository that holds the declaring `astra.yaml`"
     },
     {
       "code": "COMMIT_NOT_ANCESTOR",
       "layer": "validator",
       "level": "SHOULD",
       "source": "0007, §3",
-      "statement": "A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD or (during a merge) MERGE_HEAD of the repository that holds the declaring file"
+      "statement": "A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD of the repository that holds the declaring file"
     },
     {
       "code": "REMOTE_UNREACHABLE",
@@ -508,21 +517,21 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0006",
-      "statement": "An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` of its own"
+      "statement": "An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` file of its own"
     },
     {
       "code": "RESERVED_PATH",
       "layer": "validator",
       "level": "MUST",
       "source": "tidy-up, §3",
-      "statement": "No input's `path` and no declaration's `path`, with `.`, `..` and repeated `/` resolved, is or lies in the `results/` or `.astra/` of an analysis of the stack"
+      "statement": "No input's `path` and no declaration's `path`, tidied (§3), is or lies in the `results/` or `.astra/` of an analysis of the stack"
     },
     {
       "code": "UNKNOWN_DERIVED_FROM",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003",
-      "statement": "A universe's `derived_from` names a universe of the same analysis"
+      "source": "0003, §6",
+      "statement": "A universe's `derived_from` names a universe of the same analysis, never an import"
     },
     {
       "code": "DERIVED_FROM_CYCLE",
@@ -536,7 +545,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0003, 0004, tidy-up, §6, §7",
-      "statement": "Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that a universe of its analysis drives"
+      "statement": "Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that its analysis's universes drive"
     },
     {
       "code": "INACTIVE_DECISION",
@@ -567,60 +576,46 @@
       "statement": "No effective selection selects an excluded option"
     },
     {
-      "code": "PARTIALLY_DRIVEN",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0004, tidy-up, §6, §7",
-      "statement": "Every chain of declarations from an analysis's file is driven by all of the analysis's universes or by none, judged on their effective selections"
-    },
-    {
       "code": "DUPLICATE_ELEMENT",
       "layer": "validator",
       "level": "MUST",
-      "source": "tidy-up, §4, §6",
-      "statement": "No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe's own `decisions` has two keys that spell one decision"
+      "source": "tidy-up, §4, §6, §7",
+      "statement": "No universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit"
     },
     {
-      "code": "CONFLICTING_SELECTIONS",
+      "code": "LOOPING_KEY",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004, tidy-up, §6, §7",
-      "statement": "Every spelling of one decision in a universe's effective selection selects the same option"
+      "source": "main, §6, §7",
+      "statement": "No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included"
     },
     {
       "code": "NOT_BUILT_IN_UNIVERSE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004",
-      "statement": "Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built"
+      "source": "0004, §7",
+      "statement": "Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the root's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe"
     },
     {
       "code": "UNDRIVEN_DECLARATION",
       "layer": "validator",
       "level": "MUST",
       "source": "0004, tidy-up, §7",
-      "statement": "In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain)"
+      "statement": "In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, by which the output of a planned result or the root's evidence pins another analysis's output built per universe to that universe, or by which the output of a result planned there, an output's `when` where the output's result would be planned if the `when` held, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain)"
     },
     {
       "code": "INPUT_NOT_BUILT",
       "layer": "validator",
       "level": "MUST",
       "source": "0004",
-      "statement": "Every output read without a pin is active (its `when` holds) in the universe being built"
-    },
-    {
-      "code": "PIN_ON_INPUT",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0003",
-      "statement": "Every pinned reference names an output"
+      "statement": "Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there"
     },
     {
       "code": "UNKNOWN_PIN_UNIVERSE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003, 0004, tidy-up, §7",
-      "statement": "Every pin, read in the file it is written in, names a universe of the first analysis along its reference, starting from that file's own, whose universes drive the reference's declarations from that analysis's file to its last, or, where there is none, of the analysis whose output it is"
+      "source": "0003, 0004, tidy-up, §4, §6, §7",
+      "statement": "Every pin in an `astra.yaml` names an entry of that file's `universes` or, where the file has no entry with its id, a universe of the analysis whose element its reference names"
     },
     {
       "code": "PIN_INACTIVE",
@@ -637,25 +632,11 @@
       "statement": "No output depends on itself, directly or through others"
     },
     {
-      "code": "REDUNDANT_PIN",
+      "code": "RESULT_IN_TWO_PLACES",
       "layer": "validator",
       "level": "SHOULD",
-      "source": "0003",
-      "statement": "No reference to an output built once has a pin"
-    },
-    {
-      "code": "UNPINNED_EVIDENCE",
-      "layer": "validator",
-      "level": "SHOULD",
-      "source": "0003, 0004",
-      "statement": "Every evidence citing an output built per universe pins it"
-    },
-    {
-      "code": "NO_UNIVERSES",
-      "layer": "validator",
-      "level": "SHOULD",
-      "source": "0003, 0004",
-      "statement": "Every analysis with decisions, or with outputs built per universe, has universes, unless the root's universes drive it, or it consumes a decision"
+      "source": "main, §7, §8",
+      "statement": "No planned result has two names: its output's analysis is reached through at most one chain of driven declarations from the analysis the result belongs to (§8)"
     },
     {
       "code": "MISSING_RECORD",
@@ -694,7 +675,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "0005 §4",
-      "statement": "Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), its decisions' options, the content of its inputs, never what stands in for it, or the results it reads",
+      "statement": "Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads",
       "status": "`stale`"
     },
     {
@@ -702,7 +683,7 @@
       "layer": "check",
       "level": "SHOULD",
       "source": "0005 §1",
-      "statement": "Every result's recorded bytes are at its default place",
+      "statement": "Every planned result's recorded bytes are at its default place",
       "status": "`absent`"
     },
     {
@@ -711,7 +692,7 @@
       "level": "MUST",
       "source": "0005 §5",
       "statement": "Every evidence citing a result cites an unchanged one",
-      "status": "the cited result's status; without a pin on an output built per universe, the worst of its results' (`missing`, then `stale`)"
+      "status": "the cited result's status (Statuses)"
     },
     {
       "code": "UNRECORDED_RESULT",
@@ -739,7 +720,7 @@
       "layer": "runner",
       "level": "MUST",
       "source": "0005 §3, 0007 §2, 0007 §7",
-      "statement": "A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones, and what a tool keeps of, or puts in place to drive, an analysis from a commit"
+      "statement": "A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones"
     },
     {
       "code": "WRONG_WORKING_DIRECTORY",
