@@ -1029,8 +1029,9 @@ NAMED = {"$defs", "properties"}
 INDEXED = {"allOf", "anyOf", "oneOf"}
 """The keywords that hold a list of subschemas: in a keyword location, the index follows the keyword."""
 LISTED_ABOVE = {"properties", "items", "$ref", "allOf", "then"}
-"""The applicators that standard output lists above an error, with an `additionalProperties` that holds a schema: a
-tool drops them, as it drops the subschemas listed there (spec §10)."""
+"""The applicators that standard output lists above an error, with an `additionalProperties` that holds a schema: each
+fails only through the keyword that fails inside it, and has no entry, so a tool drops them, as it drops the subschemas
+listed there, and reports that keyword (spec §10)."""
 OUTPUT_SCHEMAS = {
     "Analysis": "analysis.schema.json",
     "ProvenanceRecord": "provenance.schema.json",
@@ -1110,8 +1111,8 @@ def _schema_at(schema: dict[str, Any], location: str) -> Any:
 
 
 def listed_above(unit: dict[str, Any], schema: dict[str, Any]) -> bool:
-    """True if `unit` is what standard output lists above an error (spec §10): a subschema (the root, `…/allOf/0`) or
-    an applicator."""
+    """True if `unit` is what standard output lists above an error: a subschema (the root, `…/allOf/0`) or an
+    applicator, which fails only through the keyword that fails inside it (spec §10)."""
     steps = keyword_steps(unit["keywordLocation"])
     if not steps or steps[-1][1] is not None:
         return True

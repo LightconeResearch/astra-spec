@@ -2078,30 +2078,15 @@ a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
 }
 ```
 
-**From an error to its code.** A tool that reports the catalogue's codes
-looks up, in `errors`, the absolute keyword location of each error that
-makes the instance fail. Those are the failing assertions (such as
-`pattern`, `required` or `additionalProperties: false`); each `oneOf`,
-`not` or `propertyNames` that fails as a whole, and each `if` whose `then`
-fails; and the errors that say why a failing `oneOf` failed. Each has an
-entry.
-
-A validator can report other errors too, and a tool drops them. It drops
-an `if` whose `then` doesn't fail, and any error inside an `if`, whose
-outcome "has no direct effect on the overall validation result"
-([JSON Schema 2019-09 core §9.2.2.1](https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-02#section-9.2.2.1)),
-or inside a `not`, whose subschema's errors make it pass. It drops any
-error inside a branch of a `oneOf` or an `anyOf`, unless that `oneOf` or
-`anyOf` is reported as failing. And it drops what JSON Schema's standard
-output formats list above an error: the subschemas themselves (the root,
-`…/allOf/0`) and the applicators (`properties`, `items`, `$ref`, an
-`additionalProperties` that holds a schema, `allOf`, `then`), none of which
-has an entry. A bad key is reported at its map's pointer, since a JSON
-Pointer can't name a key: an error inside a `propertyNames` is at the map,
-even where a validator's instance location for it ends in the key, and a
-tool reports the key with the code. Any validator that follows JSON Schema
-2019-09 then gives the same set of pairs of an instance location and a
-code, though the number of errors may differ.
+**From an error to its code.** A parse code is reported for the whole file,
+and [`UNSUPPORTED_SPEC_VERSION`](#validator) at `/spec_version`. A schema
+error is reported with the code that `errors` gives its keyword's absolute
+keyword location, at the instance location where it fails; an error on a key
+is reported at its map, naming the key, and an unknown field at its object,
+naming the field. Only the failures that make the document fail are
+reported, not those inside an `if` or a `not`, or inside a branch of a
+combinator that doesn't fail. So any JSON Schema 2019-09 validator gives the
+same set of pairs of an instance location and a code.
 
 A checker maps a record's errors the same way, through the record schema it
 reads the record by, closed or open. It doesn't report them as errors of

@@ -188,6 +188,8 @@ With no change of meaning: "the commit a record names has to stay in the history
 
 How a report names things (a diagnostic's `key`, the report's shape) is for the conformance suite.
 
+In spec §10's *From an error to its code* since the audit of 2026-11-06 (its D6), with a schema error at its instance location, and an error on a key or an unknown field at its map or object, naming the key or field. The same paragraph now gives the filter by its outcome (H32), with no change of meaning: only the failures that make the document fail are reported, not those inside an `if` or a `not`, or inside a branch of a combinator that doesn't fail, so any JSON Schema 2019-09 validator gives the same pairs of an instance location and a code. Its list of how validators shape their output goes, and the rule covers any failing combinator, `anyOf` included, which settles that slip (below). `rules.json`'s entries for an `if` and a whole `propertyNames` stay, each with the code of the keyword that fails inside it.
+
 ### Slips corrected
 
 - Results reached through an analysis from a commit are read "at the commit each is read at", and the analysis's code doesn't run "unless it is driven". Today two pairs of sentences contradict each other on this.
