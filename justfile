@@ -135,7 +135,8 @@ test: check-generated _pytest lint
 # filled in by the generator: `0.1` for every 0.1.x, a pre-release's whole
 # version, or `dev`), so the closed and open record schemas are distinct, and
 # so are two minor versions. `rules.json` holds the rules extracted from the
-# specification's §9, and the code of each JSON Schema keyword that can fail
+# codes tables of the specification's Part II, and the code of each JSON
+# Schema keyword that can fail
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned
   mkdir -p {{out}}

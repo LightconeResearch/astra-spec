@@ -110,7 +110,7 @@ def test_schema_id_sets_the_id():
     ],
 )
 def test_the_series_of_a_version(version, expected):
-    """`X.Y` for a release `X.Y.Z` (spec §10), the whole version for a pre-release, and `dev` (CLAUDE.md)."""
+    """`X.Y` for a release `X.Y.Z` (spec Annex E), the whole version for a pre-release, and `dev` (CLAUDE.md)."""
     assert series(version) == expected
 
 

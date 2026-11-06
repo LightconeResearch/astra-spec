@@ -1,12 +1,12 @@
-"""`docs/specification.md` §4's ABNF against the named types' patterns in the contract.
+"""`docs/specification.md`'s ABNF, in Annex C, against the named types' patterns in the contract.
 
-The grammar of ids, addresses, references, option references and conditions is written twice: as ABNF in §4, and as
-the id setting and the structured patterns of `types.yaml`. D8 keeps one statement of each fact "so the two can't
-drift", and this test ties the two. It reads §4's `abnf` fence, translates each rule to a regular expression, and
+The grammar of ids, addresses, references, option references and conditions is written twice: as ABNF in Annex C, and
+as the id setting and the structured patterns of `types.yaml`. D8 keeps one statement of each fact "so the two can't
+drift", and this test ties the two. It reads Annex C's `abnf` fence, translates each rule to a regular expression, and
 compares each rule named after a type (`-` read as `_`) with that type's pattern in `analysis.schema.json`, on every
 string of up to `MAX_LENGTH` characters over `ALPHABET`.
 
-The translator takes the subset of RFC 5234 that §4 uses: concatenation, `/`, `*( )`, `[ ]`, quoted strings
+The translator takes the subset of RFC 5234 that Annex C uses: concatenation, `/`, `*( )`, `[ ]`, quoted strings
 (case-insensitive, RFC 5234 §2.3), `%x` values and ranges, `DIGIT`, and the names of the block's own rules. It fails
 on anything else.
 """
@@ -24,8 +24,8 @@ from .conftest import GENERATED, REPO_ROOT, ecma_262, load_yaml
 
 SPECIFICATION = REPO_ROOT / "docs" / "specification.md"
 TYPES = REPO_ROOT / "src" / "astra" / "schema" / "types.yaml"
-SECTION = "4. "
-"""How §4's heading begins: the grammar is the one `abnf` fence under it."""
+SECTION = "C. Grammars and patterns"
+"""Annex C's `###` heading: the grammar is the one `abnf` fence under it, before the next `#`, `##` or `###` heading."""
 
 POINTERS = {
     "id": "/properties/outputs/propertyNames/pattern",
@@ -50,20 +50,20 @@ class GrammarError(ValueError):
 
 
 def grammar_text(markdown: str) -> str:
-    """The text of the one `abnf` fence under §4's heading; an error if there is none, or more than one."""
+    """The text of the one `abnf` fence under Annex C's heading; an error if there is none, or more than one."""
     tokens = MarkdownIt("commonmark").parse(markdown)
     fences, section = [], ""
     for i, token in enumerate(tokens):
-        if token.type == "heading_open" and token.tag == "h2":
+        if token.type == "heading_open" and token.tag in ("h1", "h2", "h3"):
             section = tokens[i + 1].content
         elif (
             token.type == "fence"
             and token.info.strip() == "abnf"
-            and section.startswith(SECTION)
+            and section == SECTION
         ):
             fences.append(token.content)
     if len(fences) != 1:
-        raise GrammarError(f"§4 has {len(fences)} `abnf` fences, not one")
+        raise GrammarError(f"Annex C has {len(fences)} `abnf` fences, not one")
     return fences[0]
 
 
@@ -252,7 +252,7 @@ def translate(text: str) -> tuple[dict[str, str], dict[str, set[str]]]:
 
 @functools.cache
 def grammar() -> tuple[dict[str, str], dict[str, set[str]]]:
-    """§4's rules, translated, and the rules each one names."""
+    """Annex C's rules, translated, and the rules each one names."""
     return translate(grammar_text(SPECIFICATION.read_text(encoding="utf-8")))
 
 
@@ -332,20 +332,23 @@ def test_the_translator_fails_outside_the_subset(text):
         translate(text)
 
 
-def test_the_grammar_is_read_from_section_4_only():
+def test_the_grammar_is_read_from_annex_c_only():
     fence = "```abnf\na = %x61\n```\n"
-    assert grammar_text(f"## 4. Names and grammars\n\n{fence}") == "a = %x61\n"
+    annex = "### C. Grammars and patterns\n\n"
+    assert grammar_text(f"{annex}{fence}") == "a = %x61\n"
+    assert grammar_text(f"{annex}#### Grammar\n\n{fence}") == "a = %x61\n"
     for markdown in [
-        "## 4. Names and grammars\n",
-        f"## 5. Other\n\n{fence}",
-        f"## 4. Names\n\n{fence}{fence}",
+        annex,
+        f"### 6. Names\n\n{fence}",
+        f"{annex}### D. When a rule isn't checked\n\n{fence}",
+        f"{annex}{fence}{fence}",
     ]:
         with pytest.raises(GrammarError):
             grammar_text(markdown)
 
 
 def test_every_structured_type_has_a_rule():
-    """Each type of `types.yaml` with a structured pattern (one built from the id grammar) has a rule in §4."""
+    """Each type of `types.yaml` with a structured pattern (one built from the id grammar) has a rule in Annex C."""
     regexes, _ = grammar()
     structured = {
         name
@@ -378,5 +381,5 @@ def test_each_rule_matches_its_type(type_name):
     """The rule named after the type and the type's pattern in the contract take the same strings."""
     regexes, _ = grammar()
     rule = compared(regexes).get(type_name)
-    assert rule is not None, f"§4 has no rule named after {type_name}"
+    assert rule is not None, f"Annex C has no rule named after {type_name}"
     assert differences(regexes[rule], schema_pattern(POINTERS[type_name])) == []

@@ -1,23 +1,28 @@
-"""The published page shows every cell of §9's rule tables as the same text as `rules.json`, the All rules page shows
-every rule of `rules.json` under its layer, and the field reference shows every pattern as the LinkML sources write it.
+"""The published page shows every cell of its codes tables as the same text as `rules.json`, every in-page link of the
+specification goes to an element of it, the All rules page shows every rule of `rules.json` under its layer, and the
+field reference shows every pattern as the LinkML sources write it.
 
-`tools/rules.py` reads §9 as CommonMark with GFM tables, as §9 says, but the site renders it with Python-Markdown and
-Zensical's extensions. So a cell could read one way in `rules.json` and another on the page: `~~`, `==`, `^^`, emoji,
-smart symbols (`-->`, `1/2`), `$…$`, footnotes, attribute lists, `\\|` in a code span, or a rule table right after a
-paragraph, which Python-Markdown doesn't read as a table. Pinning the site's extensions can't remove the last two.
+`tools/rules.py` reads the codes tables as CommonMark with GFM tables, but the site renders them with Python-Markdown
+and Zensical's extensions. So a cell could read one way in `rules.json` and another on the page: `~~`, `==`, `^^`,
+emoji, smart symbols (`-->`, `1/2`), `$…$`, footnotes, attribute lists, `\\|` in a code span, or a codes table right
+after a paragraph, which Python-Markdown doesn't read as a table. Pinning the site's extensions can't remove the last
+two.
 
-This test reads the built page and compares the text of each cell of its §9 rule tables (the tables with a Code column)
-with the matching field of `rules.json`, rendered by markdown-it: the same rules, in the same order, word for word.
+So a test reads the built page and compares the text of each cell of every codes table (a table whose first column is
+Code) with the matching field of `rules.json`, rendered by markdown-it: the same rules, in the same order, word for
+word, each table under the heading of the section its rules name as their source. Another checks that every link of
+the page to a fragment of the page names an element there.
 
 The field reference's pages are built from `gen-doc`'s Markdown, where a pattern's backtick, `|`, `[^` or `^` would be
 read as Markdown. So another test reads each element's page and compares its Regex Pattern cell with the pattern the
-LinkML sources write. The All rules page (`tools/rules_page.py`) is written by the docs build, and a third test reads
+LinkML sources write. The All rules page (`tools/rules_page.py`) is written by the docs build, and a last test reads
 it. The tests run in CI after the docs build (`test_pages_build.yaml`), and are skipped when there is no `site/`.
 """
 
 from collections import defaultdict
 from html.parser import HTMLParser
 from typing import Any
+from urllib.parse import unquote
 
 import pytest
 from linkml_runtime.utils.formatutils import camelcase
@@ -32,8 +37,6 @@ ELEMENTS = SITE / "elements"
 """The field reference: one directory per element, named as `gen-doc` names its page."""
 SOURCES = REPO_ROOT / "src" / "astra" / "schema"
 """The LinkML sources."""
-SECTION = "9. Conformance"
-"""The text of the `<h2>` whose rule tables are the catalogue, its permalink left out."""
 
 COLUMNS = {
     "Code": "code",
@@ -41,11 +44,10 @@ COLUMNS = {
     "Level": "level",
     "Rule": "statement",
     "Status when broken": "status",
-    "Source": "source",
 }
-"""Each column of a rule table, with the field of a rule in `rules.json` it shows."""
+"""Each column of a codes table, with the field of a rule in `rules.json` it shows."""
 
-MARKDOWN = {"statement", "status", "source"}
+MARKDOWN = {"statement", "status"}
 """The fields that are inline Markdown, rendered by markdown-it before their text is compared."""
 
 pytestmark = pytest.mark.skipif(
@@ -77,91 +79,6 @@ def html_text(html: str) -> str:
     return _words("".join(parser.parts))
 
 
-class _RuleTables(HTMLParser):
-    """The tables of the page's §9, between its `<h2>` and the next `<h1>` or `<h2>`: each table's header and the text
-    of each of its body rows' cells. The text of a heading leaves out its permalink (`<a class="headerlink">`)."""
-
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self.tables: list[tuple[list[str], list[list[str]]]] = []
-        self.sections = 0
-        """How many `<h2>`s read `SECTION`."""
-        self._inside = False
-        self._heading: list[str] | None = None
-        self._permalink = 0
-        self._table: tuple[list[str], list[list[str]]] | None = None
-        self._head = False
-        self._row: list[str] | None = None
-        self._cell: list[str] | None = None
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag in ("h1", "h2"):
-            self._heading = []
-        elif tag == "a" and self._heading is not None:
-            if (
-                self._permalink
-                or "headerlink" in (dict(attrs).get("class") or "").split()
-            ):
-                self._permalink += 1
-        elif not self._inside:
-            return
-        elif tag == "table":
-            self._table = ([], [])
-        elif tag == "thead":
-            self._head = True
-        elif tag == "tr":
-            self._row = []
-        elif tag in ("th", "td"):
-            self._cell = []
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag in ("h1", "h2") and self._heading is not None:
-            text = _words("".join(self._heading))
-            self._heading = None
-            self._inside = text == SECTION
-            self.sections += self._inside
-        elif tag == "a" and self._permalink:
-            self._permalink -= 1
-        elif not self._inside:
-            return
-        elif tag in ("th", "td") and self._cell is not None and self._row is not None:
-            self._row.append(_words("".join(self._cell)))
-            self._cell = None
-        elif tag == "tr" and self._row is not None and self._table is not None:
-            if self._head:
-                self._table[0].extend(self._row)
-            else:
-                self._table[1].append(self._row)
-            self._row = None
-        elif tag == "thead":
-            self._head = False
-        elif tag == "table" and self._table is not None:
-            self.tables.append(self._table)
-            self._table = None
-
-    def handle_data(self, data: str) -> None:
-        if self._heading is not None and not self._permalink:
-            self._heading.append(data)
-        if self._inside and self._cell is not None:
-            self._cell.append(data)
-
-
-def page_rules() -> list[dict[str, str]]:
-    """Each row of the page's §9 rule tables, in order, as the text of each cell keyed by its column."""
-    parser = _RuleTables()
-    parser.feed(PAGE.read_text(encoding="utf-8"))
-    parser.close()
-    assert parser.sections == 1, (
-        f"{PAGE} has {parser.sections} '{SECTION}' headings, not one"
-    )
-    return [
-        dict(zip(header, row))
-        for header, rows in parser.tables
-        if "Code" in header
-        for row in rows
-    ]
-
-
 def expected_text(rule: dict[str, Any], field: str) -> str:
     """The text a rule's field shows: inline Markdown rendered by markdown-it, a code, layer or level as it is."""
     value = rule[field]
@@ -172,18 +89,37 @@ def expected_text(rule: dict[str, Any], field: str) -> str:
     )
 
 
+def page_rules() -> list[tuple[str, dict[str, str]]]:
+    """Each row of the page's codes tables, in order, with the text of the `<h3>` above its table, and the text of each
+    of its cells keyed by its column."""
+    parser = _Tables(("h1", "h2", "h3"))
+    parser.feed(PAGE.read_text(encoding="utf-8"))
+    parser.close()
+    return [
+        (heading, {column: text for column, (text, _) in zip(header, row)})
+        for heading, header, rows in parser.tables
+        if header[:1] == ["Code"]
+        for row in rows
+    ]
+
+
 def test_page_shows_every_rule_as_rules_json_words_it():
-    """The page's §9 rule tables hold the rules of `rules.json`, in order, each cell the text of its field."""
+    """The page's codes tables hold the rules of `rules.json`, in order, each cell the text of its field, and each table
+    under the heading of its rules' section (`### 7. Inputs` for `§7 Inputs`)."""
     assert PAGE.is_file(), f"{PAGE} is missing: build the site with `zensical build`"
     page = page_rules()
     rules = rules_catalogue()["rules"]
-    assert [row.get("Code") for row in page] == [rule["code"] for rule in rules], (
-        "the page's §9 rule tables don't hold the rules of rules.json, in order: rebuild the site after `just gen-schema`"
+    assert [row.get("Code") for _, row in page] == [rule["code"] for rule in rules], (
+        "the page's codes tables don't hold the rules of rules.json, in order: rebuild the site after `just gen-schema`"
     )
     differences = []
-    for row, rule in zip(page, rules):
-        # Only the parse and schema table has a Layer column: the other tables' layer is their subsection.
-        fields = sorted(field for field in rule if field != "layer" or "Layer" in row)
+    for (heading, row), rule in zip(page, rules):
+        number, _, title = rule["source"].removeprefix("§").partition(" ")
+        if heading != f"{number}. {title}":
+            differences.append(
+                f"{rule['code']}: its table is under {heading!r}, not its source, {rule['source']!r}"
+            )
+        fields = sorted(field for field in rule if field != "source")
         shown = sorted(COLUMNS.get(column, column) for column in row)
         if shown != fields:
             differences.append(
@@ -197,6 +133,34 @@ def test_page_shows_every_rule_as_rules_json_words_it():
                     f"{rule['code']}, {column}: the page shows {text!r}, rules.json {expected!r}"
                 )
     assert differences == []
+
+
+class _Links(HTMLParser):
+    """The `id` of every element of a page, and the `href` of each of its links."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.ids: set[str] = set()
+        self.hrefs: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        found = dict(attrs)
+        if found.get("id"):
+            self.ids.add(found["id"] or "")
+        if tag == "a" and found.get("href") is not None:
+            self.hrefs.append(found["href"] or "")
+
+
+def test_every_in_page_link_resolves():
+    """Every link of the specification's page to one of its own fragments (`#5-the-astrayaml-file`) names an element
+    of the page: a section's heading, as the site makes its anchor."""
+    assert PAGE.is_file(), f"{PAGE} is missing: build the site with `zensical build`"
+    links = _Links()
+    links.feed(PAGE.read_text(encoding="utf-8"))
+    links.close()
+    fragments = [href[1:] for href in links.hrefs if href.startswith("#")]
+    assert fragments
+    assert sorted({f for f in fragments if unquote(f) not in links.ids}) == []
 
 
 class _Rows(HTMLParser):
@@ -294,12 +258,13 @@ def test_element_pages_show_their_patterns():
     )
 
 
-class _LayerTables(HTMLParser):
-    """The tables of a page, each with the text of the `<h2>` above it, its permalink left out, its header, and for each
-    body row the text of each cell and the `href` of each link in it."""
+class _Tables(HTMLParser):
+    """The tables of a page, each with the text of the last heading of one of `levels` above it, its permalink left
+    out, its header, and for each body row the text of each cell and the `href` of each link in it."""
 
-    def __init__(self) -> None:
+    def __init__(self, levels: tuple[str, ...]) -> None:
         super().__init__(convert_charrefs=True)
+        self.levels = levels
         self.tables: list[tuple[str, list[str], list[list[tuple[str, list[str]]]]]] = []
         self._section = ""
         self._heading: list[str] | None = None
@@ -313,7 +278,7 @@ class _LayerTables(HTMLParser):
         self._links: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag in ("h1", "h2"):
+        if tag in self.levels:
             self._heading = []
         elif tag == "a" and self._heading is not None:
             if (
@@ -333,7 +298,7 @@ class _LayerTables(HTMLParser):
             self._cell, self._links = [], []
 
     def handle_endtag(self, tag: str) -> None:
-        if tag in ("h1", "h2") and self._heading is not None:
+        if tag in self.levels and self._heading is not None:
             self._section = _words("".join(self._heading))
             self._heading = None
         elif tag == "a" and self._permalink:
@@ -360,18 +325,6 @@ class _LayerTables(HTMLParser):
             self._cell.append(data)
 
 
-class _Ids(HTMLParser):
-    """The `id` of every element of a page."""
-
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self.ids: set[str] = set()
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if dict(attrs).get("id"):
-            self.ids.add(dict(attrs)["id"] or "")
-
-
 RULES_PAGE = SITE / "rules" / "index.html"
 """The All rules page, generated from the specification (`tools/rules_page.py`)."""
 
@@ -386,10 +339,10 @@ def test_all_rules_page_lists_every_rule():
     assert RULES_PAGE.is_file(), (
         f"{RULES_PAGE} is missing: build the site with `just docs`"
     )
-    parser = _LayerTables()
+    parser = _Tables(("h1", "h2"))
     parser.feed(RULES_PAGE.read_text(encoding="utf-8"))
     parser.close()
-    ids = _Ids()
+    ids = _Links()
     ids.feed(PAGE.read_text(encoding="utf-8"))
     ids.close()
     shown = [

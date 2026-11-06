@@ -1,11 +1,12 @@
 """`docs/specification.md` against the fixtures and the contract.
 
-Its rule catalogue (section 9), read by `tools/rules.py`'s extractor, the one parser of it: every layer's table, every
-code once, every fixture's rule a parse or schema code in it, and every parse and schema code with a fixture and a
-loader error or a place in the schema that enforces it. Its links to the schema reference, and every example block,
-once the commits, hashes and sizes it shows as placeholders are filled: whole documents validated, marked fragments
-validated over a stub, and the `rules.json` excerpt a subset of the generated file. Section 4's ABNF is matched with
-the named types' patterns in `test_grammar.py`.
+Its rule catalogue, the codes tables at the end of Part II's sections, read by `tools/rules.py`'s extractor, the one
+parser of them: every layer, every code once, each rule's source a section of Part II, every link to a code pointing at
+the section whose table lists it, every fixture's rule a parse or schema code in it, and every parse and schema code
+with a fixture and a loader error or a place in the schema that enforces it. Its links to the schema reference, and
+every example block, once the commits, hashes and sizes it shows as placeholders are filled: whole documents validated,
+marked fragments validated over a stub, and the `rules.json` excerpt a subset of the generated file. Annex C's ABNF is
+matched with the named types' patterns in `test_grammar.py`.
 """
 
 import hashlib
@@ -18,6 +19,7 @@ import pytest
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from rules import extract_rules
+from rules_page import anchor
 
 from .conftest import (
     GENERATED,
@@ -35,7 +37,7 @@ SPECIFICATION = REPO_ROOT / "docs" / "specification.md"
 LAYERS = ["parse", "schema", "validator", "check", "runner"]
 _REFERENCE_LINK = re.compile(r"\]\(elements/([^)#]+)\.md(?:#[^)]*)?\)")
 EXAMPLE_ROOTS = {"yaml": "Analysis", "json": "ProvenanceRecord"}
-"""The document a whole example in each language is: an `astra.yaml` in YAML, a record in JSON (section 3)."""
+"""The document a whole example in each language is: an `astra.yaml` in YAML, a record in JSON (Annex A)."""
 
 FRAGMENT = "<!-- fragment: Analysis -->"
 EXCERPT = "<!-- excerpt: rules.json -->"
@@ -64,7 +66,7 @@ SCHEMA_MODULES = [
 
 
 def catalogue() -> list[dict]:
-    """The rules of `## 9. Conformance`, in order, as `tools/rules.py` extracts them."""
+    """The rules of Part II's codes tables, in document order, as `tools/rules.py` extracts them."""
     return extract_rules(SPECIFICATION.read_text(encoding="utf-8"))
 
 
@@ -73,9 +75,8 @@ def codes(*layers: str) -> list[str]:
     return [rule["code"] for rule in catalogue() if rule["layer"] in layers]
 
 
-def test_catalogue_has_every_layer_in_order():
-    found = [rule["layer"] for rule in catalogue()]
-    assert sorted(set(found), key=found.index) == LAYERS
+def test_catalogue_has_every_layer():
+    assert sorted({rule["layer"] for rule in catalogue()}) == sorted(LAYERS)
 
 
 def test_catalogue_codes_are_unique():
@@ -102,8 +103,130 @@ def test_every_schema_rule_has_a_fixture():
     assert sorted(set(codes("parse", "schema")) - rules) == []
 
 
+def _part_ii_sections() -> list[str]:
+    """The numbered `###` sections of Part II, in order, each as a rule names it: `§<n> <title>` for `### <n>. <title>`."""
+    tokens = MarkdownIt("commonmark").parse(SPECIFICATION.read_text(encoding="utf-8"))
+    sections, inside = [], False
+    for i, token in enumerate(tokens):
+        if token.type != "heading_open":
+            continue
+        text = tokens[i + 1].content
+        if token.tag in ("h1", "h2"):
+            inside = text == "Part II: The specification"
+        elif token.tag == "h3" and inside:
+            number, separator, title = text.partition(". ")
+            if separator and number.isdigit():
+                sections.append(f"§{number} {title}")
+    return sections
+
+
+def test_every_rule_is_stated_in_a_section_of_part_ii():
+    """Each rule of `rules.json` names, as its source, a section of Part II, and the rules come in the sections' order:
+    each section's codes table is at its end."""
+    sections = _part_ii_sections()
+    sources = [rule["source"] for rule in rules_catalogue()["rules"]]
+    assert sorted({source for source in sources if source not in sections}) == []
+    order = [sections.index(source) for source in sources]
+    assert order == sorted(order)
+
+
+CODE = re.compile(r"[A-Z][A-Z0-9_]*")
+"""What a code looks like."""
+
+
+class CodeSpan(NamedTuple):
+    """A code span of the specification that holds what looks like a code, outside fenced blocks."""
+
+    line: int
+    """The first line of the block it is in, from 1."""
+    code: str
+    href: str | None
+    """The target of the link it is in, if it is in one."""
+    code_cell: bool
+    """Whether it is the Code cell of a codes table."""
+
+
+def code_spans() -> list[CodeSpan]:
+    """Every code span of the specification that looks like a code, in order, with the link it is in, if any."""
+    tokens = (
+        MarkdownIt("commonmark")
+        .enable("table")
+        .parse(SPECIFICATION.read_text(encoding="utf-8"))
+    )
+    found = []
+    codes_table, column = False, 0
+    for i, token in enumerate(tokens):
+        if token.type == "table_open":
+            header = next(t for t in tokens[i:] if t.type == "inline")
+            codes_table = header.content.strip() == "Code"
+        elif token.type == "tr_open":
+            column = 0
+        elif token.type in ("th_open", "td_open"):
+            column += 1
+        elif token.type == "inline":
+            in_cell = tokens[i - 1].type == "td_open"
+            href = None
+            for child in token.children or []:
+                if child.type == "link_open":
+                    href = str(child.attrs.get("href", ""))
+                elif child.type == "link_close":
+                    href = None
+                elif child.type == "code_inline" and CODE.fullmatch(child.content):
+                    found.append(
+                        CodeSpan(
+                            (token.map or [0])[0] + 1,
+                            child.content,
+                            href,
+                            codes_table and in_cell and column == 1,
+                        )
+                    )
+    return found
+
+
+def _table_anchor(source: str) -> str | None:
+    """The anchor of the section `source` names, or None if it names none."""
+    try:
+        return anchor(source)
+    except ValueError:
+        return None
+
+
+def test_every_code_link_points_to_its_table():
+    """A link whose text is a code goes to the section whose codes table lists that code, and a link to a section names
+    a code of the catalogue."""
+    tables = {
+        rule["code"]: _table_anchor(rule["source"])
+        for rule in rules_catalogue()["rules"]
+    }
+    problems = []
+    for span in code_spans():
+        if span.href is None:
+            continue
+        if span.code not in tables:
+            if span.href.startswith("#"):
+                problems.append(
+                    f"line {span.line}: {span.code} is no code of the catalogue"
+                )
+        elif tables[span.code] is None or span.href != "#" + tables[span.code]:
+            problems.append(
+                f"line {span.line}: {span.code} links {span.href}, not its table's section"
+            )
+    assert problems == []
+
+
+def test_every_code_in_the_text_is_a_link():
+    """Outside the Code cell of its own table and outside fenced blocks, a code is written as a link to its table."""
+    codes = {rule["code"] for rule in rules_catalogue()["rules"]}
+    assert [
+        f"line {span.line}: {span.code}"
+        for span in code_spans()
+        if span.code in codes and span.href is None and not span.code_cell
+    ] == []
+
+
 def reference_pages() -> set[str]:
-    """The pages `gen-doc` makes for the schema's elements: each class and enum by its name, each type in UpperCamelCase."""
+    """The pages `gen-doc` makes for the schema's elements: each class and enum by its name, each type in UpperCamelCase,
+    and each slot a class defines by its name."""
     pages = {"index"}
     for path in SCHEMA_MODULES:
         module = load_yaml(path)
@@ -113,11 +236,14 @@ def reference_pages() -> set[str]:
             "".join(part[:1].upper() + part[1:] for part in name.split("_"))
             for name in module.get("types") or {}
         )
+        for definition in (module.get("classes") or {}).values():
+            pages.update((definition or {}).get("attributes") or {})
     return pages
 
 
 def test_reference_links_name_schema_classes():
-    """Every `elements/<Class>.md` link names a class, enum or type of the four schema modules (or the index)."""
+    """Every `elements/<Element>.md` link names a class, enum, type or slot of the four schema modules (or the
+    index)."""
     linked = set(_REFERENCE_LINK.findall(SPECIFICATION.read_text(encoding="utf-8")))
     assert linked
     assert sorted(linked - reference_pages()) == []

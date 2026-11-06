@@ -1,12 +1,256 @@
 # The ASTRA specification
 
 ASTRA (Agentic Schema for Transparent Research Analysis) records a research
-analysis: the files it reads, the artefacts it makes, the decisions it makes
-along the way, the universes it makes them in, and the claims it rests on
+analysis: the files it reads, the outputs it makes, the decisions it makes
+along the way, the universes it makes them in, and the insights it rests on
 them. This document specifies the format and what conforming tools do with
 it.
 
-## 1. Conventions
+Part I shows how ASTRA works. Part II states its rules, one element at a
+time, each section building on those before it. The glossary defines every
+term a rule relies on, and Part III gives the details tool builders need.
+
+## Part I: How ASTRA works
+
+### 1. What ASTRA is
+
+A research result depends on the choices made on the way to it: which data
+to use, how to prepare it, which method to apply. ASTRA gives each choice an
+explicit place, says how each result is made, and gives each result a record
+of the run that made it. A checker can then tell, later, whether anything a
+result was made from has changed.
+
+ASTRA describes an analysis in two kinds of document:
+
+- the **analysis document**, `astra.yaml`, which the analysis's authors
+  write: what the analysis reads, makes and decides, the universes it makes
+  its results in, the other analyses it uses, and its insights. Its root is
+  [Analysis](elements/Analysis.md).
+- the **provenance record**, a JSON file at each place of a result, written
+  by the runner that made it: what the result is and the run that made it.
+  Its root is [ProvenanceRecord](elements/ProvenanceRecord.md).
+
+**One analysis.** An **analysis** is a folder with an `astra.yaml` at its
+top, in a git repository ([§5](#5-the-astrayaml-file)). It is read in the
+repository's working tree, as it is on disk, or at one of its commits. Its
+inputs are tracked in git with it, so one commit pins its data, its code and
+its `astra.yaml` together.
+
+Its `astra.yaml` lists the analysis's **elements**, each under an id:
+
+- **Inputs** are the files it reads ([§7](#7-inputs)).
+- **Decisions** are the choices it makes, each with the **options** it
+  considered ([§8](#8-decisions-and-options)).
+- **Outputs** are what it makes ([§10](#10-outputs)). Each has a
+  **recipe**, the shell command that makes it ([§11](#11-recipes)).
+- A decision or an output can have a `when`, which makes it **active** only
+  when certain options are selected, or aren't ([§9](#9-conditions)).
+- A **universe** selects one option for each active decision
+  ([§12](#12-universes)). An analysis can have several, each one way of
+  making its choices.
+- **Insights** are claims backed by evidence
+  ([§14](#14-insights-and-evidence)): **prior insights**, which earlier work
+  establishes and the analysis builds on, and **findings**, which the
+  analysis concludes. Evidence cites a published work or an output.
+
+**Building.** Building an analysis in one of its universes makes its results
+there, each recipe run with the options that universe selects. That universe
+is the **universe being built**. An output that depends on the universe
+being built, through the decisions it lists, its `when` or what it reads, is
+**built per universe**: it has a result in each universe where it is
+active. Any other output is **built once**: it has one result, the same in
+every universe. An output reads another's result in the universe being built
+or, through a **pin** such as `output1#u2`, in the universe the pin names,
+so one output can compare two universes
+([§13](#13-pins-and-outputs-built-per-universe-or-once)).
+
+**Several analyses.** An analysis can **declare** other analyses and use
+their elements ([§15](#15-declared-analyses)). Elements are named by
+**address**: an element's id, after the ids of the declarations that lead to
+it. So `output1` is the analysis's own output, and `subanalysis.output1` the
+output of the analysis it declares as `subanalysis`.
+
+- The analysis being validated or built is the **root**. Its **stack** is the
+  root and every analysis it declares, directly or through others.
+- Every declared analysis is an analysis at a commit, and a URL says only
+  where to get it. A declaration by `path` without a `commit` is one still
+  being worked on, inside the declaring analysis's repository. When it is
+  published, its declaration becomes a `url` and a `commit`, and its own
+  results go with it, since they are kept in its folder. So two declarations
+  name one analysis when they reach the same folder at the same commit, or
+  the same folder of the working tree: that is the analysis's **identity**
+  ([§17](#17-analyses-from-another-commit-or-repository)). However many
+  declarations reach an analysis, it is one analysis, and each of its results
+  is made at most once.
+- An analysis can **consume** another's elements: read its inputs and
+  outputs, cite its outputs, and use its decisions with the options selected
+  in the universe being built. Or its universes can **drive** another
+  analysis, by setting that analysis's decisions under keys such as
+  `subanalysis.decision1`. The analysis whose universes drive is the
+  **driver**. The other is **driven**, and is built in the driver's universes
+  ([§16](#16-driving-and-consuming)).
+
+**Results.** A **result** is what a recipe made for one output, in one
+universe or once ([§18](#18-results-and-where-they-go)).
+
+- The root's **planned results** are those a check of the root covers: the
+  results of its own outputs, once or in each of its universes where the
+  output is active, the results its evidence cites, and every result a
+  planned result reads.
+- A result **belongs** to the analysis whose universe it was built in, so
+  what a driven analysis builds in its driver's universes belongs to the
+  driver. The result of an output built once belongs to the analysis whose
+  output it is. A result is placed in the folder of the analysis it belongs
+  to, under its **name**: its output's id, after the ids of the driven
+  declarations that lead from that analysis to the output.
+- A **runner** runs recipes. For each result, it writes the result's bytes
+  and a **record** of the run that made it: the commit the recipe ran from,
+  the hash and size of what it read and of what it made, the environment it
+  ran in, and the runner ([§19](#19-records), [§21](#21-runners)).
+- A **validator** reads every `astra.yaml` of the stack, and git, and reports
+  the rules the stack breaks ([§3](#3-conformance)). A **checker** also reads
+  the records and results, and gives each planned result two statuses
+  ([§20](#20-checking-results)). Its record's status is **unchanged** while
+  nothing the result was made from has changed since the commit the record
+  names, **stale** otherwise, and **missing** where there is no valid record.
+  Its bytes' status is **present** or **absent**.
+
+### 2. A worked example
+
+This analysis reads one file, makes one result in each of two universes, and
+compares them:
+
+```yaml
+spec_version: "0.1.0"
+label: Example analysis
+
+inputs:
+  input1:
+    path: data/input1.csv
+
+decisions:
+  decision1:
+    rationale: Both are reasonable, and they may give different results.
+    options:
+      a: {}
+      b: {}
+
+outputs:
+  output1:
+    type: metric
+    format: json
+    inputs: [input1]
+    decisions: [decision1]
+    recipe:
+      command: >-
+        python src/output1.py '{inputs.input1}' '{decisions.decision1}'
+        '{output}'
+  output2:
+    type: table
+    format: csv
+    inputs: [output1#u1, output1#u2]
+    recipe:
+      command: >-
+        python src/output2.py '{inputs.output1#u1}' '{inputs.output1#u2}'
+        '{output}'
+
+universes:
+  u1:
+    decisions: {decision1: a}
+  u2:
+    decisions: {decision1: b}
+
+findings:
+  insight1:
+    claim: Options a and b of decision1 give different results.
+    evidence:
+      - artifact: output2
+```
+
+- `input1` is a file kept in git with the analysis.
+- `decision1` has two options. The universe `u1` selects `a`, and `u2`
+  selects `b`.
+- `output1` lists `decision1`, so it is built per universe: it has one result
+  in `u1` and one in `u2`.
+- `output2` reads `output1` pinned to each universe, as `output1#u1` and
+  `output1#u2`, so it is built once, from both.
+- The finding `insight1` cites `output2` as its evidence.
+
+**Validating.** A validator reads this `astra.yaml` and git, and reports
+every rule they break ([§3](#3-conformance)). It checks that the file is YAML
+whose content the schema accepts, and then, among other things, that
+`data/input1.csv` is a file tracked in git, that every address names an
+element, that each universe selects an option of `decision1`, and that each
+pin names one of the file's universes.
+
+**Building.** A runner builds `output1` in `u1`, running its recipe with
+`{decisions.decision1}` replaced by `a`, and in `u2`, with `b`. It builds
+`output2` once, with `{inputs.output1#u1}` and `{inputs.output1#u2}` replaced
+by the paths of those two results. Each `{output}` is replaced by the path
+the result is written to.
+
+**Recording.** For each result, the runner writes its bytes under `results/`
+and a record under `.astra/records/`, in the analysis's folder
+([§18](#18-results-and-where-they-go), [§19](#19-records)). Built, the
+analysis has three results, each with a record: `output1` in `u1`, `output1`
+in `u2`, and `output2`. They are its planned results.
+
+**Checking.** A checker later compares each record with the analysis as it
+is then ([§20](#20-checking-results)). Change `data/input1.csv`, and all
+three results are stale. Select `a` in `u2`, and `output1#u2` is stale, and
+`output2` with it. Editing the finding leaves all three unchanged.
+
+### 3. Conformance
+
+Rules are enforced in five layers, set apart by what each one sees:
+
+| Layer | Enforced by | Sees |
+|---|---|---|
+| **parse** | a YAML 1.2 reader (`astra.yaml`) or a JSON reader (records), as [Annex A](#a-reading-files) says | one file's bytes |
+| **schema** | the generated JSON Schema | one file's data |
+| **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git ([Annex B](#b-paths-and-git)); no results |
+| **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git ([Annex B](#b-paths-and-git)); records and results |
+| **runner** | whatever runs recipes | its own actions, the checkouts it runs recipes in, and what the recipes read |
+
+Four roles conform to this specification:
+
+- A **document**, an `astra.yaml` or a record, conforms when it breaks no
+  parse or schema rule.
+- A **validator** reads an analysis, every `astra.yaml` of its stack and git,
+  and reports every parse, schema and validator rule that the analysis, or
+  any analysis of its stack, breaks, except where
+  [Annex D](#d-when-a-rule-isnt-checked) leaves one unchecked. One broken
+  inside an analysis from a commit is also reported as
+  [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
+  on its declaration. An analysis is **valid** when no analysis of its stack
+  breaks a `MUST` of these three layers.
+- A **checker** reads an analysis, every `astra.yaml` of its stack and git,
+  and its records and results, and gives each planned result its statuses by
+  the check rules ([§20](#20-checking-results)). A record that breaks a parse
+  or schema rule leaves its result `missing`
+  ([`INVALID_RECORD`](#20-checking-results)). A checker implements one
+  version, its own. It has the record schema of every minor version from 0.1
+  up to its own ([Annex E](#e-the-schema-files-and-rulesjson)): records begin
+  at 0.1.0, and no earlier version has a record schema.
+- A **runner** runs recipes and writes each result's bytes and record. A
+  record is its runner's testimony, and names it. A runner conforms when it
+  keeps the runner `MUST`s, which keep its records true.
+
+What breaking a rule leads to depends on the layer:
+
+| Layer | When a rule is broken |
+|---|---|
+| parse, schema, validator | A broken `MUST` is reported as an **error** and makes the analysis invalid (in a record, it breaks [`INVALID_RECORD`](#20-checking-results) instead); a broken `SHOULD` is reported as a **warning**, and the analysis stays valid |
+| check | A broken `MUST` is reported as an **error** and a broken `SHOULD` as a **warning**. Nothing fails, and **the result gets a status**, given in its codes table's extra column, *Status when broken* |
+| runner | A runner that breaks a `MUST` doesn't conform. It runs no recipe while [`UNCOMMITTED_CHANGES`](#21-runners) would be broken, and builds no output while [`STALE_INPUT`](#21-runners) would be, and when it refuses for either it reports the code. [`UNDECLARED_READ`](#21-runners) binds the recipe, and breaking it leaves the analysis valid; a runner may enforce it, as [§21](#21-runners) permits |
+
+A parse, schema or validator rule decides whether a document or an analysis
+is valid, and only through its `MUST`s. Where another broken rule leaves
+what a rule is about undetermined, that rule isn't checked or reported.
+[Annex D](#d-when-a-rule-isnt-checked) lists those cases, and they change
+only which codes are reported.
+
+### 4. Conventions
 
 **Keywords.** The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
 NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
@@ -20,333 +264,242 @@ they appear in all capitals, as shown here.
 such as `DIGIT`. Patterns are regular expressions as JSON Schema reads them
 (ECMA-262).
 
-**Rules.** Section 9 states every rule that a tool checks or keeps, each
-with a code, such as [`MISSING_DECISION`](#validator). The other sections
-explain what the rules are about and link to their codes. The
-recommendations and the permission that have no code are stated where they
-apply: one in §7, one in §8, and the runner's after its rules (§9).
+**Codes tables.** Each rule that a tool checks or keeps has a code, and is
+stated in the codes table at the end of a section of Part II. These tables
+are the only place this specification states such a rule. The section's text
+explains what its rules are about and links to their codes, as in
+[`MISSING_DECISION`](#16-driving-and-consuming). The rule is always what
+must, or should, hold, and what you get when it is broken is always in a
+column of its own:
+
+- **Code:** names what is wrong when the rule is broken. It is what a tool
+  reports. Each code is unique and matches `[A-Z][A-Z0-9_]*`.
+- **Layer:** the layer whose tool checks or keeps the rule
+  ([§3](#3-conformance)).
+- **Level:** `MUST` or `SHOULD`, applied to the rule's sentence.
+- **Rule:** one sentence saying what holds in a conforming file, record or
+  run.
+- **Status when broken:** in the table of the check rules only, the status a
+  result, or evidence citing it, gets when the rule doesn't hold
+  ([§20](#20-checking-results)).
+
+The check rules alone have that extra column, because breaking one of them
+changes what a result is.
+
+The recommendations and the permission that have no code are each stated on
+a line of their own at the end of their section, starting "Recommendation:"
+or "Permission:", in [§17](#17-analyses-from-another-commit-or-repository),
+[§19](#19-records) and [§21](#21-runners). The [All rules](rules.md) page
+lists every rule of the codes tables, by layer, and then the recommendations
+and the permission.
+
+**Examples.** An example shows a whole file, or only the part of one that
+its section is about. Commits, hashes and sizes are shown as placeholders:
+`<commit>` stands for a full commit id, and `sha256:<hash of …>` and
+`<size of …>` for the hash and the size, in bytes, of what they name.
 
 **Fields.** Every class of the format has a page in the
-[schema reference](elements/index.md), generated from the schema, whose
-descriptions define its fields. This specification links to those pages and
-doesn't restate them.
+[field reference](elements/index.md), generated from the schema, whose
+descriptions define its fields. This specification links to those pages
+rather than restating them.
 
-**Terms.**
+## Part II: The specification
 
-| Term | Meaning | Defined in |
-|---|---|---|
-| analysis | a directory with an `astra.yaml` | §3 |
-| element | an input, output, decision, option, universe, import, declaration or insight of an analysis | §4 |
-| address | the name of an element other than an option, through the declarations that lead to it; an option is named by an option reference (§4) | §4 |
-| active | of a decision or an output, when every condition of its `when` holds | §5 |
-| universe | a selection of one option for every active decision | §6 |
-| effective selection | what a universe selects once `derived_from` is resolved | §6 |
-| built per universe, built once | whether an output has one result in each universe where it is active, or one in all | §6 |
-| pin | `#` and a universe id ending a reference, after its address, which reads an output in that universe; on an input it changes nothing; in an `astra.yaml`, the id is that of an entry of the file's `universes` or, where the file has no entry with that id, of a universe of the analysis whose element the reference names | §4, §7 |
-| root | the analysis being validated or built | §7 |
-| analysis stack | the root and every analysis it declares, directly or through others | §7 |
-| driver, driven | the analysis whose universes drive, and an analysis reached through a declaration they drive; the analysis whose universe is being built is never driven in it | §7 |
-| consuming | using another analysis's element by address | §7 |
-| import | an entry of `universes` that names one of another analysis's universes, in which that analysis is the driver; it selects nothing and is not one of the importing analysis's universes | §6, §7 |
-| analysis from a commit | a declared analysis as it was at a given commit | §7 |
-| result | what a recipe made for one output in one universe, or once | §8 |
-| planned result | a result a check of the root covers: every result of the root's active outputs, every result the root's evidence cites, and every result those read, transitively | §8 |
-| record | the provenance record of one result | §8 |
+Sections 5 to 14 describe one analysis, sections 15 to 17 several analyses,
+and sections 18 to 21 results.
 
-**Versions.** Every analysis document and every record states, in
-`spec_version`, the version of this specification it is written against, as
-`MAJOR.MINOR.PATCH`: three non-negative integers without leading zeros, such
-as `0.1.0` ([`INVALID_VALUE`](#parse-and-schema)). Versions are ordered by
-MAJOR, then MINOR, then PATCH, each compared as an integer, so `0.10.0` comes
-after `0.9.0`. A version's minor version is its MAJOR and MINOR: `0.1` for
-`0.1.3`. A patch release never changes what is valid, nor the code a broken
-rule is reported under: a document or a record is valid under `X.Y.Z`
-exactly when it is valid under every other `X.Y` version. So each minor
-version has one schema of `astra.yaml` and one of a record, and every
-`0.1.x` document is read by 0.1's. A validator reads each `astra.yaml` by
-the schema of the minor version it states, so a validator that reads one
-patch of a minor version reads them all
-([`UNSUPPORTED_SPEC_VERSION`](#validator)). A file whose `spec_version` is
-missing or malformed is checked as §9's *What is checked* says.
+### 5. The astra.yaml file
 
-## 2. Overview
-
-ASTRA describes an analysis in two kinds of document:
-
-- the **analysis document**, `astra.yaml`, which the analysis's authors
-  write: what the analysis reads, makes and decides, the universes it makes
-  its results in, the other analyses it uses, and its insights. Its root is
-  [Analysis](elements/Analysis.md).
-- the **provenance record**, a JSON file at each place of a result, written
-  by the runner that made it: what the result is and the run that made it.
-  Its root is [ProvenanceRecord](elements/ProvenanceRecord.md).
-
-Rules are enforced in five layers, set apart by what each one sees:
-
-| Layer | Enforced by | Sees |
-|---|---|---|
-| **parse** | a YAML 1.2 reader (`astra.yaml`) or a JSON reader (records), as §3 says | one file's bytes |
-| **schema** | the generated JSON Schema | one file's data |
-| **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git (§3); no results |
-| **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git (§3); records and results |
-| **runner** | whatever runs recipes | its own actions, the checkouts it runs recipes in, and what the recipes read |
-
-Four roles conform to this specification:
-
-- A **document**, an `astra.yaml` or a record, conforms when it breaks no
-  parse or schema rule.
-- A **validator** reads an analysis, every `astra.yaml` of its stack and git
-  (§3), and reports every parse, schema and validator rule that the
-  analysis, or any analysis of its stack, breaks, except where §9's *What is
-  checked* leaves one unchecked. One broken inside an analysis from a commit
-  is also reported as [`DECLARED_ANALYSIS_INVALID`](#validator) on its
-  declaration (§7). An analysis is valid when its stack breaks none of their
-  `MUST`s.
-- A **checker** reads an analysis, every `astra.yaml` of its stack and git
-  (§3), and its records and results, and gives each planned result its
-  statuses by the check rules (§8). A record that breaks a parse or schema
-  rule leaves its result `missing` ([`INVALID_RECORD`](#check)). A checker
-  implements one version, its own. It has the record schema of every minor
-  version from 0.1 up to its own (§10): records begin at 0.1.0, and no
-  earlier version has a record schema.
-- A **runner** runs recipes and writes each result's bytes and record. A
-  record is its runner's testimony, and names it. A runner conforms when it
-  keeps the runner `MUST`s, which keep its records true.
-
-An analysis that reads a file, makes one artefact per universe and compares
-two universes in a third:
+An analysis is a folder with an `astra.yaml` at its top, in a git
+repository: in its working tree, or at one of its commits
+([`NOT_IN_REPOSITORY`](#5-the-astrayaml-file)). Its recipes run in that
+folder ([`WRONG_WORKING_DIRECTORY`](#21-runners)).
+[Analysis](elements/Analysis.md) is the content of an `astra.yaml`:
 
 ```yaml
 spec_version: "0.1.0"
-label: Iris classification
-
+label: Example analysis
+description: Cleans the measurements before any method is applied.
+tags: [example]
 inputs:
-  iris:
-    path: data/iris.csv
-
-decisions:
-  model:
-    rationale: The classifier is the main lever on accuracy.
-    options:
-      random_forest: {}
-      svm:
-        requires: [scaling.standard]
-  scaling:
-    options:
-      none: {}
-      standard: {}
-
+  input1:
+    path: data/input1.csv
 outputs:
-  accuracy:
-    type: metric
-    format: json
-    inputs: [iris]
-    decisions: [model, scaling]
-    recipe:
-      command: >-
-        python src/train.py --data {inputs.iris}
-        --model {decisions.model} --scaling {decisions.scaling}
-        --out {output}
-  comparison:
-    type: table
+  output3:
+    type: data
     format: csv
-    inputs: [accuracy#forest, accuracy#svm]
+    inputs: [input1]
     recipe:
-      command: >-
-        python src/compare.py --a {inputs.accuracy#forest}
-        --b {inputs.accuracy#svm} --out {output}
-
-universes:
-  forest:
-    decisions: {model: random_forest, scaling: none}
-  svm:
-    derived_from: forest
-    decisions: {model: svm, scaling: standard}
-
-findings:
-  svm_scores_higher:
-    claim: The SVM scores higher than the random forest.
-    evidence:
-      - artifact: comparison
+      command: python src/output3.py '{inputs.input1}' '{output}'
 ```
 
-`accuracy` is built in each universe and `comparison` once, from both. Built,
-the analysis has three results, each with a record (§8).
+- An `astra.yaml` is YAML 1.2 whose content is a JSON value
+  ([`INVALID_SYNTAX`](#5-the-astrayaml-file)), and no map in it has two equal
+  keys ([`DUPLICATE_KEY`](#5-the-astrayaml-file)). A record
+  ([§19](#19-records)) is JSON text in UTF-8, and no object in it has two
+  equal names. [Annex A](#a-reading-files) says how each is read.
+- An analysis has a `spec_version` and at least one output
+  ([`MISSING_FIELD`](#5-the-astrayaml-file),
+  [`EMPTY_COLLECTION`](#5-the-astrayaml-file)). Everything else is optional.
+- Most elements also take a `label`, a short display name that is optional
+  everywhere, a `description` in free prose, and `tags`, keywords for
+  grouping and finding them.
 
-## 3. Files
+#### Versions
 
-An **analysis** is a directory with an `astra.yaml` at its top, in a git
-repository: in its working tree, or at one of its commits
-([`NOT_IN_REPOSITORY`](#validator)). Its recipes run in that directory
-([`WRONG_WORKING_DIRECTORY`](#runner)).
+Every `astra.yaml` and every record states, in `spec_version`, the version of
+this specification it is written against, as `MAJOR.MINOR.PATCH`: three
+non-negative integers without leading zeros, such as `0.1.0`
+([`INVALID_VALUE`](#5-the-astrayaml-file)).
 
-**Paths.** The path of an input or a declaration (§5, §7) is relative to the
-folder of the `astra.yaml` that writes it, with `/` between folders, and is
-tidied as text (**Reading git**, below). It names the entry at exactly that
-path, on disk in the working tree or in the commit's tree at a commit
-([`MISSING_INPUT_FILE`](#validator),
-[`MISSING_DECLARED_ANALYSIS`](#validator)). So `data/A.csv` and `data/a.csv`
-are two paths, which name two files or folders, and `Stage` and `stage`
-declare two analyses (§7).
+- Versions are ordered by MAJOR, then MINOR, then PATCH, each compared as an
+  integer, so `0.10.0` comes after `0.9.0`.
+- A version's minor version is its MAJOR and MINOR: `0.1` for `0.1.3`.
+- A patch release never changes what is valid, nor the code a broken rule is
+  reported under: a document or a record is valid under `X.Y.Z` exactly when
+  it is valid under every other `X.Y` version. So each minor version has one
+  schema of `astra.yaml` and one of a record, and every `0.1.x` document is
+  read by 0.1's.
+- A validator reads each `astra.yaml` by the schema of the minor version it
+  states, so a validator that reads one patch of a minor version reads them
+  all ([`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file)).
+- A file whose `spec_version` is missing or malformed is checked as
+  [Annex D](#d-when-a-rule-isnt-checked) says.
 
-**Reading git.** An analysis is read in the working tree or at a commit
-(§7), and validators and checkers read git one way:
+#### Values
 
-- A path is joined to the folder of the `astra.yaml` that writes it and
-  tidied as text, never through the file system: empty and `.` segments are
-  dropped, and each `..` removes the segment before it. So `./data.csv` is
-  `data.csv`, `subanalysis/` is `subanalysis`, and `stage/../data` is
-  `data`, whatever `stage` is on disk. A path is measured from the top of
-  the root's working tree or, at a commit, from the top of the repository
-  that holds it, and a declaration's path that goes above that top breaks
-  [`DECLARATION_OUTSIDE_REPOSITORY`](#validator).
-- In the working tree, a path names an entry on disk below the top of the
-  root's working tree, tracked, untracked or ignored. At a commit, a path
-  names an entry of that commit's tree.
-- A symlink is an entry, and is never followed: at a path, it is neither a
-  file nor a directory, and a path through a symlinked folder names nothing.
-  So a declaration finds no analysis where its path, or its `astra.yaml`, is
-  a symlink or goes through one ([`MISSING_DECLARED_ANALYSIS`](#validator)).
-  An input's path that is a symlink names a file only where the validator
-  recognises the symlink as standing in for one (§5), and otherwise names
-  none ([`MISSING_INPUT_FILE`](#validator)).
-- A submodule that is checked out is in the working tree, and its entries
-  are read in its own repository.
-- At a commit, a path that looks for a file or an analysis goes on through a
-  gitlink into the submodule, at the commit the gitlink pins. Whether an
-  input is tracked never crosses a gitlink.
-- The repository that holds a file is the innermost one: for a file in a
-  submodule, the submodule's own. [`COMMIT_NOT_FOUND`](#validator) and
-  [`COMMIT_NOT_ANCESTOR`](#validator) read the repository that holds the
-  declaring `astra.yaml`, where, in the working tree, HEAD stands for the
-  commit a declaration is in (§7).
-  [`INPUT_NOT_TRACKED`](#validator) reads the repository that holds the
-  input's analysis, where a file is tracked when, in the working tree, it is
-  in the index or, at a commit, in that commit's tree, reached through no
-  gitlink. So a staged input is tracked, and an untracked or ignored one
-  isn't, nor is one in a plain data submodule.
-- The commit a gitlink pins is got from the URL that the `.gitmodules` of the
-  commit holding the gitlink gives for that submodule, a relative one
-  (`../lib.git`) resolved as git resolves it
-  ([`REMOTE_UNREACHABLE`](#validator), §7).
-- At a commit, a file is the blob git stores; in the working tree, an
-  `astra.yaml` is read from the file on disk.
+- Every document, an `astra.yaml` or a record, holds only the fields its
+  schema defines ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)), each with the
+  JSON type the field takes ([`WRONG_TYPE`](#5-the-astrayaml-file)).
+- An optional field without a value is left out: no field takes `null`.
+- Lists hold only what is a list: an insight's `evidence`, a record's
+  `inputs`, and lists of strings.
+- No list of strings holds the same entry twice
+  ([`DUPLICATE_ENTRY`](#5-the-astrayaml-file)).
+- No list of strings is empty: a field with nothing to list is left out
+  ([`EMPTY_COLLECTION`](#5-the-astrayaml-file)), so an output lists
+  `decisions` or has a `when` only when it names at least one.
 
-**`astra.yaml`** is a YAML 1.2 stream
-([YAML 1.2.2](https://yaml.org/spec/1.2.2/)) with at most one document, read
-under its core schema, with no tag but the core schema's
-([`INVALID_SYNTAX`](#parse-and-schema)). A file with no document is null
-([`WRONG_TYPE`](#parse-and-schema)). Its content is a JSON value, which the
-schema checks: every key is a string and every number is finite, not `.inf`
-or `.nan` ([`INVALID_SYNTAX`](#parse-and-schema)), and no map has two equal
-keys ([`DUPLICATE_KEY`](#parse-and-schema)), so `a`, `'a'` and `"a"` are one
-key. Plain scalars are typed by the core schema
-([YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)), so
-`spec_version: 0.1` is a number ([`WRONG_TYPE`](#parse-and-schema)) and
-`spec_version: "0.1.0"` a string. A number is checked as JSON Schema checks
-it, so `2.0` is an integer.
+#### The folder
 
-**Records** are JSON text ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259))
-in UTF-8 ([`INVALID_SYNTAX`](#parse-and-schema)). No object of a record has
-two equal names ([`DUPLICATE_KEY`](#parse-and-schema)).
-
-**Every document** holds only the fields its schema defines
-([`UNKNOWN_FIELD`](#parse-and-schema)), each with the JSON type the field
-takes ([`WRONG_TYPE`](#parse-and-schema)). An optional field without a value
-is left out: no field takes `null`.
-
-**Locations.** In an analysis's directory:
+In an analysis's folder:
 
 | Path | Holds |
 |---|---|
-| `astra.yaml` | the analysis document |
-| `.astra/records/{universe}/{name}.json`, `.astra/records/{name}.json` | the records of the results that belong to the analysis (§8) |
-| `results/{universe}/{name}.{format}`, `results/{name}.{format}` | the default places of those results' bytes (§8) |
+| `astra.yaml` | the analysis's own file |
+| `.astra/records/` | the records of the results that belong to the analysis ([§18](#18-results-and-where-they-go)) |
+| `results/` | the default places of those results' bytes ([§18](#18-results-and-where-they-go)) |
 
 `results/` and `.astra/` belong to runners. No input's `path` and no
-declaration's `path` is, or lies in, them ([`RESERVED_PATH`](#validator)):
-tidied as **Reading git** says (above), a path is not the `results/` or
-`.astra/` of any analysis of the stack (§7), and is not inside one. So a run
-never writes over an input or a declared analysis, and a result is read by
-its address (§5), never by a path.
+declaration's `path` is, or lies inside, either of them
+([`RESERVED_PATH`](#7-inputs)): tidied as text
+([Annex B](#b-paths-and-git)), a path is not the `results/` or `.astra/` of
+any analysis of the stack, and is not inside one. So a run never writes over
+an input or a declared analysis, and a result is read by its address, never
+by a path.
 
-## 4. Names and grammars
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8 |
+| `DUPLICATE_KEY` | parse | MUST | No map in an `astra.yaml` has two equal keys, and no object in a record has two equal names |
+| `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Output.recipe`, `Recipe.command`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` |
+| `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines |
+| `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry, and no list of strings in an `astra.yaml` is empty |
+| `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, a number, an integer, a list or a map |
+| `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) |
+| `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 |
+| `NOT_IN_REPOSITORY` | validator | MUST | The folder of the analysis being validated is in the working tree of a git repository |
+| `UNSUPPORTED_SPEC_VERSION` | validator | MUST | Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of |
 
-### Grammar
-
-```abnf
-id               = lower *( lower / DIGIT / "_" )
-lower            = %x61-7A                      ; a-z
-address          = id *( "." id )               ; [declaration "."]... element
-reference        = address [ "#" id ]           ; "#" pins a universe
-option-reference = address "." id              ; a decision's address, then an option id
-condition        = [ "~" ] option-reference     ; "~": the option is not selected
-```
-
-The last segment of an `option-reference` is always the option, so the
-option `seed_42` of the decision `random_seed` of a declared analysis `iris`
-is `iris.random_seed.seed_42`.
-
-### Named types
-
-| Type | Form | Used by |
-|---|---|---|
-| [`id`](elements/Id.md) | `id` | every map key but those of `Universe.decisions`; also `Universe.derived_from`, `Universe.universe`, `Option.insights` and the values of `Universe.decisions` |
-| [`address`](elements/Address.md) | `address` | `Output.decisions`, the keys of `Universe.decisions`, `Universe.analysis` |
-| [`reference`](elements/Reference.md) | `reference` | `Output.inputs`, `Evidence.artifact`, `ProvenanceRecord.address`, `RecordedInput.entry` |
-| [`option_reference`](elements/OptionReference.md) | `option-reference` | `Option.requires`, `Option.incompatible_with` |
-| [`condition`](elements/Condition.md) | `condition` | `Output.when`, `Decision.when` |
-| [`commit_id`](elements/CommitId.md) | a full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64 (SHA-256) | `AnalysisDeclaration.commit`, `Generation.commit` |
-| [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits | `ProvenanceRecord.content_hash`, `RecordedInput.content_hash` |
-| [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros | `Analysis.spec_version`, `ProvenanceRecord.spec_version` |
-| [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, with month 01–12, day 01–31, hour 00–23, and minute and second 00–59 | `Generation.started`, `Generation.finished` |
-| [`iri`](elements/Iri.md) | an IRI, never a CURIE: a scheme, `:`, then characters other than ASCII spaces and controls, C1 controls, `<`, `>`, `"`, `{`, `}`, the vertical bar, `\`, `^`, the backtick and the bidi formatting characters U+200E, U+200F and U+202A–U+202E, with `%` only before two hex digits and at most one `#` | `Environment.iri`, `FragmentSelector.conforms_to` |
-
-A value that doesn't take its type's form fails: a map key or an `id` as
-[`INVALID_ID`](#parse-and-schema), any other address, reference, option
-reference or condition as [`INVALID_REFERENCE`](#parse-and-schema), a commit
-id as [`INVALID_COMMIT`](#parse-and-schema), and the others as
-[`INVALID_VALUE`](#parse-and-schema).
-
-### Ids and maps
+### 6. Names
 
 Every element the author names is an entry of a map keyed by its id: inputs,
 outputs, decisions, options, universes and imports (`universes`),
-declarations (`analyses`), prior insights and findings. The id is written
-once, as the key ([`INVALID_ID`](#parse-and-schema)): `seed_42: {}`, never
-`seed_42: {id: seed_42}` ([`UNKNOWN_FIELD`](#parse-and-schema)). Ids are
-unique within their map because keys are
-([`DUPLICATE_KEY`](#parse-and-schema)), and the order of a map carries no
-meaning. A map's entries are objects, except those of `Universe.decisions`,
-each of which is the id of the option selected (`model: svm`)
-([`WRONG_TYPE`](#parse-and-schema)). A list where a map is expected, as in
-`outputs: [f1_score]`, is [`WRONG_TYPE`](#parse-and-schema) too. Lists hold
-only what is a list: an insight's `evidence`, a record's `inputs`, and lists
-of strings. No list of strings holds the same entry twice
-([`DUPLICATE_ENTRY`](#parse-and-schema)). No list of strings is empty: a
-field with nothing to list is left out
-([`EMPTY_COLLECTION`](#parse-and-schema)), so an output lists `decisions`
-or has a `when` only when it names at least one.
+declarations (`analyses`), prior insights and findings. An element other
+than an option is named by its **address**: the ids of the declarations that
+lead to it, then its own id, joined by dots, as in `subanalysis.decision1`.
+An element of the analysis itself is named by its id alone. An option is
+named by an option reference (below).
 
-Every id has the one grammar `id`; an address's kind comes from the field it
-is written in, so an element can be called `inputs`. Ids of different kinds
-can be the same, with two exceptions. An input and an output never share an
-id, since `Output.inputs` takes both ([`AMBIGUOUS_ID`](#validator)). An output
-never shares its id with a declaration of its analysis, since their results'
-default places could then be the same (§8,
-[`CLASHING_RESULT_NAME`](#validator)).
+<!-- fragment: Analysis -->
+```yaml
+analyses:
+  subanalysis:
+    path: subanalysis
+decisions:
+  decision1:
+    options:
+      a: {}
+      b: {}
+universes:
+  u1:
+    decisions: {decision1: a, subanalysis.decision1: a}
+```
 
-### Addresses
+Here `subanalysis`, `decision1`, `a`, `b` and `u1` are ids. In `u1`, the key
+`subanalysis.decision1` is an address: the decision `decision1` of the
+analysis declared as `subanalysis`. Each value is the id of the option
+selected.
 
-An address is read in the analysis whose `astra.yaml` it is written in. (In
+#### Ids and maps
+
+- The id is written once, as the key
+  ([`INVALID_ID`](#6-names)): `a: {}`, never `a: {id: a}`
+  ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)).
+- Ids are unique within their map because keys are
+  ([`DUPLICATE_KEY`](#5-the-astrayaml-file)), and the order of a map carries
+  no meaning.
+- A map's entries are objects, except those of `Universe.decisions`, each of
+  which is the id of the option selected (`decision1: a`)
+  ([`WRONG_TYPE`](#5-the-astrayaml-file)). A list where a map is expected, as
+  in `outputs: [output1]`, is [`WRONG_TYPE`](#5-the-astrayaml-file) too.
+- Ids of different kinds can be the same, with two exceptions: an input and
+  an output never share an id ([`AMBIGUOUS_ID`](#10-outputs)), and an output
+  never shares its id with a declaration of its analysis
+  ([`CLASHING_RESULT_NAME`](#15-declared-analyses)).
+
+#### The forms of a name
+
+A name takes one of five forms. Each is a type of the
+[field reference](elements/index.md), and
+[Annex C](#c-grammars-and-patterns) gives its grammar.
+
+| Form | Example | Written in |
+|---|---|---|
+| [id](elements/Id.md): a letter `a`-`z`, followed by any number of letters `a`-`z`, digits `0`-`9` and `_` | `decision1` | every map key but those of `Universe.decisions`; also `Universe.derived_from`, `Universe.universe`, `Option.insights` and the values of `Universe.decisions` |
+| [address](elements/Address.md): ids joined by `.` | `subanalysis.decision1` | `Output.decisions`, the keys of `Universe.decisions`, `Universe.analysis` |
+| [reference](elements/Reference.md): an address, which may be followed by a pin, `#` and a universe's id ([§13](#13-pins-and-outputs-built-per-universe-or-once)) | `output1#u1` | `Output.inputs`, `Evidence.artifact`, `ProvenanceRecord.address`, `RecordedInput.entry` |
+| [option reference](elements/OptionReference.md): a decision's address, `.`, then an option's id | `subanalysis.decision1.a` | `Option.requires`, `Option.incompatible_with` |
+| [condition](elements/Condition.md): an option reference, which may start with `~` ([§9](#9-conditions)) | `~decision1.b` | `Output.when`, `Decision.when` |
+
+- Every id has the one grammar `id`; an address's kind comes from the field
+  it is written in, so an element can be called `inputs`.
+- The last segment of an option reference is always the option, so the
+  option `a` of the decision `decision1` of a declared analysis
+  `subanalysis` is `subanalysis.decision1.a`.
+- A decision's address never takes a pin: the entries of `Output.decisions`
+  are addresses ([`INVALID_REFERENCE`](#6-names)), and so are the keys of
+  `Universe.decisions` ([`INVALID_ID`](#6-names)).
+- A value that doesn't take its type's form fails: a map key or an `id` as
+  [`INVALID_ID`](#6-names), any other address, reference, option reference
+  or condition as [`INVALID_REFERENCE`](#6-names), a commit id as
+  [`INVALID_COMMIT`](#17-analyses-from-another-commit-or-repository), and a
+  value of any other named type of [Annex C](#c-grammars-and-patterns) as
+  [`INVALID_VALUE`](#5-the-astrayaml-file).
+
+#### Addresses
+
+An address is read in the analysis whose `astra.yaml` it is written in. In
 an option reference, the address is the segments before the last, which is
-the option; a condition's leading `~` and a reference's `#` pin are not part
-of the address.) Every segment of an address but the last is
-the id of a declaration (§7): the first names an
-entry of that analysis's `analyses`, the next an entry of the declared
-analysis's `analyses`, and so on. The last segment is the id of an element of
-the analysis reached. Which kind of element comes from the field the address
-is written in:
+the option; a condition's leading `~` and a reference's pin are not part of
+the address.
+
+- Every segment of an address but the last is the id of a declaration: the
+  first names an entry of the `analyses` of the analysis the address is read
+  in, the next an entry of the declared analysis's `analyses`, and so on
+  ([§15](#15-declared-analyses)).
+- The last segment is the id of an element of the analysis reached. Which
+  kind of element comes from the field the address is written in:
 
 | Written in | Resolves to |
 |---|---|
@@ -354,139 +507,277 @@ is written in:
 | `Output.decisions`, the keys of `Universe.decisions` | a decision |
 | a condition, `Option.requires`, `Option.incompatible_with` | a decision, then one of its options |
 | `Evidence.artifact` | an output |
-| an import's `analysis`, then `.` and its `universe` | one of another analysis's universes |
+| an import's `analysis`, then `.` and its `universe` | one of another analysis's universes ([§12](#12-universes)) |
 
 An address that doesn't resolve to an element of its field's kind breaks
-[`UNRESOLVED_ADDRESS`](#validator), and an option that isn't one of its
-decision's options breaks [`UNKNOWN_OPTION`](#validator). In
-`feature_extraction/astra.yaml`, which declares `iris: {path: ..}`,
-`iris.random_seed` is the decision `random_seed` of the analysis in the
-parent directory, and `iris.iris_data` in `Output.inputs` is that analysis's
-output `iris_data`.
-
-Two addresses written differently that resolve to one element of one
-analysis (§7) are two **spellings** of it. In
-`examples/iris_pipeline/classification/astra.yaml`,
-`feature_extraction.features` and `iris.feature_extraction.features` are one
-output. A list can name one element under two spellings: they are two
-entries. In `Output.inputs` and `Output.decisions` each has its own
-placeholder (§5), and in `Output.inputs` its own recorded input (§8). Only
-the same entry written twice is refused
-([`DUPLICATE_ENTRY`](#parse-and-schema)).
-
-A record's `address` is its result as the analysis the result belongs to
-addresses it, and a recorded input's `entry` is an entry of `Output.inputs`
-exactly as written (§8).
-
-### Pins
-
-A `reference` can end in `#` and a universe id, a **pin**: `f1_score#svm`. In
-an `astra.yaml`, a pin names the entry of the file's `universes` with its id,
-one of the file's analysis's universes or an import, or, where the file has
-no such entry, the universe with that id of the analysis whose element the
-reference names (§6, §7). A pin on an output reads it in that universe; a
-pin on an input changes nothing. `#` is never part of an id, so the pin is
-unambiguous. A decision's address never takes a pin: the entries of
-`Output.decisions` are addresses
-([`INVALID_REFERENCE`](#parse-and-schema)), and so are the keys of
-`Universe.decisions` ([`INVALID_ID`](#parse-and-schema)).
-
-In YAML, `#` inside a token is literal, so `f1_score#svm` needs no quotes.
-
-### Report addresses
+[`UNRESOLVED_ADDRESS`](#6-names), and an option that isn't one of its
+decision's options breaks [`UNKNOWN_OPTION`](#8-decisions-and-options).
 
 A report on an analysis, written outside `astra.yaml`, refers to the
-analysis's elements by address
-([RFC 0002](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md)):
-`<id>` for an element of the analysis, `<declaration>.<id>` for an element of
-a declared analysis, and so on, in the grammar above. Inputs, outputs,
-decisions, universes, imports, prior insights, findings and declared analyses
-are addressable, and an import's address names the universe it imports.
+analysis's elements by address: `<id>` for an element of the analysis,
+`<declaration>.<id>` for an element of a declared analysis, and so on.
+Inputs, outputs, decisions, universes, imports, prior insights, findings and
+declared analyses are addressable, and an import's address names the
+universe it imports ([§12](#12-universes)).
 
-## 5. The analysis
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `INVALID_ID` | schema | MUST | Every map key matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar |
+| `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar |
+| `UNRESOLVED_ADDRESS` | validator | MUST | Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact`, one of another analysis's universes in an import |
 
-[Analysis](elements/Analysis.md) is the content of an `astra.yaml`. It has a
-`spec_version` and at least one output ([`MISSING_FIELD`](#parse-and-schema),
-[`EMPTY_COLLECTION`](#parse-and-schema)); everything else is optional. Most
-elements also take a `label`, a short display name that is optional
-everywhere, a `description` in free prose, and `tags`, keywords for grouping
-and finding them.
+### 7. Inputs
 
-### Inputs
+An input is a file the analysis reads, named by its `path`. It is tracked
+in git with the analysis, so a commit pins the data along with the code.
 
-An [Input](elements/Input.md) is a file tracked in git with the analysis,
-named by its `path`, relative to the folder of the `astra.yaml` (§3). The
-path is non-empty and doesn't start with `/`
-([`INVALID_PATH`](#parse-and-schema)).
+<!-- fragment: Analysis -->
+```yaml
+inputs:
+  input1:
+    path: data/input1.csv
+    description: The measurements, one row per sample.
+  input2:
+    path: data/input2.csv
+```
 
-- It names one file ([`MISSING_INPUT_FILE`](#validator)). Data in many files
-  is many inputs.
-- The file is inside the analysis's directory and outside every directory
-  below it that holds an `astra.yaml` file of its own
-  ([`INPUT_IN_ANOTHER_ANALYSIS`](#validator)). Another analysis reads it by
-  address (`iris.data`), not by a path.
-- The file is outside the places that belong to runners: the path is not,
-  and doesn't lie in, the `results/` or `.astra/` of an analysis of the
-  stack, tidied as §3 says ([`RESERVED_PATH`](#validator)). A result is read
-  by its address, never by a path.
-- The path names the file itself (not a symlink, §3), or a stand-in for it
-  ([`MISSING_INPUT_FILE`](#validator)). A stand-in is something the
-  validator recognises as standing in for the file, such as a large-file
-  tool's pointer. The file, or its stand-in, is tracked in git
-  ([`INPUT_NOT_TRACKED`](#validator)), in the repository that holds the
-  analysis (§3). Something standing in for the content isn't the content.
+- `inputs` maps each input's id to the input ([§6](#6-names)); its fields
+  are in the [field reference](elements/Input.md).
+- The `path` of an input, or of a declaration
+  ([§15](#15-declared-analyses)), is relative to the folder of the
+  `astra.yaml` that writes it, with `/` between folders, and is tidied as
+  text ([Annex B](#b-paths-and-git)): `./data/input1.csv` is
+  `data/input1.csv`. It is non-empty and doesn't start with `/`
+  ([`INVALID_PATH`](#7-inputs)).
+- An input is one file ([`MISSING_INPUT_FILE`](#7-inputs)). Data in many
+  files is many inputs.
+- The path names the file itself, not a symlink
+  ([Annex B](#b-paths-and-git)), or a stand-in for it
+  ([`MISSING_INPUT_FILE`](#7-inputs)). A stand-in is something the validator
+  recognises as standing in for the file, such as a large-file tool's
+  pointer. Something standing in for the content isn't the content.
+- The file is inside the analysis's folder and outside every folder below it
+  that holds an `astra.yaml` file of its own
+  ([`INPUT_IN_ANOTHER_ANALYSIS`](#7-inputs)). Another analysis reads an
+  input by its address, such as `subanalysis.input1`, not by a path.
+- The file is outside the places that belong to runners
+  ([§5](#5-the-astrayaml-file)): the path, tidied, is not, and doesn't lie
+  inside, the `results/` or `.astra/` of an analysis of the stack
+  ([`RESERVED_PATH`](#7-inputs)).
+- The file, or its stand-in, is tracked in git
+  ([`INPUT_NOT_TRACKED`](#7-inputs)), in the repository that holds the
+  analysis ([Annex B](#b-paths-and-git)).
 
 The record of each result that reads an input holds the hash of what it read
-(§8), so a change to the file makes those results stale.
+([§19](#19-records)), so a change to the file makes those results stale.
 
 Data that isn't tracked in git with the analysis, such as a download, a
 loader's output or a query's answer, comes in through an output whose recipe
 gets it. That output is built once, or per universe when it depends on a
-decision such as which data release to use, and its record holds the hash of
-what came back. Data kept in another repository, a git submodule say, isn't
-tracked in git with the analysis either (§3), so it isn't an input.
+decision such as which data release to use
+([§13](#13-pins-and-outputs-built-per-universe-or-once)), and its record
+holds the hash of what came back. Data kept in another repository, a git
+submodule say, isn't tracked in git with the analysis either, so it isn't an
+input.
 
-### Outputs
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` is non-empty and doesn't start with `/` |
+| `MISSING_INPUT_FILE` | validator | MUST | An input's `path` names a file (not a symlink, folder or gitlink), or something the validator recognises as a [stand-in](#glossary) for one |
+| `INPUT_NOT_TRACKED` | validator | MUST | An input's file, or its stand-in, is [tracked](#glossary) in the repository that holds the input's analysis: in its index or, read at a commit, in that commit's tree there, reached through no gitlink |
+| `INPUT_IN_ANOTHER_ANALYSIS` | validator | MUST | An input's file is inside its analysis's folder and outside every folder below it that holds an `astra.yaml` file of its own |
+| `RESERVED_PATH` | validator | MUST | No input's `path` and no declaration's `path`, tidied ([Annex B](#b-paths-and-git)), is, or [lies inside](#glossary), the `results/` or `.astra/` folder of an analysis of the stack |
 
-An [Output](elements/Output.md) is an artefact the analysis makes. It has a
-`type`, one of [OutputType](elements/OutputType.md) (`metric`, `figure`,
-`table`, `data`, `report`: [`INVALID_VALUE`](#parse-and-schema)), a `format`
-and a `recipe` ([`MISSING_FIELD`](#parse-and-schema)). The `format` is how the artefact is
-encoded, as a lowercase token, `^[a-z0-9][a-z0-9_.+-]*$`: the file extension
-it is written with, without the leading dot, such as `png`, `csv` or
-`parquet` ([`INVALID_VALUE`](#parse-and-schema)). It is the extension of the
-result's default place (§8).
+### 8. Decisions and options
 
-- `inputs` lists what the output is made from, in order: references (§4) to
-  inputs and outputs of the analysis or of analyses it declares. A reference
-  can be pinned (§6). Their order counts, since `{inputs}` passes them to
-  the recipe in that order.
+A [Decision](elements/Decision.md) is a choice the analysis makes, such as
+which method to use, with the `rationale` for making it. Its `options` hold
+at least one [Option](elements/Option.md)
+([`EMPTY_COLLECTION`](#5-the-astrayaml-file)). Each universe chooses which
+of a decision's options is used ([§12](#12-universes)).
+
+<!-- fragment: Analysis -->
+```yaml
+decisions:
+  decision1:
+    rationale: Both are reasonable, and they may give different results.
+    options:
+      a: {}
+      b:
+        requires: [decision2.b]
+  decision2:
+    options:
+      a: {}
+      b: {}
+      c:
+        excluded: It needs data this analysis doesn't have.
+```
+
+- `decisions` maps each decision's id to the decision, and a decision's
+  `options` map each option's id to the option ([§6](#6-names)).
+- An option constrains every selection it is part of:
+  - `requires` lists options that are also selected whenever it is
+    ([`MISSING_REQUIRED_OPTION`](#12-universes)). Here `decision2.b` is
+    selected wherever `decision1.b` is.
+  - `incompatible_with` lists options that are never selected together with
+    it ([`INCOMPATIBLE_OPTIONS`](#12-universes)).
+- Both take option references ([§6](#6-names)), so they can name an option
+  of a declared analysis's decision.
+- An option with an `excluded` reason is excluded: no universe selects it,
+  whether it sets the option itself or inherits it from another universe
+  ([`EXCLUDED_OPTION_SELECTED`](#12-universes)). It stays listed, so the
+  analysis records what it considered and why it ruled it out.
+  `excluded: true` is not a reason ([`WRONG_TYPE`](#5-the-astrayaml-file)).
+- A decision with a `when` is conditional ([§9](#9-conditions)).
+- Every option named by a condition, an option reference or a universe's
+  selection is one of its decision's options
+  ([`UNKNOWN_OPTION`](#8-decisions-and-options)).
+
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `UNKNOWN_OPTION` | validator | MUST | Every option named by a condition, option reference or selection is one of its decision's options |
+
+### 9. Conditions
+
+A decision or an output with a [`when`](elements/when.md) is conditional.
+`when` is a list of conditions ([§6](#6-names)). The element is **active**
+when every one of its conditions holds, and an element without `when` is
+always active.
+
+<!-- fragment: Analysis -->
+```yaml
+decisions:
+  decision1:
+    options:
+      a: {}
+      b: {}
+  decision3:
+    when: [decision1.b]
+    options:
+      a: {}
+      b: {}
+outputs:
+  output4:
+    type: figure
+    format: png
+    when: [decision1.b]
+    recipe:
+      command: python src/output4.py '{output}'
+```
+
+- A condition `d.o` holds when the option `o` of the decision `d` is
+  selected, and `~d.o` holds when it isn't.
+- `d` can be a decision of a declared analysis, by its address, as in the
+  condition `subanalysis.decision1.a`.
+- Conditions are evaluated in the effective selection of the universe being
+  built: what it selects, once what it inherits from another universe is
+  resolved ([§12](#12-universes)).
+
+`decision3` and `output4` are active only where `decision1.b` is selected,
+so a universe selecting `decision1.a` has neither. A universe doesn't set an
+inactive decision such as `decision3` itself
+([`INACTIVE_DECISION`](#12-universes)), and needn't set it at all
+([`MISSING_DECISION`](#16-driving-and-consuming)). An inactive output such as
+`output4` isn't built in that universe: no output with a result planned
+there ([§18](#18-results-and-where-they-go)) reads it without a pin
+([`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once)), and
+no pin names it there
+([`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once)).
+
+### 10. Outputs
+
+An output is an artefact the analysis makes, such as a metric, a figure or a
+table. It says what it is made from, the decisions it is made with, and the
+recipe that makes it ([§11](#11-recipes)).
+
+<!-- fragment: Analysis -->
+```yaml
+outputs:
+  output1:
+    type: metric
+    format: json
+    inputs: [input1, subanalysis.output1]
+    decisions: [decision1]
+    recipe:
+      command: >-
+        python src/output1.py '{inputs.input1}' '{inputs.subanalysis.output1}'
+        '{decisions.decision1}' '{output}'
+  output3:
+    type: data
+    format: csv
+    inputs: [input1]
+    recipe:
+      command: python src/output3.py '{inputs.input1}' '{output}'
+```
+
+- `outputs` maps each output's id to the output ([§6](#6-names)); its fields
+  are in the [field reference](elements/Output.md).
+- An output has a `type`, a `format` and a `recipe`
+  ([`MISSING_FIELD`](#5-the-astrayaml-file)).
+- `type` is one of [OutputType](elements/OutputType.md): `metric`, `figure`,
+  `table`, `data` or `report` ([`INVALID_VALUE`](#5-the-astrayaml-file)).
+- `format` is how the artefact is encoded, as a lowercase token,
+  `^[a-z0-9][a-z0-9_.+-]*$`: the file extension it is written with, without
+  the leading dot, such as `png`, `csv` or `parquet`
+  ([`INVALID_VALUE`](#5-the-astrayaml-file)). It is the extension of the
+  result's default place ([§18](#18-results-and-where-they-go)).
+- `inputs` lists what the output is made from, in order: references
+  ([§6](#6-names)) to inputs and outputs of the analysis or of analyses it
+  declares, such as `subanalysis.output1` ([§15](#15-declared-analyses)). A
+  reference can be pinned
+  ([§13](#13-pins-and-outputs-built-per-universe-or-once)). Their order
+  counts, since `{inputs}` passes them to the recipe in that order
+  ([§11](#11-recipes)).
 - `decisions` lists the addresses of the decisions whose option the output
   is made with directly, not through what it reads: a different option for
   any of them, in the universe being built, can give a different result.
-  Their order carries no meaning. Listing a decision that reaches the output
-  through an unpinned input gives the output the same results, though
-  listing a decision of another analysis consumes it, and the address it is
-  listed under is then held to §7's rules on consuming
-  ([`UNDRIVEN_DECLARATION`](#validator)). Listing a decision that only a
-  pinned input brings in makes the output built per universe (§6), so a
-  comparison between universes lists none.
-- `when` makes the output conditional (below).
-- `recipe` says how the output is made (below).
+  Their order carries no meaning.
+- `when` makes the output conditional ([§9](#9-conditions)).
+- `recipe` says how the output is made ([§11](#11-recipes)).
 
-No output depends on itself, directly or through others
-([`OUTPUT_CYCLE`](#validator)).
+An input and an output never share an id, since `Output.inputs` takes both
+([`AMBIGUOUS_ID`](#10-outputs)). No output depends on itself, directly or
+through others ([`OUTPUT_CYCLE`](#10-outputs)).
 
-### Recipes
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `AMBIGUOUS_ID` | validator | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) |
+| `OUTPUT_CYCLE` | validator | MUST | No output depends on itself, directly or through others |
 
-A [Recipe](elements/Recipe.md) has a `command`
-([`MISSING_FIELD`](#parse-and-schema)), and optionally the context it runs in:
-`resources` ([Resources](elements/Resources.md)), the CPUs, memory, time,
-disk and GPUs it asks for (`cpus` at least 0 and `gpus` at least 1:
-[`INVALID_VALUE`](#parse-and-schema)), and `container`, the container it runs in:
-an image, or a Containerfile it is built from. `Analysis.container` is the
-default container of the analysis's recipes. A recipe runs in its analysis's
-directory ([`WRONG_WORKING_DIRECTORY`](#runner)).
+### 11. Recipes
+
+A recipe says how an output is made: a shell command, and optionally the
+context it runs in. The command reaches the output's inputs and decisions
+through placeholders, which a runner fills in before running it.
+
+<!-- fragment: Analysis -->
+```yaml
+outputs:
+  output1:
+    type: metric
+    format: json
+    inputs: [input1, subanalysis.output1]
+    decisions: [decision1]
+    recipe:
+      command: >-
+        python src/output1.py '{inputs.input1}' '{inputs.subanalysis.output1}'
+        '{decisions.decision1}' '{output}'
+      resources: {cpus: 2, memory: 4GB}
+```
+
+- A [Recipe](elements/Recipe.md) has a `command`
+  ([`MISSING_FIELD`](#5-the-astrayaml-file)); its fields are in the
+  [field reference](elements/Recipe.md).
+- `resources` ([Resources](elements/Resources.md)) are the CPUs, memory,
+  time, disk and GPUs the recipe asks for. `cpus` is at least 0 and `gpus` at
+  least 1 ([`INVALID_VALUE`](#5-the-astrayaml-file)).
+- `container` is the container the recipe runs in: an image, or a
+  Containerfile it is built from. `Analysis.container` is the default
+  container of the analysis's recipes.
+- A recipe runs in its analysis's folder
+  ([`WRONG_WORKING_DIRECTORY`](#21-runners)).
+
+#### The command as a template
 
 The `command` is a POSIX shell command and a template. Read from the left,
 `{{` stands for a literal `{` and `}}` for a literal `}`, and any other `{`
@@ -500,120 +791,314 @@ placeholder, and each `{{` and `}}`, before running the command:
 | `{inputs}` | the paths of all the output's inputs, in the order of `inputs`, separated by spaces |
 | `{output}` | the path the result is written to |
 
-A placeholder gives a path, relative or absolute, that the recipe can open
-from the directory it runs in. A runner substitutes each placeholder
-verbatim, with no shell quoting, so quoting is the author's job: a path may
-hold a space or a character the shell treats specially, and a command that
-may meet one quotes the placeholder, as in `--data '{inputs.data}'`.
+- A placeholder gives a path, relative or absolute, that the recipe can open
+  from the folder it runs in.
+- A runner substitutes each placeholder verbatim, with no shell quoting, so
+  quoting is the author's job: a path may hold a space or a character the
+  shell treats specially, and a command that may meet one quotes the
+  placeholder, as in `--data '{inputs.input1}'`.
+- In `{inputs.<entry>}` and `{decisions.<entry>}`, `<entry>` is an entry of
+  the output's `inputs` or `decisions` exactly as written, dots and `#`
+  included: `{inputs.subanalysis.output1}`, `{inputs.output1#u1}`,
+  `{decisions.subanalysis.decision1}`. Two pins of one output are two
+  entries, each with its own placeholder.
+- Any other placeholder breaks [`UNDECLARED_TEMPLATE_REF`](#11-recipes): one
+  naming an entry the output doesn't list, such as `{inputs.input2}` when
+  `input2` isn't among its `inputs`, or one of none of these forms, such as
+  `{foo}`. So does a stray brace: a `{` with no `}` after it, or a `}` that
+  ends no placeholder, as in `echo }`.
 
-In `{inputs.<entry>}` and `{decisions.<entry>}`, `<entry>` is an entry of the
-output's `inputs` or `decisions` exactly as written, dots and `#` included:
-`{inputs.classification.accuracy#baseline}`, `{decisions.iris.random_seed}`.
-Two pins of one output are two entries, each with its own placeholder. Any
-other placeholder breaks [`UNDECLARED_TEMPLATE_REF`](#validator): one naming
-an entry the output doesn't list, such as `{inputs.data}` when `data` isn't
-among its `inputs`, or one of none of these forms, such as `{foo}`. So does a
-stray brace: a `{` with no `}` after it, or a `}` that ends no placeholder, as
-in `echo }`.
+#### What a recipe reads
 
 A recipe should read the files inputs name, and other outputs' results, only
-through its output's inputs ([`UNDECLARED_READ`](#runner)), since a checker
-sees a change to them only through those inputs. Anything else it uses, its
-own scripts among them, is pinned by the commit or is part of the
-environment. A runner may enforce this, as §9 permits.
+through its output's inputs ([`UNDECLARED_READ`](#21-runners)), since a
+checker sees a change to them only through those inputs. Anything else it
+uses, its own scripts among them, is pinned by the commit or is part of the
+environment. A runner may enforce this, as [§21](#21-runners) permits.
 
-### Decisions and options
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `UNDECLARED_TEMPLATE_REF` | validator | MUST | Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left, and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written |
 
-A [Decision](elements/Decision.md) is a choice the analysis makes, such as
-which estimator to use, with the `rationale` for making it. Its `options`
-hold at least one [Option](elements/Option.md)
-([`EMPTY_COLLECTION`](#parse-and-schema)). Each universe chooses which of a
-decision's options is used (§6).
+### 12. Universes
 
-An option constrains every selection it is part of:
-
-- `requires` lists options that are also selected whenever it is
-  ([`MISSING_REQUIRED_OPTION`](#validator));
-- `incompatible_with` lists options that are never selected together with it
-  ([`INCOMPATIBLE_OPTIONS`](#validator)).
-
-Both take option references (§4), so they can name an option of a declared
-analysis's decision.
-
-An option with an `excluded` reason is excluded: no effective selection
-selects it ([`EXCLUDED_OPTION_SELECTED`](#validator)). It stays listed, so the
-analysis records what it considered and why it ruled it out. `excluded: true`
-is not a reason ([`WRONG_TYPE`](#parse-and-schema)).
-
-An option's `insights` are the ids of the prior insights that support it
-([`INVALID_INSIGHT_REF`](#validator)).
-
-### Conditional elements
-
-A decision or an output with a `when` is conditional. `when` is a list of
-conditions (§4). A condition `d.o` holds when the option `o` of
-the decision `d` is selected, and `~d.o` holds when it isn't; `d` can be a
-decision of a declared analysis, by its address, as in the condition
-`iris.random_seed.seed_42`. The element is **active** when every one of its
-conditions holds, and an element without `when` is always active. Conditions
-are evaluated in the effective selection of the universe being built (§6).
+A universe selects one option for each active decision of its analysis: it
+is one way of making the analysis's choices. An analysis's universes are the
+entries of its `universes`, keyed by id, unique within the map
+([`DUPLICATE_KEY`](#5-the-astrayaml-file)).
+[§16](#16-driving-and-consuming) adds the decisions of the analyses its
+universes drive.
 
 <!-- fragment: Analysis -->
 ```yaml
-decisions:
-  correction:
-    options: {none: {}, calibrated: {}}
-  calibration_prior:
-    when: [correction.calibrated]
-    options: {weak: {}, informative: {}}
-outputs:
-  calibrated_table:
-    type: table
-    format: csv
-    when: [correction.calibrated]
-    recipe:
-      command: python make.py '{output}'
+universes:
+  u1:
+    decisions: {decision1: a, decision2: a, subanalysis.decision1: a}
+  u2:
+    derived_from: u1
+    decisions: {decision1: b, decision2: b, decision3: a}
+  u3:
+    derived_from: u2
+    decisions: {decision1: a}   # the inherited decision3 is dropped
 ```
 
-A universe selecting `correction.none` has neither `calibration_prior` nor
-`calibrated_table`. It doesn't set an inactive decision itself
-([`INACTIVE_DECISION`](#validator)) and needn't set it at all
-([`MISSING_DECISION`](#validator)). An inactive output isn't built in that
-universe: no output with a result planned there (§8) reads it without a pin
-([`INPUT_NOT_BUILT`](#validator)), and no pin names it there
-([`PIN_INACTIVE`](#validator)).
+Here `decision3` has `when: [decision1.b]` ([§9](#9-conditions)), and
+`subanalysis.decision1` is a decision of the declared analysis
+`subanalysis`, which these universes set ([§16](#16-driving-and-consuming)).
+Once `derived_from` is resolved (below), the three universes select:
 
-### Insights and evidence
+| Universe | Selects |
+|---|---|
+| `u1` | `decision1: a`, `decision2: a`, `subanalysis.decision1: a` |
+| `u2` | `decision1: b`, `decision2: b`, `decision3: a`, `subanalysis.decision1: a` |
+| `u3` | `decision1: a`, `decision2: b`, `subanalysis.decision1: a` |
 
-An [Insight](elements/Insight.md) is a claim backed by evidence. The
-analysis's `prior_insights` are what earlier work establishes and the
-analysis builds on, which options cite by id. Its `findings` are what it
-concludes. An insight has a `claim` and at least one item of `evidence`
-([`MISSING_FIELD`](#parse-and-schema),
-[`EMPTY_COLLECTION`](#parse-and-schema)); its `description` gives the
-reasoning behind the claim, and its `scope` the conditions under which the
-claim holds.
+- `universes` maps each universe's id to the universe ([§6](#6-names)); its
+  fields are in the [field reference](elements/Universe.md).
+- A universe's `decisions` map decisions to options
+  ([DecisionSelection](elements/DecisionSelection.md)), as
+  `<decision>: <option>`, such as `decision1: a`.
+- A key is the id of a decision of the analysis or, for a decision of
+  another analysis, its address, `<declaration>.<decision>`, a flat key, or
+  another spelling of that address through declarations
+  ([§15](#15-declared-analyses), [§16](#16-driving-and-consuming)).
+- A value is the id of one of that decision's options
+  ([`UNKNOWN_OPTION`](#8-decisions-and-options)).
+- `derived_from` names another universe of the same analysis, never an
+  import ([`UNKNOWN_DERIVED_FROM`](#12-universes)). The universe inherits
+  that universe's selection, so it gives only the decisions it changes.
+- No universe's chain of `derived_from` loops
+  ([`DERIVED_FROM_CYCLE`](#12-universes)).
+- A derived universe inherits only the selection.
+
+#### The effective selection
+
+A universe's **effective selection** is what it selects once `derived_from`
+is resolved. Conditions ([§9](#9-conditions)) are judged on it.
+
+1. Without `derived_from`, it is the universe's own `decisions`.
+2. With `derived_from`, it is the effective selection of the universe named
+   there, each of the universe's own selections replacing what the universe
+   inherits for its decision. Where two keys spell one decision
+   ([§15](#15-declared-analyses)), a universe that inherits one of them
+   changes the decision under that key: setting it under the other, even to
+   the same option, breaks [`DUPLICATE_ELEMENT`](#16-driving-and-consuming)
+   at its own key.
+3. An inherited selection of a decision that isn't active in the resulting
+   selection is dropped, so a universe that switches a decision off needn't
+   undo what it inherited for it. `u3` selects `decision1: a`, which switches
+   `decision3` off, so the `decision3: a` it inherits from `u2` is dropped.
+
+A universe whose `derived_from` doesn't resolve, or whose chain loops or
+reaches a universe that has none, has no effective selection
+([Annex D](#d-when-a-rule-isnt-checked)).
+
+The effective selection is held to everything a universe written in full is:
+
+- it selects every active decision of its analysis, so a universe that
+  switches a decision on sets it
+  ([`MISSING_DECISION`](#16-driving-and-consuming), which
+  [§16](#16-driving-and-consuming) extends to the analyses a universe
+  drives);
+- it names only declared decisions and their options
+  ([`UNRESOLVED_ADDRESS`](#6-names),
+  [`UNKNOWN_OPTION`](#8-decisions-and-options));
+- it breaks no `requires` ([`MISSING_REQUIRED_OPTION`](#12-universes)) and
+  no `incompatible_with` ([`INCOMPATIBLE_OPTIONS`](#12-universes)), and
+  selects no excluded option ([`EXCLUDED_OPTION_SELECTED`](#12-universes)).
+
+A selection the universe makes itself, rather than inherits, is of an
+active decision ([`INACTIVE_DECISION`](#12-universes)). So `u3` couldn't
+select `decision3` itself.
+
+#### Imports
+
+An entry of `universes` can instead be an **import**, which names one of
+another analysis's universes under the entry's id and selects nothing. Its
+`analysis` is the address of the declaration that leads to that analysis,
+and its `universe` is the id of one of that analysis's universes. In this
+file, `u1` is a universe and `subanalysis_v1` an import:
+
+<!-- fragment: Analysis -->
+```yaml
+analyses:
+  subanalysis: {path: subanalysis}
+universes:
+  u1:
+    decisions: {decision1: a, decision2: a, subanalysis.decision1: a}
+  subanalysis_v1:                  # an import of subanalysis's own universe v1
+    analysis: subanalysis
+    universe: v1
+```
+
+- An import has both `analysis` and `universe`, and neither `decisions` nor
+  `derived_from` ([`INVALID_IMPORT`](#12-universes)).
+- It is not one of the analysis's universes.
+- Both are written as a [Universe](elements/Universe.md) object, and an
+  import's `label`, `description` and `tags` are its own: they describe the
+  universe it imports under the import's id.
+- [§16](#16-driving-and-consuming) says what an imported universe is, and
+  where it is built.
+
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `INVALID_IMPORT` | schema | MUST | An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from` |
+| `UNKNOWN_DERIVED_FROM` | validator | MUST | A universe's `derived_from` names a universe of the same analysis, never an import |
+| `DERIVED_FROM_CYCLE` | validator | MUST | No universe's chain of `derived_from` loops |
+| `MISSING_REQUIRED_OPTION` | validator | MUST | Every effective selection satisfies the `requires` of every option it selects |
+| `INCOMPATIBLE_OPTIONS` | validator | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects |
+| `EXCLUDED_OPTION_SELECTED` | validator | MUST | No effective selection selects an excluded option |
+| `INACTIVE_DECISION` | validator | MUST | A universe itself sets only decisions whose `when` holds in its effective selection |
+
+### 13. Pins, and outputs built per universe or once
+
+An output is either built per universe, with a result in each universe where
+it is active, or built once, with one result for all of them. A pin fixes the
+universe a reference reads, so an output built once can compare the results
+of two universes:
+
+<!-- fragment: Analysis -->
+```yaml
+outputs:
+  output2:
+    type: table
+    format: csv
+    inputs: [output1#u1, output1#u2]
+    recipe:
+      command: >-
+        python src/output2.py '{inputs.output1#u1}' '{inputs.output1#u2}'
+        '{output}'
+```
+
+`output1` lists `decisions`, so it is built per universe
+([§10](#10-outputs)). `output2` reads it as built in `u1` and as built in
+`u2`, and is built once. So is `output3`, which reads only `input1`.
+
+#### Pins
+
+A reference ([§6](#6-names)) can end in `#` and a universe id, a **pin**:
+`output1#u1`. `#` is never part of an id, so the pin is unambiguous. In an
+`astra.yaml`, a pin names the entry of the file's `universes` with its id,
+one of the file's analysis's universes or an import ([§12](#12-universes)),
+or, where the file has no such entry, the universe with that id of the
+analysis whose element the reference names. [§16](#16-driving-and-consuming)
+gives that case in full
+([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
+
+- A pin on an output reads it in that universe.
+- A pin on an input, as on an output built once, names a universe and
+  changes nothing else.
+- A decision's address never takes a pin ([§6](#6-names)).
+
+#### Built per universe or built once
+
+An output is **built per universe** when it lists `decisions`, has a `when`,
+or has an unpinned entry of `inputs` that names an output built per
+universe. Any other output is **built once**: it has one result, the same in
+every universe.
+
+- Inputs carry no universe, and a pinned entry never makes an output built
+  per universe, since the pin fixes the universe it reads.
+- Listing a decision that reaches the output through an unpinned input gives
+  the output the same results, though listing a decision of another analysis
+  consumes it, and the address it is listed under is then held to the rules
+  on consuming ([§16](#16-driving-and-consuming),
+  [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming)).
+- Listing a decision that only a pinned input brings in makes the output
+  built per universe, so a comparison between universes, such as `output2`,
+  lists none.
+- An output built once has no universe of its own. It lists no decisions, so
+  its recipe has no `{decisions.<entry>}` placeholder
+  ([`UNDECLARED_TEMPLATE_REF`](#11-recipes)). A pin on it doesn't change
+  which result a reference names: pinned or not, the reference names its one
+  result, and `{inputs.<entry>}` gives that result's path. The pin still
+  names a universe ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
+
+#### Which universe a reference reads
+
+An unpinned entry of `inputs` reads its output in the universe being built.
+A pinned one, such as `output1#u1`, reads it as built in the universe the
+pin names, whichever universe is being built.
+
+- A pinned output is active in the universe it is pinned to
+  ([`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once)).
+- Every output that the output of a result planned in the universe being
+  built reads without a pin, of the analysis itself or of another, is active
+  there
+  ([`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once)).
+  [§18](#18-results-and-where-they-go) says which results are planned.
+
+Where `output4` has `when: [decision1.b]`, the reference `output4#u1` breaks
+[`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once), since `u1`
+selects `decision1: a`. An output with a result planned in `u1` that reads
+`output4` without a pin breaks
+[`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once).
+
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `PIN_INACTIVE` | validator | MUST | Every pinned output is active in the universe it is pinned to |
+| `INPUT_NOT_BUILT` | validator | MUST | Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there |
+
+### 14. Insights and evidence
+
+An insight is a claim backed by evidence. An analysis's `prior_insights` are
+what earlier work establishes and the analysis builds on, which options cite
+by id. Its `findings` are what it concludes.
+
+<!-- fragment: Analysis -->
+```yaml
+prior_insights:
+  insight2:
+    claim: An earlier study found that decision1 changes the result.
+    evidence:
+      - doi: 10.5555/12345678
+        location: {value: page=6}
+findings:
+  insight1:
+    claim: Options a and b of decision1 give different results.
+    evidence:
+      - artifact: output2
+```
+
+- `prior_insights` and `findings` map each insight's id to the insight
+  ([§6](#6-names)); its fields are in the
+  [field reference](elements/Insight.md).
+- An insight has a `claim` and at least one item of `evidence`
+  ([`MISSING_FIELD`](#5-the-astrayaml-file),
+  [`EMPTY_COLLECTION`](#5-the-astrayaml-file)). Its `description` gives the
+  reasoning behind the claim, and its `scope` the conditions under which the
+  claim holds.
+- An option's `insights` are the ids of the prior insights that support it,
+  such as `insights: [insight2]`
+  ([`INVALID_INSIGHT_REF`](#14-insights-and-evidence)).
+
+#### Evidence
 
 An [Evidence](elements/Evidence.md) item cites exactly one of
-([`INVALID_EVIDENCE_SOURCE`](#parse-and-schema)):
+([`INVALID_EVIDENCE_SOURCE`](#14-insights-and-evidence)):
 
-- a published work, by its `doi`, such as `10.48550/arXiv.1706.03762`
-  (`10.`, digit runs joined by `.`, `/`, then a non-empty suffix:
-  [`INVALID_VALUE`](#parse-and-schema)), with the work's `version`, counted
-  from 1, when the work has versions, as an arXiv paper does;
+- a published work, by its `doi`, such as `10.5555/12345678` (`10.`, digit
+  runs joined by `.`, `/`, then a non-empty suffix:
+  [`INVALID_VALUE`](#5-the-astrayaml-file)), with the work's `version`,
+  counted from 1, when the work has versions, as an arXiv paper does;
 - an output, as an `artifact`: a reference written as in `Output.inputs`,
-  which names an output ([`UNRESOLVED_ADDRESS`](#validator)).
+  which names an output ([`UNRESOLVED_ADDRESS`](#6-names)).
 
 Evidence has a `version` only with a `doi`
-([`INVALID_EVIDENCE_SOURCE`](#parse-and-schema)). It locates the passage the
-claim rests on with W3C Web Annotation selectors: `quote`, a
-[TextQuoteSelector](elements/TextQuoteSelector.md)
-(`oa:TextQuoteSelector`), whose `exact` is the passage as the work or output
-writes it, with the `prefix` and `suffix` around it; and `location`, a
-[FragmentSelector](elements/FragmentSelector.md) (`oa:FragmentSelector`), the
-place in the work or output the claim rests on. For a `doi`, the cited
-resource is the work's full text. With both a `quote` and a `location`, the
-quote is sought within the location.
+([`INVALID_EVIDENCE_SOURCE`](#14-insights-and-evidence)). It locates the
+passage the claim rests on with W3C Web Annotation selectors:
+
+- `quote`, a [TextQuoteSelector](elements/TextQuoteSelector.md)
+  (`oa:TextQuoteSelector`): its `exact` is the passage as the work or output
+  writes it, with the `prefix` and `suffix` around it;
+- `location`, a [FragmentSelector](elements/FragmentSelector.md)
+  (`oa:FragmentSelector`): the place in the work or output the claim rests
+  on.
+
+For a `doi`, the cited resource is the work's full text. With both a `quote`
+and a `location`, the quote is sought within the location.
+
+#### Fragment identifiers
 
 A location's `value` is a fragment identifier of the cited work or output,
 without the `#`. An optional `conforms_to` is the IRI of the specification
@@ -630,846 +1115,951 @@ gives it:
 | EPUB ([EPUB CFI](https://idpf.org/epub/linking/cfi/epub-cfi.html)) | `http://www.idpf.org/epub/linking/cfi/epub-cfi.html` | `epubcfi(/6/4!/4/10/2/1:1)` |
 
 Without `conforms_to`, `value` is a PDF fragment identifier as
-[RFC 8118 §3](https://www.rfc-editor.org/rfc/rfc8118#section-3) gives it
-(it defers to ISO 32000-2), such as `page=6`, with pages counted from 1; it
-can point at more than a page. Web Annotation names that syntax
+[RFC 8118 §3](https://www.rfc-editor.org/rfc/rfc8118#section-3) gives it (it
+defers to ISO 32000-2), such as `page=6`, with pages counted from 1; it can
+point at more than a page. Web Annotation names that syntax
 `http://tools.ietf.org/rfc/rfc3778`, after the RFC that RFC 8118 obsoletes.
 Writing that IRI means the same as writing none, and `value` is then read by
 RFC 8118. PDF parameters are joined with `&`, never with `#` as RFC 3778
 allowed, and a space or `"` in a value, as in `search=`, is percent-encoded:
-`page=6&search=%22label%20noise%22`.
+`page=6&search=%22two%20words%22`.
 
-`value` is read by the syntax `conforms_to` names. It is non-empty, holds no
-ASCII space or control character and none of `"`, `#`, `<`, `>`, `[`, `\`,
-`]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before two hex
-digits ([`INVALID_VALUE`](#parse-and-schema)). `conforms_to` is an
-[`iri`](elements/Iri.md) (§4, [`INVALID_VALUE`](#parse-and-schema)).
+`value` is read by the syntax `conforms_to` names. Annex C gives the
+characters `value` may hold, and the form of `conforms_to`, an IRI
+([Annex C](#c-grammars-and-patterns),
+[`INVALID_VALUE`](#5-the-astrayaml-file)).
+
+#### Evidence and universes
 
 Evidence isn't built in a universe. Citing an output built per universe, it
-may pin it: the claim is then about one universe's result, and the pin says
-which. The pin names a universe as one in `Output.inputs` does (§4, §7). A
-check covers the evidence of the analysis it is run on (§8). Evidence citing
-a result is checked through that result's record, and unpinned evidence
-through the records of the output's results (§8).
+may pin it, as `output1#u2`: the claim is then about one universe's result,
+and the pin says which. The pin names a universe as one in `Output.inputs`
+does ([§13](#13-pins-and-outputs-built-per-universe-or-once),
+[§16](#16-driving-and-consuming)). A check covers the evidence of the
+analysis it is run on ([§20](#20-checking-results)). Evidence citing a result
+is checked through that result's record, and unpinned evidence through the
+records of the output's results
+([`STALE_EVIDENCE`](#20-checking-results)).
 
-## 6. Universes
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `INVALID_EVIDENCE_SOURCE` | schema | MUST | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` |
+| `INVALID_INSIGHT_REF` | validator | MUST | Every entry of `Option.insights` names a prior insight of the analysis |
 
-### Declaring universes
+### 15. Declared analyses
 
-A universe selects one option for every active decision of its analysis and
-of every analysis reached through a declaration that its analysis's
-universes drive (§7). An analysis's universes are entries of its
-`universes`, keyed by id, unique within the map
-([`DUPLICATE_KEY`](#parse-and-schema)). An entry can instead be an
-**import**, which names one of another analysis's universes under the
-entry's id and selects nothing: its `analysis` is the address of the
-declaration that leads to that analysis, and its `universe` is the id of one
-of that analysis's universes. An import has both, and neither `decisions`
-nor `derived_from` ([`INVALID_IMPORT`](#parse-and-schema)). It is not one of
-the analysis's universes. Both are written as a
-[Universe](elements/Universe.md) object, and an import's `label`,
-`description` and `tags` are its own: they describe the universe it imports
-under the import's id. In this file, `main` is a universe and `catalog_main`
-an import:
+An analysis can use the elements of other analyses. It declares each one in
+`analyses`, keyed by the id it addresses it by, and then addresses the
+declared analysis's elements through that id, as `<declaration>.<element>`.
+Here the root declares the analysis in the folder `subanalysis`, and the
+root's `output1` reads that analysis's `output1`:
 
 <!-- fragment: Analysis -->
 ```yaml
 analyses:
-  catalog: {path: catalog}
-universes:
-  main:
-    decisions: {catalog.cut: strict}   # a universe of the analysis
-  catalog_main:                        # an import of catalog's universe main
-    analysis: catalog
-    universe: main
+  subanalysis:
+    path: subanalysis
+outputs:
+  output1:
+    type: metric
+    format: json
+    inputs: [input1, subanalysis.output1]
+    decisions: [decision1]
+    recipe:
+      command: >-
+        python src/output1.py '{inputs.input1}' '{inputs.subanalysis.output1}'
+        '{decisions.decision1}' '{output}'
 ```
 
-The universe an import names is an **imported universe** of the importing
-file: a pin there names it by the import's id (§4), and it is checked as a
-universe of its own analysis, which is its only driver, and built as one where
-it is among the universes built (§7). A pin whose file has no entry with its
-id imports a universe in the same way (§7).
+The folder `subanalysis` holds an analysis of its own, whose `astra.yaml` is:
 
-A universe's `decisions` map decisions to options
-([DecisionSelection](elements/DecisionSelection.md)), as
-`<decision>: <option>`, such as `model: svm`. A key is the id of a decision
-of the analysis or, for a decision of another analysis, its address,
-`<declaration>.<decision>`, a flat key (§7), or another spelling of that
-address through declarations (§4, §7). No key goes through a declaration
-that leads back to an analysis already on its chain, the universe's
-analysis included ([`LOOPING_KEY`](#validator)). So the analysis's own
-decisions are keyed by their ids alone, and where `stage` declares
-`again: {path: .}`, `stage.d` is never written `stage.again.d`. A key
-resolves through its declarations to one decision: an analysis, known by
-its identity (§7), and the decision's id in it. A universe's own
-`decisions` give each decision one key, and a derived universe sets a
-decision it inherits only under the key it inherits (below): two keys that
-spell one decision break
-[`DUPLICATE_ELEMENT`](#validator), even when they select the same option. A
-value is the id of one of that decision's options
-([`UNKNOWN_OPTION`](#validator)).
-
-`derived_from` names another universe of the same analysis, never an import
-([`UNKNOWN_DERIVED_FROM`](#validator)), whose selection this one inherits, so
-that it gives only the decisions it changes. No universe's chain of
-`derived_from` loops ([`DERIVED_FROM_CYCLE`](#validator)). A derived universe
-inherits only the selection.
-
-### The effective selection
-
-A universe's **effective selection** is what it selects once `derived_from`
-is resolved:
-
-1. Without `derived_from`, it is the universe's own `decisions`.
-2. With `derived_from`, it is the effective selection of the universe named
-   there, each of the universe's own selections replacing what the universe
-   inherits for its decision. So where `stage.inner.d` and `inner.d` spell
-   one decision, a universe that inherits `stage.inner.d: d1` changes it by
-   setting `stage.inner.d: d2`; setting `inner.d: d2`, or `inner.d: d1`,
-   breaks [`DUPLICATE_ELEMENT`](#validator) at its own key.
-3. An inherited selection of a decision that isn't active in the result is
-   dropped, so a universe that switches a decision off needn't undo what it
-   inherited for it.
-
-A universe whose `derived_from` doesn't resolve, or whose chain loops or
-reaches a universe that has none, has no effective selection (§9, *What is
-checked*).
-
-The effective selection is held to everything a universe written in full is:
-
-- it selects every active decision of its analysis and of every analysis
-  reached through a declaration that its analysis's universes drive
-  ([`MISSING_DECISION`](#validator)), so a universe that switches a decision
-  on sets it;
-- it names only declared decisions and their options
-  ([`UNRESOLVED_ADDRESS`](#validator), [`UNKNOWN_OPTION`](#validator));
-- it breaks no `requires` ([`MISSING_REQUIRED_OPTION`](#validator)) and no
-  `incompatible_with` ([`INCOMPATIBLE_OPTIONS`](#validator)), and selects no
-  excluded option ([`EXCLUDED_OPTION_SELECTED`](#validator)).
-
-A selection the universe makes itself, rather than inherits, is of an active
-decision ([`INACTIVE_DECISION`](#validator)). Where `gpu_optimization` has
-`when: [backend.gpu]`:
-
-<!-- fragment: Analysis -->
 ```yaml
-universes:
-  gpu_advanced:
-    decisions: {mode: advanced, backend: gpu, gpu_optimization: tensor_cores}
-  cpu_from_gpu:
-    derived_from: gpu_advanced
-    decisions: {backend: cpu}   # the inherited gpu_optimization is dropped
+spec_version: "0.1.0"
+inputs:
+  input1:
+    path: data/input1.csv
+decisions:
+  decision1:
+    options:
+      a: {}
+      b: {}
+outputs:
+  output1:
+    type: metric
+    format: json
+    inputs: [input1]
+    decisions: [decision1]
+    recipe:
+      command: python src/output1.py '{inputs.input1}' '{decisions.decision1}' '{output}'
 ```
 
-### Built per universe or built once
+- `analyses` maps each declaration's id to the declaration; its fields are
+  in the [field reference](elements/AnalysisDeclaration.md). A declaration
+  names its analysis by a `path`, as here, or by a `url` and a `commit`, and
+  a `path` can have a `commit` too
+  ([§17](#17-analyses-from-another-commit-or-repository)).
+- Every segment of an address but the last is the id of a declaration: the
+  first names an entry of the `analyses` of the file the address is written
+  in, the next an entry of the declared analysis's `analyses`, and so on
+  ([§6](#6-names)). In the root's file, `subanalysis.decision1` is the
+  decision `decision1` of the analysis in the folder `subanalysis`, and
+  `subanalysis.output1` in `Output.inputs` is that analysis's output
+  `output1`.
+- The **root** is the analysis being validated or built, and any analysis can
+  be the root. Its **analysis stack** is the root and every analysis it
+  declares, directly or through other declared analyses. A validator reads
+  every `astra.yaml` of the stack, each by the `spec_version` it states
+  ([`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file)).
 
-An output is **built per universe** when it lists `decisions`, has a `when`,
-or has an unpinned entry of `inputs` that names an output built per
-universe. Any other output is **built once**: it has one result, the same in
-every universe. Inputs carry no universe, and a pinned entry never makes an
-output built per universe, since the pin fixes the universe it reads.
+#### A declaration by path
 
-An output built once has no universe of its own. It lists no decisions, so
-its recipe has no `{decisions.<entry>}` placeholder
-([`UNDECLARED_TEMPLATE_REF`](#validator)), and a pin on it doesn't change
-which result a reference names: pinned or not, the reference names its one
-result, and `{inputs.<entry>}` gives that result's path; the pin still names
-a universe ([`UNKNOWN_PIN_UNIVERSE`](#validator)).
+- `path` is the folder of the declared analysis's `astra.yaml`, relative to
+  the folder of the declaring `astra.yaml`, with `/` between folders
+  ([§7](#7-inputs)). It is non-empty and doesn't start with `/`
+  ([`INVALID_PATH`](#7-inputs)).
+- Tidied as text ([Annex B](#b-paths-and-git)), it doesn't go above the top
+  of the root's working tree or, read at a commit, of the repository that
+  holds that commit
+  ([`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses)).
+- It is not, and doesn't lie inside, the `results/` or `.astra/` folder of an
+  analysis of the stack ([`RESERVED_PATH`](#7-inputs)), so a run never writes
+  over a declared analysis.
+- The folder it names holds an `astra.yaml` file, reached through no symlink
+  ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses),
+  [Annex B](#b-paths-and-git)).
+- A declared analysis can be a git submodule, read as
+  [Annex B](#b-paths-and-git) says. A submodule that declares something
+  outside its own repository, such as its parent with `..`, can be validated
+  and built only from a root whose repository holds what it declares.
 
-### Which universe a reference reads
-
-An unpinned entry of `inputs` reads its output in the universe being built.
-A pinned one, such as `accuracy#svm`, reads it as built in the universe the
-pin names, whichever universe is being built. That is the entry `svm` of the
-file's `universes`, one of the file's analysis's universes or an import, or,
-where the file has no such entry, the universe `svm` of the analysis whose
-element the reference names ([`UNKNOWN_PIN_UNIVERSE`](#validator), §7). A
-pinned output is active in the universe it is pinned to
-([`PIN_INACTIVE`](#validator)). A pin on an input, as on an output built
-once, names a universe and changes nothing else.
-
-## 7. Composition
-
-### Declarations
-
-An analysis declares each analysis it uses in `analyses`, keyed by the id it
-addresses it by ([AnalysisDeclaration](elements/AnalysisDeclaration.md)). The
-declared analysis's elements are then addressed through that id, as
-`<declaration>.<element>` (§4). A declaration has exactly one of `path` and
-`url` ([`INVALID_DECLARATION_SOURCE`](#parse-and-schema)), and may have a
-`commit`, which a `url` needs ([`URL_WITHOUT_COMMIT`](#parse-and-schema)).
-
-**`path`** is the directory of the declared analysis's `astra.yaml`, relative
-to the folder of the declaring `astra.yaml` (§3). It is non-empty and
-doesn't start with `/` ([`INVALID_PATH`](#parse-and-schema)).
-Tidied as §3 says, it doesn't go above the top of the root's working tree
-or, read at a commit, of the repository that holds that commit
-([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)). It is not, and doesn't lie
-in, the `results/` or `.astra/` of an analysis of the stack
-([`RESERVED_PATH`](#validator)), so a run never writes over a declared
-analysis. The directory it names holds an `astra.yaml`
-([`MISSING_DECLARED_ANALYSIS`](#validator)). A declared analysis can be a
-git submodule, read as §3 says. A submodule that declares something outside
-its own repository, such as its parent with `..`, can be validated and built
-only from a root whose repository holds what it declares.
-
-**`url`** is a remote that git fetches another repository from, in one of
-git's two forms: `scheme://…` (`https://github.com/owner/analysis`,
-`ssh://git@host/x.git`, `file:///srv/repo`) or scp-like `[user@]host:path`
-(`git@github.com:owner/repo`). The declared analysis is the one at the top
-level of that repository, at the declaration's `commit`. A bare word or a
-local path (`a`, `owner/repo`, `../repo`) is not a `url`
-([`INVALID_VALUE`](#parse-and-schema)): an analysis in the declaring
-analysis's repository is declared by `path`, and another repository on this
-machine by an explicit `file://` URL. A `url` holds no ASCII space or control
-character ([`INVALID_VALUE`](#parse-and-schema)).
-
-**`commit`** is a full commit id ([`INVALID_COMMIT`](#parse-and-schema)): a
-branch moves, a tag can be moved or name another commit in a fork or a
-mirror, and a shortened id can become ambiguous as a repository grows. A
-declaration with a `commit` declares an analysis from a commit (below).
-
-**Identity.** A declaration names a directory, read at a commit or in the
-working tree. With a `url`, it is the top level of that repository; with a
-`path`, it is the `path` joined to the folder of the declaring `astra.yaml`
-and tidied, as **Reading git** in §3 says. It is read at the declaration's
-`commit` or, without one, as the declaring analysis is read. The root, and
-every analysis reached from it by `path` alone, is read in the working tree.
-At a commit, a path that crosses a gitlink is read in the submodule's
-repository at the commit the gitlink pins (§3). The directory is a path from
-the top of the repository it is read in or, read in the working tree, from the
-top of the root's working tree. Two declarations name the same analysis when
-their directories are the same path, read at the same commit or both in the
-working tree. A URL says only where to get the commit, so a fork or a mirror
-with the same commit gives the same analysis. *Another analysis*, everywhere
-in this specification, is one with a different identity.
+#### One analysis, however it is declared
 
 An analysis, whichever analysis declares it and by whatever id, is one
 analysis: each of its results is made at most once, however many
-declarations reach it. A declaration by `path` alone, or a chain of them,
-that leads back to the declaring analysis's own directory names the analysis
-itself: `self: {path: .}`, say, or `feature_extraction.iris` in the root of
-`examples/iris_pipeline`. An address through it is another spelling of one
-of the analysis's own elements (§4). Consuming uses another analysis's
-elements (below), so such an address consumes nothing, and no key goes
-through it (§6).
+declarations reach it. Two declarations name one analysis when they reach
+the same folder at the same commit, or the same folder of the working tree
+([§17](#17-analyses-from-another-commit-or-repository) gives its identity in
+full).
 
-Declarations by `path` alone can form cycles, such as an analysis declared
-by its parent that declares its parent with `..`, but outputs never depend
-on each other in a cycle ([`OUTPUT_CYCLE`](#validator)). A declaration with
-a `commit` is never part of a cycle, since a commit can only name earlier
-ones.
+- Two addresses written differently that resolve to one element of one
+  analysis are two **spellings** of it. Were the root also to declare
+  `again: {path: subanalysis}`, `again.output1` and `subanalysis.output1`
+  would be one output.
+- A list can name one element under two spellings: they are two entries. In
+  `Output.inputs` and `Output.decisions` each has its own placeholder
+  ([§11](#11-recipes)), and in `Output.inputs` its own recorded input
+  ([§19](#19-records)). Only the same entry written twice is refused
+  ([`DUPLICATE_ENTRY`](#5-the-astrayaml-file)).
+- A declaration by `path` alone, or a chain of them, that leads back to the
+  declaring analysis's own folder names the analysis itself:
+  `self: {path: .}`, say, or `subanalysis.parent` in the root's file, where
+  `subanalysis` declares `parent: {path: ..}`. An address through it is
+  another spelling of one of the analysis's own elements. Consuming uses
+  another analysis's elements, so such an address consumes nothing, and no
+  key goes through it ([§16](#16-driving-and-consuming)).
+- Declarations by `path` alone can form cycles, such as an analysis declared
+  by its parent that declares its parent with `..`, but outputs never depend
+  on each other in a cycle ([`OUTPUT_CYCLE`](#10-outputs)). A declaration with
+  a `commit` is never part of a cycle, since a commit can only name earlier
+  ones.
+- An output never shares its id with a declaration of its analysis, since
+  their results' default places could then be the same
+  ([§18](#18-results-and-where-they-go),
+  [`CLASHING_RESULT_NAME`](#15-declared-analyses)).
 
-### The analysis stack
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `DECLARATION_OUTSIDE_REPOSITORY` | validator | MUST | A declaration's `path`, tidied ([Annex B](#b-paths-and-git)), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit |
+| `MISSING_DECLARED_ANALYSIS` | validator | MUST | The folder a declaration names holds an `astra.yaml` file, reached through no symlink ([Annex B](#b-paths-and-git)) |
+| `CLASHING_RESULT_NAME` | validator | MUST | No output shares its id with a declaration of the same analysis |
 
-The **root** is the analysis being validated or built, and any analysis can
-be the root. Its **analysis stack** is the root and every analysis it
-declares, directly or through other declared analyses. A validator reads
-every `astra.yaml` of the stack, each by the `spec_version` it states
-([`UNSUPPORTED_SPEC_VERSION`](#validator)).
+### 16. Driving and consuming
 
-The universes built are the root's and those named by a pin on an output
-built per universe, in the `inputs` of a planned result's output or in the
-root's evidence (§8). Such a pin names one of the universes of the analysis
-whose file it is in or, through an import or where that file has no entry
-with the pin's id, another analysis's universe (*Imported universes*,
-below). In the root's universes the root is the driver and is never driven,
-even when a declaration in its stack leads back to it. Another analysis's
-universe is used only where such a pin names it, in that analysis's file or
-in another. That analysis is then its only driver: like the root, it is
-never driven in that universe, and what is built there belongs to it (§8).
-Neither the root nor the analysis whose file imports the universe is the
-driver there: a declaration of either in that analysis's file, such as
-`parent: {path: ..}`, leads back to no analysis already on the chain, and is
-an ordinary declaration. Where that analysis's universes drive one of them,
-as the key `parent.decision1` drives a parent, it is driven and built in
-that universe like any other analysis. A validator also checks every other
-universe of the stack (below).
+An analysis uses the elements of another in two ways: it consumes them, and
+its universes can drive the other analysis. Here the root's universes drive
+`subanalysis` by setting its `decision1`:
 
-### Driving and consuming
+<!-- fragment: Analysis -->
+```yaml
+analyses:
+  subanalysis:
+    path: subanalysis
+universes:
+  u1:
+    decisions: {decision1: a, decision2: a, subanalysis.decision1: a}
+```
 
-An analysis uses the elements of another in two ways.
+`u2` and `u3` inherit the key `subanalysis.decision1` from `u1`
+([§12](#12-universes)). So in each of the root's universes, the root's
+`output1` reads `subanalysis.output1` as `subanalysis` builds it with its
+`decision1` set to `a`, and those results belong to the root. A universe's
+keys are in the [field reference](elements/DecisionSelection.md).
+
+#### Consuming
 
 **Consuming** is using an element of another analysis by address: an input
 or an output in `Output.inputs`, a decision in `Output.decisions`, in a
 condition or in a constraint, and an output in evidence. A consumed decision
 has the option selected in the universe being built, so its address never
 takes a pin, and whatever uses it can be built only where the decision's
-analysis is built in that universe ([`NOT_BUILT_IN_UNIVERSE`](#validator)).
+analysis is built in that universe
+([`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming)).
+
+#### Driving
 
 **Driving** is setting another analysis's decisions from one's own
-universes, by flat keys: the decision's address,
+universes, by **flat keys**: the decision's address,
 `<declaration>.<decision>`, through as many declarations as lead to it
-(`classification.classifier`, `stage.inner.d`). The analysis whose
-universes drive is the **driver**, and each analysis reached through a
-declaration they drive (below) is **driven** through that declaration. An
-analysis with no decisions has no key to set, and is driven by being built
-in its driver's universes (below).
+(`subanalysis.decision1`, `stage.inner.d`). The analysis whose universes
+drive is the **driver**, and each analysis reached through a declaration they
+drive is **driven** through that declaration. An analysis with no decisions
+has no key to set, and is driven by being built in its driver's universes.
 
-An analysis's universes **drive** a declaration when a key in the effective
-selection (§6) of any of them goes through every declaration from the
-analysis's file to that one, and a declaration they drive is driven in every
-one of them. A key that loops ([`LOOPING_KEY`](#validator)) drives no
-declaration. The key `stage.inner.d` drives the driver's `stage` and, through
-it, `stage`'s `inner`, but not an `inner` that the driver's file declares
-itself: each chain of declarations from the driver's file (`stage`,
-`stage.inner`, `inner`) is driven on its own. Two chains that end in one
-declaration, such as `stage.lib` and `stage_undriven.lib` where `stage` and
-`stage_undriven` declare one directory, are driven on their own too, and an
-address or a reference is judged on its own chain. A declaration of an
-analysis with no decisions is driven when the chain before it is, and so
-whenever the driver's file declares it, unless the declaration leads back to
-an analysis already on the chain, the declaring analysis itself included
-(`self: {path: .}`). Such an analysis's outputs built per universe (§6) are
-then built in each of the driver's universes where they are planned (§8), and
-those results belong to the driver, while its outputs built once still belong
-to it. Universes of its own don't change this. They are built only where it is
-the driver: when it is the root, or where one of them is among the universes
-built (*The analysis stack*, above).
+- A key resolves through its declarations to one decision: an analysis,
+  known by its identity
+  ([§17](#17-analyses-from-another-commit-or-repository)), and the decision's
+  id in it. A universe's own `decisions` give each decision one key, and a
+  derived universe sets a decision it inherits only under the key it inherits
+  ([§12](#12-universes)): two keys that spell one decision break
+  [`DUPLICATE_ELEMENT`](#16-driving-and-consuming), even when they select the
+  same option.
+- No key goes through a declaration that leads back to an analysis already
+  on its chain, the universe's analysis included
+  ([`LOOPING_KEY`](#16-driving-and-consuming)). So the analysis's own
+  decisions are keyed by their ids alone, and where `stage` declares
+  `again: {path: .}`, `stage.d` is never written `stage.again.d`.
+
+**Which declarations are driven.** An analysis's universes **drive** a
+declaration when a key in the effective selection ([§12](#12-universes)) of
+any of them goes through every declaration from the analysis's file to that
+one, and a declaration they drive is driven in every one of them. A key that
+loops ([`LOOPING_KEY`](#16-driving-and-consuming)) drives no declaration.
+
+- Each chain of declarations from the driver's file, such as `stage`,
+  `stage.inner` and `inner`, is driven on its own. The key `stage.inner.d`
+  drives the driver's `stage` and, through it, `stage`'s `inner`, but not an
+  `inner` that the driver's file declares itself. Two chains that end in one
+  declaration, such as `stage.lib` and `stage_undriven.lib` where `stage` and
+  `stage_undriven` declare one folder, are driven on their own too, and an
+  address or a reference is judged on its own chain.
+- A declaration of an analysis with no decisions is driven when the chain
+  before it is, and so whenever the driver's file declares it, unless the
+  declaration leads back to an analysis already on the chain, the declaring
+  analysis itself included (`self: {path: .}`). Such an analysis's outputs
+  built per universe are then built in each of the driver's universes where
+  they are planned ([§18](#18-results-and-where-they-go)), and those results
+  belong to the driver, while its outputs built once still belong to it.
+  Universes of its own don't change this. They are built only where it is the
+  driver: when it is the root, or where one of them is among the universes
+  built (below).
+
+**What a universe sets.**
 
 - Every universe sets every active decision of every analysis reached
   through a declaration that its analysis's universes drive
-  ([`MISSING_DECISION`](#validator)), whichever of them has the key that
-  drives it. A universe in which `when` switches off every decision of a
-  driven analysis sets nothing for it.
+  ([`MISSING_DECISION`](#16-driving-and-consuming)), whichever of them has
+  the key that drives it. A universe in which `when` switches off every
+  decision of a driven analysis sets nothing for it.
 - Driving is judged on the effective selections, so a key a derived universe
   inherits counts as one it sets.
 - An analysis reached through two driven declarations can have a decision
   set under either spelling (`stage.inner.d` or `inner.d`), but a universe
-  sets it under one key, a derived universe that inherits it under the key
-  it inherits ([`DUPLICATE_ELEMENT`](#validator)).
-- In a universe being built, a driven analysis's own universes don't set
-  its decisions. A pin naming one of them still reads it: in its own file,
-  or in another through an import or, for one of its own elements, where
-  that file has no entry with the pin's id (below). Each universe being
-  built has one driver, the analysis whose universe it is.
+  sets it under one key, a derived universe that inherits it under the key it
+  inherits ([`DUPLICATE_ELEMENT`](#16-driving-and-consuming)).
+- In a universe being built, a driven analysis's own universes don't set its
+  decisions. A pin naming one of them still reads it: in its own file, or in
+  another through an import or, for one of its own elements, where that file
+  has no entry with the pin's id (below). Each universe being built has one
+  driver, the analysis whose universe it is.
 
-A validator still checks every universe of every analysis of the stack, a
-driven analysis's own included. Each universe's selections are held to §6
-and to driving ([`UNRESOLVED_ADDRESS`](#validator),
-[`UNKNOWN_OPTION`](#validator), [`DUPLICATE_ELEMENT`](#validator),
-[`LOOPING_KEY`](#validator), [`UNKNOWN_DERIVED_FROM`](#validator),
-[`DERIVED_FROM_CYCLE`](#validator), [`MISSING_DECISION`](#validator),
-[`INACTIVE_DECISION`](#validator),
-[`MISSING_REQUIRED_OPTION`](#validator),
-[`INCOMPATIBLE_OPTIONS`](#validator),
-[`EXCLUDED_OPTION_SELECTED`](#validator)). The declarations driven in a
-universe are those its analysis's universes drive, as above, a declaration
-back to the root included; checking a universe builds nothing, so the root
-stays undriven in its own universes. Where the root drives `sub`, a
-universe of `sub`'s own that leaves one of `sub`'s active decisions unset
-breaks `MISSING_DECISION`, though the root's universes don't use it. The
-rules on the universe being built (below:
-[`NOT_BUILT_IN_UNIVERSE`](#validator), [`UNDRIVEN_DECLARATION`](#validator),
-[`INPUT_NOT_BUILT`](#validator)) hold only in the universes built, as
-[`RESULT_IN_TWO_PLACES`](#validator) does (§8), and for an output only where
-its result is planned or, for its `when`, would be if the `when` held.
-
-Driving leaves an analysis able to stand alone, and consuming a decision ties
-the outputs that use it to the decision's analysis. By convention, a
+Driving leaves an analysis able to stand alone, and consuming a decision
+ties the outputs that use it to the decision's analysis. By convention, a
 decision that matters to one analysis is driven, and one shared by several,
 such as the seed of a whole stack, is consumed.
 
-### Imported universes
-
-An import (§6) names one of another analysis's universes under an id of the
-importing file. It resolves in its file by identity (*Declarations*, above),
-so it names one universe under every root. Its `analysis` can lead to any
-analysis the file's declarations reach: one below, its parent through `..`,
-a sibling through the parent, or an analysis from a commit. That is another
-analysis than the file's own, and its `universe` is one of that analysis's
-universes, never an import in its file
-([`UNRESOLVED_ADDRESS`](#validator)).
-
-- An import selects nothing and drives nothing. No selection rule (§6)
-  checks it in the importing analysis, and no `derived_from` names it
-  ([`UNKNOWN_DERIVED_FROM`](#validator)). The universe it names is checked
-  as a universe of its own analysis (*Driving and consuming*, above).
-- In the universe an import names, that universe's analysis is the only
-  driver (*The analysis stack*, above). The importing analysis doesn't drive
-  it, and what is built there belongs to the universe's analysis, under the
-  universe's own id (§8). The importing analysis is built there only where
-  that universe drives it, as a key `parent.d` drives a parent.
-- An imported universe is built where it is among the universes built (*The
-  analysis stack*, above). Imports of one universe, in one file or several and
-  under any ids, name that one universe, which is built once.
-
-Where a pin's file has no entry with its id, the pin names the universe
-with that id of the analysis whose element the reference names (*The
-universe being built*, below), and all of the bullets above hold of that
-universe. So an import is needed only where the file has an entry with the
-universe's id, or for a universe of another analysis than the one whose
-element the reference names, such as `stage`'s for `stage.lib.out`.
-
-<!-- fragment: Analysis -->
-```yaml
-analyses:
-  catalog: {path: catalog}
-outputs:
-  comparison:
-    type: table
-    format: csv
-    inputs:
-      - catalog.table#main
-      - catalog.table#catalog_main
-      - catalog.table#alone
-    recipe:
-      command: python make.py '{output}'
-universes:
-  main:
-    decisions: {catalog.cut: strict}   # the root's universe: it drives catalog
-  catalog_main:                        # catalog's own universe main, imported
-    analysis: catalog
-    universe: main
-```
-
-In this root, `catalog.table#main` reads `catalog`'s output as the root
-builds it in its `main`, where the root's universes drive `catalog`, and the
-result belongs to the root. `catalog.table#catalog_main` reads it as
-`catalog` builds it in its own `main`, and `catalog.table#alone`, since the
-root has no `alone`, as `catalog` builds it in its own `alone`. Those two
-results belong to `catalog`, whichever file reads them.
-
-An earlier commit's results are read the same way. Where the declaration
-`previous` names the analysis's own directory at a commit, its universes
-often have the ids of the analysis's own. If both have a `fast`,
-`previous.counts#fast` names the analysis's own `fast`. Where `previous` has
-decisions and no key of the analysis's universes goes through it, the
-analysis doesn't build `previous` in its `fast`: a planned result's output
-that reads `counts`, built per universe, through this pin breaks
-[`UNDRIVEN_DECLARATION`](#validator) and
-[`NOT_BUILT_IN_UNIVERSE`](#validator). With the import
-`previous_fast: {analysis: previous, universe: fast}`,
-`previous.counts#previous_fast` reads `counts` as it was built in `fast` at
-that commit, through its record, and no recipe runs (*Analyses from a
-commit*, below).
-
-### The universe being built
+#### The universe being built
 
 A universe is named by its analysis and its id, since the same id can name a
 universe in several analyses. When an analysis is built in one of its
-universes, that universe is pushed through every declaration the analysis's
-universes drive: it is the universe being built in every analysis they reach.
-An unpinned entry of `inputs` reads its output in that universe, a pinned
+universes, that universe is the **universe being built** in the analysis and
+in every analysis reached through a declaration its universes drive. There,
+an unpinned entry of `inputs` reads its output in that universe, a pinned
 one in the universe its pin names (below), and a consumed decision has the
-option that universe selects. So, wherever the output of a result planned in
-the universe being built (§8) reads an output built per universe without a
-pin, or consumes a decision, wherever the output of a planned result, or the
-root's evidence, pins an output built per universe to the universe being
-built, wherever an output's `when` consumes a decision where the output's
-result would be planned if the `when` held, and wherever, in an analysis
-built in that universe, a decision's `when` or a constraint consumes one:
+option that universe selects.
 
-1. The analysis it belongs to is built in the universe being built
-   ([`NOT_BUILT_IN_UNIVERSE`](#validator)). The analysis whose universe is
-   being built is always built in it, so an analysis it drives can consume
-   its decisions and read its outputs back through `..`, as
-   `feature_extraction/astra.yaml` consumes `iris.random_seed` (§4).
+The **universes built** are the root's and those named by a pin on an output
+built per universe, in the `inputs` of a planned result's output or in the
+root's evidence ([§18](#18-results-and-where-they-go)). Such a pin names one
+of the universes of the analysis whose file it is in or, through an import
+or where that file has no entry with the pin's id, another analysis's
+universe (below).
+
+- In the root's universes the root is the driver and is never driven, even
+  when a declaration in its stack leads back to it.
+- Another analysis's universe is used only where such a pin names it, in
+  that analysis's file or in another. That analysis is then its only driver:
+  like the root, it is never driven in that universe, and what is built there
+  belongs to it ([§18](#18-results-and-where-they-go)).
+- Neither the root nor the analysis whose file imports the universe is the
+  driver there: a declaration of either in that analysis's file, such as
+  `parent: {path: ..}`, leads back to no analysis already on the chain, and
+  is an ordinary declaration. Where that analysis's universes drive one of
+  them, as the key `parent.decision1` drives a parent, it is driven and built
+  in that universe like any other analysis.
+
+In the universe being built, two rules hold wherever:
+
+- the output of a result planned there reads an output built per universe
+  without a pin, or consumes a decision;
+- the output of a planned result, or the root's evidence, pins an output
+  built per universe to the universe being built;
+- an output's `when` consumes a decision where the output's result would be
+  planned if the `when` held;
+- in an analysis built in that universe, a decision's `when` or a constraint
+  consumes one.
+
+The rules are:
+
+1. The analysis that the output or the decision belongs to is built in the
+   universe being built
+   ([`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming)). The analysis
+   whose universe is being built is always built in it, so an analysis it
+   drives can consume its decisions and read its outputs back through `..`:
+   where `subanalysis` declares `parent: {path: ..}`, it can consume the
+   root's `decision1` as `parent.decision1`.
 2. In the file of the analysis whose universe is being built, the file's
    universes drive the chain of each such address of another analysis, from
    the file's declaration to the address's last
-   ([`UNDRIVEN_DECLARATION`](#validator)). Uses in other files come under
-   the first rule alone.
+   ([`UNDRIVEN_DECLARATION`](#16-driving-and-consuming)). Uses in other files
+   come under the first rule alone.
 
 An output built once has one result, so it is read without a pin from any
-universe, through any declaration. And every output that the output of a
-result planned in the universe being built reads without a pin, of the
-analysis itself or of another, is active there
-([`INPUT_NOT_BUILT`](#validator)).
+universe, through any declaration. What is built in a driver's universes
+belongs to the driver ([§18](#18-results-and-where-they-go)).
+
+#### Pins and imported universes
 
 A pin `#u` resolves in the file it is written in, whatever drives that
 file's analysis, so what it names is the same under every root:
 
-- Where the file's `universes` has an entry `u`, the pin names it: one of
-  the file's analysis's universes, or the universe an import there names
-  (*Imported universes*, above).
+- Where the file's `universes` has an entry `u`, the pin names it: one of the
+  file's analysis's universes, or the universe an import there names.
 - Where it has no entry `u`, the pin names the universe `u` of the analysis
   whose element the reference names, as an import of it would: one of that
   analysis's universes, never an import in its file.
 - Where that analysis has no universe `u` either, as for an element of the
   file's own analysis, the pin names nothing
-  ([`UNKNOWN_PIN_UNIVERSE`](#validator)).
+  ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
 
 So adding or removing an entry `u` in a file's `universes` can change what a
 pin `#u` in that file names. A pin that names one of its file's universes is
 in the driver's file, so both rules above hold it. One that names another
 analysis's universe is not, so the first rule alone holds it.
 
-In this root, `inner.result#u1` reads `inner`'s output as the root builds it
-in its `u1`. The root has no `v1`, so `inner.result#v1` reads it as `inner`
-builds it in its own `v1`. The root has a `u1` of its own, so it reads
-`inner`'s `u1` through an import, as `inner.result#inner_u1`:
+The universe an import ([§12](#12-universes)) names is an **imported
+universe** of the importing file, which a pin there names by the import's
+id. An import resolves in its file by identity, so it names one universe
+under every root. Its `analysis` can lead to any analysis the file's
+declarations reach: one below, its parent through `..`, a sibling through
+the parent, or an analysis from a commit
+([§17](#17-analyses-from-another-commit-or-repository)). That is another
+analysis than the file's own, and its `universe` is one of that analysis's
+universes, never an import in its file
+([`UNRESOLVED_ADDRESS`](#6-names)).
 
-```yaml
-spec_version: "0.1.0"
-analyses:
-  inner: {path: stage/inner}            # the root's universes set inner.d
-outputs:
-  in_root_u1:
-    type: metric
-    format: json
-    inputs: [inner.result#u1]           # the root's universe u1
-    recipe:
-      command: python make.py '{output}'
-  in_inner_v1:
-    type: metric
-    format: json
-    inputs: [inner.result#v1]           # inner's own v1: the root has no v1
-    recipe:
-      command: python make.py '{output}'
-  in_inner_u1:
-    type: metric
-    format: json
-    inputs: [inner.result#inner_u1]     # inner's own u1, imported
-    recipe:
-      command: python make.py '{output}'
-universes:
-  u1:
-    decisions:
-      inner.d: d1                       # a flat key: inner's decision d
-  inner_u1:                             # an import of inner's universe u1
-    analysis: inner
-    universe: u1
-```
+- An import selects nothing and drives nothing. No selection rule
+  ([§12](#12-universes)) checks it in the importing analysis, and no
+  `derived_from` names it ([`UNKNOWN_DERIVED_FROM`](#12-universes)). The
+  universe it names is checked as a universe of its own analysis (below).
+- In the universe an import names, that universe's analysis is the only
+  driver (above). The importing analysis doesn't drive it, and what is built
+  there belongs to the universe's analysis, under the universe's own id
+  ([§18](#18-results-and-where-they-go)). The importing analysis is built
+  there only where that universe drives it, as a key `parent.d` drives a
+  parent.
+- An imported universe is built where it is among the universes built
+  (above). Imports of one universe, in one file or several and under any ids,
+  name that one universe, which is built once.
 
-In a file with no `v1`, `stage.lib.out#v1` names `lib`'s `v1`, since `out`
-is `lib`'s output. Where `stage`'s universes drive `lib`, the file reads
-`out` as `stage` builds it in its own `v1` by importing that universe,
-`stage_v1: {analysis: stage, universe: v1}`, and pinning
-`stage.lib.out#stage_v1`.
+Where a pin's file has no entry with its id, the pin names the universe with
+that id of the analysis whose element the reference names, and all of the
+bullets above hold of that universe. So an import is needed only where the
+file has an entry with the universe's id, or for a universe of another
+analysis than the one whose element the reference names, such as `stage`'s
+for `stage.lib.out`.
 
-A second declaration of the same directory,
-`inner_undriven: {path: stage/inner}`, which no key of the root's universes
-goes through, is judged on its own chain (*Driving and consuming*, above),
-so it isn't driven. A read through it in one of the root's universes,
-without a pin or pinned to one of them, breaks
-[`UNDRIVEN_DECLARATION`](#validator):
+Where `subanalysis` has universes of its own, `u1` and `v1`, this root reads
+its `output1` in three universes:
 
 <!-- fragment: Analysis -->
 ```yaml
+analyses:
+  subanalysis:
+    path: subanalysis
 outputs:
-  in_root:
-    type: metric
-    format: json
-    inputs: [inner_undriven.result]       # UNDRIVEN_DECLARATION
+  output5:
+    type: table
+    format: csv
+    inputs:
+      - subanalysis.output1#u1               # the root's u1
+      - subanalysis.output1#subanalysis_u1   # subanalysis's own u1, imported
+      - subanalysis.output1#v1               # subanalysis's own v1
     recipe:
       command: python make.py '{output}'
-  in_root_pinned:
+universes:
+  u1:                                        # the root's u1 drives subanalysis
+    decisions: {decision1: a, decision2: a, subanalysis.decision1: a}
+  subanalysis_u1:                            # an import of subanalysis's u1
+    analysis: subanalysis
+    universe: u1
+```
+
+- `subanalysis.output1#u1` reads `subanalysis`'s output as the root builds it
+  in its `u1`, where the root's universes drive `subanalysis`, and the result
+  belongs to the root.
+- `subanalysis.output1#subanalysis_u1` reads it as `subanalysis` builds it
+  in its own `u1`.
+- `subanalysis.output1#v1`, since the root has no `v1`, reads it as
+  `subanalysis` builds it in its own `v1`.
+- Those last two results belong to `subanalysis`, whichever file reads them.
+
+In a file with no `v1`, `stage.lib.out#v1` names `lib`'s `v1`, since `out` is
+`lib`'s output. Where `stage`'s universes drive `lib`, the file reads `out`
+as `stage` builds it in its own `v1` by importing that universe,
+`stage_v1: {analysis: stage, universe: v1}`, and pinning
+`stage.lib.out#stage_v1`.
+
+**A second declaration of one folder.** In the root above, a second
+declaration of the same folder, `undriven: {path: subanalysis}`, which no
+key of the root's universes goes through, is judged on its own chain, so it
+isn't driven. A read through it in one of the root's universes, without a
+pin or pinned to one of them, breaks
+[`UNDRIVEN_DECLARATION`](#16-driving-and-consuming):
+
+<!-- fragment: Analysis -->
+```yaml
+analyses:
+  subanalysis:
+    path: subanalysis
+  undriven:
+    path: subanalysis
+outputs:
+  output6:
     type: metric
     format: json
-    inputs: [inner_undriven.result#u1]    # UNDRIVEN_DECLARATION
+    inputs:
+      - undriven.output1      # UNDRIVEN_DECLARATION
+      - undriven.output1#u1   # UNDRIVEN_DECLARATION
     recipe:
       command: python make.py '{output}'
 ```
 
 The address's whole chain decides, up to its last declaration. Where the
 root's universes drive `stage.inner` but not `stage`'s second declaration
-`inner_undriven`, `stage.inner_undriven.result` read in the root's file,
-without a pin or pinned to one of the root's universes, breaks
-[`UNDRIVEN_DECLARATION`](#validator) too, though the root drives `stage`.
-So does `stage_undriven.inner.result`, where the root's `stage_undriven`
-declares `stage`'s directory a second time, though the root drives
-`stage.inner`.
+`inner_undriven`, `stage.inner_undriven.out` read in the root's file, without
+a pin or pinned to one of the root's universes, breaks
+[`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) too, though the root
+drives `stage`. So does `stage_undriven.inner.out`, where the root's
+`stage_undriven` declares `stage`'s folder a second time, though the root
+drives `stage.inner`.
 
-What is built in a driver's universes belongs to the driver (§8).
+#### What a validator checks
 
-### Analyses from a commit
+A validator checks every universe of every analysis of the stack, a driven
+analysis's own included. Each universe's selections are held to
+[§12](#12-universes) and to driving ([`UNRESOLVED_ADDRESS`](#6-names),
+[`UNKNOWN_OPTION`](#8-decisions-and-options),
+[`DUPLICATE_ELEMENT`](#16-driving-and-consuming),
+[`LOOPING_KEY`](#16-driving-and-consuming),
+[`UNKNOWN_DERIVED_FROM`](#12-universes),
+[`DERIVED_FROM_CYCLE`](#12-universes),
+[`MISSING_DECISION`](#16-driving-and-consuming),
+[`INACTIVE_DECISION`](#12-universes),
+[`MISSING_REQUIRED_OPTION`](#12-universes),
+[`INCOMPATIBLE_OPTIONS`](#12-universes),
+[`EXCLUDED_OPTION_SELECTED`](#12-universes)).
+
+- The declarations driven in a universe are those its analysis's universes
+  drive, as above, a declaration back to the root included; checking a
+  universe builds nothing, so the root stays undriven in its own universes.
+  Where the root drives `subanalysis`, a universe of `subanalysis`'s own
+  that leaves its active `decision1` unset breaks
+  [`MISSING_DECISION`](#16-driving-and-consuming), though the root's
+  universes don't use it.
+- The rules on the universe being built
+  ([`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
+  [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming),
+  [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once)) hold
+  only in the universes built, as
+  [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) does, and for an
+  output only where its result is planned or, for its `when`, would be if the
+  `when` held.
+- Reached through two chains of driven declarations, such as `inner` and
+  `stage.inner` when keys go through both, a result is made once, and placed
+  and recorded under each of its names, though a planned result should have
+  one ([`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming)).
+  [§18](#18-results-and-where-they-go) says where it is reported.
+
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `NOT_BUILT_IN_UNIVERSE` | validator | MUST | Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the root's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe |
+| `DUPLICATE_ELEMENT` | validator | MUST | No universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit |
+| `LOOPING_KEY` | validator | MUST | No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included |
+| `MISSING_DECISION` | validator | MUST | Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that its analysis's universes drive |
+| `UNDRIVEN_DECLARATION` | validator | MUST | In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, by which the output of a planned result or the root's evidence pins another analysis's output built per universe to that universe, or by which the output of a result planned there, an output's `when` where the output's result would be planned if the `when` held, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain) |
+| `UNKNOWN_PIN_UNIVERSE` | validator | MUST | Every pin in an `astra.yaml` names an entry of that file's `universes` or, where the file has no entry with its id, a universe of the analysis whose element its reference names |
+| `RESULT_IN_TWO_PLACES` | validator | SHOULD | No planned result has two names: its output's analysis is reached through at most one chain of driven declarations from the analysis the result belongs to ([§18](#18-results-and-where-they-go)) |
+
+### 17. Analyses from another commit or repository
 
 A declaration with a `commit` names an **analysis from a commit**: the
-declared analysis as it was at that commit. With a `url`, it is the analysis
-at the top level of that repository at the commit. With a `path`, it is the
-analysis at that path at the commit, which the repository that holds the
-declaring `astra.yaml` has ([`COMMIT_NOT_FOUND`](#validator) or, in a file
-read from a remote, [`REMOTE_UNREACHABLE`](#validator)) and which should be an
-ancestor of the commit the declaration is in or, for a declaration read in the
-working tree, of HEAD ([`COMMIT_NOT_ANCESTOR`](#validator)). It is read from
-the local repository or, when the declaring analysis is itself read from a
-remote, from that remote, and each submodule it reaches through a gitlink as
-§3 says. Every rule of this specification applies to an analysis from a commit
-as it is, with its files read at its commit. Its results are those that belong
-to it or to an analysis reached from it through declarations, each read at the
-commit its analysis is read at.
+declared analysis as it was at that commit. With a `url` in place of a
+`path`, it comes from another repository. Here the root declares
+`subanalysis`, in its own repository, and `remote`, an analysis of another
+repository at a commit:
 
-**Identity.** An analysis from a commit is its directory at its commit,
-whatever URL it is got from, as **Identity** under Declarations says (above).
+<!-- fragment: Analysis -->
+```yaml
+analyses:
+  subanalysis:
+    path: subanalysis
+  remote:
+    url: https://example.org/remote.git
+    commit: <commit>
+```
 
-**What is read.** An analysis from a commit is read from git at its commit,
-each file as the blob git stores (§3). Unless it is driven, none of its code
-runs.
+`remote`'s `output1` is built once, so an output of the root reads it as
+`remote.output1`, without a pin. Its result is read through its record at
+that commit, and none of `remote`'s recipes runs.
 
-**Validity.** The declared analysis, with everything it declares, is valid
-at its commit ([`DECLARED_ANALYSIS_INVALID`](#validator)), each `astra.yaml`
-read by the `spec_version` it states. A rule broken inside an analysis from a
-commit is reported twice: `DECLARED_ANALYSIS_INVALID` on the declaration, in
-the file the author can edit, and the rule's own code at its place in the
-commit's file, which says why. A rule broken in the root, or in an analysis
-reached from it by `path` alone, is reported once, under its own code.
+- A declaration has exactly one of `path` and `url`
+  ([`INVALID_DECLARATION_SOURCE`](#17-analyses-from-another-commit-or-repository)),
+  and may have a `commit`, which a `url` needs
+  ([`URL_WITHOUT_COMMIT`](#17-analyses-from-another-commit-or-repository)).
+  Its fields are in the [field reference](elements/AnalysisDeclaration.md).
+- `url` is a remote that git fetches another repository from, in one of
+  git's two forms: `scheme://…` (`https://example.org/remote.git`,
+  `ssh://git@example.org/remote.git`, `file:///srv/remote.git`) or scp-like
+  `[user@]host:path` (`git@example.org:remote.git`). The declared analysis is
+  the one at the top level of that repository, at the declaration's `commit`.
+- A bare word or a local path (`a`, `owner/repo`, `../repo`) is not a `url`
+  ([`INVALID_VALUE`](#5-the-astrayaml-file)): an analysis in the declaring
+  analysis's repository is declared by `path`, and another repository on this
+  machine by an explicit `file://` URL. A `url` holds no ASCII space or
+  control character ([`INVALID_VALUE`](#5-the-astrayaml-file)).
+- `commit` is a full commit id
+  ([`INVALID_COMMIT`](#17-analyses-from-another-commit-or-repository)): a
+  branch moves, a tag can be moved or name another commit in a fork or a
+  mirror, and a shortened id can become ambiguous as a repository grows.
+- With a `path` and a `commit`, the declared analysis is the analysis at that
+  path at the commit. The repository that holds the declaring `astra.yaml`
+  has that commit
+  ([`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) or,
+  in a file read from a remote,
+  [`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository)),
+  which should be an ancestor of the commit the declaration is in or, for a
+  declaration read in the working tree, of HEAD
+  ([`COMMIT_NOT_ANCESTOR`](#17-analyses-from-another-commit-or-repository)).
+  It is read from the local repository or, when the declaring analysis is
+  itself read from a remote, from that remote, and each submodule it reaches
+  through a gitlink as [Annex B](#b-paths-and-git) says.
+- So the folder a declaration with a `commit` names is read at that commit,
+  and the folder a `url` names is the top level of its repository. That
+  folder holds an `astra.yaml` file
+  ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)).
+
+#### Identity
+
+An analysis is known by its folder at a commit, or by its folder in the
+working tree. Two declarations name the same analysis when their folders are
+the same path, read at the same commit or both in the working tree.
+
+- A declaration's folder is, with a `url`, the top level of that repository
+  and, with a `path`, the `path` joined to the folder of the declaring
+  `astra.yaml` and tidied as text ([Annex B](#b-paths-and-git)).
+- It is read at the declaration's `commit` or, without one, as the declaring
+  analysis is read. The root, and every analysis reached from it by `path`
+  alone, is read in the working tree.
+- At a commit, a path that crosses a gitlink is read in the submodule's
+  repository at the commit the gitlink pins ([Annex B](#b-paths-and-git)).
+  So a path to the top of a submodule, read at a commit, names the same
+  analysis as a `url` declaration of the submodule's repository at the commit
+  the gitlink pins. A checked-out submodule read in the working tree is an
+  analysis of the working tree, since it may differ from the commit the
+  gitlink pins.
+- The folder is a path from the top of the repository it is read in or, read
+  in the working tree, from the top of the root's working tree.
+- A URL says only where to get the commit, so a fork or a mirror with the
+  same commit gives the same analysis: an analysis from a commit is its
+  folder at its commit, whatever URL it is got from.
+
+*Another analysis*, everywhere in this specification, is one with a
+different identity.
+
+#### What is read, and validity
+
+- Every rule of this specification applies to an analysis from a commit as
+  it is, with its files read at its commit, each file as the blob git stores
+  ([Annex B](#b-paths-and-git)). Unless it is driven, none of its code runs.
+- Its results are those that belong to it or to an analysis reached from it
+  through declarations, each read at the commit its analysis is read at
+  ([§20](#20-checking-results)).
+- The declared analysis, with everything it declares, is valid at its commit
+  ([`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)),
+  each `astra.yaml` read by the `spec_version` it states.
+- A rule broken inside an analysis from a commit is reported twice:
+  [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
+  on the declaration, in the file the author can edit, and the rule's own
+  code at its place in the commit's file, which says why. A rule broken in
+  the root, or in an analysis reached from it by `path` alone, is reported
+  once, under its own code.
+
+#### Getting a commit from a remote
+
 Getting a commit from a remote is checked apart from that validity
-([`REMOTE_UNREACHABLE`](#validator)). A commit is got from a remote when it
-is a declaration's `url` and `commit`, a `path` and `commit` declared in a
-file read from a remote, or the commit a gitlink pins, crossed at a commit
-(§3). The remote is the `url`, the remote the file was read from, or the
-submodule's URL (§3). A commit kept from an earlier fetch counts as got.
+([`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository)). A
+commit is got from a remote when it is:
+
+- a declaration's `url` and `commit`;
+- a `path` and `commit` declared in a file read from a remote;
+- the commit a gitlink pins, crossed at a commit
+  ([Annex B](#b-paths-and-git)).
+
+The remote is the `url`, the remote the file was read from, or the
+submodule's URL ([Annex B](#b-paths-and-git)). A commit kept from an earlier
+fetch counts as got.
 
 A commit that can't be got is an error on one declaration in a file outside
 every analysis from a commit, read in the working tree, which the author can
 edit: the declaration of the outermost analysis from a commit on the way to
 it. It is reported once for each such declaration, so two declarations of
-one commit get one report each. Where the root declares `sub` by `path`,
-`sub` declares `upstream` by `url`, and `upstream` declares `nested` by
-`url`, if `nested`'s commit can't be got, the error is on `sub`'s
-declaration of `upstream`. A published analysis SHOULD declare only remotes
-its readers can fetch.
+one commit get one report each. Where the root declares `subanalysis` by
+`path`, `subanalysis` declares `upstream` by `url`, and `upstream` declares
+`nested` by `url`, if `nested`'s commit can't be got, the error is on
+`subanalysis`'s declaration of `upstream`.
 
-**Use.** Unless it is driven, none of the recipes of an analysis from a
-commit run ([`REBUILT_FROM_COMMIT`](#runner)), so the rules above let it
-give only its outputs in its own universes, pinned (`upstream.summary#u1`,
-in a file with no entry `u1`, or through an import), its outputs built once
-(`upstream.stage.report`), and its inputs (`upstream.data`). Evidence cites
-its results in the same way. One with no decisions is driven wherever the
-chain before its declaration is (above). Driven or not, its results in its
-own universes belong to it and are read through their records, and no
-recipe runs in those universes, since every result there belongs to it
-([`REBUILT_FROM_COMMIT`](#runner)). An address that doesn't exist in the
+#### Using one
+
+Unless it is driven, none of the recipes of an analysis from a commit run
+([`REBUILT_FROM_COMMIT`](#21-runners)), so the rules above let it give only:
+
+- its outputs in its own universes, pinned, in a file with no entry with the
+  pin's id or through an import;
+- its outputs built once, such as `remote.output1`;
+- its inputs.
+
+Evidence cites its results in the same way. One with no decisions is driven
+wherever the chain before its declaration is
+([§16](#16-driving-and-consuming)). Driven or not, its results in its own
+universes belong to it and are read through their records, and no recipe
+runs in those universes, since every result there belongs to it
+([`REBUILT_FROM_COMMIT`](#21-runners)). An address that doesn't exist in the
 declared analysis is an error in the declaring one
-([`UNRESOLVED_ADDRESS`](#validator)).
+([`UNRESOLVED_ADDRESS`](#6-names)).
 
-**Results.** A result of an analysis from a commit is read through its record
-at the declared commit, in the analysis the result belongs to (§8), in the
-repository that holds that analysis at the commit it is read at (§3). If the
-declared analysis itself declares an analysis from a commit, that analysis's
-records are read in its own repository, at the commit named for it. A result
-can be read only once its record is committed, so the declaration names a
-commit that holds the records, `B`, later than the commit their recipes ran
-from, `A`, which the records name.
-The result is unchanged if nothing that [`STALE_RESULT`](#check) compares
-changed between `A` and `B`, and the results it was made from are unchanged
-too. Their content hashes are taken from their records, without their
-bytes. When a recipe reads the result, the runner gets its bytes from what
-the declared commit holds at the result's default place, or through
-something there it recognises as standing in for them (§5), and they are
-checked against the record. An input of the declared analysis read by
-address is got from its `path` at the declared commit, in the repository
-that holds the declared analysis (§3), or through what the runner recognises
-as standing in for it (§5).
+When a recipe reads such a result, the runner gets its bytes from what the
+declared commit holds at the result's default place, or through something
+there it recognises as standing in for them ([§7](#7-inputs)), and they are
+checked against the record ([`STALE_INPUT`](#21-runners)). An input of the
+declared analysis read by address is got from its `path` at the declared
+commit, in the repository that holds the declared analysis
+([Annex B](#b-paths-and-git)), or through what the runner recognises as
+standing in for it ([§7](#7-inputs)).
 
-**Driving.** A driver's universes can drive an analysis from a commit, as any
-declared analysis. Its recipes then run on exactly its files at the declared
-commit ([`NOT_AT_COMMIT`](#runner)). Its outputs built once aren't built:
-like the rest of its results, they are read through their records at the
-declared commit ([`REBUILT_FROM_COMMIT`](#runner)). Only what the driver's
-universes build is built. It belongs to the driver, and its records name the
-driver's commit, where the declaration says which commit the driven analysis
-is from and, for a remote, where to get it.
+An earlier commit's results are read the same way. Where the declaration
+`previous` names the analysis's own folder at a commit, its universes often
+have the ids of the analysis's own. If both have a `u1`,
+`previous.output1#u1` names the analysis's own `u1`. Where `previous` has
+decisions and no key of the analysis's universes goes through it, the
+analysis doesn't build `previous` in its `u1`: a planned result's output
+that reads `output1`, built per universe, through this pin breaks
+[`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) and
+[`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming). With this import,
+`previous.output1#previous_u1` reads `output1` as it was built in `u1` at
+that commit, through its record, and no recipe runs:
 
-## 8. Results and records
+<!-- fragment: Analysis -->
+```yaml
+analyses:
+  previous:
+    path: .
+    commit: <commit>
+universes:
+  previous_u1:                 # previous's own u1, imported
+    analysis: previous
+    universe: u1
+```
 
-### Results
+#### Driving one
+
+A driver's universes can drive an analysis from a commit, as any declared
+analysis. Its recipes then run on exactly its files at the declared commit
+([`NOT_AT_COMMIT`](#21-runners)). Its outputs built once aren't built: like
+the rest of its results, they are read through their records at the
+declared commit ([`REBUILT_FROM_COMMIT`](#21-runners)). Only what the
+driver's universes build is built. It belongs to the driver, and its records
+name the driver's commit, where the declaration says which commit the driven
+analysis is from and, for a remote, where to get it.
+
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` |
+| `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` |
+| `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits |
+| `COMMIT_NOT_FOUND` | validator | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the repository that holds the declaring `astra.yaml` |
+| `COMMIT_NOT_ANCESTOR` | validator | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD of the repository that holds the declaring file |
+| `REMOTE_UNREACHABLE` | validator | MUST | Every commit the stack gets from a remote, through a `url`, a file read from a remote or a gitlink crossed at a commit, can be fetched from that remote or was kept from an earlier fetch |
+| `DECLARED_ANALYSIS_INVALID` | validator | MUST | An analysis from a commit, with everything it declares, is valid at that commit, [`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository) aside |
+
+Recommendation: a published analysis SHOULD declare only remotes its readers
+can fetch.
+
+### 18. Results and where they go
 
 A **result** is what a recipe made for one output in one universe, or once
-for an output built once. The root's **planned** results are:
+for an output built once
+([§13](#13-pins-and-outputs-built-per-universe-or-once)). It is one file,
+which the recipe writes at `{output}` ([§11](#11-recipes)). An artefact of
+many files is written as an archive, or as several outputs.
+
+The root's **planned** results are:
 
 - the result of each output of the root built once, and, in each of the
   root's universes, the result of every output of the root active there;
-- every result a planned result reads through its output's `inputs`, through
-  any declaration, pinned or not;
-- every result the root's evidence cites (§5).
+- every result a planned result reads through its output's `inputs`,
+  through any declaration, pinned or not;
+- every result the root's evidence cites
+  ([§14](#14-insights-and-evidence)).
 
-An output plans no result in a universe where it is inactive (§5). An output
-of a declared analysis that no planned result reads and no evidence of the
-root cites isn't planned, and building the root doesn't build it.
+An output plans no result in a universe where it is inactive
+([§9](#9-conditions)). An output of a declared analysis that no planned
+result reads and no evidence of the root cites isn't planned, and building
+the root doesn't build it. In the worked example ([§2](#2-a-worked-example)),
+three results are planned: `output1`'s in `u1` and in `u2`, and `output2`'s.
 
-A result belongs to the analysis whose universe it was built in. So what a
-driven analysis builds in its driver's universes belongs to the driver. The
-result of an output built once belongs to the analysis whose output it is.
-A result built in a universe that a pin names belongs to that universe's
-analysis, whichever file the pin is in and whether it names the universe
-through an import or not (§7): it is placed in that analysis's directory,
-under the universe's own id. A result's **name** is its output's id after
-the ids of the driven declarations from the analysis it belongs to
-(`subanalysis1.output1`). An undriven declaration, such as
-`iris: {path: ..}` in `feature_extraction`'s file in the root's universes,
-never adds a name. No declaration that leads back to an analysis already on
-the chain from the driver is driven (§6, §7). So the result of an output of
-the analysis it belongs to is named by the output's id alone, as the result
-of an output built once always is. A sub-analysis's declaration of its
-parent doesn't lead back where the sub-analysis is the driver: the parent's
-`output0`, built in the sub-analysis's universe `v1` through a driven
-`parent: {path: ..}`, is named `parent.output0` in the sub-analysis's
-records, also where the parent's own file imports `v1` as `sub_v1` and reads
-`output0#sub_v1`. Reached through two such chains (`inner` and
-`stage.inner`, when keys go through both), a result is made once, and placed
+#### Whose a result is, and its name
+
+A result **belongs** to the analysis whose universe it was built in:
+
+- What a driven analysis builds in its driver's universes belongs to the
+  driver.
+- The result of an output built once belongs to the analysis whose output it
+  is.
+- A result built in a universe that a pin names belongs to that universe's
+  analysis, whichever file the pin is in and whether it names the universe
+  through an import or not ([§16](#16-driving-and-consuming)). It is placed
+  in that analysis's folder, under the universe's own id.
+
+A result's **name** is its output's id after the ids of the driven
+declarations from the analysis it belongs to. The root's universes drive
+`subanalysis`, so the result of `subanalysis`'s `output1` in `u1` is the
+root's, named `subanalysis.output1`.
+
+- An undriven declaration never adds a name. Where `subanalysis` declares
+  `parent: {path: ..}`, that declaration isn't driven in the root's
+  universes, and adds no name there.
+- No declaration that leads back to an analysis already on the chain from
+  the driver is driven ([§16](#16-driving-and-consuming)). So the result of
+  an output of the analysis it belongs to is named by the output's id alone,
+  as the result of an output built once always is.
+- A sub-analysis's declaration of its parent doesn't lead back where the
+  sub-analysis is the driver. The parent's `output1`, built in
+  `subanalysis`'s universe `v1` through a driven `parent: {path: ..}`, is
+  named `parent.output1` in `subanalysis`'s records. It is named so also
+  where the parent's own file imports `v1` as `subanalysis_v1` and reads
+  `output1#subanalysis_v1`.
+
+A result reached through two chains of driven declarations has a name for
+each. Where the root declares `inner` and `stage`, and `stage` declares the
+same folder as `inner`, a result of `inner` reached through `inner` and
+through `stage.inner`, when keys go through both, is made once. It is placed
 and recorded under each name, though a planned result should have one
-([`RESULT_IN_TWO_PLACES`](#validator)). The rule is judged on the planned
-results, so in the universes built (§7) and not in the other universes a
-validator checks. For each pair of a result's names, it is reported at the
-first declaration of each of their chains that the other chain doesn't go
-through, in the file that holds it: in the example, at the driver's `inner`
-and `stage`. A result's **address** is a name followed, for a result built
-in a universe, by `#` and the universe's own id, never an import's
-(`subanalysis1.output1#u1`).
-Each address is the `address` of the record at its place.
+([`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming)).
 
-### Where records and bytes go
+- The rule is judged on the planned results, so in the universes built
+  ([§16](#16-driving-and-consuming)), and not in the other universes a
+  validator checks.
+- For each pair of a result's names, it is reported at the first
+  declaration of each of their chains that the other chain doesn't go
+  through, in the file that holds it: here, at the root's `inner` and
+  `stage`.
 
-In the analysis a result belongs to:
+A result's **address** is a name followed, for a result built in a universe,
+by `#` and the universe's own id, never an import's:
+`subanalysis.output1#u1`. Each address is the `address` of the record at its
+place ([§19](#19-records)).
+
+#### Where records and bytes go
+
+A result's record, and its bytes at their **default place**, are in the
+folder of the analysis it belongs to:
 
 | | Built in the universe `{universe}` | Built once |
 |---|---|---|
 | Its record | `.astra/records/{universe}/{name}.json` | `.astra/records/{name}.json` |
 | Its bytes, at their default place | `results/{universe}/{name}.{format}` | `results/{name}.{format}` |
 
-Both are worked out from an address of the result, so a result with two
-names has two of each. Ids hold no `.`, but a format can (`tar.gz`), so two
-default places `{name}.{format}` in one folder are the same only when one
-name is a proper dotted prefix of the other: the output `stage` in format
-`summary.json` and the result `stage.summary` in format `json`, say. That
-needs an output and a declaration with one id in some analysis on the
-longer name's chain of declarations. Every analysis of the stack keeps
-[`CLASHING_RESULT_NAME`](#validator), so no two results of one analysis
-share a default place. A record is the record only of the result its
-`address` names, under that name ([`MISSING_RECORD`](#check),
-[`MISPLACED_RECORD`](#check)). The runner writes the bytes to their default
-places ([`UNRECORDED_RESULT`](#runner)) and tells the recipe where to write
-through `{output}`, so a driven analysis's recipes write what they build in
-the driver's universes into the driver's results. For the analysis of §2:
+Built, the worked example of [§2](#2-a-worked-example) holds:
 
 ```text
 .astra/records/
-  comparison.json
-  forest/accuracy.json
-  svm/accuracy.json
+  output2.json
+  u1/output1.json
+  u2/output1.json
 results/
-  comparison.csv
-  forest/accuracy.json
-  svm/accuracy.json
+  output2.csv
+  u1/output1.json
+  u2/output1.json
 ```
 
-A result is one file, which its recipe writes at `{output}`. An artefact of
-many files is written as an archive, or as several outputs.
+- Both are worked out from an address of the result, so a result with two
+  names has two of each.
+- A record is the record only of the result its `address` names, under that
+  name ([`MISSING_RECORD`](#20-checking-results),
+  [`MISPLACED_RECORD`](#20-checking-results)).
+- The runner writes the bytes to their default places
+  ([`UNRECORDED_RESULT`](#21-runners)), and tells the recipe where to write
+  through `{output}`. So a driven analysis's recipes write what they build in
+  the driver's universes into the driver's results.
+- A record at a commit can be read whether or not the commit holds the
+  bytes.
+- The bytes SHOULD be at their default place
+  ([`ABSENT_RESULT`](#20-checking-results)); a runner may keep them
+  elsewhere, with a stand-in for them there ([§7](#7-inputs)), so `absent`
+  is no error.
 
-A record at a commit can be read whether or not the commit holds the bytes.
-Anything but the recorded bytes at the default place, something standing in
-for them, other bytes or nothing, leaves the result's bytes `absent`. The
-bytes SHOULD be at their default place ([`ABSENT_RESULT`](#check)); a runner
-may keep them elsewhere, with something standing in for them there (§5), so
-`absent` is no error.
+Ids hold no `.`, but a format can (`tar.gz`). So two default places
+`{name}.{format}` in one folder are the same only when one name is a proper
+dotted prefix of the other: an output `subanalysis` in the format
+`output1.json`, and the result `subanalysis.output1` in the format `json`,
+say. That needs an output and a declaration with one id in some analysis on
+the longer name's chain of declarations. Every analysis of the stack keeps
+[`CLASHING_RESULT_NAME`](#15-declared-analyses), so no two results of one
+analysis share a default place.
 
-### What a record holds
+### 19. Records
 
-A [ProvenanceRecord](elements/ProvenanceRecord.md) gives its `spec_version`,
-the result's `address`, the `content_hash` and `size` (in bytes) of the
-result's bytes, and the run of the recipe that made it, `generated_by`, a
-[Generation](elements/Generation.md):
+A record is the provenance of one result: what the result is, and the run of
+the recipe that made it. The runner that made the result writes it as JSON
+at each of the result's places ([§18](#18-results-and-where-they-go)). The
+record of `output1` in `u1`, in the worked example
+([§2](#2-a-worked-example)):
 
-- `commit`: the full id of the git commit the recipe ran from: a commit of
-  the repository the record is committed in, the submodule's own commit for a
-  result that belongs to an analysis in a submodule (the driver's commit for
-  what a driver's universes build, §7). It pins every file of the code and
+```json
+{
+  "spec_version": "0.1.0",
+  "address": "output1#u1",
+  "content_hash": "sha256:<hash of output1 in u1>",
+  "size": <size of output1 in u1>,
+  "generated_by": {
+    "commit": "<commit>",
+    "inputs": [
+      {
+        "entry": "input1",
+        "content_hash": "sha256:<hash of input1>",
+        "size": <size of input1>
+      }
+    ],
+    "environment": {"iri": "urn:example:environment1"},
+    "runner": {"id": "example-runner", "version": "1.2.0"}
+  }
+}
+```
+
+A record, a [ProvenanceRecord](elements/ProvenanceRecord.md), gives its
+`spec_version` ([§5](#5-the-astrayaml-file)), the result's `address`, the
+`content_hash` and `size` (in bytes) of the result's bytes, and the run of
+the recipe that made it, `generated_by`, a
+[Generation](elements/Generation.md). Its `address` is the result's address
+as the analysis the result belongs to addresses it
+([§18](#18-results-and-where-they-go)). The run gives:
+
+- `commit`: the full id of the git commit the recipe ran from. It is a commit
+  of the repository the record is committed in: for a result that belongs to
+  an analysis in a submodule, the submodule's own commit, and for what a
+  driver's universes build, the driver's commit
+  ([§16](#16-driving-and-consuming)). It pins every file of the code and
   every `astra.yaml` in that repository: an analysis in a submodule of it
   through the commit the submodule is pinned at, and an analysis from a
   commit through its declaration's `commit`.
 - `inputs`: what the recipe read, as one
   [RecordedInput](elements/RecordedInput.md) for each entry the output lists
-  in the `astra.yaml` files at the record's `commit`, and no other item,
-  matched by its `entry`, which is written exactly as the output lists it
-  ([`MISSING_RECORD_INPUTS`](#check)). Each gives the `content_hash` and
-  `size` of what the recipe read through the entry: another output's result,
-  or the file an input names. The order of the items carries no meaning. A
-  later change to the list makes the result `stale`
-  ([`STALE_RESULT`](#check)), not `missing`.
-- `environment`: an [Environment](elements/Environment.md), whose `iri` is an
-  IRI of the form §4 gives ([`INVALID_VALUE`](#parse-and-schema)), naming
-  exactly the environment the recipe ran in, enough for its runner, at the
-  version the record gives, to recreate it, such as a `urn:` IRI or one in a
-  scheme of the runner's own.
+  in the `astra.yaml` files at the record's `commit`, and no other item
+  ([`MISSING_RECORD_INPUTS`](#20-checking-results)).
+  - Each item is matched by its `entry`, which is an entry of
+    `Output.inputs` exactly as written.
+  - Each gives the `content_hash` and `size` of what the recipe read through
+    the entry: another output's result, or the file an input names.
+  - The order of the items carries no meaning.
+  - A later change to the list makes the result `stale`
+    ([`STALE_RESULT`](#20-checking-results)), not `missing`.
+- `environment`: an [Environment](elements/Environment.md), whose `iri` is
+  an IRI of the form [Annex C](#c-grammars-and-patterns) gives
+  ([`INVALID_VALUE`](#5-the-astrayaml-file)). The IRI names exactly the
+  environment the recipe ran in, enough for its runner, at the version the
+  record gives, to recreate it, such as a `urn:` IRI or one in a scheme of
+  the runner's own.
 - `runner`: a [Runner](elements/Runner.md), the runner's `id` and its
   `version`.
 - `started` and `finished`: when the recipe started and finished, each a
-  [`timestamp`](elements/Timestamp.md) (§4).
+  [`timestamp`](elements/Timestamp.md) ([Annex C](#c-grammars-and-patterns)).
 
-Every field of a record is required ([`MISSING_FIELD`](#parse-and-schema))
-but three: `started` and `finished`, which are optional, and `inputs`, which
-the schema leaves optional and [`MISSING_RECORD_INPUTS`](#check) holds to
-the entries the output lists. So a record of an output that lists no inputs
-can leave `inputs` out.
+Every field of a record is required
+([`MISSING_FIELD`](#5-the-astrayaml-file)) but three: `started` and
+`finished`, which are optional, and `inputs`, which the schema leaves
+optional and [`MISSING_RECORD_INPUTS`](#20-checking-results) holds to the
+entries the output lists. So a record of an output that lists no inputs can
+leave `inputs` out.
 
 Every hash names its algorithm: `sha256:`, then the SHA-256 digest
-([`INVALID_VALUE`](#parse-and-schema)).
+([`INVALID_VALUE`](#5-the-astrayaml-file)).
 
-```json
-{
-  "spec_version": "0.1.0",
-  "address": "subanalysis1.output1#u1",
-  "content_hash": "sha256:7af13cf14f96106b729279ec96430c5b115437053c29aeca4ff70b95770fb83e",
-  "size": 732,
-  "generated_by": {
-    "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
-    "inputs": [
-      {
-        "entry": "iris.data",
-        "content_hash": "sha256:549eeec2a96f853c662f95e730265f2e2b6fd840047ef2e5e487892a0ed5757e",
-        "size": 10
-      }
-    ],
-    "environment": {"iri": "urn:example:env:sha256:5d1338d7b2770c256402101e2905173c46fcd60b376b2717cf6b129deb28af15"},
-    "runner": {"id": "example-runner", "version": "1.2.0"},
-    "started": "2026-10-26T14:00:00.000Z",
-    "finished": "2026-10-26T14:00:02.000Z"
-  }
-}
-```
+A record holds only what its commit can't give: the output's declaration,
+the options its decisions select and its format are in the `astra.yaml`
+files at that commit.
 
-A record holds only what its commit can't give: the output's declaration, the
-options its decisions select and its format are in the `astra.yaml` files at
-that commit. A record holds only the fields its `spec_version` defines, and is
-read by its minor version's record schema (§1). A checker reading a record of
-a greater minor version than its own validates it against the open variant of
-its own record schema, which ignores the fields it doesn't know
-([`INVALID_RECORD`](#check)). Read as RDF (§10), a record is W3C PROV-O.
+A record holds only the fields its `spec_version` defines, and is read by
+its minor version's record schema ([§5](#5-the-astrayaml-file)). A checker
+reading a record of a greater minor version than its own validates it
+against the open variant of its own record schema, which ignores the fields
+it doesn't know ([`INVALID_RECORD`](#20-checking-results)). Read as RDF
+([Annex E](#e-the-schema-files-and-rulesjson)), a record is W3C PROV-O.
 
 Two records of one result with the same commit, inputs and environment, made
-on two machines say, show whether the result reproduces: their
+on two machines say, show whether the result reproduces: it does when their
 `content_hash` is the same.
-
-### What a runner does
-
-- A runner writes a record for every result it makes, at the place of each
-  of its names in the analysis the result belongs to, and writes the bytes to
-  their default places ([`UNRECORDED_RESULT`](#runner)).
-- Every field of the record is true of the run
-  ([`FALSE_RECORD`](#runner)). It records each recipe's environment as an
-  RFC 3987 IRI that it can recreate at its version
-  ([`UNRECREATABLE_ENVIRONMENT`](#runner)), and letting someone see what that
-  environment holds, as PROV for example, is recommended (§9, *runner*).
-- It runs only committed code. It runs each recipe in a checkout of a
-  commit, the repository's own working tree or one it makes for the run (a
-  git worktree, say), and refuses to run while that checkout has changes
-  other than the records and results it writes itself, each result's bytes
-  the recorded ones ([`UNCOMMITTED_CHANGES`](#runner)). Changes outside
-  that checkout don't stop it. It runs each recipe in its analysis's
-  directory in that checkout ([`WRONG_WORKING_DIRECTORY`](#runner)).
-- It builds no result of an analysis from a commit (§7)
-  ([`REBUILT_FROM_COMMIT`](#runner)), and builds no output that reads such a
-  result while it is `missing` or `stale` or its bytes can't be got or
-  aren't the recorded ones ([`STALE_INPUT`](#runner)). Any other result it
-  reads may be stale; what it builds from it is then stale too (*When a
-  result is unchanged*, below).
-
-A checker sees much of a breach afterwards: a result with no record is
-`missing`, and bytes that aren't the recorded ones are `absent`. A runner may
-enforce [`UNDECLARED_READ`](#runner), as §9 permits (§5).
 
 A record names the commit its recipe ran from, so it is committed in a later
 commit. Records and results are no input and no part of a declaration, so
-committing them doesn't by itself make a result stale. Branches that hold
-records SHOULD be merged, not squashed or rebased.
+committing them doesn't by itself make a result stale.
 
-### When a result is unchanged
+Recommendation: branches that hold records SHOULD be merged, not squashed or
+rebased.
 
-A record says what its result was made from at the commit it names. At a later
-commit a result is **unchanged** if, since that commit, nothing has changed in
-([`STALE_RESULT`](#check)):
+### 20. Checking results
+
+A checker gives every planned result two statuses
+([§18](#18-results-and-where-they-go)): one for its record, `unchanged`,
+`stale` or `missing`, and one for its bytes, `present` or `absent`.
+
+| Status | Means |
+|---|---|
+| `unchanged` | The result has a valid record where its address says, and [`STALE_RESULT`](#20-checking-results) holds |
+| `stale` | The result has a valid record where its address says, and [`STALE_RESULT`](#20-checking-results) doesn't hold. The checker says what changed |
+| `missing` | The result has no valid record where its address says: [`MISSING_RECORD`](#20-checking-results), [`INVALID_RECORD`](#20-checking-results) (including a record that breaks a parse or schema rule), [`MISPLACED_RECORD`](#20-checking-results) or [`MISSING_RECORD_INPUTS`](#20-checking-results) doesn't hold; or the root is outside a git repository ([`NOT_IN_REPOSITORY`](#5-the-astrayaml-file)) |
+| `present` | The bytes at the result's default place hash to the record's `content_hash` and have its `size` |
+| `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
+
+- A result with two names gets its statuses at each place.
+- A checker reads records only through planned results.
+- A result of an analysis from a commit that no recipe reads gets only a
+  record status (below).
+
+#### When a result is unchanged
+
+A record says what its result was made from at the commit it names. At a
+later commit a result is **unchanged** if, since that commit, nothing has
+changed in ([`STALE_RESULT`](#20-checking-results)):
 
 - its output's declaration: its recipe's command, its inputs and their order
   (`{inputs}` passes them in that order), its decisions, in any order (each
@@ -1478,343 +2068,616 @@ commit a result is **unchanged** if, since that commit, nothing has changed in
   of its decisions selects a different option there than at the commit its
   record names;
 - the content of its inputs, never what stands in for it;
-- the results it reads. A result made from a stale one is stale, and once that
-  one is rebuilt, it is unchanged again if the rebuilt bytes are the same.
+- the results it reads. A result made from a stale one is stale, and once
+  that one is rebuilt, it is unchanged again if the rebuilt bytes are the
+  same.
 
-Otherwise it is **stale**. Nothing else counts: editing a finding, a
-description or another output leaves a result unchanged, unless the edit
-changes something listed above (an `astra.yaml` named as an input, or an
-output whose results it reads, say). The code, through the commit, and the
-environment are recorded but not compared: a change to either shows only when
-the recipe is run again and makes other bytes. An unchanged result suggests,
-but doesn't guarantee, that the recipe would make it again. In the analysis
-of §2, selecting `random_forest` in the universe `svm` makes `accuracy#svm`
-stale, and `comparison` with it, while editing the finding leaves both
-unchanged. Editing `src/train.py` leaves both unchanged too, but once
-`accuracy#svm` is made again with other bytes, `comparison` is stale until it
-is rebuilt.
+Otherwise it is **stale**. Nothing else counts:
 
-### Statuses
+- Editing a finding, a description or another output leaves a result
+  unchanged, unless the edit changes something listed above (an
+  `astra.yaml` named as an input, or an output whose results it reads, say).
+- The code, through the commit, and the environment are recorded but not
+  compared: a change to either shows only when the recipe is run again and
+  makes other bytes.
 
-A checker gives every planned result two statuses ([check](#check)): one for
-its record, `unchanged`, `stale`, or `missing` when it has no valid record
-where its address says; and one for its bytes, `present` when the bytes at
-its default place have its record's hash and size, `absent` otherwise. A
-result of an analysis from a commit that no recipe reads gets only the first
-(below). Outside a git repository ([`NOT_IN_REPOSITORY`](#validator)), every
-planned result is `missing`.
+An unchanged result suggests, but doesn't guarantee, that the recipe would
+make it again. In the worked example ([§2](#2-a-worked-example)):
 
-A result with two names gets its statuses at each place. A checker reads
-records only through planned results.
+| Edit | Effect |
+|---|---|
+| `u1` selects another option for `decision1` | `output1` in `u1` is stale, and so is `output2`, which reads it |
+| `insight1`'s claim is reworded | `output1` in `u1` and `output2` stay unchanged |
+| The script that `output1`'s recipe runs is edited | Both stay unchanged; once `output1` in `u1` is made again with other bytes, `output2` is stale until it is rebuilt |
+
+#### Evidence
 
 Evidence citing a result gets the status of that result's record
-([`STALE_EVIDENCE`](#check)), the record at the place of the result's name
-along the `artifact`'s declarations, from the analysis the result belongs
-to: evidence citing `stage.inner.out#u1` reads the record of
-`stage.inner.out`, not of `inner.out`. Where those declarations give none of
-the result's names, as for a stage's evidence citing its own output pinned
-to an import of its parent's universe, the evidence gets the worst status of
-the records at the result's names. An `artifact` that is pinned, or that
-names an output built once, names exactly one result. An `artifact` that
-names an output built per universe without a pin cites that output's
-results in each of the root's universes where it is active and its analysis
-is built. The evidence gets the worst of their record statuses: `missing`,
-then `stale`. If there are none, it is `missing`. A check covers the
-evidence of the analysis it is run on.
+([`STALE_EVIDENCE`](#20-checking-results)): the record at the place of the
+result's name along the `artifact`'s declarations, from the analysis the
+result belongs to. So evidence citing `stage.inner.output1#u1` reads the
+record of `stage.inner.output1`, not of `inner.output1`
+([§18](#18-results-and-where-they-go)). Where those declarations give none
+of the result's names, as for `subanalysis`'s evidence citing its own
+`output1` pinned to an import of its parent's universe, the evidence gets
+the worst status of the records at the result's names.
+
+- An `artifact` that is pinned, or that names an output built once, names
+  exactly one result.
+- An `artifact` that names an output built per universe without a pin cites
+  that output's results in each of the root's universes where it is active
+  and its analysis is built.
+
+The evidence gets the worst of their record statuses: `missing`, then
+`stale`. If there are none, it is `missing`. A check covers the evidence of
+the analysis it is run on.
+
+#### Results of an analysis from a commit
+
+A result of an analysis from a commit is read through its record at the
+declared commit, in the analysis the result belongs to
+([§18](#18-results-and-where-they-go)), in the repository that holds that
+analysis at the commit it is read at ([Annex B](#b-paths-and-git)). If the
+declared analysis itself declares an analysis from a commit, that analysis's
+records are read in its own repository, at the commit named for it.
+
+A result can be read only once its record is committed. So the declaration
+names a commit that holds the records, `B`, later than the commit their
+recipes ran from, `A`, which the records name. The result is unchanged if
+nothing that [`STALE_RESULT`](#20-checking-results) compares changed between
+`A` and `B`, and the results it was made from are unchanged too. Their
+content hashes are taken from their records, without their bytes.
 
 The results of an analysis from a commit that are read or cited get their
 record status (`unchanged`, `stale`, `missing`) by the same rules, through
 their records at the declared commit. Only those a recipe reads get a bytes
-status ([`ABSENT_RESULT`](#check)), from what git holds at the declared
-commit (§7).
+status ([`ABSENT_RESULT`](#20-checking-results)), from what git holds at the
+declared commit ([§17](#17-analyses-from-another-commit-or-repository)).
 
-## 9. Conformance
+#### The rules
 
-This section is the rule catalogue: the only place this specification states
-a rule that a tool checks or keeps. The layers are those of §2.
-
-**The rule is always what must (or should) hold. What you get when it is
-broken is always in a column of its own.** This is true in every layer:
-
-- **Rule:** one sentence saying what holds in a conforming file, record or
-  run.
-- **Level:** `MUST` or `SHOULD` (RFC 2119), applied to that sentence.
-- **Code:** names what is wrong when the rule is broken. It is what a tool
-  reports. Each code is unique and matches `[A-Z][A-Z0-9_]*`.
-- **Source:** every source of the rule, as plain comma-separated tokens:
-  the RFCs it comes from, and the section of this specification that
-  explains it.
-
-In the Source column, a number is an ASTRA RFC:
-[0003](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0003-cross-universe-artifact-references.md),
-[0004](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0004-composition.md),
-[0005](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0005-result-provenance-and-layout.md),
-[0006](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0006-data-inputs.md) or
-[0007](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0007-analyses-in-other-repositories.md),
-followed by its section where one is given, as in `0005 §1`; two sections
-of one RFC are written with its number each time, as in `0005 §1, 0005 §3`.
-`tidy-up` is the draft RFC *Settling the schema for v0.1*, `main` a rule of
-the specification before version 0.1,
-[`#73`](https://github.com/LightconeResearch/astra-spec/pull/73) a pull
-request of the specification's repository, and a bare `§n`, with no RFC
-number before it, a section of this specification. In a cell, the tokens are
-plain text, never code spans.
-
-What breaking a rule leads to depends on the layer:
-
-| Layer | When a rule is broken |
-|---|---|
-| parse, schema, validator | A broken `MUST` is reported as an **error** and makes the analysis invalid (in a record, it breaks [`INVALID_RECORD`](#check) instead); a broken `SHOULD` is reported as a **warning**, and the analysis stays valid |
-| check | A broken `MUST` is reported as an **error** and a broken `SHOULD` as a **warning**. Nothing fails, and **the result gets a status**, given in the check table's extra column, *Status when broken* |
-| runner | A runner that breaks a `MUST` doesn't conform. It runs no recipe while `UNCOMMITTED_CHANGES` would be broken, and builds no output while `STALE_INPUT` would be, and when it refuses for either it reports the code. `UNDECLARED_READ` binds the recipe, and breaking it leaves the analysis valid; a runner may enforce it (*runner*, below) |
-
-The check layer is the only one laid out differently, with that extra
-column, because breaking one of its rules changes what a result is. A parse,
-schema or validator rule decides whether a document or an analysis is valid,
-and only through its `MUST`s.
-
-**What is checked.** A tool reports every rule broken, except in the cases
-below, and the list is closed. In each case another broken rule leaves what a
-rule is about undetermined, so the rule isn't checked and isn't reported. Each
-case starts from a broken `MUST`. So a rule left unchecked never makes an
-invalid analysis valid, or a `missing` result anything else: it changes only
-which codes are reported. Two rules whose subjects are both determined are
-both reported, even when one edit fixes both.
-
-1. **A file that can't be read, or whose version has no schema.** A file that
-   breaks a parse rule is checked no further. A file whose `spec_version` is
-   missing or malformed isn't checked by
-   [`UNSUPPORTED_SPEC_VERSION`](#validator): it is checked against the schema
-   of the tool's own minor version, the validator's schema of `astra.yaml` or
-   the checker's record schema, and every schema error in it is reported, a
-   record's as a reason of [`INVALID_RECORD`](#check). A file whose
-   well-formed `spec_version` breaks `UNSUPPORTED_SPEC_VERSION` isn't checked
-   by the schema layer.
-2. **A file that isn't a valid document.** A file that breaks a parse or
-   schema rule, or [`UNSUPPORTED_SPEC_VERSION`](#validator), isn't checked by
-   the validator layer, and its declarations aren't followed. Its analysis is
-   undetermined (4).
-3. **A declaration that can't be read.** On a declaration whose own analysis
-   can't be got, because it breaks
-   [`DECLARATION_OUTSIDE_REPOSITORY`](#validator) or
-   [`COMMIT_NOT_FOUND`](#validator), or because a commit that analysis is
-   read from can't be got ([`REMOTE_UNREACHABLE`](#validator), §7), neither
-   [`MISSING_DECLARED_ANALYSIS`](#validator) nor
-   [`DECLARED_ANALYSIS_INVALID`](#validator) is checked. On one that breaks
-   `COMMIT_NOT_FOUND`, or whose own `commit` can't be got,
-   [`COMMIT_NOT_ANCESTOR`](#validator) isn't checked either. Its analysis is
-   undetermined (4), and so is the analysis of a declaration that breaks
-   `MISSING_DECLARED_ANALYSIS`.
-   `DECLARED_ANALYSIS_INVALID` isn't checked on an analysis from a commit
-   whose file breaks [`UNSUPPORTED_SPEC_VERSION`](#validator). Where
-   `REMOTE_UNREACHABLE` is reported on a declaration for a commit further in
-   (§7), `DECLARED_ANALYSIS_INVALID` isn't checked on that declaration, and
-   the analysis that couldn't be got is undetermined. The analyses read on
-   the way to it are not: their declarations' `MISSING_DECLARED_ANALYSIS`,
-   and addresses into them such as `upstream.summary#u1`, are still checked.
-4. **An undetermined analysis.** No validator rule is checked in its file. In
-   the files that declare it, nothing reached through that declaration is
-   checked: no address through it, by
-   [`UNRESOLVED_ADDRESS`](#validator) or by any rule on what the address
-   would name, no [`MISSING_DECISION`](#validator) for its decisions, and no
-   [`RESULT_IN_TWO_PLACES`](#validator) for a name through it.
-5. **A name that names nothing.** An address that breaks
-   [`UNRESOLVED_ADDRESS`](#validator), and an option that breaks
-   [`UNKNOWN_OPTION`](#validator), name nothing, and no rule is checked on
-   what they would name. That leaves out `UNKNOWN_OPTION` under such an
-   address, the pin rules ([`UNKNOWN_PIN_UNIVERSE`](#validator) and
-   [`PIN_INACTIVE`](#validator)), and
-   [`NOT_BUILT_IN_UNIVERSE`](#validator),
-   [`UNDRIVEN_DECLARATION`](#validator), [`INPUT_NOT_BUILT`](#validator),
-   [`OUTPUT_CYCLE`](#validator) and [`DUPLICATE_ELEMENT`](#validator)
-   through it. A pin that breaks `UNKNOWN_PIN_UNIVERSE`, or that names an
-   import that names nothing or whose address runs through an undetermined
-   analysis (4), names no universe: it builds none, and neither
-   `PIN_INACTIVE` nor a rule on the universe being built (§7) is checked
-   for it. A selection that names nothing isn't checked by
-   [`INACTIVE_DECISION`](#validator),
-   [`MISSING_REQUIRED_OPTION`](#validator),
-   [`INCOMPATIBLE_OPTIONS`](#validator) or
-   [`EXCLUDED_OPTION_SELECTED`](#validator). A `requires` or
-   `incompatible_with` entry that names nothing is ignored.
-6. **An element whose activity is undetermined.** In a universe, a `when` is
-   undetermined when one of its conditions names nothing (5), or tests a
-   decision that the universe's selection leaves unset
-   ([`MISSING_DECISION`](#validator)) or sets to an option that names
-   nothing. Its element's activity in that universe is then undetermined.
-   `MISSING_DECISION` and [`INACTIVE_DECISION`](#validator) aren't checked
-   for such a decision, [`INPUT_NOT_BUILT`](#validator) and
-   [`PIN_INACTIVE`](#validator) aren't checked for such an output, nor
-   [`RESULT_IN_TWO_PLACES`](#validator) for its result, nor
-   [`NOT_BUILT_IN_UNIVERSE`](#validator), [`UNDRIVEN_DECLARATION`](#validator)
-   or `INPUT_NOT_BUILT` for what it reads or lists in `decisions`. Nor are
-   those three or `RESULT_IN_TWO_PLACES` checked for a result planned only
-   through it, for the `when` of an output whose result would be planned
-   only through it, or in a universe built only through a pin in its
-   `inputs`. Step 3 of the effective selection (§6) doesn't drop such a
-   decision.
-7. **A universe with no effective selection.** A universe has none when its
-   `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#validator), or its chain
-   breaks [`DERIVED_FROM_CYCLE`](#validator) or reaches a universe that has
-   none. For it, [`MISSING_DECISION`](#validator),
-   [`INACTIVE_DECISION`](#validator), [`MISSING_REQUIRED_OPTION`](#validator),
-   [`INCOMPATIBLE_OPTIONS`](#validator),
-   [`EXCLUDED_OPTION_SELECTED`](#validator),
-   [`NOT_BUILT_IN_UNIVERSE`](#validator),
-   [`UNDRIVEN_DECLARATION`](#validator), [`INPUT_NOT_BUILT`](#validator) and
-   [`RESULT_IN_TWO_PLACES`](#validator) aren't checked, and
-   [`PIN_INACTIVE`](#validator) isn't checked for a pin naming it, directly
-   or through an import.
-   [`UNRESOLVED_ADDRESS`](#validator), [`UNKNOWN_OPTION`](#validator),
-   [`DUPLICATE_ELEMENT`](#validator) and [`LOOPING_KEY`](#validator) are
-   still checked on its own `decisions`. Driving (§7) counts its own
-   `decisions` in place of its effective selection.
-8. **An input with no file.** An input that breaks
-   [`MISSING_INPUT_FILE`](#validator) isn't checked by
-   [`INPUT_NOT_TRACKED`](#validator).
-9. **A result with no valid record.** A result that breaks
-   [`MISSING_RECORD`](#check) isn't checked by [`INVALID_RECORD`](#check),
-   [`MISPLACED_RECORD`](#check) or [`MISSING_RECORD_INPUTS`](#check). One
-   whose record breaks `INVALID_RECORD` isn't checked by the last two.
-   [`STALE_RESULT`](#check) isn't checked for a result that is `missing`.
-10. **A key that loops.** [`LOOPING_KEY`](#validator) is judged on a key's
-    declarations up to the first that doesn't resolve or whose analysis is
-    undetermined (4, 5). A key that loops still names its decision, if it
-    resolves, and the rules on selections check it, but it drives no
-    declaration (§7), and no rule counts it as going through one.
-11. **An analysis outside a repository.** Where the root breaks
-    [`NOT_IN_REPOSITORY`](#validator), no other validator rule is checked
-    and its declarations aren't followed, so only its own `astra.yaml` is
-    checked, by the parse and schema rules.
-
-### parse and schema
-
-| Code | Layer | Level | Rule | Source |
-|---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8 | 0005, tidy-up, §3 |
-| `DUPLICATE_KEY` | parse | MUST | No map in an `astra.yaml` has two equal keys, and no object in a record has two equal names | 0003, 0004, tidy-up, §3, §4 |
-| `INVALID_ID` | schema | MUST | Every map key matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
-| `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar | 0003, 0004 |
-| `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Output.recipe`, `Recipe.command`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main, §5 |
-| `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | tidy-up, §10 |
-| `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry, and no list of strings in an `astra.yaml` is empty | 0004, tidy-up, main |
-| `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |
-| `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` | 0007 |
-| `INVALID_IMPORT` | schema | MUST | An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from` | §6, §7 |
-| `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007, tidy-up |
-| `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` is non-empty and doesn't start with `/` | 0004, 0006, tidy-up |
-| `INVALID_EVIDENCE_SOURCE` | schema | MUST | Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi` | tidy-up |
-| `WRONG_TYPE` | schema | MUST | Every value has the JSON type its field takes: a string, a number, an integer, a list or a map | tidy-up, §4, §10 |
-| `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) | tidy-up, §4 |
-| `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 | 0005, 0007, tidy-up, main, #73 |
-
-### validator
-
-Every universe of every analysis of the stack is checked as §7 says.
-
-| Code | Level | Rule | Source |
-|---|---|---|---|
-| `NOT_IN_REPOSITORY` | MUST | The folder of the analysis being validated is in the working tree of a git repository | §3 |
-| `UNSUPPORTED_SPEC_VERSION` | MUST | Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of | 0007 §6, §1 |
-| `UNRESOLVED_ADDRESS` | MUST | Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact`, one of another analysis's universes in an import | 0004, §7 |
-| `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003, 0004 |
-| `INVALID_INSIGHT_REF` | MUST | Every entry of `Option.insights` names a prior insight of the analysis | main |
-| `UNDECLARED_TEMPLATE_REF` | MUST | Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left (§5), and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written | 0003, 0004 |
-| `AMBIGUOUS_ID` | MUST | No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes) | tidy-up, §4 |
-| `CLASHING_RESULT_NAME` | MUST | No output shares its id with a declaration of the same analysis | tidy-up, §4, §8 |
-| `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path`, tidied (§3), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit | 0004, 0007 §1 |
-| `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` file, with no symlink on the way (§3) | 0004, 0007, §3 |
-| `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the repository that holds the declaring `astra.yaml` | 0007, §3, §7 |
-| `COMMIT_NOT_ANCESTOR` | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD of the repository that holds the declaring file | 0007, §3 |
-| `REMOTE_UNREACHABLE` | MUST | Every commit the stack gets from a remote, through a `url`, a file read from a remote or a gitlink crossed at a commit, can be fetched from that remote or was kept from an earlier fetch | 0007 §6, tidy-up, §3, §7 |
-| `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit, `REMOTE_UNREACHABLE` aside | 0007, §7 |
-| `MISSING_INPUT_FILE` | MUST | An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5) | 0006, §3 |
-| `INPUT_NOT_TRACKED` | MUST | An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink | 0006, §3 |
-| `INPUT_IN_ANOTHER_ANALYSIS` | MUST | An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` file of its own | 0006 |
-| `RESERVED_PATH` | MUST | No input's `path` and no declaration's `path`, tidied (§3), is or lies in the `results/` or `.astra/` of an analysis of the stack | tidy-up, §3 |
-| `UNKNOWN_DERIVED_FROM` | MUST | A universe's `derived_from` names a universe of the same analysis, never an import | 0003, §6 |
-| `DERIVED_FROM_CYCLE` | MUST | No universe's chain of `derived_from` loops | 0003 |
-| `MISSING_DECISION` | MUST | Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that its analysis's universes drive | 0003, 0004, tidy-up, §6, §7 |
-| `INACTIVE_DECISION` | MUST | A universe itself sets only decisions whose `when` holds in its effective selection | 0003 |
-| `MISSING_REQUIRED_OPTION` | MUST | Every effective selection satisfies the `requires` of every option it selects | 0003 |
-| `INCOMPATIBLE_OPTIONS` | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects | 0003 |
-| `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | main, tidy-up |
-| `DUPLICATE_ELEMENT` | MUST | No universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
-| `LOOPING_KEY` | MUST | No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included | main, §6, §7 |
-| `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the root's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe | 0004, §7 |
-| `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, by which the output of a planned result or the root's evidence pins another analysis's output built per universe to that universe, or by which the output of a result planned there, an output's `when` where the output's result would be planned if the `when` held, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
-| `INPUT_NOT_BUILT` | MUST | Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there | 0004 |
-| `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin in an `astra.yaml` names an entry of that file's `universes` or, where the file has no entry with its id, a universe of the analysis whose element its reference names | 0003, 0004, tidy-up, §4, §6, §7 |
-| `PIN_INACTIVE` | MUST | Every pinned output is active in the universe it is pinned to | 0003 |
-| `OUTPUT_CYCLE` | MUST | No output depends on itself, directly or through others | 0004 |
-| `RESULT_IN_TWO_PLACES` | SHOULD | No planned result has two names: its output's analysis is reached through at most one chain of driven declarations from the analysis the result belongs to (§8) | main, §7, §8 |
-
-### check
-
-Read this table like the others: **the Rule column says what must hold**.
-The extra column, **Status when broken**, is the status a result, or evidence
-citing it, gets when the rule doesn't hold. A result for which every rule
-holds is `unchanged` and `present`.
-
-A record is a document, read by the parse and schema rules (§3). A checker
+A record is a document, read by the parse and schema rules
+([§5](#5-the-astrayaml-file), [Annex A](#a-reading-files)). A checker
 doesn't report a record's breach of one of them as an error of its own: the
-record breaks `INVALID_RECORD`, so its result is `missing`, and the checker
-reports `INVALID_RECORD` with each code the record breaks as its reason, the
-parser's (`INVALID_SYNTAX` or `DUPLICATE_KEY`) or the one `rules.json` gives
-the schema error (§10).
+record breaks [`INVALID_RECORD`](#20-checking-results), so its result is
+`missing`. The checker reports [`INVALID_RECORD`](#20-checking-results)
+with each code the record breaks as its reason: the parser's
+([`INVALID_SYNTAX`](#5-the-astrayaml-file) or
+[`DUPLICATE_KEY`](#5-the-astrayaml-file)), or the one `rules.json` gives the
+schema error ([Annex E](#e-the-schema-files-and-rulesjson)).
 
-The statuses, which §8's *Statuses* gives:
+As in every codes table, the Rule column says what must hold. The last
+column, *Status when broken*, is the status a result, or evidence citing it,
+gets when the rule doesn't hold. A result for which every rule holds is
+`unchanged` and `present`.
 
-| Status | Means |
-|---|---|
-| `unchanged` | The result has a valid record where its address says, and `STALE_RESULT` holds |
-| `stale` | The result has a valid record where its address says, and `STALE_RESULT` doesn't hold. The checker says what changed |
-| `missing` | The result has no valid record where its address says: `MISSING_RECORD`, `INVALID_RECORD` (including a record that breaks a parse or schema rule), `MISPLACED_RECORD` or `MISSING_RECORD_INPUTS` doesn't hold; or the root is outside a git repository (`NOT_IN_REPOSITORY`) |
-| `present` | The bytes at the result's default place hash to the record's `content_hash` and have its `size` |
-| `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
-
-**Rules.**
-
-| Code | Level | Rule | Status when broken | Source |
+| Code | Layer | Level | Rule | Status when broken |
 |---|---|---|---|---|
-| `MISSING_RECORD` | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once), for each of its names, in the analysis it belongs to | `missing` | 0005 §1 |
-| `INVALID_RECORD` | MUST | The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema, or against the open variant when that minor version is greater than the checker's | `missing` | 0005 §2, tidy-up, §3, §8 |
-| `MISPLACED_RECORD` | MUST | The record at each planned result's place has, as its `address`, the address that place is worked out from | `missing` | 0005 §1 |
-| `MISSING_RECORD_INPUTS` | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` | 0005 §2 |
-| `STALE_RESULT` | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads | `stale` | 0005 §4 |
-| `ABSENT_RESULT` | SHOULD | Every planned result's recorded bytes are at its default place | `absent` | 0005 §1 |
-| `STALE_EVIDENCE` | MUST | Every evidence citing a result cites an unchanged one | the cited result's status ([Statuses](#statuses)) | 0005 §5 |
+| `MISSING_RECORD` | check | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once), for each of its names, in the analysis it belongs to | `missing` |
+| `INVALID_RECORD` | check | MUST | The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema, or against the open variant when that minor version is greater than the checker's | `missing` |
+| `MISPLACED_RECORD` | check | MUST | The record at each planned result's place has, as its `address`, the address that place is worked out from | `missing` |
+| `MISSING_RECORD_INPUTS` | check | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` |
+| `STALE_RESULT` | check | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads | `stale` |
+| `ABSENT_RESULT` | check | SHOULD | Every planned result's recorded bytes are at its default place | `absent` |
+| `STALE_EVIDENCE` | check | MUST | Every evidence citing a result cites an unchanged one | the cited result's record status |
 
-### runner
+### 21. Runners
 
-| Code | Level | Rule | Source |
+A runner runs recipes, and writes each result's bytes and its record
+([§18](#18-results-and-where-they-go), [§19](#19-records)).
+
+- A runner writes a record for every result it makes, at the place of each
+  of its names in the analysis the result belongs to, and writes the bytes
+  to their default places ([`UNRECORDED_RESULT`](#21-runners)).
+- Every field of the record is true of the run
+  ([`FALSE_RECORD`](#21-runners)). The runner records each recipe's
+  environment as an RFC 3987 IRI that it can recreate at its version
+  ([`UNRECREATABLE_ENVIRONMENT`](#21-runners)). Letting someone see what
+  that environment holds, as PROV for example, is recommended (below).
+- It runs only committed code. It runs each recipe in a checkout of a
+  commit: the repository's own working tree, or one it makes for the run (a
+  git worktree, say). It refuses to run while that checkout has changes
+  other than the records and results it writes itself, each result's bytes
+  the recorded ones ([`UNCOMMITTED_CHANGES`](#21-runners)). Changes outside
+  that checkout don't stop it.
+- It runs each recipe in its analysis's folder in that checkout, even when
+  another analysis drives it ([`WRONG_WORKING_DIRECTORY`](#21-runners)).
+- Where a driver's universes drive an analysis from a commit, it runs that
+  analysis's recipes on exactly its files at the declared commit
+  ([`NOT_AT_COMMIT`](#21-runners)).
+- It builds no result of an analysis from a commit
+  ([§17](#17-analyses-from-another-commit-or-repository),
+  [`REBUILT_FROM_COMMIT`](#21-runners)). It builds no output that reads such
+  a result while it is `missing` or `stale`, or its bytes can't be got or
+  aren't the recorded ones ([`STALE_INPUT`](#21-runners)). Any other result
+  it reads may be stale; what it builds from it is then stale too
+  ([§20](#20-checking-results)).
+- When it refuses to run a recipe for
+  [`UNCOMMITTED_CHANGES`](#21-runners), or to build an output for
+  [`STALE_INPUT`](#21-runners), it reports the code.
+
+A recipe should read the files inputs name, and other outputs' results,
+only through its output's inputs ([`UNDECLARED_READ`](#21-runners),
+[§11](#11-recipes)). That rule binds the recipe, and breaking it leaves the
+analysis valid.
+
+A checker sees much of a breach afterwards: a result with no record is
+`missing`, and bytes that aren't the recorded ones are `absent`
+([§20](#20-checking-results)).
+
+| Code | Layer | Level | Rule |
 |---|---|---|---|
-| `UNRECORDED_RESULT` | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places | 0005 §1, 0005 §3 |
-| `FALSE_RECORD` | MUST | Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times | 0005 §2, 0005 §3 |
-| `UNRECREATABLE_ENVIRONMENT` | MUST | A runner records each recipe's environment as an RFC 3987 IRI that it can recreate at its version | 0005 §3 |
-| `UNCOMMITTED_CHANGES` | MUST | A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones | 0005 §3, 0007 §2, 0007 §7 |
-| `WRONG_WORKING_DIRECTORY` | MUST | A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it | 0004 §1, 0004 §5 |
-| `NOT_AT_COMMIT` | MUST | A runner drives an analysis from a commit on exactly its files at that commit | 0007 §7 |
-| `REBUILT_FROM_COMMIT` | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each of those results through its record at the commit that analysis is read at | 0007 §3, 0007 §7 |
-| `STALE_INPUT` | MUST | A runner builds no output that reads a result belonging to an analysis from a commit, or to an analysis reached from it through declarations, while that result is `missing` or `stale`, or its bytes can't be got or aren't the recorded ones | 0007 §4, 0007 §5 |
-| `UNDECLARED_READ` | SHOULD | A recipe reads the files inputs name, and other outputs' results, only through its output's inputs | 0005 §3, tidy-up |
+| `UNRECORDED_RESULT` | runner | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places |
+| `FALSE_RECORD` | runner | MUST | Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times |
+| `UNRECREATABLE_ENVIRONMENT` | runner | MUST | A runner records each recipe's environment as an RFC 3987 IRI that it can recreate at its version |
+| `UNCOMMITTED_CHANGES` | runner | MUST | A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones |
+| `WRONG_WORKING_DIRECTORY` | runner | MUST | A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it |
+| `NOT_AT_COMMIT` | runner | MUST | A runner drives an analysis from a commit on exactly its files at that commit |
+| `REBUILT_FROM_COMMIT` | runner | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each of those results through its record at the commit that analysis is read at |
+| `STALE_INPUT` | runner | MUST | A runner builds no output that reads a result belonging to an analysis from a commit, or to an analysis reached from it through declarations, while that result is `missing` or `stale`, or its bytes can't be got or aren't the recorded ones |
+| `UNDECLARED_READ` | runner | SHOULD | A recipe reads the files inputs name, and other outputs' results, only through its output's inputs |
 
 Recommendation: a runner SHOULD let someone see what an environment it
 recorded holds.
 
-Permission: a runner MAY enforce `UNDECLARED_READ`; one that does fails the
-recipe and reports the code.
+Permission: a runner MAY enforce [`UNDECLARED_READ`](#21-runners); one that
+does fails the recipe and reports the code.
 
-## 10. Schema artefacts
+## Glossary
+
+Each term links to the sections that define it or give its detail.
+
+- **active** ([§1](#1-what-astra-is), [§9](#9-conditions)): of a decision or an
+  output in a universe, when every condition of its `when` holds in that
+  universe's effective selection. One without `when` is always active.
+- **address** ([§1](#1-what-astra-is), [§6](#6-names),
+  [§18](#18-results-and-where-they-go)): the name of an element other than an
+  option, through the declarations that lead to it: their ids, then the
+  element's, joined by `.`. An option is named by an option reference. A
+  result's address is its name followed, for a result built in a universe, by
+  `#` and the universe's own id, never an import's.
+- **analysis** ([§1](#1-what-astra-is), [§5](#5-the-astrayaml-file)): a folder
+  with an `astra.yaml` at its top, in a git repository: in its working tree, or
+  at one of its commits.
+- **analysis from a commit** ([§17](#17-analyses-from-another-commit-or-repository)):
+  the analysis a declaration with a `commit` names, as it was at that commit.
+- **analysis stack**, or **stack** ([§1](#1-what-astra-is),
+  [§15](#15-declared-analyses)): the root and every analysis it declares,
+  directly or through others.
+- **another analysis** ([§1](#1-what-astra-is),
+  [§17](#17-analyses-from-another-commit-or-repository)): an analysis with a
+  different identity.
+- **belongs to** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go)):
+  a result belongs to the analysis whose universe it was built in or, for an
+  output built once, to the analysis whose output it is.
+- **built per universe, built once** ([§1](#1-what-astra-is),
+  [§13](#13-pins-and-outputs-built-per-universe-or-once)): whether an output has
+  one result in each universe where it is active, or one in all.
+- **checker** ([§1](#1-what-astra-is), [§3](#3-conformance)): a tool that reads
+  an analysis, every `astra.yaml` of its stack, git, and its records and
+  results, and gives each planned result its statuses by the check rules.
+- **condition** ([§6](#6-names), [§9](#9-conditions)): an option reference,
+  possibly after `~`. The condition `d.o` holds when the option `o` of the
+  decision `d` is selected, and `~d.o` holds when it isn't.
+- **consuming** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming)):
+  using another analysis's element by address.
+- **declaration** ([§1](#1-what-astra-is), [§15](#15-declared-analyses)): an
+  entry of an analysis's `analyses`, keyed by the id the analysis addresses the
+  declared analysis by. It has a `path` or a `url`, and may have a `commit`.
+- **default place** ([§18](#18-results-and-where-they-go)): where a result's
+  bytes go in the analysis it belongs to: `results/{universe}/{name}.{format}`,
+  or `results/{name}.{format}` for an output built once.
+- **drive** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming)): an
+  analysis's universes drive a declaration when a key in the effective selection
+  of any of them, other than a key that loops, goes through every declaration
+  from the analysis's file to it; or when the declared analysis has no
+  decisions, the chain before the declaration is driven, and the declaration
+  leads back to no analysis already on the chain. A declaration they drive is
+  driven in every one of them.
+- **driver, driven** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming)):
+  the analysis whose universes drive, and an analysis reached through a
+  declaration they drive. The analysis whose universe is being built is never
+  driven in it.
+- **effective selection** ([§12](#12-universes)): what a universe selects once
+  `derived_from` is resolved.
+- **element** ([§1](#1-what-astra-is), [§6](#6-names)): an input, output,
+  decision, option, universe, import, declaration or insight of an analysis.
+- **excluded option** ([§8](#8-decisions-and-options)): an option with an
+  `excluded` reason. No effective selection selects it.
+- **id** ([§6](#6-names), [Annex C](#c-grammars-and-patterns)): an element's
+  name in its map, written once, as the entry's key: a lowercase letter, then
+  lowercase letters, digits and `_`.
+- **identity** ([§1](#1-what-astra-is),
+  [§17](#17-analyses-from-another-commit-or-repository)): an analysis's folder,
+  and the commit it is read at or the working tree. Two declarations name one
+  analysis when their folders are the same path, read at the same commit or both
+  in the working tree, whatever URL the commit is got from.
+- **import** ([§12](#12-universes), [§16](#16-driving-and-consuming)): an entry
+  of `universes` that names one of another analysis's universes, in which that
+  analysis is the driver. It selects nothing, and is not one of the importing
+  analysis's universes.
+- **imported universe** ([§16](#16-driving-and-consuming)): the universe an
+  import names, or that a pin names where its file has no entry with the pin's
+  id. Its own analysis is its only driver.
+- **insight** ([§1](#1-what-astra-is), [§14](#14-insights-and-evidence)): a
+  claim backed by evidence: a prior insight, which earlier work establishes and
+  the analysis builds on, or a finding, which the analysis concludes.
+- **lies inside** ([Annex B](#b-paths-and-git)): of a path and a folder, both
+  tidied: the folder's segments begin the path's, and the path has more.
+- **minor version** ([§5](#5-the-astrayaml-file)): of a version
+  `MAJOR.MINOR.PATCH`, its MAJOR and MINOR: `0.1` for `0.1.3`.
+- **name of a result** ([§1](#1-what-astra-is),
+  [§18](#18-results-and-where-they-go)): its output's id after the ids of the
+  driven declarations from the analysis it belongs to, such as
+  `subanalysis.output1`. A result reached through two chains of driven
+  declarations has two names.
+- **option reference** ([§6](#6-names)): a decision's address, `.`, then the id
+  of one of its options.
+- **pin** ([§1](#1-what-astra-is),
+  [§13](#13-pins-and-outputs-built-per-universe-or-once),
+  [§16](#16-driving-and-consuming)): `#` and a universe id ending a reference,
+  after its address. In an `astra.yaml`, it names the entry of the file's
+  `universes` with that id or, where the file has none, the universe with that
+  id of the analysis whose element the reference names. A pin on an output built
+  per universe reads it in that universe. On an input or an output built once, a
+  pin names a universe and changes nothing else.
+- **placeholder** ([§11](#11-recipes)): in a recipe's `command`, read from the
+  left, any `{` other than a `{{` opens a placeholder, which ends at the next
+  `}`. A runner substitutes each placeholder before running the command.
+- **planned result** ([§1](#1-what-astra-is),
+  [§18](#18-results-and-where-they-go)): a result a check of the root covers:
+  every result of the root's active outputs, every result the root's evidence
+  cites, and every result those read, transitively.
+- **record** ([§1](#1-what-astra-is), [§19](#19-records)): the provenance record
+  of one result: a JSON file at each place of the result, written by the runner
+  that made it.
+- **reference** ([§6](#6-names)): an address, possibly followed by a pin.
+- **repository that holds a file** ([Annex B](#b-paths-and-git)): the innermost
+  git repository the file is in. For a file in a submodule, it is the
+  submodule's own.
+- **result** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go)):
+  what a recipe made for one output in one universe, or once for an output built
+  once.
+- **root** ([§1](#1-what-astra-is), [§15](#15-declared-analyses)): the analysis
+  being validated or built.
+- **runner** ([§1](#1-what-astra-is), [§3](#3-conformance), [§21](#21-runners)):
+  whatever runs recipes, writing each result's bytes and record.
+- **spelling** ([§15](#15-declared-analyses)): one of two or more addresses,
+  written differently, that resolve to one element of one analysis.
+- **stand-in** ([§7](#7-inputs), [Annex B](#b-paths-and-git)): something kept in
+  a file's place, such as a large-file tool's pointer, that is recognised as
+  standing in for the file. Something standing in for the content isn't the
+  content.
+- **status** ([§1](#1-what-astra-is), [§20](#20-checking-results)): what a
+  checker gives a planned result: for its record, `unchanged`, `stale` or
+  `missing`, and for its bytes, `present` or `absent`.
+- **tracked** ([Annex B](#b-paths-and-git)): of a file in a repository: in the
+  working tree, in the repository's index or, at a commit, in that commit's
+  tree, in either case reached through no gitlink.
+- **unchanged, stale** ([§1](#1-what-astra-is), [§20](#20-checking-results)): of
+  a result with a valid record: nothing has changed, since the commit its record
+  names, in its output's declaration, the options its decisions select in its
+  universe, the content of its inputs or the results it reads; or something has.
+- **universe** ([§1](#1-what-astra-is), [§12](#12-universes)): an entry of an
+  analysis's `universes` other than an import: a selection of one option for
+  every active decision of the analysis and of every analysis reached through a
+  declaration its universes drive.
+- **universe being built** ([§1](#1-what-astra-is),
+  [§16](#16-driving-and-consuming)): when an analysis is built in one of its
+  universes, that universe, in the analysis and in every analysis reached
+  through a declaration its universes drive.
+- **universes built** ([§16](#16-driving-and-consuming)): the root's universes,
+  and those named by a pin on an output built per universe in the `inputs` of a
+  planned result's output or in the root's evidence.
+- **valid** ([§3](#3-conformance)): of a document, an `astra.yaml` or a record:
+  it breaks no parse or schema rule. Of an analysis: its stack breaks no parse,
+  schema or validator `MUST`.
+- **validator** ([§1](#1-what-astra-is), [§3](#3-conformance)): a tool that
+  reads an analysis, every `astra.yaml` of its stack and git, and reports every
+  parse, schema and validator rule they break, except where Annex D leaves one
+  unchecked.
+
+## Part III: For tool builders
+
+Part III is normative. Its annexes give the detail that a tool needs to apply
+Part II's rules: how files are read (A), how paths and git are read (B), the
+grammars and patterns (C), which rules a breach leaves unchecked (D), and the
+schema files and `rules.json` (E).
+
+### A. Reading files
+
+**`astra.yaml`** is a YAML 1.2 stream
+([YAML 1.2.2](https://yaml.org/spec/1.2.2/)) with at most one document, read
+under its core schema, with no tag but the core schema's
+([`INVALID_SYNTAX`](#5-the-astrayaml-file)). A file with no document is null
+([`WRONG_TYPE`](#5-the-astrayaml-file)). Its content is a JSON value, which
+the schema checks: every key is a string and every number is finite, not
+`.inf` or `.nan` ([`INVALID_SYNTAX`](#5-the-astrayaml-file)), and no map has
+two equal keys ([`DUPLICATE_KEY`](#5-the-astrayaml-file)), so `a`, `'a'` and
+`"a"` are one key.
+
+- Plain scalars are typed by the core schema
+  ([YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)),
+  so `spec_version: 0.1` is a number ([`WRONG_TYPE`](#5-the-astrayaml-file))
+  and `spec_version: "0.1.0"` a string.
+- A number is checked as JSON Schema checks it, so `2.0` is an integer.
+- In YAML, `#` inside a token is literal, so a pin such as `output1#u1` needs
+  no quotes.
+
+**Records** are JSON text ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259))
+in UTF-8 ([`INVALID_SYNTAX`](#5-the-astrayaml-file)). No object of a record
+has two equal names ([`DUPLICATE_KEY`](#5-the-astrayaml-file)).
+
+**YAML's share.** These parts of the rules above exist only because
+`astra.yaml` is YAML:
+
+- at most one document, read under the core schema, with no tag but its own;
+- a file with no document is null;
+- every key is a string, and every number is finite;
+- `a`, `'a'` and `"a"` are one key;
+- plain scalars are typed by the core schema.
+
+### B. Paths and git
+
+**Paths.** The path of an input or a declaration is relative to the folder of
+the `astra.yaml` that writes it, with `/` between folders (§7, §15). It names
+the entry at exactly that path: on disk in the working tree, or in the
+commit's tree at a commit ([`MISSING_INPUT_FILE`](#7-inputs),
+[`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)). So `data/A.csv` and
+`data/a.csv` are two paths, which name two files or folders, and
+`Subanalysis` and `subanalysis` declare two analyses (§17).
+
+**Reading git.** An analysis is read in the working tree or at a commit
+(§17), and validators and checkers read git one way:
+
+- **Tidying.** A path is joined to the folder of the `astra.yaml` that
+  writes it and tidied as text, never through the file system: empty and `.`
+  segments are dropped, and each `..` removes the segment before it. So
+  `./data.csv` is `data.csv`, `subanalysis/` is `subanalysis`, and
+  `subanalysis/../data` is `data`, whatever `subanalysis` is on disk.
+- **The top.** A path is measured from the top of the root's working tree
+  or, at a commit, from the top of the repository that holds it. A
+  declaration's path that goes above that top breaks
+  [`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses).
+- **Lies inside.** A path lies inside a folder, or is inside it, when, both
+  tidied, the folder's segments begin the path's, and the path has more. So
+  `results/u1/output1.csv` lies inside `results`, and `results2/x.csv`
+  doesn't.
+- **Entries.** In the working tree, a path names an entry on disk below the
+  top of the root's working tree, tracked, untracked or ignored. At a commit,
+  a path names an entry of that commit's tree.
+- **Symlinks.** A symlink is an entry, and is never followed: at a path, it
+  is neither a file nor a folder, and a path through a symlinked folder names
+  nothing. So a declaration finds no analysis where its path, or its
+  `astra.yaml`, is a symlink or goes through one
+  ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)). An input's path
+  that is a symlink names a file only where the validator recognises the
+  symlink as standing in for one (§7), and otherwise names none
+  ([`MISSING_INPUT_FILE`](#7-inputs)).
+- **Stand-ins.** A stand-in is something kept in a file's place, such as a
+  large-file tool's pointer, that is recognised as standing in for the file:
+  by the validator for an input's file (§7), and by the runner for the bytes
+  of a result, or an input, that it gets from a commit (§17). An input's
+  file, or its stand-in, is what is tracked
+  ([`INPUT_NOT_TRACKED`](#7-inputs)). Something standing in for the content
+  isn't the content.
+- **Submodules.** A submodule that is checked out is in the working tree, and
+  its entries are read in its own repository. At a commit, a path that looks
+  for a file or an analysis goes on through a gitlink into the submodule, at
+  the commit the gitlink pins. Whether an input is tracked never crosses a
+  gitlink.
+- **The repository that holds a file** is the innermost one: for a file in a
+  submodule, the submodule's own.
+  [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) and
+  [`COMMIT_NOT_ANCESTOR`](#17-analyses-from-another-commit-or-repository)
+  read the repository that holds the declaring `astra.yaml`, where, in the
+  working tree, HEAD stands for the commit a declaration is in (§17).
+- **Tracked.** [`INPUT_NOT_TRACKED`](#7-inputs) reads the repository that
+  holds the input's analysis, where a file is tracked when, in the working
+  tree, it is in the index or, at a commit, in that commit's tree, reached
+  through no gitlink. So a staged input is tracked, and an untracked or
+  ignored one isn't, nor is one in a plain data submodule.
+- **A gitlink's commit** is got from the URL that the `.gitmodules` of the
+  commit holding the gitlink gives for that submodule, a relative one
+  (`../other.git`) resolved as git resolves it
+  ([`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository),
+  §17).
+- **Bytes.** At a commit, a file is the blob git stores. In the working tree,
+  an `astra.yaml` is read from the file on disk.
+
+### C. Grammars and patterns
+
+**Grammar.** The five forms of a name (§6) are written in ABNF:
+
+```abnf
+id               = lower *( lower / DIGIT / "_" )
+lower            = %x61-7A                      ; a-z
+address          = id *( "." id )               ; [declaration "."]... element
+reference        = address [ "#" id ]           ; "#" pins a universe
+option-reference = address "." id              ; a decision's address, then an option id
+condition        = [ "~" ] option-reference     ; "~": the option is not selected
+```
+
+**Named types.** Each named type's values take this form:
+
+| Type | Form | Used by |
+|---|---|---|
+| [`id`](elements/Id.md) | `id` | every map key but those of `Universe.decisions`; also `Universe.derived_from`, `Universe.universe`, `Option.insights` and the values of `Universe.decisions` |
+| [`address`](elements/Address.md) | `address` | `Output.decisions`, the keys of `Universe.decisions`, `Universe.analysis` |
+| [`reference`](elements/Reference.md) | `reference` | `Output.inputs`, `Evidence.artifact`, `ProvenanceRecord.address`, `RecordedInput.entry` |
+| [`option_reference`](elements/OptionReference.md) | `option-reference` | `Option.requires`, `Option.incompatible_with` |
+| [`condition`](elements/Condition.md) | `condition` | `Output.when`, `Decision.when` |
+| [`commit_id`](elements/CommitId.md) | a full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64 (SHA-256) | `AnalysisDeclaration.commit`, `Generation.commit` |
+| [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits | `ProvenanceRecord.content_hash`, `RecordedInput.content_hash` |
+| [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros | `Analysis.spec_version`, `ProvenanceRecord.spec_version` |
+| [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, with month 01–12, day 01–31, hour 00–23, and minute and second 00–59 | `Generation.started`, `Generation.finished` |
+| [`iri`](elements/Iri.md) | an IRI, never a CURIE: a scheme, `:`, then characters other than ASCII spaces and controls, C1 controls, `<`, `>`, `"`, `{`, `}`, the vertical bar, `\`, `^`, the backtick and the bidi formatting characters U+200E, U+200F and U+202A–U+202E, with `%` only before two hex digits and at most one `#` | `Environment.iri`, `FragmentSelector.conforms_to` |
+
+A value that doesn't take its type's form fails: a map key or an `id` as
+[`INVALID_ID`](#6-names), any other address, reference, option reference or
+condition as [`INVALID_REFERENCE`](#6-names), a commit id as
+[`INVALID_COMMIT`](#17-analyses-from-another-commit-or-repository), and the
+others as [`INVALID_VALUE`](#5-the-astrayaml-file).
+
+**Other patterns.** The other fields with a pattern state it in their
+sections: `Output.format` (§10), an input's and a declaration's `path` (§7,
+§15), `AnalysisDeclaration.url` (§17) and `Evidence.doi` (§14).
+`FragmentSelector.value`'s is below.
+
+**Fragment identifiers.** A location's `value` is read by the syntax its
+`conforms_to` names (§14). It is non-empty, holds no ASCII space or control
+character and none of `"`, `#`, `<`, `>`, `[`, `\`, `]`, `^`, the backtick,
+`{`, `|` and `}`, and has `%` only before two hex digits
+([`INVALID_VALUE`](#5-the-astrayaml-file)). `conforms_to` is an
+[`iri`](elements/Iri.md) (above, [`INVALID_VALUE`](#5-the-astrayaml-file)).
+
+### D. When a rule isn't checked
+
+A tool reports every rule broken, except in the cases below, and the list is
+closed. In each case another broken rule leaves what a rule is about
+undetermined, so the rule isn't checked and isn't reported. Each case starts
+from a broken `MUST`. So a rule left unchecked never makes an invalid analysis
+valid, or a `missing` result anything else: it changes only which codes are
+reported. Two rules whose subjects are both determined are both reported, even
+when one edit fixes both.
+
+1. **A file that can't be read, or whose version has no schema.** A file that
+   breaks a parse rule is checked no further. A file whose `spec_version` is
+   missing or malformed isn't checked by
+   [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file): it is checked against
+   the schema of the tool's own minor version, the validator's schema of
+   `astra.yaml` or the checker's record schema, and every schema error in it is
+   reported, a record's as a reason of [`INVALID_RECORD`](#20-checking-results).
+   A file whose well-formed `spec_version` breaks
+   [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file) isn't checked by the
+   schema layer.
+2. **A file that isn't a valid document.** A file that breaks a parse or schema
+   rule, or [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file), isn't checked
+   by the validator layer, and its declarations aren't followed. Its analysis is
+   undetermined (4).
+3. **A declaration that can't be read.** On a declaration whose own analysis
+   can't be got, because it breaks
+   [`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses) or
+   [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository), or
+   because a commit that analysis is read from can't be got
+   ([`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository),
+   §17), neither [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses) nor
+   [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
+   is checked. On one that breaks
+   [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository), or
+   whose own `commit` can't be got,
+   [`COMMIT_NOT_ANCESTOR`](#17-analyses-from-another-commit-or-repository) isn't
+   checked either. Its analysis is undetermined (4), and so is the analysis of a
+   declaration that breaks [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses).
+   [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
+   isn't checked on an analysis from a commit whose file breaks
+   [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file). Where
+   [`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository) is
+   reported on a declaration for a commit further in (§17),
+   [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
+   isn't checked on that declaration, and the analysis that couldn't be got is
+   undetermined. The analyses read on the way to it are not: their declarations'
+   [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses), and addresses into them
+   such as `upstream.output1#u1`, are still checked.
+4. **An undetermined analysis.** No validator rule is checked in its file. In
+   the files that declare it, nothing reached through that declaration is
+   checked: no address through it, by [`UNRESOLVED_ADDRESS`](#6-names) or by any
+   rule on what the address would name, no
+   [`MISSING_DECISION`](#16-driving-and-consuming) for its decisions, and no
+   [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) for a name through it.
+5. **A name that names nothing.** An address that breaks
+   [`UNRESOLVED_ADDRESS`](#6-names), and an option that breaks
+   [`UNKNOWN_OPTION`](#8-decisions-and-options), name nothing, and no rule is
+   checked on what they would name. That leaves out
+   [`UNKNOWN_OPTION`](#8-decisions-and-options) under such an address, the pin
+   rules ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming) and
+   [`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once)), and
+   [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
+   [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming),
+   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once),
+   [`OUTPUT_CYCLE`](#10-outputs) and
+   [`DUPLICATE_ELEMENT`](#16-driving-and-consuming) through it. A pin that
+   breaks [`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming), or that names an
+   import that names nothing or whose address runs through an undetermined
+   analysis (4), names no universe: it builds none, and neither
+   [`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once) nor a rule
+   on the universe being built (§16) is checked for it. A selection that names
+   nothing isn't checked by [`INACTIVE_DECISION`](#12-universes),
+   [`MISSING_REQUIRED_OPTION`](#12-universes),
+   [`INCOMPATIBLE_OPTIONS`](#12-universes) or
+   [`EXCLUDED_OPTION_SELECTED`](#12-universes). A `requires` or
+   `incompatible_with` entry that names nothing is ignored.
+6. **An element whose activity is undetermined.** In a universe, a `when` is
+   undetermined when one of its conditions names nothing (5), or tests a
+   decision that the universe's selection leaves unset
+   ([`MISSING_DECISION`](#16-driving-and-consuming)) or sets to an option that
+   names nothing. Its element's activity in that universe is then undetermined.
+   [`MISSING_DECISION`](#16-driving-and-consuming) and
+   [`INACTIVE_DECISION`](#12-universes) aren't checked for such a decision,
+   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once) and
+   [`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once) aren't
+   checked for such an output, nor
+   [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) for its result, nor
+   [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
+   [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) or
+   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once) for what
+   it reads or lists in `decisions`. Nor are those three or
+   [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) checked for a result
+   planned only through it, for the `when` of an output whose result would be
+   planned only through it, or in a universe built only through a pin in its
+   `inputs`. Step 3 of the effective selection (§12) doesn't drop such a
+   decision.
+7. **A universe with no effective selection.** A universe has none when its
+   `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#12-universes), or its chain
+   breaks [`DERIVED_FROM_CYCLE`](#12-universes) or reaches a universe that has
+   none. For it, [`MISSING_DECISION`](#16-driving-and-consuming),
+   [`INACTIVE_DECISION`](#12-universes),
+   [`MISSING_REQUIRED_OPTION`](#12-universes),
+   [`INCOMPATIBLE_OPTIONS`](#12-universes),
+   [`EXCLUDED_OPTION_SELECTED`](#12-universes),
+   [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
+   [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming),
+   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once) and
+   [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) aren't checked, and
+   [`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once) isn't
+   checked for a pin naming it, directly or through an import.
+   [`UNRESOLVED_ADDRESS`](#6-names),
+   [`UNKNOWN_OPTION`](#8-decisions-and-options),
+   [`DUPLICATE_ELEMENT`](#16-driving-and-consuming) and
+   [`LOOPING_KEY`](#16-driving-and-consuming) are still checked on its own
+   `decisions`. Driving (§16) counts its own `decisions` in place of its
+   effective selection.
+8. **An input with no file.** An input that breaks
+   [`MISSING_INPUT_FILE`](#7-inputs) isn't checked by
+   [`INPUT_NOT_TRACKED`](#7-inputs).
+9. **A result with no valid record.** A result that breaks
+   [`MISSING_RECORD`](#20-checking-results) isn't checked by
+   [`INVALID_RECORD`](#20-checking-results),
+   [`MISPLACED_RECORD`](#20-checking-results) or
+   [`MISSING_RECORD_INPUTS`](#20-checking-results). One whose record breaks
+   [`INVALID_RECORD`](#20-checking-results) isn't checked by the last two.
+   [`STALE_RESULT`](#20-checking-results) isn't checked for a result that is
+   `missing`.
+10. **A key that loops.** [`LOOPING_KEY`](#16-driving-and-consuming) is judged
+    on a key's declarations up to the first that doesn't resolve or whose
+    analysis is undetermined (4, 5). A key that loops still names its decision,
+    if it resolves, and the rules on selections check it, but it drives no
+    declaration (§16), and no rule counts it as going through one.
+11. **An analysis outside a repository.** Where the root breaks
+    [`NOT_IN_REPOSITORY`](#5-the-astrayaml-file), no other validator rule is
+    checked and its declarations aren't followed, so only its own `astra.yaml`
+    is checked, by the parse and schema rules.
+
+### E. The schema files and rules.json
 
 The schema is written in [LinkML](https://linkml.io/), in four modules:
-`types` (the named types of §4), `analysis` (the analysis document),
-`insight` (insights and evidence) and `provenance` (the record). Their
-descriptions are the normative definitions of the fields, published as the
-[schema reference](elements/index.md). These artefacts are generated from
-them (and `rules.json` also from §9), and each is published at
-`https://w3id.org/astra/`, its minor version (`0.1` for every 0.1.x) and
-`/`, followed by its file name:
+`types` (the named types of Annex C), `analysis` (`astra.yaml`), `insight`
+(insights and evidence) and `provenance` (the record). Their descriptions are
+the normative definitions of the fields, published as the
+[field reference](elements/index.md). These files are generated from them,
+and `rules.json` also from the codes tables of Part II. Each is published at
+`https://w3id.org/astra/`, its minor version (`0.1` for every 0.1.x) and `/`,
+followed by its file name:
 
 | File | URI | What it is |
 |---|---|---|
@@ -1822,45 +2685,48 @@ them (and `rules.json` also from §9), and each is published at
 | `provenance.schema.json` | `https://w3id.org/astra/0.1/provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
 | `provenance.open.schema.json` | `https://w3id.org/astra/0.1/provenance.open.schema.json` | the same schema, open: it allows fields it doesn't define |
 | `provenance.context.jsonld` | `https://w3id.org/astra/0.1/provenance.context.jsonld` | the JSON-LD context of a record |
-| `rules.json` | `https://w3id.org/astra/0.1/rules.json` | the rule catalogue of §9, with the code of each JSON Schema error that makes an instance fail |
+| `rules.json` | `https://w3id.org/astra/0.1/rules.json` | the rule catalogue: every rule of the codes tables, with the code of each JSON Schema error that makes an instance fail |
 
-Each JSON Schema's `$id` is its URI. So the closed and open record schemas are
-distinct resources, and so are the schemas of two minor versions. The patches
-of one minor version share each URI: a patch release never changes what is
-valid (§1), so the URI names one schema whichever patch's file a tool holds.
-A JSON Schema's top level holds only standard JSON Schema keywords, and the
-version of the release it was generated from is in its `$comment`.
+**URIs.** Each JSON Schema's `$id` is its URI. So the closed and open record
+schemas are distinct resources, and so are the schemas of two minor versions.
+The patches of one minor version share each URI: a patch release never
+changes what is valid (§5), so the URI names one schema whichever patch's
+file a tool holds. A JSON Schema's top level holds only standard JSON Schema
+keywords, and the version of the release it was generated from is in its
+`$comment`.
 
 **The contract.** `analysis.schema.json` is the contract for `astra.yaml`: a
 document breaks no schema rule exactly when a JSON Schema draft 2019-09
-validator reports no error for it against this file. `provenance.schema.json`
-is the contract for records in the same way. Both are closed: a field they
-don't define is an error ([`UNKNOWN_FIELD`](#parse-and-schema)), and no
-optional field takes `null`.
+validator reports no error for it against this file.
+`provenance.schema.json` is the contract for records in the same way. Both
+are closed: a field they don't define is an error
+([`UNKNOWN_FIELD`](#5-the-astrayaml-file)), and no optional field takes
+`null`.
 
 **The open variant.** `provenance.open.schema.json` differs from
 `provenance.schema.json` only in allowing fields it doesn't define. A checker
 reading a record of a greater minor version than its own validates the record
 against it, and so ignores the fields that version adds
-([`INVALID_RECORD`](#check)).
+([`INVALID_RECORD`](#20-checking-results)).
 
 **The rule catalogue.** `rules.json` is made from this specification and the
-schema, so that every tool reports the same code for the same error and
-words each rule the same way. It holds:
+schema, so that every tool reports the same code for the same error and words
+each rule the same way. It holds:
 
-- `rules`: one entry per rule of §9, in §9's order. Each has its `code`;
-  its `layer` (`parse`, `schema`, `validator`, `check` or `runner`); its
-  `level` (`MUST` or `SHOULD`); and its `statement`, its `source`
-  and, for a rule of the check layer, its `status`: the Rule, Source and
-  Status when broken cells, as inline CommonMark with each link reduced to
+- `rules`: one entry per row of the codes tables, in document order. Each has
+  its `code`; its `layer` (`parse`, `schema`, `validator`, `check` or
+  `runner`); its `level` (`MUST` or `SHOULD`); its `statement`, the Rule
+  cell; its `source`, the section whose table lists it, as in `§7 Inputs`;
+  and, for a rule of the check layer, its `status`, the Status when broken
+  cell. The cells are given as inline CommonMark, with each link reduced to
   its text. A `status` is display text naming the status a result, or
   evidence citing it, gets when the rule is broken, not a status token.
 - `errors`: the code of every keyword of the three JSON Schemas whose error
   can make an instance fail (*From an error to its code*, below), keyed by
-  the keyword's absolute keyword location, as JSON Schema 2019-09 defines
-  it: the schema's `$id`, `#`, and the JSON Pointer to the keyword once
-  every `$ref` is resolved. So each key names its minor version, through
-  `$id`. Each code is a schema-layer rule's.
+  the keyword's absolute keyword location, as JSON Schema 2019-09 defines it:
+  the schema's `$id`, `#`, and the JSON Pointer to the keyword once every
+  `$ref` is resolved. So each key names its minor version, through `$id`.
+  Each code is a schema-layer rule's.
 - `$comment`: the version of the release it was made from.
 
 An abridged `rules.json`:
@@ -1879,14 +2745,14 @@ An abridged `rules.json`:
       "code": "INVALID_COMMIT",
       "layer": "schema",
       "level": "MUST",
-      "source": "0007, tidy-up",
+      "source": "§17 Analyses from another commit or repository",
       "statement": "Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits"
     },
     {
       "code": "ABSENT_RESULT",
       "layer": "check",
       "level": "SHOULD",
-      "source": "0005 §1",
+      "source": "§20 Checking results",
       "statement": "Every planned result's recorded bytes are at its default place",
       "status": "`absent`"
     }
@@ -1895,11 +2761,11 @@ An abridged `rules.json`:
 ```
 
 **From an error to its code.** A parse code is reported for the whole file,
-and [`UNSUPPORTED_SPEC_VERSION`](#validator) at `/spec_version`. A schema
-error is reported with the code that `errors` gives its keyword's absolute
-keyword location, at the instance location where it fails; an error on a key
-is reported at its map, naming the key, and an unknown field at its object,
-naming the field. Only the failures that make the document fail are
+and [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file) at `/spec_version`.
+A schema error is reported with the code that `errors` gives its keyword's
+absolute keyword location, at the instance location where it fails; an error
+on a key is reported at its map, naming the key, and an unknown field at its
+object, naming the field. Only the failures that make the document fail are
 reported, not those inside an `if` or a `not`, or inside a branch of a
 combinator that doesn't fail. So any JSON Schema 2019-09 validator gives the
 same set of pairs of an instance location and a code.
@@ -1915,10 +2781,60 @@ are `prov:Entity`, `generated_by` is a `prov:Activity`, and the `runner` a
 none, in the `https://w3id.org/astra/` namespace. The context is JSON-LD 1.1,
 and an `iri` is its node's `@id` exactly as written, whatever its scheme
 (`prov:env:1` too). Read this way, a record is PROV-O. The root node stands
-for the result: a `prov:Entity` that `prov:wasGeneratedBy` its `generated_by`,
-the run, which `prov:used` its inputs and its environment and
+for the result: a `prov:Entity` that `prov:wasGeneratedBy` its
+`generated_by`, the run, which `prov:used` its inputs and its environment and
 `prov:wasAssociatedWith` its runner. The root node's `address`,
 `content_hash` and `size` describe the result, and its `spec_version` the
 record. The run's `started` and `finished` are `prov:startedAtTime` and
 `prov:endedAtTime`, typed `xsd:dateTime`, and the runner's `version` is
 `schema:softwareVersion`.
+
+### References
+
+- **BCP 14**: [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119), Key words for
+  use in RFCs to Indicate Requirement Levels, and
+  [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174), Ambiguity of Uppercase
+  vs Lowercase in RFC 2119 Key Words.
+- **CommonMark**: the [CommonMark Spec](https://spec.commonmark.org/).
+- **ECMA-262**: the [ECMAScript Language
+  Specification](https://ecma-international.org/publications-and-standards/standards/ecma-262/),
+  whose regular expressions are JSON Schema's patterns.
+- **EPUB CFI**: [EPUB Canonical Fragment
+  Identifiers](https://idpf.org/epub/linking/cfi/epub-cfi.html).
+- **FIPS 180-4**: [Secure Hash
+  Standard](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf), which
+  defines SHA-1 and SHA-256.
+- **ISO 32000-2**: Document management — Portable document format — Part 2: PDF
+  2.0.
+- **JSON-LD 1.1**: [JSON-LD 1.1](https://www.w3.org/TR/json-ld11/) and [JSON-LD
+  1.1 Processing Algorithms and API](https://www.w3.org/TR/json-ld11-api/).
+- **JSON Schema 2019-09**: [JSON Schema: A Media Type for Describing JSON
+  Documents](https://json-schema.org/draft/2019-09/json-schema-core.html) and
+  [JSON Schema
+  Validation](https://json-schema.org/draft/2019-09/json-schema-validation.html),
+  draft 2019-09.
+- **Media Fragments**: [Media Fragments URI
+  1.0](https://www.w3.org/TR/media-frags/).
+- **PROV-O**: [PROV-O: The PROV Ontology](https://www.w3.org/TR/prov-o/).
+- **RFC 3236**: [The 'application/xhtml+xml' Media
+  Type](https://www.rfc-editor.org/rfc/rfc3236).
+- **RFC 3778**: [The application/pdf Media
+  Type](https://www.rfc-editor.org/rfc/rfc3778), obsoleted by RFC 8118.
+- **RFC 3987**: [Internationalized Resource Identifiers
+  (IRIs)](https://www.rfc-editor.org/rfc/rfc3987).
+- **RFC 5147**: [URI Fragment Identifiers for the text/plain Media
+  Type](https://www.rfc-editor.org/rfc/rfc5147).
+- **RFC 5234**: [Augmented BNF for Syntax Specifications:
+  ABNF](https://www.rfc-editor.org/rfc/rfc5234).
+- **RFC 6901**: [JavaScript Object Notation (JSON)
+  Pointer](https://www.rfc-editor.org/rfc/rfc6901).
+- **RFC 7111**: [URI Fragment Identifiers for the text/csv Media
+  Type](https://www.rfc-editor.org/rfc/rfc7111).
+- **RFC 8118**: [The application/pdf Media
+  Type](https://www.rfc-editor.org/rfc/rfc8118).
+- **RFC 8259**: [The JavaScript Object Notation (JSON) Data Interchange
+  Format](https://www.rfc-editor.org/rfc/rfc8259).
+- **Web Annotation**: [Web Annotation Data
+  Model](https://www.w3.org/TR/annotation-model/).
+- **YAML 1.2.2**: [YAML Ain't Markup Language (YAML™) revision
+  1.2.2](https://yaml.org/spec/1.2.2/).

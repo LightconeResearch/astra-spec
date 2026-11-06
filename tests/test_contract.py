@@ -201,7 +201,7 @@ TYPED = {
     ("RecordedInput", "content_hash"): "content_hash",
     ("Environment", "iri"): "iri",
 }
-"""The named type of each slot that takes one, a map's key aside (spec §4, Named types), written by hand."""
+"""The named type of each slot that takes one, a map's key aside (spec Annex C, Named types), written by hand."""
 
 KEY_TYPES = {("Universe", "decisions"): "address"}
 """The type of the keys of each map not keyed by an `id`: `Universe.decisions`, keyed by a decision's address."""
@@ -274,7 +274,7 @@ def test_every_typed_slot_is_in_the_contract():
 @pytest.mark.parametrize("name", ROOTS)
 def test_every_typed_slot_takes_its_types_pattern_and_code(name):
     """A slot of a named type checks its values with exactly the type's pattern, whose errors take the type's code:
-    no pattern or `rule` of its own (spec §4)."""
+    no pattern or `rule` of its own (spec Annex C)."""
     prefix = load(name)["$id"] + "#"
     error_map = rules_catalogue()["errors"]
     values = typed_values(name)
@@ -300,7 +300,7 @@ def test_every_typed_slot_takes_its_types_pattern_and_code(name):
 @pytest.mark.parametrize("name", ROOTS)
 def test_every_map_key_takes_its_types_pattern_and_is_an_id(name):
     """Every map's keys take `id`'s pattern, but those of `Universe.decisions`, which take `address`'s, and nothing
-    else, since a key is a string (spec §3); a bad key is `INVALID_ID` whatever its type (spec §4, §9)."""
+    else, since a key is a string (spec Annex A); a bad key is `INVALID_ID` whatever its type (spec §6, Annex C)."""
     schema = load(name)
     prefix = schema["$id"] + "#"
     error_map = rules_catalogue()["errors"]
@@ -464,7 +464,7 @@ def test_the_harness_refuses_what_ecma_262_reads_otherwise(pattern):
 
 
 def series(version: str) -> str:
-    """The series of a stamped `version`: `X.Y` for a release `X.Y.Z` (spec §10), else the whole version (CLAUDE.md)."""
+    """The series of a stamped `version`: `X.Y` for a release `X.Y.Z` (spec Annex E), else the whole version (CLAUDE.md)."""
     release = re.fullmatch(r"([0-9]+\.[0-9]+)\.[0-9]+", version)
     return release[1] if release else version
 
@@ -494,7 +494,7 @@ def test_top_level_holds_only_standard_keywords(name):
 @pytest.mark.parametrize("name", ROOTS)
 def test_two_minor_versions_are_held_side_by_side(name):
     """Copies of a schema stamped `0.1` and `0.2` go into one `referencing` registry, and each URI resolves to its own
-    copy: the `0.2` copy requires one more field, and only a `$ref` to it reports that field missing (spec §10)."""
+    copy: the `0.2` copy requires one more field, and only a `$ref` to it reports that field missing (spec Annex E)."""
     schema = load(name)
     copies = {}
     for minor, extra in (("0.1", []), ("0.2", ["added_in_0_2"])):
@@ -549,7 +549,7 @@ def test_lists_of_strings_hold_no_entry_twice(name):
 
 def test_no_list_of_strings_in_an_analysis_is_empty():
     """`minItems: 1` on every list of scalars of `astra.yaml` (`EMPTY_COLLECTION`): a field with nothing to list is
-    left out (spec §4)."""
+    left out (spec §5)."""
     schema = load("analysis.schema.json")
     minimum = {
         pointer: node.get("minItems")

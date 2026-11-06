@@ -123,7 +123,7 @@ outputs:
 
 def test_a_file_without_spec_version_reports_every_schema_error():
     """A file whose `spec_version` is missing is checked against the validator's own schema, and every schema error
-    in it is reported (spec §1, §9 *What is checked*): a pre-0.1 file lacks `spec_version` (MISSING_FIELD) and has
+    in it is reported (spec §5, Annex D): a pre-0.1 file lacks `spec_version` (MISSING_FIELD) and has
     `version` and `name` (UNKNOWN_FIELD), both at the document. An invalid fixture names one code at each place, so
     this is a test of its own."""
     document = load_yaml(_PRE_0_1)
@@ -135,7 +135,7 @@ def test_a_file_without_spec_version_reports_every_schema_error():
 
 
 SUFFIXES = {"Analysis": ".yaml", "ProvenanceRecord": ".json"}
-"""The file suffix of each fixture root: an `astra.yaml` is YAML, a record JSON (spec §3)."""
+"""The file suffix of each fixture root: an `astra.yaml` is YAML, a record JSON (spec Annex A)."""
 
 
 def test_every_fixture_is_written_as_its_kind_of_file():
@@ -279,7 +279,7 @@ def test_check_accepts_the_second_error_its_also_line_declares(tmp_path):
 
 
 def test_fixture_header_reads_a_code_with_a_digit(tmp_path):
-    """A code is `[A-Z][A-Z0-9_]*`, as the specification's §9 and `tools/rules.py` write it."""
+    """A code is `[A-Z][A-Z0-9_]*`, as the specification's §4 and `tools/rules.py` write it."""
     path = tmp_path / "Analysis-901-digit-code.yaml"
     path.write_text(
         "# rule: SHA256_MISMATCH\n"

@@ -1,5 +1,5 @@
 """The harness's loaders: an `astra.yaml` read by a stock YAML 1.2 parser under the core schema, its content a JSON value
-(spec §3), and a record as JSON (spec §3).
+(spec Annex A), and a record as JSON (spec Annex A).
 
 These tests check ASTRA's rules. YAML's own grammar is the parser's to read, and isn't tested here.
 """
@@ -216,7 +216,7 @@ def test_a_number_that_isnt_finite_is_invalid_syntax(refused, text):
 
 @pytest.mark.parametrize("version, valid", [("2.0", True), ("2.5", False)])
 def test_a_number_is_typed_as_json_schema_types_it(load, version, valid):
-    """§3: `2.0` is an integer, since JSON Schema counts a number with a zero fractional part as one."""
+    """Annex A: `2.0` is an integer, since JSON Schema counts a number with a zero fractional part as one."""
     doc = load(
         'spec_version: "0.1.0"\n'
         "outputs:\n"
@@ -306,7 +306,7 @@ def test_text_the_parser_refuses_is_invalid_syntax(refused):
     assert refused("outputs: {result: {type: metric\n") == "INVALID_SYNTAX"
 
 
-# --- Records: JSON text (RFC 8259) in UTF-8, with distinct names (spec §3) ---
+# --- Records: JSON text (RFC 8259) in UTF-8, with distinct names (spec Annex A) ---
 
 
 @pytest.mark.parametrize(

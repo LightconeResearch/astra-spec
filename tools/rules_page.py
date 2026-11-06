@@ -10,20 +10,10 @@ import re
 import unicodedata
 from pathlib import Path
 
-from markdown_it import MarkdownIt
-from rules import (
-    PART_II,
-    SECTION_LAYERS,
-    extract_notes,
-    extract_rules,
-    extract_section_rules,
-)
+from rules import SECTION_LAYERS, extract_notes, extract_rules
 
 SPECIFICATION = "specification.md"
 """The specification's page, as the page links to it."""
-
-SECTION_9 = "§9 Conformance"
-"""The source of every rule of a specification without a Part II, which states its rules in §9's tables."""
 
 INTRO = (
     "This page is generated from the [specification](specification.md): every rule, by layer, with a link to the"
@@ -92,21 +82,9 @@ def render_rules_page(rules: list[dict], notes: list[dict]) -> str:
 
 
 def read_specification(markdown: str) -> tuple[list[dict], list[dict]]:
-    """The rules and the notes of the specification `markdown`.
-
-    A specification with a `## Part II: The specification` states its rules in the codes tables of its sections. One
-    without states them in §9's tables, each with §9 as its source, and has no notes there.
-    """
-    tokens = MarkdownIt("commonmark").enable("table").parse(markdown)
-    if any(
-        t.type == "heading_open"
-        and t.tag == "h2"
-        and t.level == 0
-        and tokens[i + 1].content == PART_II
-        for i, t in enumerate(tokens)
-    ):
-        return extract_section_rules(markdown), extract_notes(markdown)
-    return [{**rule, "source": SECTION_9} for rule in extract_rules(markdown)], []
+    """The rules and the notes of the specification `markdown`: those of the codes tables and the notes of its Part II
+    (`tools/rules.py`)."""
+    return extract_rules(markdown), extract_notes(markdown)
 
 
 def main(argv: list[str] | None = None) -> None:
