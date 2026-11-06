@@ -98,8 +98,7 @@
           "description": "The options the decision chooses between, keyed by id. There is at least one.",
           "minProperties": 1,
           "propertyNames": {
-            "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-            "type": "string"
+            "pattern": "^[a-z][a-z0-9_]*$(?!\\n)"
           },
           "type": "object"
         },
@@ -669,8 +668,7 @@
           },
           "description": "The options the universe selects, as `<decision>: <option>`, one key per decision. Each key is the id of a decision of the analysis or, for a decision of another analysis, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `stage.method`, or another spelling of that address, through no declaration back to an analysis already on its chain.",
           "propertyNames": {
-            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n)",
-            "type": "string"
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$(?!\\n)"
           },
           "type": "object"
         },
@@ -717,8 +715,7 @@
       },
       "description": "The analyses this analysis uses, keyed by the id it addresses them by.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)"
       },
       "type": "object"
     },
@@ -732,8 +729,7 @@
       },
       "description": "The choices the analysis makes, keyed by id.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)"
       },
       "type": "object"
     },
@@ -747,8 +743,7 @@
       },
       "description": "What the analysis concludes, as insights keyed by id.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)"
       },
       "type": "object"
     },
@@ -758,8 +753,7 @@
       },
       "description": "The files the analysis reads, keyed by id.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)"
       },
       "type": "object"
     },
@@ -774,8 +768,7 @@
       "description": "The artefacts the analysis makes, keyed by id. There is at least one.",
       "minProperties": 1,
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)"
       },
       "type": "object"
     },
@@ -785,8 +778,7 @@
       },
       "description": "What earlier work establishes and the analysis builds on, as insights keyed by id. Options cite them in their `insights`.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)"
       },
       "type": "object"
     },
@@ -810,8 +802,7 @@
       },
       "description": "The universes of the analysis, and the universes of other analyses it imports, keyed by id. An import has an `analysis` and a `universe`.",
       "propertyNames": {
-        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)",
-        "type": "string"
+        "pattern": "^[a-z][a-z0-9_]*$(?!\\n)"
       },
       "type": "object"
     }

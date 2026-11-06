@@ -105,12 +105,6 @@ def is_map(subschema: dict) -> bool:
     return isinstance(subschema.get("additionalProperties"), dict)
 
 
-def key_pattern(subschema: dict) -> Any:
-    """The `pattern` that `subschema`'s `propertyNames` gives its keys, or None."""
-    names = subschema.get("propertyNames")
-    return names.get("pattern") if isinstance(names, dict) else None
-
-
 def maps(schema: dict) -> list[tuple[str, dict]]:
     """Every map anywhere in `schema`, with its JSON Pointer."""
     return [(pointer, node) for pointer, node in nodes(schema) if is_map(node)]
@@ -357,8 +351,8 @@ def test_every_typed_slot_takes_its_types_pattern_and_code(name):
 
 @pytest.mark.parametrize("name", ROOTS)
 def test_every_map_key_takes_its_types_pattern_and_is_an_id(name):
-    """Every map's keys take `id`'s pattern, but those of `Universe.decisions`, which take `address`'s; a bad key is
-    `INVALID_ID` whatever its type (spec §4, §9)."""
+    """Every map's keys take `id`'s pattern, but those of `Universe.decisions`, which take `address`'s, and nothing
+    else, since a key is a string (spec §3); a bad key is `INVALID_ID` whatever its type (spec §4, §9)."""
     schema = load(name)
     prefix = schema["$id"] + "#"
     error_map = rules_catalogue()["errors"]
@@ -370,16 +364,19 @@ def test_every_map_key_takes_its_types_pattern_and_is_an_id(name):
     assert sorted(pointer for pointer, _ in maps(schema)) == sorted(keys)
     found = {
         pointer: (
-            key_pattern(sub),
+            sub["propertyNames"],
             {
                 error_map.get(prefix + pointer + "/propertyNames" + keyword)
-                for keyword in ("", "/type", "/pattern")
+                for keyword in ("", "/pattern")
             },
         )
         for pointer, (_, sub) in keys.items()
     }
     expected = {
-        pointer: (type_patterns()[KEY_TYPES.get(slot, "id")], {"INVALID_ID"})
+        pointer: (
+            {"pattern": type_patterns()[KEY_TYPES.get(slot, "id")]},
+            {"INVALID_ID"},
+        )
         for pointer, (slot, _) in keys.items()
     }
     assert found == expected

@@ -89,8 +89,7 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
             key_pattern = self.get_subschema_for_slot(key_slot, include_null=False).get(
                 "pattern"
             )
-            prop["propertyNames"] = JsonSchema({"type": "string"})
-            prop["propertyNames"].add_keyword("pattern", key_pattern)
+            prop["propertyNames"] = JsonSchema({"pattern": key_pattern})
             prop["additionalProperties"] = self._entry_subschema(slot, key_slot)
         if (
             not omit_type

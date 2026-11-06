@@ -1,2 +1,0 @@
-# An escaped surrogate pair, `\ud83d\ude00`, is one character, U+1F600, as
-# JSON reads it: a lone surrogate is INVALID_SYNTAX (ProvenanceRecord-227).

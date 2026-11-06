@@ -111,14 +111,12 @@ NEGATIVE = [
     Case("core", "/tags/0", 1, "WRONG_TYPE"),
     Case("core", "/tags", [], "EMPTY_COLLECTION"),
     Case("core", "/tags/1", "photometric-redshifts", "DUPLICATE_ENTRY", "/tags"),
-    # Each map: a list in its place, a key that is an address but not an id, and a key that isn't a string.
+    # Each map: a list in its place, and a key that is an address but not an id.
     Case("core", "/inputs", ["catalog"], "WRONG_TYPE"),
     Case("core", "/inputs/data.catalog", {"path": "a.csv"}, "INVALID_ID", "/inputs"),
-    Case("core", "/inputs", {1: {"path": "data/catalog.csv"}}, "INVALID_ID"),
     Case("minimal", "/outputs", ["result"], "WRONG_TYPE"),
     Case("minimal", "/outputs", {}, "EMPTY_COLLECTION"),
     Case("minimal", "/outputs/result.v2", OUTPUT, "INVALID_ID", "/outputs"),
-    Case("minimal", "/outputs", {1: OUTPUT}, "INVALID_ID"),
     Case("core", "/decisions", ["method"], "WRONG_TYPE"),
     Case(
         "core",
@@ -127,23 +125,18 @@ NEGATIVE = [
         "INVALID_ID",
         "/decisions",
     ),
-    Case("core", "/decisions", {1: {"options": {"half": {}}}}, "INVALID_ID"),
     Case("declarations", "/analyses", ["stage"], "WRONG_TYPE"),
     Case(
         "declarations", "/analyses/up.stage", {"path": "x"}, "INVALID_ID", "/analyses"
     ),
-    Case("declarations", "/analyses", {1: {"path": "stage"}}, "INVALID_ID"),
     Case("universes", "/universes", ["rf_standard"], "WRONG_TYPE"),
     Case("universes", "/universes/stage.u1", {}, "INVALID_ID", "/universes"),
-    Case("universes", "/universes", {1: {}}, "INVALID_ID"),
     Case("insights", "/prior_insights", ["forests_resist_noise"], "WRONG_TYPE"),
     Case(
         "insights", "/prior_insights/up.noise", INSIGHT, "INVALID_ID", "/prior_insights"
     ),
-    Case("insights", "/prior_insights", {1: INSIGHT}, "INVALID_ID"),
     Case("insights", "/findings", ["rf_accuracy"], "WRONG_TYPE"),
     Case("insights", "/findings/rf.accuracy", INSIGHT, "INVALID_ID", "/findings"),
-    Case("insights", "/findings", {1: INSIGHT}, "INVALID_ID"),
     # --- Input ---
     Case("core", "/inputs/catalog", "data/catalog.csv", "WRONG_TYPE"),
     Case("core", "/inputs/catalog/id", "catalog", "UNKNOWN_FIELD", "/inputs/catalog"),
@@ -251,7 +244,6 @@ NEGATIVE = [
         "INVALID_ID",
         "/decisions/method/options",
     ),
-    Case("core", "/decisions/method/options", {1: {}}, "INVALID_ID"),
     # --- Option ---
     Case("core", "/decisions/method/options/template", "template", "WRONG_TYPE"),
     Case(
@@ -323,7 +315,6 @@ NEGATIVE = [
         "INVALID_ID",
         SVM + "/decisions",
     ),
-    Case("universes", SVM + "/decisions", {1: "svm"}, "INVALID_ID"),
     # --- An import in `universes` ---
     Case("universes", IMPORT + "/universe", DELETE, "INVALID_IMPORT"),
     Case("universes", IMPORT + "/analysis", DELETE, "INVALID_IMPORT"),

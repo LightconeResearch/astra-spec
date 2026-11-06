@@ -19,11 +19,11 @@
   keyword location (the schema's ``$id``, ``#``, and the JSON Pointer to the keyword) and the code of the rule it
   enforces. The code comes from the LinkML sources, where each constraint names it in a ``rule`` annotation (on the type
   or slot that defines a pattern, on a class rule, on each branch of an ``exactly_one_of``), or, for the keywords whose
-  code never varies, from a default. A map's keys take their key's code for both their ``type`` and their ``pattern``. A
-  class's checks (its exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the
-  keywords of its ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does, since no error there
-  makes the instance fail (spec §10, "From an error to its code"). Every such keyword has exactly one code, every code
-  is a schema-layer rule of §9, and every ``rule`` annotation gives some keyword its code.
+  code never varies, from a default. A map's keys take their key's code for their ``pattern``. A class's checks (its
+  exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the keywords of its
+  ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does, since no error there makes the
+  instance fail (spec §10, "From an error to its code"). Every such keyword has exactly one code, every code is a
+  schema-layer rule of §9, and every ``rule`` annotation gives some keyword its code.
 """
 
 import argparse
@@ -98,9 +98,8 @@ DEFAULTS = {
 """The keywords whose code never varies, with that code. Also `required` outside a rule (`MISSING_FIELD`) and
 `additionalProperties: false` (`UNKNOWN_FIELD`).
 
-Two take their default only where it is what they check. A map key's `type` takes the key's code, as its `pattern`
-does. `minProperties` and `minItems` take `EMPTY_COLLECTION` ("at least one entry") only with a value of 1 (see
-`ONE_ENTRY`): any other minimum has no code, as `maxItems` has none."""
+`minProperties` and `minItems` take their default, `EMPTY_COLLECTION` ("at least one entry"), only where it is what they
+check, with a value of 1 (see `ONE_ENTRY`): any other minimum has no code, as `maxItems` has none."""
 
 ONE_ENTRY = {"minProperties", "minItems"}
 """The keywords whose default, `EMPTY_COLLECTION`, holds only when their value is 1."""
@@ -615,11 +614,11 @@ class _ErrorMap:
                 raise self.unknown(pointer, keyword)
 
     def key(self, node: dict, pointer: list[Any], code: str) -> None:
-        """A map's keys: their `type` and `pattern` both take the key's code, since either fails on a key that isn't one."""
+        """A map's keys: their `pattern` takes the key's code."""
         for keyword in node:
             if keyword in METADATA:
                 continue
-            if keyword not in ("type", "pattern"):
+            if keyword != "pattern":
                 raise self.unknown(pointer, keyword)
             self.add([*pointer, keyword], code)
 

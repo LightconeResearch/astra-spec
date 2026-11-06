@@ -25,7 +25,6 @@ from .conftest import (
     fixtures,
     load_json,
     load_yaml,
-    load_yaml_text,
     rules_catalogue,
     validator,
 )
@@ -159,9 +158,7 @@ def examples() -> list[Example]:
             else None
         )
         text = token.content
-        document = (
-            load_json(text) if _language(token) == "json" else load_yaml_text(text)
-        )
+        document = load_json(text) if _language(token) == "json" else load_yaml(text)
         found.append(Example(token.map[0] + 1, _language(token), marker, document))
     return found
 

@@ -3,19 +3,17 @@
 extends: default
 
 # What yamllint's loader refuses is the point of these fixtures: each fails at
-# parse (a duplicate key, malformed YAML, a %YAML 1.1 directive, a local tag,
-# a second document, bytes that aren't UTF-8, a tab as white space or a C1
-# control). Keep in step with check-yaml's exclude in .pre-commit-config.yaml.
+# parse (a duplicate key, malformed YAML, a local tag, a second document, bytes
+# that aren't UTF-8 or a C1 control). Keep in step with check-yaml's exclude in
+# .pre-commit-config.yaml.
 ignore: |
   tests/data/invalid/Analysis-101-duplicate-output.yaml
   tests/data/invalid/Analysis-146-duplicate-universe.yaml
   tests/data/invalid/Analysis-182-malformed-yaml.yaml
-  tests/data/invalid/Analysis-183-yaml-1-1-directive.yaml
   tests/data/invalid/Analysis-201-local-tag.yaml
   tests/data/invalid/Analysis-204-second-document.yaml
   tests/data/invalid/Analysis-211-not-utf-8.yaml
   tests/data/invalid/Analysis-212-c1-control-in-plain-scalar.yaml
-  tests/data/invalid/Analysis-224-tab-as-separation.yaml
 
 rules:
   document-start: disable  # Don't check if document has a start marker (---).

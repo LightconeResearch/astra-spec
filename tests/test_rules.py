@@ -28,8 +28,7 @@ from .conftest import (
     errors,
     fixture_header,
     fixtures,
-    load_document,
-    load_json,
+    load_fixture,
     rules_catalogue,
     validator,
 )
@@ -603,10 +602,9 @@ CODES = {
     RECORD + "/$defs/Generation/properties/started/pattern": "INVALID_VALUE",
     RECORD + "/$defs/Generation/properties/commit/pattern": "INVALID_COMMIT",
     RECORD + "/properties/address/pattern": "INVALID_REFERENCE",
-    # Map keys, whatever their key's type, and whatever the key's own type
+    # Map keys, whatever their key's type
     ANALYSIS + "/properties/outputs/propertyNames": "INVALID_ID",
     ANALYSIS + "/properties/outputs/propertyNames/pattern": "INVALID_ID",
-    ANALYSIS + "/properties/outputs/propertyNames/type": "INVALID_ID",
     ANALYSIS
     + "/$defs/Universe__identifier_optional/properties/decisions/propertyNames": "INVALID_ID",
     ANALYSIS
@@ -665,8 +663,9 @@ def test_open_variant_has_no_unknown_fields():
 
 
 def test_every_map_key_is_an_id():
-    """A map key that doesn't match its key's type is `INVALID_ID`, whatever that type (an `address` included), and so
-    is a key that isn't a string: every keyword under a `propertyNames` takes the key's code, its `type` too."""
+    """A map key that doesn't match its key's type is `INVALID_ID`, whatever that type (an `address` included): every
+    keyword under a `propertyNames`, and the `propertyNames` itself, takes the key's code. A key is never of another
+    JSON type (spec §3), so a `propertyNames` holds only its `pattern`."""
     keys = {
         location: code
         for location, code in rules_catalogue()["errors"].items()
@@ -679,7 +678,10 @@ def test_every_map_key_is_an_id():
         if "/propertyNames" in pointer
     }
     assert sorted(keys) == sorted(expected)
-    assert any(location.endswith("/propertyNames/type") for location in keys)
+    assert {location.rsplit("/propertyNames", 1)[1] for location in keys} == {
+        "",
+        "/pattern",
+    }
     assert {code for code in keys.values()} == {"INVALID_ID"}
 
 
@@ -1181,10 +1183,8 @@ SCHEMA_FIXTURES = [
 
 
 def fixture_document(path: Path) -> tuple[str, Any]:
-    """`(root, document)` for a fixture: the class it is a document of, and its JSON form, with any entry whose key
-    isn't a string left out (spec §3)."""
-    document = load_json(path) if path.suffix == ".json" else load_document(path)[0]
-    return path.name.split("-", 1)[0], document
+    """`(root, document)` for a fixture: the class it is a document of, and its JSON value (spec §3)."""
+    return path.name.split("-", 1)[0], load_fixture(path)
 
 
 @pytest.mark.parametrize("output_format", ["basic", "verbose"])

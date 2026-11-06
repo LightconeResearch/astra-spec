@@ -1,9 +1,8 @@
-"""The fixture harness: YAML 1.2 and strict JSON loading, the generated validators, `rules.json` and the fixture headers
+"""The fixture harness: YAML 1.2 and JSON loading, the generated validators, `rules.json` and the fixture headers
 (design §9)."""
 
 import functools
 import json
-import math
 import re
 from collections.abc import Iterator
 from pathlib import Path
@@ -36,11 +35,11 @@ PARSE_CODES = {"INVALID_SYNTAX", "DUPLICATE_KEY"}
 
 
 class YAMLError(ValueError):
-    """An `astra.yaml` that breaks a parse rule (spec §3), as `load_document` reads it."""
+    """An `astra.yaml` that breaks a parse rule (spec §3), as `load_yaml` reads it."""
 
 
 class DuplicateKeyError(YAMLError):
-    """A map of an `astra.yaml` with two equal string keys (spec §3)."""
+    """A map of an `astra.yaml` with two equal keys (spec §3)."""
 
 
 class JSONError(ValueError):
@@ -52,8 +51,7 @@ class DuplicateNameError(JSONError):
 
 
 PARSE_ERRORS = (YAMLError, JSONError)
-"""What the loaders raise for a file that breaks a parse rule: `load_document` a `YAMLError`, `load_json` a
-`JSONError`."""
+"""What the loaders raise for a file that breaks a parse rule: `load_yaml` a `YAMLError`, `load_json` a `JSONError`."""
 
 
 def parse_code(error: YAMLError | JSONError) -> str:
@@ -66,150 +64,29 @@ def parse_code(error: YAMLError | JSONError) -> str:
     )
 
 
-# --- An astra.yaml: a stock YAML 1.2 parser, with ASTRA's rules checked on the text, the events and the value ---
+# --- An astra.yaml: a stock YAML 1.2 parser, read under the core schema, whose content is a JSON value ---
 
-_FORBIDDEN = re.compile(
-    "[\x00-\x09\x0b\x0c\x0e-\x1f\x7f-\x9f\u2028\u2029\ufeff\ufffe\uffff]"
-)
-"""What a file holds nowhere, quoted or not, once the byte order mark that may start it is dropped: a tab, a C0
-control other than LF and CR, DEL, a C1 control (NEL included), LS, PS, U+FEFF, U+FFFE and U+FFFF (spec §3). An escape
-in a double-quoted scalar still writes any of them."""
-
-_YAML_1_2 = re.compile(r"%YAML +1\.2( +#.*)? *")
-"""The one directive a file may hold: `%YAML 1.2`, with the version written so, and maybe a comment."""
-
-_START = re.compile(r"---( |$)")
-"""A line that is a document start marker, `---`, alone or before white space."""
-
-_END = re.compile(r"\.\.\.( |$)")
-"""A line that is a document end marker, `...`, alone or before white space."""
-
-_END_LINE = re.compile(r"\.\.\.( +#.*)? *")
-"""A document end marker's line with nothing on it but a comment."""
-
-_SURROGATE = re.compile("[\ud800-\udfff]")
-"""A surrogate, which a scalar's value holds only from a `\\u` or `\\U` escape: UTF-8 text can't hold one."""
-
-_DOUBLE_DIGITS = 309
-"""The most digits an integer within a double's range can have: the greatest double is about 1.8 × 10^308."""
-
+_CORE = "tag:yaml.org,2002:"
+"""The prefix of the core schema's tags."""
 
 _CORE_TABLE = (
-    (re.compile(r"null|Null|NULL|~|"), lambda text: None),
-    (re.compile(r"true|True|TRUE"), lambda text: True),
-    (re.compile(r"false|False|FALSE"), lambda text: False),
-    (re.compile(r"[-+]?[0-9]+"), int),
-    (re.compile(r"0o[0-7]+"), lambda text: int(text[2:], 8)),
-    (re.compile(r"0x[0-9a-fA-F]+"), lambda text: int(text[2:], 16)),
-    (re.compile(r"[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?"), float),
-    (re.compile(r"[-+]?(\.inf|\.Inf|\.INF)"), lambda text: math.inf),
-    (re.compile(r"\.nan|\.NaN|\.NAN"), lambda text: math.nan),
+    ("null", re.compile(r"null|Null|NULL|~|"), lambda text: None),
+    ("bool", re.compile(r"true|True|TRUE"), lambda text: True),
+    ("bool", re.compile(r"false|False|FALSE"), lambda text: False),
+    ("int", re.compile(r"[-+]?[0-9]+"), int),
+    ("int", re.compile(r"0o[0-7]+"), lambda text: int(text[2:], 8)),
+    ("int", re.compile(r"0x[0-9a-fA-F]+"), lambda text: int(text[2:], 16)),
+    (
+        "float",
+        re.compile(r"[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?"),
+        float,
+    ),
+    ("float", re.compile(r"[-+]?(\.inf|\.Inf|\.INF)"), None),
+    ("float", re.compile(r"\.nan|\.NaN|\.NAN"), None),
 )
-"""YAML 1.2.2 §10.3.2's table: each row's pattern, and how a plain scalar it matches is read, in the table's order."""
-
-
-def _text(data: bytes) -> str:
-    """The text of an `astra.yaml`'s bytes, as the parser is given it, once the rules on the text hold (spec §3); raises
-    `YAMLError` if one doesn't.
-
-    The bytes are UTF-8, strictly, and may start with a byte order mark, which is dropped. The text holds none of
-    `_FORBIDDEN`. LF, CR LF and a CR on its own each end a line: a lone CR is read as an LF, which changes nothing else,
-    since YAML 1.2.2 §5.4 makes every CR a line break, and a missing final line break is read as present. Then
-    `_documents` checks the directives and the document markers.
-    """
-    try:
-        text = data.decode("utf-8")
-    except UnicodeDecodeError as error:
-        raise YAMLError(
-            f"found bytes that aren't UTF-8 at byte {error.start}: an astra.yaml is UTF-8"
-        ) from None
-    text = text.removeprefix("\ufeff")
-    found = _FORBIDDEN.search(text)
-    if found is not None:
-        raise YAMLError(
-            f"found U+{ord(found[0]):04X} at character {found.start()}: a file holds none, quoted or not"
-        )
-    text = re.sub("\r(?!\n)", "\n", text)
-    if text and not text.endswith("\n"):
-        text += "\n"
-    _documents(text)
-    return text
-
-
-def _documents(text: str) -> None:
-    """Raise `YAMLError` unless `text`'s only directive is `%YAML 1.2`, a `---` line comes, if at all, once and before
-    the content, and a `...` line comes, if at all, once and after the document, with nothing but comments after it.
-
-    Read line by line, leaving out blank lines and comments: a directive is a line starting with `%` before the
-    content. A line scan reads the markers exactly, since YAML 1.2.2 lets no scalar hold a line that starts with `---`
-    or `...` followed by white space or the line's end (§9.1.2).
-    """
-    lines: list[str] = []
-    """The lines that are neither blank, a comment nor a directive."""
-    for line in re.split("\r?\n", text):
-        bare = line.lstrip(" ")
-        if bare == "" or bare.startswith("#"):
-            continue
-        if not lines and line.startswith("%"):
-            if _YAML_1_2.fullmatch(line) is None:
-                raise YAMLError(
-                    f"found the directive {line!r}: the only directive is %YAML 1.2"
-                )
-            continue
-        lines.append(line)
-    starts = [i for i, line in enumerate(lines) if _START.match(line)]
-    ends = [i for i, line in enumerate(lines) if _END.match(line)]
-    if starts not in ([], [0]):
-        raise YAMLError(
-            "found a `---` after the content: a file holds one document, its `---` first"
-        )
-    if ends not in ([], [len(lines) - 1]) or ends == [0]:
-        raise YAMLError(
-            "found a `...` before the end, or with no document before it: a file holds one document, its `...` last"
-        )
-    if ends and _END_LINE.fullmatch(lines[-1]) is None:
-        raise YAMLError("found content after `...` on its line")
-
-
-class _Node:
-    """A node of the document, built from the parser's events: a scalar's value, or a list's items or a map's keys and
-    values, alternating, with where it starts and ends in the text."""
-
-    __slots__ = ("start", "end", "value", "children", "is_map")
-
-    def __init__(self, start: int, *, value: Any = None, is_map: bool = False):
-        self.start = self.end = start
-        self.value = value
-        self.children: list[_Node] | None = None
-        self.is_map = is_map
-
-
-def _plain(text: str, mark: Any) -> Any:
-    """The value of a plain scalar `text`: the type of the row of YAML 1.2.2 §10.3.2's table it matches, or a string if
-    it matches none. A number that isn't finite or is beyond a double's range has no JSON form, and raises `YAMLError`.
-
-    A decimal integer's digits are counted first, since Python refuses to convert one of more than 4300 digits.
-    """
-    for pattern, read in _CORE_TABLE:
-        if pattern.fullmatch(text):
-            break
-    else:
-        return text
-    if read is int and len(text.lstrip("+-").lstrip("0")) > _DOUBLE_DIGITS:
-        value = math.inf
-    else:
-        value = read(text)
-    if isinstance(value, (int, float)) and not isinstance(value, bool):
-        try:
-            finite = math.isfinite(value)
-        except OverflowError:
-            finite = False
-        if not finite:
-            raise YAMLError(
-                f"found {text[:20]!r}{'…' if len(text) > 20 else ''} {_at(mark)}: a number that isn't finite or is"
-                " beyond a double's range has no JSON form"
-            )
-    return value
+"""YAML 1.2.2 §10.3.2's table: each row's type, its pattern, and how a scalar it matches is read, in the table's order.
+The rows of `.inf` and `.nan` read nothing, since a number that isn't finite has no JSON form. Numbers are held as
+Python holds them, so a float beyond a double's range, such as `1e400`, is read as an infinity."""
 
 
 def _at(mark: Any) -> str:
@@ -217,11 +94,63 @@ def _at(mark: Any) -> str:
     return f"at line {mark.line + 1}, column {mark.column + 1}"
 
 
-def _events(text: str) -> Iterator[Any]:
-    """The events of stock ruamel.yaml's parser for `text`; an error it raises, whatever its class, is a `YAMLError`:
-    the text isn't YAML 1.2 the parser reads (spec §3). A `RecursionError` (a document nested too deep) is left as it
+def _tag_error(tag: str, mark: Any) -> YAMLError:
+    """The error for a tag that isn't one of the core schema's, or isn't one for its node's kind."""
+    return YAMLError(
+        f"found the tag {tag} {_at(mark)}: a node's tag is one of the core schema's, for its kind"
+    )
+
+
+def _scalar(event: ScalarEvent) -> Any:
+    """The value of the scalar `event` under the core schema; raises `YAMLError` for a tag outside it, a scalar its tag
+    doesn't read, or a number that isn't finite (spec §3).
+
+    A plain scalar with no tag is typed by the core table: by the first row it matches, or as a string if it matches
+    none. Any other scalar with no tag, and one with the non-specific tag `!` or with `!!str`, is a string. `!!null`,
+    `!!bool`, `!!int` and `!!float` read it by their own rows of the table.
+    """
+    tag = event.tag
+    if tag is None and not event.style:
+        rows = _CORE_TABLE
+    elif tag in (None, "!", _CORE + "str"):
+        return event.value
+    else:
+        rows = tuple(row for row in _CORE_TABLE if _CORE + row[0] == tag)
+        if not rows:
+            raise _tag_error(tag, event.start_mark)
+    for _, pattern, read in rows:
+        if pattern.fullmatch(event.value):
+            if read is None:
+                raise YAMLError(
+                    f"found {event.value!r} {_at(event.start_mark)}: a number that isn't finite has no JSON form"
+                )
+            return read(event.value)
+    if tag is None:
+        return event.value
+    raise YAMLError(
+        f"found {event.value!r} {_at(event.start_mark)}: the tag {tag} doesn't read it"
+    )
+
+
+class _Node:
+    """A node of the document, built from the parser's events: a scalar's value, or a list's items or a map's keys and
+    values, alternating, with the mark where it starts. A collection is `open` while its children are read."""
+
+    __slots__ = ("mark", "value", "children", "is_map", "open")
+
+    def __init__(self, mark: Any, *, value: Any = None, is_map: bool = False):
+        self.mark = mark
+        self.value = value
+        self.children: list[_Node] | None = None
+        self.is_map = is_map
+        self.open = False
+
+
+def _events(data: bytes | str) -> Iterator[Any]:
+    """The events of stock ruamel.yaml's parser for `data`; an error it raises, whatever its class, is a `YAMLError`:
+    the file isn't YAML 1.2 the parser reads (spec §3). A `RecursionError` (a document nested too deep) is left as it
     is."""
-    events = YAML(typ="safe", pure=True).parse(text)
+    events = YAML(typ="safe", pure=True).parse(data)
     while True:
         try:
             event = next(events)
@@ -234,37 +163,41 @@ def _events(text: str) -> Iterator[Any]:
         yield event
 
 
-def _node(event: Any, events: Iterator[Any]) -> _Node:
-    """The node that `event` starts, its children read from `events`; raises `YAMLError` for an alias, a tag, an escape
-    of a surrogate, or a number with no JSON form (spec §3). An anchor alone is ignored."""
+def _node(event: Any, events: Iterator[Any], anchors: dict[str, _Node]) -> _Node:
+    """The node that `event` starts, its children read from `events`, and an alias read as the node its anchor names
+    in `anchors`; raises `YAMLError` for a node with no value under the core schema (`_scalar`), a collection with
+    another tag than its kind's, and an alias that names no node before it or one it is inside of, which leaves the
+    content no JSON value (spec §3)."""
     if isinstance(event, AliasEvent):
-        raise YAMLError(
-            f"found the alias *{event.anchor} {_at(event.start_mark)}: a file uses no alias"
-        )
-    if event.tag is not None:
-        raise YAMLError(
-            f"found the tag {event.tag} {_at(event.start_mark)}: a file uses no tag"
-        )
-    if isinstance(event, ScalarEvent):
-        found = _SURROGATE.search(event.value)
-        if found is not None:
+        node = anchors.get(event.anchor)
+        if node is None:
             raise YAMLError(
-                f"found an escape of the surrogate U+{ord(found[0]):04X} {_at(event.start_mark)}: a file writes a"
-                " character beyond U+FFFF as itself or with \\U"
+                f"found the alias *{event.anchor} {_at(event.start_mark)}: no node before it has that anchor"
             )
-        node = _Node(
-            event.start_mark.index,
-            value=event.value if event.style else _plain(event.value, event.start_mark),
-        )
-        node.end = event.end_mark.index
+        if node.open:
+            raise YAMLError(
+                f"found the alias *{event.anchor} {_at(event.start_mark)} inside the node it names: the content"
+                " has no JSON value"
+            )
         return node
-    node = _Node(event.start_mark.index, is_map=isinstance(event, MappingStartEvent))
-    node.children = []
+    if isinstance(event, ScalarEvent):
+        node = _Node(event.start_mark, value=_scalar(event))
+    else:
+        is_map = isinstance(event, MappingStartEvent)
+        if event.tag not in (None, "!", _CORE + ("map" if is_map else "seq")):
+            raise _tag_error(event.tag, event.start_mark)
+        node = _Node(event.start_mark, is_map=is_map)
+        node.children = []
+        node.open = True
+    if event.anchor is not None:
+        anchors[event.anchor] = node
+    if node.children is None:
+        return node
     for child in events:
         if isinstance(child, CollectionEndEvent):
-            node.end = child.end_mark.index
+            node.open = False
             return node
-        node.children.append(_node(child, events))
+        node.children.append(_node(child, events, anchors))
     raise YAMLError("found the end of the events inside a collection")
 
 
@@ -274,94 +207,49 @@ def _root(events: Iterator[Any]) -> _Node | None:
     for event in events:
         if isinstance(event, DocumentStartEvent):
             if root is not None:
-                raise YAMLError("found a second document: a file holds one")
-            root = _node(next(events), events)
+                raise YAMLError("found a second document: a file holds at most one")
+            root = _node(next(events), events, {})
     return root
 
 
-def _json_form(
-    node: _Node, path: list[Any], text: str, left_out: list[tuple[str, str]] | None
-) -> Any:
-    """The JSON form of `node`, at `path` in the document, recording in `left_out` the pointer of its map and the key
-    as written for each entry left out since its key isn't a string; raises `DuplicateKeyError` for two equal string
-    keys of one map.
-
-    Keys that aren't strings take no part in that. An entry left out is still read, for a duplicate key in its key or
-    its value, with `left_out` None: a key in it is left out with it, and not recorded.
-    """
+def _json_value(node: _Node, path: list[Any]) -> Any:
+    """The JSON value of `node`, at `path` in the document; raises `YAMLError` for a key that isn't a string, and
+    `DuplicateKeyError` for two equal keys of one map (spec §3)."""
     if node.children is None:
         return node.value
     if not node.is_map:
-        return [
-            _json_form(item, [*path, i], text, left_out)
-            for i, item in enumerate(node.children)
-        ]
+        return [_json_value(item, [*path, i]) for i, item in enumerate(node.children)]
     mapping: dict[str, Any] = {}
     for key, value in zip(node.children[::2], node.children[1::2]):
-        if key.children is None and isinstance(key.value, str):
-            if key.value in mapping:
-                raise DuplicateKeyError(
-                    f"found the key {key.value!r} twice in the map at {_pointer(path)}: its string keys are distinct"
-                )
-            mapping[key.value] = _json_form(value, [*path, key.value], text, left_out)
-            continue
-        _json_form(key, path, text, None)
-        _json_form(value, path, text, None)
-        if left_out is not None:
-            left_out.append((_pointer(path), text[key.start : key.end].rstrip()))
+        if key.children is not None or not isinstance(key.value, str):
+            raise YAMLError(
+                f"found a key that isn't a string {_at(key.mark)}: every key of a JSON value is a string"
+            )
+        if key.value in mapping:
+            raise DuplicateKeyError(
+                f"found the key {key.value!r} twice in the map at {_pointer(path)}: its keys are distinct"
+            )
+        mapping[key.value] = _json_value(value, [*path, key.value])
     return mapping
 
 
-def load_document(source: Path | str) -> tuple[Any, list[tuple[str, str]]]:
-    """`(document, left_out)`: the JSON form of the `astra.yaml` in `source`, a file or a text, and the keys left out of
-    it; raises a `YAMLError` if it breaks a parse rule (spec §3).
+def load_yaml(source: Path | str) -> Any:
+    """The JSON value of the `astra.yaml` in `source`, a file or a text, as spec §3 reads it; raises a `YAMLError` if it
+    breaks a parse rule.
 
-    The rules are checked on the text, before parsing (`_text`): UTF-8, with one optional leading byte order mark; no
-    raw tab, C0 control other than LF and CR, DEL, C1 control, LS, PS, U+FEFF, U+FFFE or U+FFFF; LF, CR LF and a lone
-    CR each end a line, and a missing final line break is read as present; no directive but `%YAML 1.2`; at most one
-    `---`, before the content, and one `...`, after it. Then on the events of ruamel.yaml's stock parser (`_node`): any
-    error the parser raises; no alias, though an anchor alone is allowed; no tag at all; no escape of a surrogate,
-    paired or not; each plain scalar typed by YAML 1.2.2 §10.3.2's table, and each number finite and within a double's
-    range. Then on the tree, once the whole file has parsed (`_json_form`): no two equal string keys in one map
-    (`DuplicateKeyError`), and every key a string. A file with no document (empty, or only comments) is None.
-
-    A key that isn't a string (`true`, `1`, `~`, a list or a map) has no JSON form, but it is left out rather than
-    raised: its entry isn't in the document, and `left_out` holds `(pointer of the map, key as written)` for it, in
-    document order, as `errors` writes a pointer, so that the rest of the document can be validated. A key inside a
-    left-out entry is left out with it, and not listed. A `RecursionError` (a document nested too deep) is left as it
-    is.
+    The file goes to ruamel.yaml's stock parser as it is, so that the parser reads its encoding. Then, on the parser's
+    events (`_node`): any error the parser raises; at most one document; each scalar read under the core schema, a plain
+    one by YAML 1.2.2 §10.3.2's table; only the core schema's tags, each on a node of its kind; every number finite;
+    and each alias read as the node it names. Then on the tree, once the whole file has parsed (`_json_value`): every
+    key a string, and no two equal keys in one map (`DuplicateKeyError`). A file with no document (empty, or only
+    comments) is None. A `RecursionError` (a document nested too deep) is left as it is.
     """
-    data = source.read_bytes() if isinstance(source, Path) else source.encode("utf-8")
-    text = _text(data)
-    root = _root(_events(text))
-    left_out: list[tuple[str, str]] = []
-    document = None if root is None else _json_form(root, [], text, left_out)
-    return document, left_out
+    data = source.read_bytes() if isinstance(source, Path) else source
+    root = _root(_events(data))
+    return None if root is None else _json_value(root, [])
 
 
-def _without_left_out_keys(loaded: tuple[Any, list[tuple[str, str]]]) -> Any:
-    """The document of `load_document`'s result, or a `ValueError` naming the keys left out of it, if any."""
-    document, left_out = loaded
-    if left_out:
-        raise ValueError(
-            "keys that aren't strings, left out of the document's JSON form: "
-            + ", ".join(f"{key!r} at {pointer}" for pointer, key in left_out)
-        )
-    return document
-
-
-def load_yaml(path: Path) -> Any:
-    """The JSON form of the document in `path`, read as `load_document` reads it; raises a `YAMLError` if it breaks a
-    parse rule, and a `ValueError` naming each key that isn't a string, if it has any.
-
-    So a document that must be valid (a valid fixture, an example, a block of the specification) fails on such a key.
-    """
-    return _without_left_out_keys(load_document(path))
-
-
-def load_yaml_text(text: str) -> Any:
-    """The document `text`, read as `load_yaml` reads a file."""
-    return _without_left_out_keys(load_document(text))
+# --- A record: JSON, with distinct names ---
 
 
 def _json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -377,95 +265,31 @@ def _json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 
 def _json_constant(text: str) -> Any:
-    """`NaN`, `Infinity` or `-Infinity`, which `json.loads` reads but RFC 8259 has no form for: always raises."""
-    raise JSONError(f"found {text}: RFC 8259 JSON has no such number")
-
-
-def _json_float(text: str) -> float:
-    """A number with a fraction or an exponent; one beyond a double's range, which rounds to infinity, raises."""
-    number = float(text)
-    if not math.isfinite(number):
-        raise JSONError(
-            f"{text!r} is beyond a double's range: it has no JSON form a record takes"
-        )
-    return number
-
-
-def _json_int(text: str) -> int:
-    """An integer, read exactly; one beyond a double's range, which a double rounds to infinity, raises.
-
-    Its digits are counted first, since Python refuses to convert an integer of more than 4300 digits.
-    """
-    if len(text.lstrip("-")) <= _DOUBLE_DIGITS:
-        number = int(text)
-        try:
-            float(number)
-        except OverflowError:
-            pass
-        else:
-            return number
-    raise JSONError(
-        f"{text[:20]}… is beyond a double's range: it has no JSON form a record takes"
-    )
-
-
-def _refuse_lone_surrogates(value: Any) -> None:
-    """Raise `JSONError` if a string of `value`, a name included, holds a surrogate (U+D800-U+DFFF).
-
-    `json.loads` joins an escaped surrogate pair into one character, so any surrogate left is a lone one, which has no
-    JSON form (spec §3). Strict UTF-8 can't encode one, so raw text can't hold it: it comes only from an escape.
-    """
-    todo = [value]
-    while todo:
-        node = todo.pop()
-        if isinstance(node, dict):
-            todo.extend(node)
-            todo.extend(node.values())
-        elif isinstance(node, list):
-            todo.extend(node)
-        elif isinstance(node, str):
-            try:
-                node.encode("utf-8")
-            except UnicodeEncodeError as error:
-                raise JSONError(
-                    f"found the lone surrogate U+{ord(node[error.start]):04X}: a string holding one has no JSON form"
-                ) from None
+    """`NaN`, `Infinity` or `-Infinity`, which `json.loads` reads but JSON has no form for: always raises."""
+    raise JSONError(f"found {text}: JSON has no such number")
 
 
 def load_json(source: Path | str) -> Any:
-    """The record in `source`, a file or a text, read as spec §3 reads a record: RFC 8259 JSON text in UTF-8 with no
-    byte order mark, and with distinct names; raises a `JSONError` if it isn't one.
+    """The record in `source`, a file or a text, as spec §3 reads a record: JSON text (RFC 8259) in UTF-8, with distinct
+    names; raises a `JSONError` if it isn't one.
 
-    A file's bytes are decoded as UTF-8, strictly, and a byte order mark at the start is refused, though RFC 8259 §8.1
-    lets a parser ignore one. The text is read by `json.loads`, which takes only JSON's forms (no comment, trailing
-    comma, single quote or YAML block form), except for what the hooks refuse: `NaN`, `Infinity` and `-Infinity`
-    (`parse_constant`); a name written twice in one object, of which `json.loads` keeps the last, raises
-    `DuplicateNameError` (`object_pairs_hook`), names being compared once their escapes are read, so `"a"` and
-    `"\\u0061"` are one name; and a number beyond a double's range (`1e400`, an integer of 400 digits), which
-    `json.loads` reads as an infinity or an exact integer (`parse_float`, `parse_int`). An escaped surrogate pair is
-    one character, as `json.loads` reads it, so `"\\uD83D\\uDE00"` is U+1F600; any other surrogate (`"\\uD800"`) is
-    refused by a walk over the value read, names included. A `RecursionError` (a record nested too deep) is left as it
-    is.
+    A file's bytes are decoded as UTF-8, strictly. The text is read by `json.loads`, which takes only JSON's forms but
+    for `NaN`, `Infinity` and `-Infinity`, which a hook refuses (`parse_constant`). A name written twice in one object,
+    of which `json.loads` keeps the last, raises `DuplicateNameError` (`object_pairs_hook`), names being compared once
+    their escapes are read, so `"a"` and `"\\u0061"` are one name. A `RecursionError` (a record nested too deep) is
+    left as it is.
     """
     data = source.read_bytes() if isinstance(source, Path) else source.encode("utf-8")
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as error:
         raise JSONError(f"found bytes that aren't UTF-8: {error}") from None
-    if text.startswith("\ufeff"):
-        raise JSONError("found a byte order mark: a record starts without one")
     try:
-        value = json.loads(
-            text,
-            object_pairs_hook=_json_object,
-            parse_constant=_json_constant,
-            parse_float=_json_float,
-            parse_int=_json_int,
+        return json.loads(
+            text, object_pairs_hook=_json_object, parse_constant=_json_constant
         )
     except json.JSONDecodeError as error:
-        raise JSONError(f"found text that isn't RFC 8259 JSON: {error}") from None
-    _refuse_lone_surrogates(value)
-    return value
+        raise JSONError(f"found text that isn't JSON: {error}") from None
 
 
 def load_fixture(path: Path) -> Any:

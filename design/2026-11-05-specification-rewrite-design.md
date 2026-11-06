@@ -60,6 +60,8 @@ It is done when:
    - "An astra.yaml needn't be one Windows can check out."
 7. **No history.** No RFC numbers, no `tidy-up`, `main` or `#nn`. The design docs keep the traceability: §7 of `design/2026-11-03-v0.1-schema-design.md` keeps its copy of the catalogue with RFC sources. External standards are cited briefly, without their details.
 8. **YAML's share is marked.** Annex A lists the rules that exist only because `astra.yaml` is YAML, so that a later change of format knows what can go.
+9. **Accurate, not hole-closing** (Tom, 2026-11-06). "Our requirement is just that the file is yaml 1.2 … reading it is on the tooling, not the spec. We want our statement to be as accurate as possible, not nit picking and closing every hole … This fact also doesn't need to be stated as a 'this specification doesn't do this' type of statements." And: "We want neat, clean, precise specification and schema of ASTRA, not how to patch astra." So the spec states what ASTRA requires, as exactly as it can, and leaves to YAML, JSON, git and the tools what they leave loose, without saying that it does.
+   - **Calibration** (Tom, 2026-11-06, keeping the audit's O23). A convention that says how the model is meant to be used is an explanation, and stays: "it tells you something about the model even if its not set in stone (a bit like how decisions should be scientifically meaningful and not just parameter changes)". Advice about mechanics, tools, platforms or typing slips goes.
 
 ## 4. Changes of meaning
 
@@ -98,35 +100,33 @@ Annex D lists the case. An analysis read at a commit is always in a repository.
 
 ### The parse layer
 
-An `astra.yaml` is YAML 1.2.2 plus the rules below, and nothing about YAML's grammar beyond them. Typos and grammar corners are left to YAML and its libraries.
+Decided on 2026-11-05 (`8626ed6`), and cut back to what ASTRA requires on 2026-11-06 (the audit's H1-H10 and H36, principle 9). An `astra.yaml` is:
+- a YAML 1.2 stream with at most one document, read under the core schema, with no tag but the core schema's;
+- whose content is a JSON value: every key is a string, and every number is finite.
 
-- **The text:**
-  - It is UTF-8, with one optional leading byte order mark.
-  - It holds no raw tab, C0 control (other than LF and CR), DEL or C1 control (NEL included), and no raw U+2028, U+2029, U+FEFF, U+FFFE or U+FFFF, quoted or not. Escapes such as `\t` are fine.
-  - LF, CR LF and a lone CR each end a line, and a missing final line break is read as present.
-  - The only directive is `%YAML 1.2`, written so.
-  - It has at most one `---`, before the content, and one `...`, after it.
-  - An empty file is null, so `WRONG_TYPE`.
-- **The parsed tree:**
-  - It has no alias. An anchor alone is ignored.
-  - It has no YAML tag, `!!str` included.
-  - Plain scalars are typed by YAML 1.2.2's core table, so `yes` and `1_000` are strings and `0777` is 777.
-  - No `\u` or `\U` escape is of a surrogate, paired or not.
-  - No two string keys in one map are equal (`DUPLICATE_KEY`).
-- **The values:**
-  - Every number is finite and within a double.
-  - A key that isn't a string is `INVALID_ID` at its map. Its entry is left out, and it is never a duplicate.
+A breach is `INVALID_SYNTAX`, and two equal keys in one map are `DUPLICATE_KEY`. A file with no document is null, so `WRONG_TYPE`. A record is JSON text (RFC 8259) in UTF-8 (`INVALID_SYNTAX`), with no repeated name (`DUPLICATE_KEY`). The rest of reading YAML or JSON is theirs, and the tools'.
 
-Records stay strict JSON. There, an escaped surrogate pair is the one character it encodes, and a lone surrogate is `INVALID_SYNTAX`.
+What the layer of 11-05 had and this one doesn't, each a change of meaning:
+- **UTF-8 for `astra.yaml`** (H36). YAML 1.2.2 reads UTF-8, UTF-16 and UTF-32. Records stay UTF-8.
+- **Raw characters** (H1). No rule on a raw tab, C0 or C1 control, DEL, U+2028, U+2029, U+FEFF, U+FFFE or U+FFFF, or on where a byte order mark may be: YAML's own rules apply, and in a quoted scalar YAML allows every character but the C0 controls.
+- **Line ends** (H2). A missing final line break is no longer read as present, so a block scalar that ends the file has no line break it doesn't write.
+- **Directives** (H3). `%YAML 1.1`, `%TAG` and a reserved directive are read as YAML 1.2.2 reads them.
+- **Document markers** (H4). Only "at most one document" stays.
+- **Aliases** (H5). An alias is read as the node it names. One inside that node leaves the content no JSON value, so `INVALID_SYNTAX`.
+- **Tags** (H6). The core schema's tags are allowed, `!!str` included. Any other tag is still `INVALID_SYNTAX`.
+- **A double's range** (H7). Only a number that isn't finite (`.inf`, `.nan`) is refused, not one such as `1e400`, in `astra.yaml` and in records.
+- **Surrogate escapes** (H8). No rule in either kind of document, and no rule that a string is a sequence of Unicode scalar values.
+- **A record's byte order mark** (H9). No rule: RFC 8259 lets a parser ignore one.
+- **A key that isn't a string** (H10, option A). It is `INVALID_SYNTAX`, like `.inf`, and the file is checked no further. It was `INVALID_ID` at its map, with its entry left out and the rest of the file checked. The schema's `propertyNames` lose their `type: string`, `INVALID_ID` loses "every map key is a string", `DUPLICATE_KEY` compares every key, and *What is checked* loses its case 1, so the other cases move up one.
 
-What changes:
-- `Analysis-009` (an escaped pair), `-010` (tabs), `-011` (raw C1 and DEL in quotes) and `-012` (NEL in a block scalar) become invalid.
-- `-214` becomes `INVALID_SYNTAX`.
-- `-192` and `-193` leave, since they test YAML's grammar.
-- A `%TAG` or reserved directive becomes `INVALID_SYNTAX`.
-- A repeated key that isn't a string goes from `DUPLICATE_KEY` to `INVALID_ID`.
-- An anchor without an alias becomes valid.
-- No real file in the LightconeResearch repositories changes verdict, unions-bmodes-mystra's included.
+What changes in verdicts:
+- Valid now: a raw tab, C1 control or DEL in a quoted scalar, NEL in a block scalar, a tab as white space, `%YAML 1.1`, `%TAG`, a reserved directive, an alias, a core schema tag, and `1e400`.
+- A value ending in U+2028 is no longer `INVALID_SYNTAX`: U+2028 is content in YAML 1.2, so `type: metric<U+2028>` is `INVALID_VALUE`.
+- A lone surrogate escape, an escaped pair in `astra.yaml`, and a record's byte order mark are read as the reader reads them.
+- A key that isn't a string goes from `INVALID_ID` to `INVALID_SYNTAX`.
+- No file that was valid is invalid now: each change drops a refusal, or changes the code of a file that was already invalid.
+
+The fixtures of the dropped rules went to scratch `for-conformance.md`. Stock ruamel, which astra-spec's harness reads with, refuses some of what is now valid (a tab as white space, a C1 control or DEL in a quoted scalar, NEL in a block scalar), reads U+2028 as a line break, and takes U+FEFF in a plain scalar, which YAML refuses. Those cases are listed there too, as library splits.
 
 ### Paths are tidied as text
 

@@ -87,7 +87,7 @@ Rules are enforced in five layers, set apart by what each one sees:
 
 | Layer | Enforced by | Sees |
 |---|---|---|
-| **parse** | a YAML 1.2 loader under the core schema, plus §3's checks (`astra.yaml`), or a strict JSON parser (records, §3) | one file's bytes |
+| **parse** | a YAML 1.2 reader (`astra.yaml`) or a JSON reader (records), as §3 says | one file's bytes |
 | **schema** | the generated JSON Schema | one file's data |
 | **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git (§3); no results |
 | **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git (§3); records and results |
@@ -253,96 +253,28 @@ file system allows (255 bytes on ext4), can't be used there.
   git configuration. So an `astra.yaml` at a commit is parsed from its blob.
   In the working tree, it is parsed from the file on disk.
 
-**`astra.yaml`** is YAML 1.2 ([YAML 1.2.2](https://yaml.org/spec/1.2.2/))
-under the core schema, with these rules
-([`INVALID_SYNTAX`](#parse-and-schema) unless another code is named):
-
-- **Encoding.** The file is UTF-8, and may start with a byte order mark.
-- **Characters.** Apart from that byte order mark, the file holds no tab, no
-  C0 control other than LF and CR, no DEL, no C1 control (NEL included), no
-  U+2028 or U+2029, no U+FEFF, and no U+FFFE or U+FFFF, in a quoted scalar or
-  anywhere else. A double-quoted scalar can write any of them with an
-  escape, such as `\t` or `\x85`.
-- **Lines.** LF, CR LF and a CR on its own each end a line. A file that
-  doesn't end with a line break is read as if it did.
-- **Directives and documents.** The only directive is `%YAML 1.2`, written
-  so. A file holds at most one document: a `---` line comes at most once,
-  before the content, and a `...` line at most once, after it, with nothing
-  but comments after it. A file with no document, empty or holding only
-  comments, is null, and fails as [`WRONG_TYPE`](#parse-and-schema).
-- **Aliases and tags.** No node is an alias (`*base`), and no node has a
-  tag, `!!str` and `!` included. An anchor (`&base`) alone means nothing.
-- **Scalars.** A plain scalar that matches a row of [YAML 1.2.2
-  §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)'s table is that
-  row's type, and any other scalar is a string. So `true` and `false` are
-  booleans and `null` is a null (as are the table's other spellings of them,
-  such as `True` and `~`); `1e3`, `0x1F`, `-.5` and `010` (which is 10) are
-  numbers; and `yes`, `no`, `on`, `off`, `1_000`, `0b101`, `12:30` and `+.nan`
-  are strings (the first four are valid ids). Timestamps and merge keys are
-  not types: an unquoted date, such as `2026-10-26`, is a string, and `<<` is
-  an ordinary key, so in an entry it is a field the schema doesn't define
-  ([`UNKNOWN_FIELD`](#parse-and-schema)). An unquoted commit id of digits only
-  is therefore an integer, and one of digits and a single `e` a float, or
-  invalid at parse when that float is beyond a double's range (`1234e9`
-  followed by 34 digits); a version such as `1.2` is a float too. They are
-  quoted when meant as ids or strings, as in `"true": {}`, and so are commit
-  ids and versions, as in `commit: "0dbb615a…"` and `spec_version: "0.1.0"`. A
-  value of another type than its field takes fails as
-  [`WRONG_TYPE`](#parse-and-schema).
-- **Numbers.** An integer or a float is a JSON number, and a field's type is
-  checked as JSON Schema checks it, so `2.0` is an integer. `.inf`, `-.inf`
-  and `.nan`, and a number beyond the range of a double (IEEE 754 binary64),
-  which rounds to infinity (`1e400`, an integer of 400 digits), have no JSON
-  form.
-- **Escapes.** No `\u` or `\U` escape is of a surrogate (U+D800–U+DFFF),
-  alone or in a pair. A character beyond U+FFFF is written as itself, or as
-  `\U0001F600`.
-- **Keys.** Every key is a string. A key the table reads as a boolean, a
-  number or a null (`true:`, `1:`, `~:`), or a key that is a list or a map,
-  has no JSON form ([`INVALID_ID`](#parse-and-schema)). It is reported at its
-  map, naming the key as written, and its entry is left out of the JSON form
-  the schema checks (§9, *What is checked*): the parse rules apply in the
-  entry, but no schema rule does, and the rest of the file is checked as that
-  form stands, so an `outputs` map whose only key is `1` is also empty
-  ([`EMPTY_COLLECTION`](#parse-and-schema)). A key that fails at parse, such
-  as `.nan`, is [`INVALID_SYNTAX`](#parse-and-schema), as any value is.
-- **Duplicate keys.** No two string keys of one map are equal once their
-  escapes are read ([`DUPLICATE_KEY`](#parse-and-schema)), so `a`, `'a'` and
-  `"\x61"` are one key. Keys that aren't strings take no part in this:
-  `true:` written twice in one map is two keys, each
-  [`INVALID_ID`](#parse-and-schema), and `1` and `"1"` are two keys.
-- Otherwise the file is a well-formed YAML 1.2 stream, read as YAML 1.2.2
-  reads it.
+**`astra.yaml`** is a YAML 1.2 stream
+([YAML 1.2.2](https://yaml.org/spec/1.2.2/)) with at most one document, read
+under its core schema, with no tag but the core schema's
+([`INVALID_SYNTAX`](#parse-and-schema)). A file with no document is null
+([`WRONG_TYPE`](#parse-and-schema)). Its content is a JSON value, which the
+schema checks: every key is a string and every number is finite, not `.inf`
+or `.nan` ([`INVALID_SYNTAX`](#parse-and-schema)), and no map has two equal
+keys ([`DUPLICATE_KEY`](#parse-and-schema)), so `a`, `'a'` and `"a"` are one
+key. Plain scalars are typed by the core schema
+([YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)), so
+`spec_version: 0.1` is a number ([`WRONG_TYPE`](#parse-and-schema)) and
+`spec_version: "0.1.0"` a string. A number is checked as JSON Schema checks
+it, so `2.0` is an integer.
 
 **Records** are JSON text ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259))
-in UTF-8, read strictly ([`INVALID_SYNTAX`](#parse-and-schema)):
-
-- a record uses only JSON's forms: a comment, a trailing comma, a single
-  quote, `NaN`, `Infinity` or YAML makes it invalid
-  ([`INVALID_SYNTAX`](#parse-and-schema));
-- a record starts with no byte order mark
-  ([`INVALID_SYNTAX`](#parse-and-schema)). RFC 8259 §8.1 forbids writing one
-  but lets a parser ignore one; a checker refuses it;
-- a name written twice in one object makes the record invalid
-  ([`DUPLICATE_KEY`](#parse-and-schema)). Names are compared once their
-  escapes are read, so `"a"` and `"\u0061"` are one name. RFC 8259 §4 doesn't
-  forbid a repeated name;
-- its strings and numbers are those of every document (below): a number
-  beyond a double's range (`1e400`) and the escape of a lone surrogate
-  (`"\ud800"`) make it invalid ([`INVALID_SYNTAX`](#parse-and-schema)), and an
-  escaped pair, `"\ud83d\ude00"`, is one character.
-
-A record is one JSON value, checked by the same schema rules. A record that
-breaks a parse or schema rule leaves its result `missing`: a checker reports
-[`INVALID_RECORD`](#check), with each code the record breaks as its reason
-(§9, §10).
+in UTF-8 ([`INVALID_SYNTAX`](#parse-and-schema)). No object of a record has
+two equal names ([`DUPLICATE_KEY`](#parse-and-schema)).
 
 **Every document** holds only the fields its schema defines
 ([`UNKNOWN_FIELD`](#parse-and-schema)), each with the JSON type the field
 takes ([`WRONG_TYPE`](#parse-and-schema)). An optional field without a value
-is left out: no field takes `null`. Its JSON form is what the schema checks:
-each string is a sequence of Unicode scalar values, and each number is finite
-and within a double's range ([`INVALID_SYNTAX`](#parse-and-schema)).
+is left out: no field takes `null`.
 
 **Locations.** In an analysis's directory:
 
@@ -1831,20 +1763,16 @@ invalid analysis valid, or a `missing` result anything else: it changes only
 which codes are reported. Two rules whose subjects are both determined are
 both reported, even when one edit fixes both.
 
-1. **A key that isn't a string.** A map entry whose key isn't a string (`1:`,
-   `true:`, `~:`) is reported once, as [`INVALID_ID`](#parse-and-schema) at
-   its map, naming the key. The entry is left out, and the rest of the file
-   is checked without it.
-2. **A file that can't be read.** A file that breaks a parse rule is checked
+1. **A file that can't be read.** A file that breaks a parse rule is checked
    no further. A file whose `spec_version` is missing or malformed isn't
    checked by [`UNSUPPORTED_SPEC_VERSION`](#validator): it is checked against
    the validator's own schema (§1). A file whose well-formed `spec_version`
    breaks `UNSUPPORTED_SPEC_VERSION` isn't checked by the schema layer.
-3. **A file that isn't a valid document.** A file that breaks a parse or
+2. **A file that isn't a valid document.** A file that breaks a parse or
    schema rule, or [`UNSUPPORTED_SPEC_VERSION`](#validator), isn't checked by
    the validator layer, and its declarations aren't followed. Its analysis is
-   undetermined (5).
-4. **A declaration that can't be read.** On a declaration whose own analysis
+   undetermined (4).
+3. **A declaration that can't be read.** On a declaration whose own analysis
    can't be got, because it breaks
    [`DECLARATION_OUTSIDE_REPOSITORY`](#validator) or
    [`COMMIT_NOT_FOUND`](#validator), or because a commit that analysis is
@@ -1853,7 +1781,7 @@ both reported, even when one edit fixes both.
    [`DECLARED_ANALYSIS_INVALID`](#validator) is checked. On one that breaks
    `COMMIT_NOT_FOUND`, or whose own `commit` can't be got,
    [`COMMIT_NOT_ANCESTOR`](#validator) isn't checked either. Its analysis is
-   undetermined (5), and so is the analysis of a declaration that breaks
+   undetermined (4), and so is the analysis of a declaration that breaks
    `MISSING_DECLARED_ANALYSIS`.
    `DECLARED_ANALYSIS_INVALID` isn't checked on an analysis from a commit
    whose file breaks [`UNSUPPORTED_SPEC_VERSION`](#validator). Where
@@ -1862,13 +1790,13 @@ both reported, even when one edit fixes both.
    the analysis that couldn't be got is undetermined. The analyses read on
    the way to it are not: their declarations' `MISSING_DECLARED_ANALYSIS`,
    and addresses into them such as `upstream.summary#u1`, are still checked.
-5. **An undetermined analysis.** No validator rule is checked in its file. In
+4. **An undetermined analysis.** No validator rule is checked in its file. In
    the files that declare it, nothing reached through that declaration is
    checked: no address through it, by
    [`UNRESOLVED_ADDRESS`](#validator) or by any rule on what the address
    would name, no [`MISSING_DECISION`](#validator) for its decisions, and no
    [`RESULT_IN_TWO_PLACES`](#validator) for a name through it.
-6. **A name that names nothing.** An address that breaks
+5. **A name that names nothing.** An address that breaks
    [`UNRESOLVED_ADDRESS`](#validator), and an option that breaks
    [`UNKNOWN_OPTION`](#validator), name nothing, and no rule is checked on
    what they would name. That leaves out `UNKNOWN_OPTION` under such an
@@ -1879,7 +1807,7 @@ both reported, even when one edit fixes both.
    [`OUTPUT_CYCLE`](#validator) and [`DUPLICATE_ELEMENT`](#validator)
    through it. A pin that breaks `UNKNOWN_PIN_UNIVERSE`, or that names an
    import that names nothing or whose address runs through an undetermined
-   analysis (5), names no universe: it builds none, and neither
+   analysis (4), names no universe: it builds none, and neither
    `PIN_INACTIVE` nor a rule on the universe being built (§7) is checked
    for it. A selection that names nothing isn't checked by
    [`INACTIVE_DECISION`](#validator),
@@ -1887,8 +1815,8 @@ both reported, even when one edit fixes both.
    [`INCOMPATIBLE_OPTIONS`](#validator) or
    [`EXCLUDED_OPTION_SELECTED`](#validator). A `requires` or
    `incompatible_with` entry that names nothing is ignored.
-7. **An element whose activity is undetermined.** In a universe, a `when` is
-   undetermined when one of its conditions names nothing (6), or tests a
+6. **An element whose activity is undetermined.** In a universe, a `when` is
+   undetermined when one of its conditions names nothing (5), or tests a
    decision that the universe's selection leaves unset
    ([`MISSING_DECISION`](#validator)) or sets to an option that names
    nothing. Its element's activity in that universe is then undetermined.
@@ -1903,7 +1831,7 @@ both reported, even when one edit fixes both.
    only through it, or in a universe built only through a pin in its
    `inputs`. Step 3 of the effective selection (§6) doesn't drop such a
    decision.
-8. **A universe with no effective selection.** A universe has none when its
+7. **A universe with no effective selection.** A universe has none when its
    `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#validator), or its chain
    breaks [`DERIVED_FROM_CYCLE`](#validator) or reaches a universe that has
    none. For it, [`MISSING_DECISION`](#validator),
@@ -1919,17 +1847,17 @@ both reported, even when one edit fixes both.
    [`DUPLICATE_ELEMENT`](#validator) and [`LOOPING_KEY`](#validator) are
    still checked on its own `decisions`. Driving (§7) counts its own
    `decisions` in place of its effective selection.
-9. **An input with no file.** An input that breaks
+8. **An input with no file.** An input that breaks
    [`MISSING_INPUT_FILE`](#validator) isn't checked by
    [`INPUT_NOT_TRACKED`](#validator).
-10. **A result with no valid record.** A result that breaks
-    [`MISSING_RECORD`](#check) isn't checked by [`INVALID_RECORD`](#check),
-    [`MISPLACED_RECORD`](#check) or [`MISSING_RECORD_INPUTS`](#check). One
-    whose record breaks `INVALID_RECORD` isn't checked by the last two.
-    [`STALE_RESULT`](#check) isn't checked for a result that is `missing`.
-11. **A key that loops.** [`LOOPING_KEY`](#validator) is judged on a key's
+9. **A result with no valid record.** A result that breaks
+   [`MISSING_RECORD`](#check) isn't checked by [`INVALID_RECORD`](#check),
+   [`MISPLACED_RECORD`](#check) or [`MISSING_RECORD_INPUTS`](#check). One
+   whose record breaks `INVALID_RECORD` isn't checked by the last two.
+   [`STALE_RESULT`](#check) isn't checked for a result that is `missing`.
+10. **A key that loops.** [`LOOPING_KEY`](#validator) is judged on a key's
     declarations up to the first that doesn't resolve or whose analysis is
-    undetermined (5, 6). A key that loops still names its decision, if it
+    undetermined (4, 5). A key that loops still names its decision, if it
     resolves, and the rules on selections check it, but it drives no
     declaration (§7), and no rule counts it as going through one.
 
@@ -1971,9 +1899,9 @@ A table that breaks any of this is an error in this specification, and no
 
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is UTF-8, holds none of the raw characters §3 excludes, has no directive but `%YAML 1.2`, at most one `---`, before its content, and at most one `...`, after it, no alias, no tag and no escape of a surrogate, and is otherwise a well-formed YAML 1.2 stream under the core schema; in every document each string is a sequence of Unicode scalar values and each number is finite and within a double's range; and every record is RFC 8259 JSON text in UTF-8 with no byte order mark | 0005, tidy-up, §3 |
-| `DUPLICATE_KEY` | parse | MUST | No two string keys of one map in an `astra.yaml` are equal once their escapes are read, and no two names of one object in a record are | 0003, 0004, tidy-up, §3, §4 |
-| `INVALID_ID` | schema | MUST | Every map key is a string, and matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a YAML 1.2 stream under the core schema, with at most one document, no tag but the core schema's, string keys and finite numbers, and every record is RFC 8259 JSON text in UTF-8 | 0005, tidy-up, §3 |
+| `DUPLICATE_KEY` | parse | MUST | No map in an `astra.yaml` has two equal keys, and no object in a record has two equal names | 0003, 0004, tidy-up, §3, §4 |
+| `INVALID_ID` | schema | MUST | Every map key matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar | 0003, 0004 |
 | `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Output.recipe`, `Recipe.command`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` | 0004, 0005, 0006, tidy-up, main, §5 |
 | `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines | tidy-up, §10 |
@@ -2162,27 +2090,17 @@ for the same error and words each rule the same way. It holds:
   can make an instance fail (*From an error to its code*, below), keyed by
   the keyword's absolute keyword location, as JSON Schema 2019-09 defines
   it: the schema's `$id`, `#`, and the JSON Pointer to the keyword once
-  every `$ref` is resolved. So each key names its minor
-  version, through `$id`. Each code is a schema-layer rule's. The
-  parse-layer codes have no entry, because loaders and §3's checks report
-  them, not schemas; nor does the open variant's `additionalProperties`,
-  which fails on nothing. A key that isn't a string is reported without
-  them: it has no JSON form, so a tool reports it from the parsed YAML, as
-  [`INVALID_ID`](#parse-and-schema) at its map (§3). A tool that hands its
-  validator the key unconverted gets the same code at the same place only in
-  a map keyed by an id or an address, through the entry of `propertyNames`'
-  `type`: among a document's or an entry's fields, it gets
-  [`UNKNOWN_FIELD`](#parse-and-schema) from `additionalProperties`.
+  every `$ref` is resolved. So each key names its minor version, through
+  `$id`. Each code is a schema-layer rule's.
 - `$comment`: the version of the release it was made from.
 
 In the schema's sources, each constraint names the rule it enforces: a
 pattern by its type or field, a class rule or an exactly-one-of by itself.
 The keywords whose code never varies take a default: `required` outside such
 a rule (`MISSING_FIELD`); `additionalProperties` (`UNKNOWN_FIELD`); `type`
-(`WRONG_TYPE`), except on a map key, which takes the key's code;
-`minProperties` and `minItems` of 1 (`EMPTY_COLLECTION`); `uniqueItems`
-(`DUPLICATE_ENTRY`); and `enum` and `minimum` (`INVALID_VALUE`). An abridged
-`rules.json`:
+(`WRONG_TYPE`); `minProperties` and `minItems` of 1 (`EMPTY_COLLECTION`);
+`uniqueItems` (`DUPLICATE_ENTRY`); and `enum` and `minimum`
+(`INVALID_VALUE`). An abridged `rules.json`:
 
 <!-- excerpt: rules.json -->
 ```json
