@@ -83,12 +83,12 @@ classes:
       `version` only with a `doi`.
     attributes:
       doi:
-        pattern: '^10\.[0-9]+(\.[0-9]+)*/[^\x00-\x20\x7f-\x9f]([^\x00-\x1f\x7f-\x9f]*[^\x00-\x20\x7f-\x9f])?$'
+        pattern: '^10\.[0-9]+(\.[0-9]+)*/(?!$)'
         annotations:
           rule: INVALID_VALUE
         description: >-
           The DOI name of the cited work, under the `10` directory: `10.`, the
-          registrant code, `/` and the suffix, such as
+          registrant code, `/` and a non-empty suffix, such as
           `10.48550/arXiv.1706.03762`.
       artifact:
         range: reference

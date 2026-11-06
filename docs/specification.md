@@ -334,12 +334,6 @@ characters that aren't visible:
   it takes only to start a percent-encoding). Each admits every character
   above U+007F: non-ASCII spaces (U+00A0, U+3000), format characters (U+200B,
   U+FEFF, U+202E), U+2028, U+2029 and the C1 controls.
-- The suffix of an `Evidence.doi` takes `[^\x00-\x20\x7f-\x9f]` at either end
-  and `[^\x00-\x1f\x7f-\x9f]` inside, which admit every character above
-  U+009F: non-ASCII spaces anywhere, which a DOI may hold, and the characters
-  that aren't graphic, which ISO 26324 leaves out of a DOI and no rule
-  checks: format characters, U+2028, U+2029, private-use characters and
-  noncharacters.
 - An `iri` (`Environment.iri`, `FragmentSelector.conforms_to`) takes
   `[^\x00-\x20\x7f-\x9f]` less `<>"{}|\^`, the backtick, `%` and `#`
   (which it takes only to start a percent-encoding and a fragment) and the
@@ -652,8 +646,7 @@ An [Evidence](elements/Evidence.md) item cites exactly one of
 ([`INVALID_EVIDENCE_SOURCE`](#parse-and-schema)):
 
 - a published work, by its `doi`, such as `10.48550/arXiv.1706.03762`
-  (`10.`, digit runs joined by `.`, `/`, then a suffix with no control
-  character and no ASCII space at either end:
+  (`10.`, digit runs joined by `.`, `/`, then a non-empty suffix:
   [`INVALID_VALUE`](#parse-and-schema)), with the work's `version`, counted
   from 1, when the work has versions, as an arXiv paper does;
 - an output, as an `artifact`: a reference written as in `Output.inputs`,

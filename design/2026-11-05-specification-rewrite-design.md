@@ -148,6 +148,10 @@ What changes in verdicts: `~/stage`, `data\x.csv`, `..\stage` and a path with a 
 
 Decided on 2026-11-06 (the audit's H25). An option with an `excluded` reason is excluded whatever the reason says, so the rule only refused a blank reason, a likely slip, and `excluded` was the one free-text field with a non-blank rule. The code leaves §9 and `rules.json`, and `Option.excluded` loses its pattern, so `excluded: "   "` is valid and excludes its option. `excluded: true` stays `WRONG_TYPE`. This reverses the non-blank half of the tidy-up's change 14 and X48, reviewed in #94, so scratch `for-rfcs.md` records it for #94's reviewers. Analysis-129 went to scratch `for-conformance.md`.
 
+### A DOI's suffix is any non-empty text
+
+Decided on 2026-11-06 (the audit's H26). `Evidence.doi` keeps `10.`, the registrant's digit runs joined by `.`, `/` and a suffix, which is now only non-empty, and shortDOIs stay refused (X42). The suffix's bans on an ASCII space at either end and on control characters go: they guarded against paste slips, and the field's description never stated them. So `10.1234/x ` and a suffix with a tab are valid now. Analysis-196 and -197 went to scratch `for-conformance.md`.
+
 ### Shallow clones and unborn branches
 
 Ancestry is judged on the history that is available:
