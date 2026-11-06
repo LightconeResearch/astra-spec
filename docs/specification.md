@@ -1463,8 +1463,7 @@ enforce [`UNDECLARED_READ`](#runner), as §9 permits (§5).
 A record names the commit its recipe ran from, so it is committed in a later
 commit. Records and results are no input and no part of a declaration, so
 committing them doesn't by itself make a result stale. Branches that hold
-records SHOULD be merged, not squashed or rebased, so that the commit each
-record names stays in their history.
+records SHOULD be merged, not squashed or rebased.
 
 ### When a result is unchanged
 
@@ -1692,7 +1691,7 @@ both reported, even when one edit fixes both.
 
 | Code | Layer | Level | Rule | Source |
 |---|---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a YAML 1.2 stream under the core schema, with at most one document, no tag but the core schema's, string keys and finite numbers, and every record is RFC 8259 JSON text in UTF-8 | 0005, tidy-up, §3 |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8 | 0005, tidy-up, §3 |
 | `DUPLICATE_KEY` | parse | MUST | No map in an `astra.yaml` has two equal keys, and no object in a record has two equal names | 0003, 0004, tidy-up, §3, §4 |
 | `INVALID_ID` | schema | MUST | Every map key matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar | tidy-up, main, §3, §4 |
 | `INVALID_REFERENCE` | schema | MUST | Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar | 0003, 0004 |

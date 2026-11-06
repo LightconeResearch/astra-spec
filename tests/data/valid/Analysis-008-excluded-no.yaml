@@ -1,5 +1,5 @@
 # Under YAML 1.2, `no` and `off` are strings, so `excluded: no` is the reason
-# `no`: the option is excluded, and no universe selects it.
+# `no`: the option is excluded, and no effective selection selects it.
 # yamllint disable rule:truthy
 spec_version: "0.1.0"
 outputs:

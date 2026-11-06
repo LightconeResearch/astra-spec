@@ -110,11 +110,11 @@ A breach is `INVALID_SYNTAX`, and two equal keys in one map are `DUPLICATE_KEY`.
 
 What the layer of 11-05 had and this one doesn't, each a change of meaning:
 - **UTF-8 for `astra.yaml`** (H36). YAML 1.2.2 reads UTF-8, UTF-16 and UTF-32. Records stay UTF-8.
-- **Raw characters** (H1). No rule on a raw tab, C0 or C1 control, DEL, U+2028, U+2029, U+FEFF, U+FFFE or U+FFFF, or on where a byte order mark may be: YAML's own rules apply, and in a quoted scalar YAML allows every character but the C0 controls.
+- **Raw characters** (H1). No rule on a raw tab, C0 or C1 control, DEL, U+2028, U+2029, U+FEFF, U+FFFE or U+FFFF, or on where a byte order mark may be: YAML's own rules apply, and in a quoted scalar YAML allows a tab and every character that isn't a C0 control.
 - **Line ends** (H2). A missing final line break is no longer read as present, so a block scalar that ends the file has no line break it doesn't write.
 - **Directives** (H3). `%YAML 1.1`, `%TAG` and a reserved directive are read as YAML 1.2.2 reads them.
 - **Document markers** (H4). Only "at most one document" stays.
-- **Aliases** (H5). An alias is read as the node it names. One inside that node leaves the content no JSON value, so `INVALID_SYNTAX`.
+- **Aliases** (H5). An alias is read as the node it names. One inside that node leaves the content no JSON value, so `INVALID_SYNTAX`, whose statement in `rules.json` says, as spec §3 does, that the content is a JSON value.
 - **Tags** (H6). The core schema's tags are allowed, `!!str` included. Any other tag is still `INVALID_SYNTAX`.
 - **A double's range** (H7). Only a number that isn't finite (`.inf`, `.nan`) is refused, not one such as `1e400`, in `astra.yaml` and in records.
 - **Surrogate escapes** (H8). No rule in either kind of document, and no rule that a string is a sequence of Unicode scalar values.
@@ -122,13 +122,17 @@ What the layer of 11-05 had and this one doesn't, each a change of meaning:
 - **A key that isn't a string** (H10, option A). It is `INVALID_SYNTAX`, like `.inf`, and the file is checked no further. It was `INVALID_ID` at its map, with its entry left out and the rest of the file checked. The schema's `propertyNames` lose their `type: string`, `INVALID_ID` loses "every map key is a string", `DUPLICATE_KEY` compares every key, and *What is checked* loses its case 1, so the other cases move up one.
 
 What changes in verdicts:
-- Valid now: a raw tab, C1 control or DEL in a quoted scalar, NEL in a block scalar, a tab as white space, `%YAML 1.1`, `%TAG`, a reserved directive, an alias, a core schema tag, and `1e400`.
+- Valid now: a file in UTF-16 or UTF-32, a raw tab, C1 control or DEL in a quoted scalar, NEL in a block scalar, a tab as white space, `%YAML 1.1`, `%TAG`, a reserved directive, a second `...` line after the content, an alias, a core schema tag, and `1e400`.
 - A value ending in U+2028 is no longer `INVALID_SYNTAX`: U+2028 is content in YAML 1.2, so `type: metric<U+2028>` is `INVALID_VALUE`.
 - A lone surrogate escape, an escaped pair in `astra.yaml`, and a record's byte order mark are read as the reader reads them.
 - A key that isn't a string goes from `INVALID_ID` to `INVALID_SYNTAX`.
-- No file that was valid is invalid now: each change drops a refusal, or changes the code of a file that was already invalid.
+- A block scalar that ends the file without a line break no longer ends in one (H2), so its value changes, and a verdict that turns on it can change either way: a list `tags` whose entries are `a` and, last in the file, a block scalar `a` was valid, its entries `a` and `a\n`, and is now `DUPLICATE_ENTRY`.
+- Apart from that, no file that was valid is invalid now: each change drops a refusal, or changes the code of a file that was already invalid.
 
-The fixtures of the dropped rules went to scratch `for-conformance.md`. Stock ruamel, which astra-spec's harness reads with, refuses some of what is now valid (a tab as white space, a C1 control or DEL in a quoted scalar, NEL in a block scalar), reads U+2028 as a line break, and takes U+FEFF in a plain scalar, which YAML refuses. Those cases are listed there too, as library splits.
+The fixtures of the dropped rules went to scratch `for-conformance.md`. Stock ruamel, which astra-spec's harness reads with, reads some files otherwise than YAML 1.2.2, and those cases are listed there too, as library splits:
+- it refuses some of what is now valid: a tab as white space, a C1 control or DEL in a quoted scalar, NEL in a block scalar, UTF-32, and UTF-16 without a byte order mark;
+- it opens a document on a `...` with no document before it, so it refuses a `...` alone, which YAML reads as no document (`WRONG_TYPE`), and a second `...` after the content, which is valid now;
+- it reads U+2028 as a line break, and takes U+FEFF in a plain scalar, which YAML refuses.
 
 ### Paths are tidied as text
 
@@ -169,8 +173,9 @@ Decided on 2026-11-06 (the audit's H11-H17 and H19-H21). Spec §3 keeps the read
 - **Intent-to-add and unmerged entries** (H14). "In the index" reads as git's index does, so an intent-to-add entry (`git add -N`) is tracked now, as an unmerged one already was.
 - **MERGE_HEAD** (H15, with H21). `COMMIT_NOT_ANCESTOR` stays, and in the working tree HEAD alone stands for the commit a declaration is in, so during a merge a declaration merged in from the other branch may draw the warning until the merge is committed. The rule's statement changes in `rules.json`.
 - **Shallow clones and unborn branches** (H19, H20). Decided on 2026-11-05 but never in the spec: where a shallow clone couldn't decide, `COMMIT_NOT_ANCESTOR` wasn't to be reported, and with no commit yet it wasn't to be checked, an Annex D case. Both are left out. The rule means ancestry, which is exact; how a tool decides it on a history it lacks is the tool's. With no commit yet, HEAD stands for the first commit, of which no declared commit is an ancestor, so the warning is the rule's answer. Annex D has no such case.
+- **The submodule's local repository** (H16). Spec §3 got the commit a gitlink pins from any repository that had it, the submodule's local repository included, and fetched it from the URL in `.gitmodules` only otherwise. Now it is got from that URL, and a commit kept from an earlier fetch counts as got. So where a gitlink crossed at a commit pins a commit made in the submodule and never pushed, the declaration that reaches it breaks `REMOTE_UNREACHABLE`, which §3 didn't say before. The rule's statement doesn't change: it always named only the remote and an earlier fetch, and §3 now agrees with it.
 
-Restated with no change of meaning: case and Unicode form (H11: a path names the entry at exactly that path, so `data/A.csv` and `data/a.csv` are two paths, and identity compares "the same path"), a submodule that isn't checked out (H13), getting the commit a gitlink pins (H16: from the URL that the `.gitmodules` of the commit holding the gitlink gives, a relative one resolved as git resolves it), and a file's bytes at a commit (H17: the blob git stores).
+Restated with no change of meaning: case and Unicode form (H11: a path names the entry at exactly that path, so `data/A.csv` and `data/a.csv` are two paths, and identity compares "the same path"), a submodule that isn't checked out (H13), the URL a gitlink's commit is got from (H16: the one the `.gitmodules` of the commit holding the gitlink gives, a relative one resolved as git resolves it), and a file's bytes at a commit (H17: the blob git stores).
 
 ### Identity across a gitlink, and which universes are built
 

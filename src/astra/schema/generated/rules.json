@@ -293,7 +293,7 @@
       "layer": "parse",
       "level": "MUST",
       "source": "0005, tidy-up, §3",
-      "statement": "Every `astra.yaml` is a YAML 1.2 stream under the core schema, with at most one document, no tag but the core schema's, string keys and finite numbers, and every record is RFC 8259 JSON text in UTF-8"
+      "statement": "Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8"
     },
     {
       "code": "DUPLICATE_KEY",
