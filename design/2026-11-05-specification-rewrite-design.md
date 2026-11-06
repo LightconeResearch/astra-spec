@@ -132,7 +132,17 @@ The fixtures of the dropped rules went to scratch `for-conformance.md`. Stock ru
 
 A path is joined to the folder of the `astra.yaml` that writes it. It is measured from the top of the root's working tree, or, at a commit, from the top of the repository that holds it. Empty and `.` segments are dropped, and each `..` removes the segment before it, without consulting the file system. So `./data.csv` is `data.csv`, and `subanalysis/` is `subanalysis`.
 
-A `..` that goes above the top is `DECLARATION_OUTSIDE_REPOSITORY`. What can be written doesn't change. `RESERVED_PATH` and a declaration's identity use the same tidied path.
+A `..` that goes above the top is `DECLARATION_OUTSIDE_REPOSITORY`. Tidying doesn't change what can be written. `RESERVED_PATH` and a declaration's identity use the same tidied path.
+
+### A path is non-empty and doesn't start with `/`
+
+Decided on 2026-11-06 (the audit's H18). `INVALID_PATH` keeps only what makes a path a relative one: every declaration's and input's `path` is non-empty and doesn't start with `/`, and both patterns are `^[^/]`. What went, each a change of meaning:
+- **A leading `~`** (H18 a). Git holds `~x` as an ordinary name; the ban only caught someone expecting a shell's home folder.
+- **A backslash** (H18 b). It is an ordinary character in git, so `data\x.csv` is one file named so.
+- **An ASCII control character** (H18 c). Git allows every byte but NUL.
+- **An input's `..` segment and trailing `/`** (H18 d). Tidied as text (above), a `..` that leaves the analysis's folder breaks `INPUT_IN_ANOTHER_ANALYSIS`, one that stays inside names the tidied path, and a trailing `/` names a folder, so `MISSING_INPUT_FILE`.
+
+What changes in verdicts: `~/stage`, `data\x.csv`, `..\stage` and a path with a control character are no longer `INVALID_PATH`, and `../data.csv`, `data/../x.csv` and `data/` are judged by the validator rules above instead. No file that was valid is invalid now. The fixtures of the dropped bans went to scratch `for-conformance.md`.
 
 ### Shallow clones and unborn branches
 

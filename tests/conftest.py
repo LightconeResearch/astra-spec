@@ -313,10 +313,10 @@ def ecma_262(pattern: str) -> re.Pattern[str]:
     2019-09 Validation §4.3).
 
     With no flag, ECMA-262's `$` matches only at the end of the value, and Python's also before a final newline, so
-    each `$` outside a class becomes `\\Z`. The rest of the pattern must be read alike by the two: raises `ValueError`
-    on `.`, on an escape of a letter or digit but `\\x`, `\\u`, `\\n`, `\\t` and `\\r` (`\\d`, `\\s`, `\\w` and `\\b` are
-    read otherwise, `\\Z` is Python's alone), on a group but `(`, `(?:`, `(?=` and `(?!` (a lookbehind or a named
-    group), and on a class that starts with `]`, which ends it in ECMA-262 only.
+    each `$` outside a class becomes `\\Z`. The rest of the pattern must be read alike by the two: raises
+    `ValueError` on `.`, on an escape of a letter or digit but `\\x`, `\\u`, `\\n`, `\\t` and `\\r` (`\\d`, `\\s`,
+    `\\w` and `\\b` are read otherwise, `\\Z` is Python's alone), on a group but `(`, `(?:`, `(?=` and `(?!` (a
+    lookbehind or a named group), and on a class that starts with `]`, which ends it in ECMA-262 only.
     """
     translated, in_class, i = [], False, 0
     while i < len(pattern):

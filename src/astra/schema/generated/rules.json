@@ -371,7 +371,7 @@
       "layer": "schema",
       "level": "MUST",
       "source": "0004, 0006, tidy-up",
-      "statement": "Every declaration's and input's `path` is non-empty, starts with neither `/` nor `~` and holds no backslash and no ASCII control character, and an input's `path` also has no `..` segment and doesn't end in `/`"
+      "statement": "Every declaration's and input's `path` is non-empty and doesn't start with `/`"
     },
     {
       "code": "BLANK_EXCLUDED",

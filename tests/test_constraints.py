@@ -487,22 +487,20 @@ FACETS = {
             "data/~catalog.csv",
             "my data.csv",
             "données/catalogue.csv",
-        ],
-        [
-            "/data/catalog.csv",
             "~/data.csv",
             "~",
             "..",
             "../data.csv",
-            "data/..",
             "data/../catalog.csv",
             "data\\catalog.csv",
             "data/",
+            "data//catalog.csv",
             "data/cat\talog.csv",
             "data/\x7fcatalog.csv",
-            "",
+            "\ndata.csv",
             "data/catalog.csv\n",
         ],
+        ["/data/catalog.csv", "/", "//data.csv", ""],
     ),
     ("AnalysisDeclaration", "path"): (
         "declarations",
@@ -514,21 +512,19 @@ FACETS = {
             "..",
             "../sibling",
             "up/../stage",
+            "stage/",
             "C:repo",
             "my stage",
             "étape",
-        ],
-        [
-            "/srv/stage",
             "~/stage",
             "~",
             "stage\\sub",
             "sta\tge",
             "stage\x1f",
             "stage\x7f",
-            "",
             "stage\n",
         ],
+        ["/srv/stage", "/", ""],
     ),
     ("AnalysisDeclaration", "url"): (
         "declarations",
@@ -658,8 +654,8 @@ FACETS = {
 }
 """For each slot that writes its own pattern: a valid fixture, the pointer of the slot's value in it, the slot's code,
 values the pattern accepts, and values it rejects, at least one for each facet its description states (as
-`test_types` does for the named types). An anchored pattern also rejects a valid value with a final `\\n`, as
-ECMA-262 reads its `$`."""
+`test_types` does for the named types). A pattern that ends in `$` also rejects a valid value with a final `\\n`,
+as ECMA-262 reads its `$`."""
 
 
 @functools.cache

@@ -155,14 +155,13 @@ classes:
         description: Keywords for grouping and finding the input.
       path:
         required: true
-        pattern: '^(?![/~])(?!(?:[^\x00-\x1f\x7f]*/)?\.\.(?:/|$))(?![^\x00-\x1f\x7f]*/$)[^\x00-\x1f\x7f\\]+$'
+        pattern: '^[^/]'
         annotations:
           rule: INVALID_PATH
         description: >-
           The path of the input's file, relative to the folder of the
-          `astra.yaml`. It is non-empty, doesn't start with `/` or `~`,
-          separates folders with `/` (never `\`), has no `..` segment or ASCII
-          control character (U+0000–U+001F, U+007F), and doesn't end in `/`.
+          `astra.yaml`, with `/` between folders. It is non-empty and doesn't
+          start with `/`.
 
   Output:
     description: >-
@@ -445,16 +444,15 @@ classes:
           The id this analysis addresses the declared analysis by, written as
           its key in `analyses`.
       path:
-        pattern: '^(?![/~])[^\x00-\x1f\x7f\\]+$'
+        pattern: '^[^/]'
         annotations:
           rule: INVALID_PATH
         description: >-
           The directory of the declared analysis's `astra.yaml`, relative to
-          the folder of this `astra.yaml` and inside the repository this
-          file is read from, which in the working tree is the root's,
-          submodules included. It is non-empty, doesn't start with `/` or `~`,
-          separates folders with `/` (never `\`), and has no ASCII control
-          character (U+0000–U+001F, U+007F); `..` segments are allowed.
+          the folder of this `astra.yaml`, with `/` between folders, and inside
+          the repository this file is read from, which in the working tree is
+          the root's, submodules included. It is non-empty and doesn't start
+          with `/`.
       url:
         pattern: '^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$'
         annotations:

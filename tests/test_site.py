@@ -249,12 +249,12 @@ def schema_patterns() -> dict[str, list[str]]:
     """Each pattern the LinkML sources write, as they write it, keyed by the page that shows it.
 
     A named type's page, under its CamelCase name, shows its `pattern`, or its structured pattern's syntax, which
-    `gen-doc` shows uninterpolated. A slot's page, under its own name, shows the pattern every class that defines the
-    slot gives it. A slot that classes define with different patterns, as `Input.path` and `AnalysisDeclaration.path`,
-    has one page, which shows none."""
+    `gen-doc` shows uninterpolated. A slot's page, under its own name, shows the pattern of the one class that defines
+    the slot. A slot that more than one class defines, as `Input.path` and `AnalysisDeclaration.path`, has one page,
+    which shows none, even where every class gives it the same pattern."""
     yaml = YAML(typ="safe", pure=True)
     expected = {}
-    slots = defaultdict(set)
+    slots = defaultdict(list)
     for module in sorted(SOURCES.glob("*.yaml")):
         source = yaml.load(module.read_text(encoding="utf-8"))
         for name, definition in (source.get("types") or {}).items():
@@ -265,10 +265,10 @@ def schema_patterns() -> dict[str, list[str]]:
                 expected[camelcase(name)] = [pattern]
         for definition in (source.get("classes") or {}).values():
             for name, slot in ((definition or {}).get("attributes") or {}).items():
-                slots[name].add((slot or {}).get("pattern"))
+                slots[name].append((slot or {}).get("pattern"))
     for name, patterns in slots.items():
-        if len(patterns) == 1 and None not in patterns:
-            expected[name] = list(patterns)
+        if len(patterns) == 1 and patterns[0] is not None:
+            expected[name] = patterns
     return expected
 
 
