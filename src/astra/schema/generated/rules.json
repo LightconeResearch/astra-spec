@@ -401,6 +401,13 @@
       "statement": "Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1"
     },
     {
+      "code": "NOT_IN_REPOSITORY",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§3",
+      "statement": "The folder of the analysis being validated is in the working tree of a git repository"
+    },
+    {
       "code": "UNSUPPORTED_SPEC_VERSION",
       "layer": "validator",
       "level": "MUST",

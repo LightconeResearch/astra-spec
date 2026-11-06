@@ -183,8 +183,10 @@ the analysis has three results, each with a record (§8).
 
 ## 3. Files
 
-An **analysis** is a directory with an `astra.yaml` at its top. Its recipes
-run in that directory ([`WRONG_WORKING_DIRECTORY`](#runner)). The paths of
+An **analysis** is a directory with an `astra.yaml` at its top, in a git
+repository: in its working tree, or at one of its commits
+([`NOT_IN_REPOSITORY`](#validator)). Its recipes run in that directory
+([`WRONG_WORKING_DIRECTORY`](#runner)). The paths of
 its inputs and declarations are relative to the folder of the `astra.yaml`
 and separate folders with `/` (§5, §7).
 
@@ -1620,7 +1622,8 @@ its record, `unchanged`, `stale`, or `missing` when it has no valid record
 where its address says; and one for its bytes, `present` when the bytes at
 its default place have its record's hash and size, `absent` otherwise. A
 result of an analysis from a commit that no recipe reads gets only the first
-(below). Since the bytes can be kept elsewhere, `absent` is not an error. A
+(below). Outside a git repository ([`NOT_IN_REPOSITORY`](#validator)), every
+planned result is `missing`. Since the bytes can be kept elsewhere, `absent` is not an error. A
 tool may report more about bytes that are `absent`, such as other bytes at
 the default place, but their status is `absent`.
 
@@ -1807,6 +1810,10 @@ both reported, even when one edit fixes both.
     undetermined (4, 5). A key that loops still names its decision, if it
     resolves, and the rules on selections check it, but it drives no
     declaration (§7), and no rule counts it as going through one.
+11. **An analysis outside a repository.** Where the root breaks
+    [`NOT_IN_REPOSITORY`](#validator), no other validator rule is checked
+    and its declarations aren't followed, so only its own `astra.yaml` is
+    checked, by the parse and schema rules.
 
 **The catalogue as data.** The rules are extracted from this section into
 `rules.json` (§10), so its tables are a format that tools parse, not only
@@ -1869,6 +1876,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 
 | Code | Level | Rule | Source |
 |---|---|---|---|
+| `NOT_IN_REPOSITORY` | MUST | The folder of the analysis being validated is in the working tree of a git repository | §3 |
 | `UNSUPPORTED_SPEC_VERSION` | MUST | Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of | 0007 §6, §1 |
 | `UNRESOLVED_ADDRESS` | MUST | Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact`, one of another analysis's universes in an import | 0004, §7 |
 | `UNKNOWN_OPTION` | MUST | Every option named by a condition, option reference or selection is one of its decision's options | 0003, 0004 |
@@ -1931,7 +1939,7 @@ without a pin gets the worst first status of that output's results
 |---|---|
 | `unchanged` | The result has a valid record where its address says, and `STALE_RESULT` holds |
 | `stale` | The result has a valid record where its address says, and `STALE_RESULT` doesn't hold. The checker says what changed |
-| `missing` | The result has no valid record where its address says: `MISSING_RECORD`, `INVALID_RECORD` (including a record that breaks a parse or schema rule), `MISPLACED_RECORD` or `MISSING_RECORD_INPUTS` doesn't hold |
+| `missing` | The result has no valid record where its address says: `MISSING_RECORD`, `INVALID_RECORD` (including a record that breaks a parse or schema rule), `MISPLACED_RECORD` or `MISSING_RECORD_INPUTS` doesn't hold; or the root is outside a git repository (`NOT_IN_REPOSITORY`) |
 | `present` | The bytes at the result's default place hash to the record's `content_hash` and have its `size` |
 | `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
 

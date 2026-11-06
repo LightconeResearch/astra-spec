@@ -98,6 +98,8 @@ Outside a repository:
 
 Annex D lists the case. An analysis read at a commit is always in a repository.
 
+In the spec since the audit of 2026-11-06 (its D5): the validator table's first row, with Source `§3`, so `rules.json` has 66 rules; §3's definition of an analysis ("in a git repository: in its working tree, or at one of its commits"); *What is checked* case 11, which also says that the root's declarations aren't followed, since without a working tree a path names nothing, so only its own `astra.yaml` is checked by the parse and schema rules; §8's statuses; and the check layer's `missing`. It has no fixture, since its case needs a folder outside git: it is on scratch `for-conformance.md`.
+
 ### The parse layer
 
 Decided on 2026-11-05 (`8626ed6`), and cut back to what ASTRA requires on 2026-11-06 (the audit's H1-H10 and H36, principle 9). An `astra.yaml` is:
