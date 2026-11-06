@@ -481,12 +481,12 @@
           "type": "string"
         },
         "container": {
-          "description": "Container image name or path to a Containerfile. Image names (e.g., 'python:3.9', 'ghcr.io/org/img:latest') are pulled as pre-built images; file paths (e.g., 'Containerfile', 'containers/Dockerfile') are built from source.",
+          "description": "The container the recipe runs in: an image, or a Containerfile it is built from.",
           "type": "string"
         },
         "resources": {
           "$ref": "#/$defs/Resources",
-          "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
+          "description": "The compute resources the recipe asks for."
         }
       },
       "required": [
@@ -497,28 +497,28 @@
     },
     "Resources": {
       "additionalProperties": false,
-      "description": "Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.",
+      "description": "The compute resources a recipe asks for.",
       "properties": {
         "cpus": {
-          "description": "CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.",
+          "description": "The number of CPU cores the recipe asks for, which may be fractional, such as 0.5.",
           "minimum": 0,
           "type": "number"
         },
         "disk": {
-          "description": "Disk requirement as a string with units (e.g., '10Gi', '500Mi').",
+          "description": "The disk space the recipe asks for, as free text, such as `10Gi`.",
           "type": "string"
         },
         "gpus": {
-          "description": "Number of GPUs",
+          "description": "The number of GPUs the recipe asks for.",
           "minimum": 1,
           "type": "integer"
         },
         "memory": {
-          "description": "Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').",
+          "description": "The memory the recipe asks for, as free text, such as `16Gi`.",
           "type": "string"
         },
         "time_limit": {
-          "description": "Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').",
+          "description": "The longest the recipe may run, as free text, such as `2h`.",
           "type": "string"
         }
       },
@@ -719,7 +719,7 @@
       "type": "object"
     },
     "container": {
-      "description": "The default container for this analysis's recipes. Image names are pulled; file paths are built from source.",
+      "description": "The default container of the analysis's recipes: an image, or a Containerfile it is built from.",
       "type": "string"
     },
     "decisions": {

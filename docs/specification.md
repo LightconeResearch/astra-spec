@@ -529,8 +529,8 @@ A [Recipe](elements/Recipe.md) has a `command`
 ([`MISSING_FIELD`](#parse-and-schema)), and optionally the context it runs in:
 `resources` ([Resources](elements/Resources.md)), the CPUs, memory, time,
 disk and GPUs it asks for (`cpus` at least 0 and `gpus` at least 1:
-[`INVALID_VALUE`](#parse-and-schema)), and `container`, an image name, which is pulled,
-or the path of a Containerfile, which is built. `Analysis.container` is the
+[`INVALID_VALUE`](#parse-and-schema)), and `container`, the container it runs in:
+an image, or a Containerfile it is built from. `Analysis.container` is the
 default container of the analysis's recipes. A recipe runs in its analysis's
 directory ([`WRONG_WORKING_DIRECTORY`](#runner)).
 
