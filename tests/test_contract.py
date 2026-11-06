@@ -243,6 +243,8 @@ TYPED = {
     ("Option", "requires"): "option_reference",
     ("Option", "incompatible_with"): "option_reference",
     ("Universe", "derived_from"): "id",
+    ("Universe", "analysis"): "address",
+    ("Universe", "universe"): "id",
     ("DecisionSelection", "option"): "id",
     ("AnalysisDeclaration", "commit"): "commit_id",
     ("Evidence", "artifact"): "reference",

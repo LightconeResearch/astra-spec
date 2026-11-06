@@ -305,18 +305,23 @@ classes:
 
   Universe:
     description: >-
-      A universe: a selection of one option for every active decision of the
-      analysis and of every analysis reached through a declaration that the
-      analysis's universes drive. Its effective selection is the
-      effective selection of the universe it is derived from, if any, with
-      its own `decisions` written over it decision by decision and every
-      inherited selection of a decision that isn't active in the result
-      dropped, so a universe that switches a decision on must set it.
+      An entry of `universes`: a universe of the analysis, a selection of one
+      option for every active decision of the analysis and of every analysis
+      reached through a declaration that the analysis's universes drive, or
+      an import, which has an `analysis` and a `universe`, names one of
+      another analysis's universes and selects nothing. A universe's
+      effective selection is the effective selection of the universe it is
+      derived from, if any, with its own `decisions` written over it decision
+      by decision and every inherited selection of a decision that isn't
+      active in the result dropped, so a universe that switches a decision on
+      must set it.
     attributes:
       id:
         key: true
         range: id
-        description: The universe's id, written as its key in `universes`.
+        description: >-
+          The entry's id, written as its key in `universes`: for an import,
+          the id the analysis gives the universe it imports.
       label:
         description: >-
           A short display name for the universe. It is not inherited through
@@ -332,9 +337,9 @@ classes:
       derived_from:
         range: id
         description: >-
-          The id of another universe of the analysis, whose effective
-          selection this universe's effective selection is built on, so that
-          this universe gives only the decisions it changes.
+          The id of another universe of the analysis, never an import, whose
+          effective selection this universe's effective selection is built
+          on, so that this universe gives only the decisions it changes.
       decisions:
         range: DecisionSelection
         multivalued: true
@@ -346,6 +351,64 @@ classes:
           address through the declarations, `<declaration>.<decision>`, such
           as `stage.method`, or another spelling of that address, through no
           declaration back to an analysis already on its chain.
+      analysis:
+        range: address
+        description: >-
+          For an import, the address of the declaration that leads to the
+          analysis whose universe it imports, through as many declarations as
+          lead to it, such as `catalog` or `stage.inner`.
+      universe:
+        range: id
+        description: >-
+          For an import, the id of the universe it imports: a universe of the
+          analysis that `analysis` leads to, never an import of that analysis.
+    rules:
+      - description: An import has a `universe`.
+        annotations:
+          rule: INVALID_IMPORT
+        preconditions:
+          slot_conditions:
+            analysis:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            universe:
+              value_presence: PRESENT
+      # Each absent field has a rule of its own: LinkML writes two absent
+      # fields in one postcondition as "not both".
+      - description: An import has no `decisions`.
+        annotations:
+          rule: INVALID_IMPORT
+        preconditions:
+          slot_conditions:
+            analysis:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            decisions:
+              value_presence: ABSENT
+      - description: An import has no `derived_from`.
+        annotations:
+          rule: INVALID_IMPORT
+        preconditions:
+          slot_conditions:
+            analysis:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            derived_from:
+              value_presence: ABSENT
+      - description: An entry with a `universe` has an `analysis`.
+        annotations:
+          rule: INVALID_IMPORT
+        preconditions:
+          slot_conditions:
+            universe:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            analysis:
+              value_presence: PRESENT
 
   DecisionSelection:
     description: >-
@@ -488,7 +551,10 @@ classes:
         range: Universe
         multivalued: true
         inlined: true
-        description: The universes of the analysis, keyed by id.
+        description: >-
+          The universes of the analysis, and the universes of other analyses
+          it imports, keyed by id. An import has an `analysis` and a
+          `universe`.
       prior_insights:
         range: Insight
         multivalued: true

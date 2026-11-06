@@ -1208,6 +1208,12 @@ LEAKS = {
     "Analysis-150-short-commit": {
         # The failing branch of a `oneOf` that passes: its entry's code would be wrong.
         ANALYSIS + DECLARATION + "/allOf/0/then/oneOf/0/required",
+        # The `if`s of an import's four rules, which an ordinary universe fails.
+        *(
+            ANALYSIS + "/$defs/Universe__identifier_optional/allOf/" + f"{n}/if" + tail
+            for n in range(4)
+            for tail in ("", "/required")
+        ),
     },
     "Analysis-166-doi-directory-not-10": {
         ANALYSIS + "/$defs/Evidence/allOf/0/then/oneOf/1/required",

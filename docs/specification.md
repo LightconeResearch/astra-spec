@@ -383,8 +383,8 @@ is `iris.random_seed.seed_42`.
 
 | Type | Form | Used by |
 |---|---|---|
-| [`id`](elements/Id.md) | `id` | every map key but those of `Universe.decisions`; also `Universe.derived_from`, `Option.insights` and the values of `Universe.decisions` |
-| [`address`](elements/Address.md) | `address` | `Output.decisions`, the keys of `Universe.decisions` |
+| [`id`](elements/Id.md) | `id` | every map key but those of `Universe.decisions`; also `Universe.derived_from`, `Universe.universe`, `Option.insights` and the values of `Universe.decisions` |
+| [`address`](elements/Address.md) | `address` | `Output.decisions`, the keys of `Universe.decisions`, `Universe.analysis` |
 | [`reference`](elements/Reference.md) | `reference` | `Output.inputs`, `Evidence.artifact`, `ProvenanceRecord.address`, `RecordedInput.entry` |
 | [`option_reference`](elements/OptionReference.md) | `option-reference` | `Option.requires`, `Option.incompatible_with` |
 | [`condition`](elements/Condition.md) | `condition` | `Output.when`, `Decision.when` |
@@ -1821,6 +1821,7 @@ A table that breaks any of this is an error in this specification, and no
 | `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry, and no list of strings in an `astra.yaml` is empty | 0004, tidy-up, main |
 | `INVALID_DECLARATION_SOURCE` | schema | MUST | A declaration has exactly one of `path` and `url` | 0007 |
 | `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` | 0007 |
+| `INVALID_IMPORT` | schema | MUST | An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from` | §6, §7 |
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits | 0007, tidy-up |
 | `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` is non-empty, starts with neither `/` nor `~` and holds no backslash and no ASCII control character, and an input's `path` also has no `..` segment and doesn't end in `/` | 0004, 0006, tidy-up |
 | `BLANK_EXCLUDED` | schema | MUST | An option's `excluded` reason is not blank | tidy-up |

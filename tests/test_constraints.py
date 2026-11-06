@@ -86,6 +86,7 @@ TRAINING = "/decisions/training"
 NEURAL_NET = "/decisions/method/options/neural_net"
 RESOURCES = "/outputs/result/recipe/resources"
 SVM = "/universes/svm_standard"
+IMPORT = "/universes/stage_alone"
 FINDING = "/findings/rf_accuracy"
 CITED = FINDING + "/evidence/0"
 PUBLISHED = "/prior_insights/forests_resist_noise/evidence/0"
@@ -323,6 +324,23 @@ NEGATIVE = [
         SVM + "/decisions",
     ),
     Case("universes", SVM + "/decisions", {1: "svm"}, "INVALID_ID"),
+    # --- An import in `universes` ---
+    Case("universes", IMPORT + "/universe", DELETE, "INVALID_IMPORT"),
+    Case("universes", IMPORT + "/analysis", DELETE, "INVALID_IMPORT"),
+    Case(
+        "universes",
+        IMPORT + "/decisions",
+        {"stage.method": "pca"},
+        "INVALID_IMPORT",
+        IMPORT,
+    ),
+    Case(
+        "universes", IMPORT + "/derived_from", "rf_standard", "INVALID_IMPORT", IMPORT
+    ),
+    Case("universes", IMPORT + "/analysis", 1, "WRONG_TYPE"),
+    Case("universes", IMPORT + "/analysis", "Stage", "INVALID_REFERENCE"),
+    Case("universes", IMPORT + "/universe", 1, "WRONG_TYPE"),
+    Case("universes", IMPORT + "/universe", "stage.alone", "INVALID_ID"),
     # --- AnalysisDeclaration ---
     Case("declarations", "/analyses/stage", "stage", "WRONG_TYPE"),
     Case(
