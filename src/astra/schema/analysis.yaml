@@ -301,23 +301,20 @@ classes:
           The entry's id, written as its key in `universes`: for an import,
           the id the analysis gives the universe it imports.
       label:
-        description: >-
-          A short display name for the universe. It is not inherited through
-          `derived_from`.
+        description: A short display name for the universe.
       description:
         description: What the universe is, in free prose.
       tags:
         multivalued: true
         minimum_cardinality: 1
-        description: >-
-          Keywords for grouping and finding the universe. They are not
-          inherited through `derived_from`.
+        description: Keywords for grouping and finding the universe.
       derived_from:
         range: id
         description: >-
           The id of another universe of the analysis, never an import, whose
           effective selection this universe's effective selection is built
-          on, so that this universe gives only the decisions it changes.
+          on, so that this universe gives only the decisions it changes. The
+          universe inherits only that selection.
       decisions:
         range: DecisionSelection
         multivalued: true
@@ -428,10 +425,8 @@ classes:
           rule: INVALID_PATH
         description: >-
           The directory of the declared analysis's `astra.yaml`, relative to
-          the folder of this `astra.yaml`, with `/` between folders, and inside
-          the repository this file is read from, which in the working tree is
-          the root's, submodules included. It is non-empty and doesn't start
-          with `/`.
+          the folder of this `astra.yaml`, with `/` between folders. It is
+          non-empty and doesn't start with `/`.
       url:
         pattern: '^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$'
         annotations:

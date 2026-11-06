@@ -689,9 +689,9 @@ universes:
 
 The universe an import names is an **imported universe** of the importing
 file: a pin there names it by the import's id (§4), and it is checked as a
-universe of its own analysis, which is its only driver, and built as one
-where a pin names it (§7). A pin whose file has no entry with its id imports
-a universe in the same way (§7).
+universe of its own analysis, which is its only driver, and built as one where
+it is among the universes built (§7). A pin whose file has no entry with its
+id imports a universe in the same way (§7).
 
 A universe's `decisions` map decisions to options
 ([DecisionSelection](elements/DecisionSelection.md)), as
@@ -715,9 +715,8 @@ value is the id of one of that decision's options
 `derived_from` names another universe of the same analysis, never an import
 ([`UNKNOWN_DERIVED_FROM`](#validator)), whose selection this one inherits, so
 that it gives only the decisions it changes. No universe's chain of
-`derived_from` loops ([`DERIVED_FROM_CYCLE`](#validator)).
-`derived_from` says how two universes relate and makes neither special. A
-universe's `label` and `tags` are its own: they are never inherited.
+`derived_from` loops ([`DERIVED_FROM_CYCLE`](#validator)). A derived universe
+inherits only the selection.
 
 ### The effective selection
 
@@ -765,14 +764,6 @@ universes:
     decisions: {backend: cpu}   # the inherited gpu_optimization is dropped
 ```
 
-### No privileged universe
-
-No universe is privileged. There is no default universe, no default option
-and no reserved universe id: every universe, and every relationship between
-universes, is declared by the author. A universe called `baseline` is one
-with that name and nothing more. Which option a reported result was made
-with is said by a pin on the evidence citing it (§5).
-
 ### Built per universe or built once
 
 An output is **built per universe** when it lists `decisions`, has a `when`,
@@ -787,10 +778,6 @@ its recipe has no `{decisions.<entry>}` placeholder
 which result a reference names: pinned or not, the reference names its one
 result, and `{inputs.<entry>}` gives that result's path; the pin still names
 a universe ([`UNKNOWN_PIN_UNIVERSE`](#validator)).
-
-An analysis with no decisions, whose outputs read only what is the same in
-every universe, needs no universes. One with decisions, or with outputs built
-per universe, but no universes has none of its own to build those outputs in.
 
 ### Which universe a reference reads
 
@@ -838,14 +825,7 @@ local path (`a`, `owner/repo`, `../repo`) is not a `url`
 ([`INVALID_VALUE`](#parse-and-schema)): an analysis in the declaring
 analysis's repository is declared by `path`, and another repository on this
 machine by an explicit `file://` URL. A `url` holds no ASCII space or control
-character ([`INVALID_VALUE`](#parse-and-schema)), though git fetches a remote
-with a space: a space is written `%20` in a `scheme://` URL, which git
-decodes. Git doesn't decode the scp-like form, so an scp-like remote
-`[user@]host:my dir/x` is written `ssh://[user@]host/~/my%20dir/x`. Whether
-the URL leads to a valid analysis is the validator's to tell
-([`REMOTE_UNREACHABLE`](#validator),
-[`MISSING_DECLARED_ANALYSIS`](#validator),
-[`DECLARED_ANALYSIS_INVALID`](#validator)).
+character ([`INVALID_VALUE`](#parse-and-schema)).
 
 **`commit`** is a full commit id ([`INVALID_COMMIT`](#parse-and-schema)): a
 branch moves, a tag can be moved or name another commit in a fork or a
@@ -858,16 +838,17 @@ working tree. With a `url`, it is the top level of that repository; with a
 and tidied, as **Reading git** in §3 says. It is read at the declaration's
 `commit` or, without one, as the declaring analysis is read. The root, and
 every analysis reached from it by `path` alone, is read in the working tree.
-The directory is a path from the top of the repository that holds the commit
-it is read at or, read in the working tree, from the top of the root's working
-tree. Two declarations name the same analysis when their directories are the
-same path, read at the same commit or both in the working tree. A URL says
-only where to get the commit, so a fork or a mirror with the same commit
-gives the same analysis. *Another analysis*, everywhere in this
-specification, is one with a different identity.
+At a commit, a path that crosses a gitlink is read in the submodule's
+repository at the commit the gitlink pins (§3). The directory is a path from
+the top of the repository it is read in or, read in the working tree, from the
+top of the root's working tree. Two declarations name the same analysis when
+their directories are the same path, read at the same commit or both in the
+working tree. A URL says only where to get the commit, so a fork or a mirror
+with the same commit gives the same analysis. *Another analysis*, everywhere
+in this specification, is one with a different identity.
 
-One analysis, whichever analysis declares it and by whatever id, is read
-once, and each of its results is made at most once, however many
+An analysis, whichever analysis declares it and by whatever id, is one
+analysis: each of its results is made at most once, however many
 declarations reach it. A declaration by `path` alone, or a chain of them,
 that leads back to the declaring analysis's own directory names the analysis
 itself: `self: {path: .}`, say, or `feature_extraction.iris` in the root of
@@ -930,25 +911,24 @@ in its driver's universes (below).
 
 An analysis's universes **drive** a declaration when a key in the effective
 selection (§6) of any of them goes through every declaration from the
-analysis's file to that one, and a declaration they drive is driven in
-every one of them. An analysis with no universes drives no declaration. The
-key `stage.inner.d` drives the driver's `stage` and, through it, `stage`'s
-`inner`, but not an `inner` that the driver's file declares itself: each
-chain of declarations from the driver's file (`stage`, `stage.inner`,
-`inner`) is driven on its own.
-Two chains that end in one declaration, such as `stage.lib` and
-`stage_undriven.lib` where `stage` and `stage_undriven` declare one directory,
-are driven on their own too, and an address or a reference is judged on its
-own chain. A declaration of an analysis with no decisions is driven when
-the chain before it is, and so whenever the driver's file declares it,
-unless the declaration leads back to an analysis already on the chain, the
-declaring analysis itself included (`self: {path: .}`). Such an analysis's
-outputs built per universe (§6) are then built in each of the driver's
-universes where they are planned (§8), and those results belong to the
-driver, while its outputs built once still belong to it. Universes of its
-own don't change this. They are built only where it is the driver: when it
-is the root, or a pin names one of them, in its own file or in another
-(below).
+analysis's file to that one, and a declaration they drive is driven in every
+one of them. A key that loops ([`LOOPING_KEY`](#validator)) drives no
+declaration. The key `stage.inner.d` drives the driver's `stage` and, through
+it, `stage`'s `inner`, but not an `inner` that the driver's file declares
+itself: each chain of declarations from the driver's file (`stage`,
+`stage.inner`, `inner`) is driven on its own. Two chains that end in one
+declaration, such as `stage.lib` and `stage_undriven.lib` where `stage` and
+`stage_undriven` declare one directory, are driven on their own too, and an
+address or a reference is judged on its own chain. A declaration of an
+analysis with no decisions is driven when the chain before it is, and so
+whenever the driver's file declares it, unless the declaration leads back to
+an analysis already on the chain, the declaring analysis itself included
+(`self: {path: .}`). Such an analysis's outputs built per universe (§6) are
+then built in each of the driver's universes where they are planned (§8), and
+those results belong to the driver, while its outputs built once still belong
+to it. Universes of its own don't change this. They are built only where it is
+the driver: when it is the root, or where one of them is among the universes
+built (*The analysis stack*, above).
 
 - Every universe sets every active decision of every analysis reached
   through a declaration that its analysis's universes drive
@@ -987,9 +967,6 @@ rules on the universe being built (below:
 [`INPUT_NOT_BUILT`](#validator)) hold only in the universes built, as
 [`RESULT_IN_TWO_PLACES`](#validator) does (§8), and for an output only where
 its result is planned or, for its `when`, would be if the `when` held.
-Checking another analysis's universes doesn't make it the root: the root,
-and so its working tree, stays the same, and each declaration is judged once
-([`DECLARATION_OUTSIDE_REPOSITORY`](#validator)).
 
 Driving leaves an analysis able to stand alone, and consuming a decision ties
 the outputs that use it to the decision's analysis. By convention, a
@@ -1016,9 +993,9 @@ universes, never an import in its file
   it, and what is built there belongs to the universe's analysis, under the
   universe's own id (§8). The importing analysis is built there only where
   that universe drives it, as a key `parent.d` drives a parent.
-- An imported universe is built where a pin names it (*The analysis stack*,
-  above). Imports of one universe, in one file or several and under any ids,
-  name that one universe, which is built once.
+- An imported universe is built where it is among the universes built (*The
+  analysis stack*, above). Imports of one universe, in one file or several and
+  under any ids, name that one universe, which is built once.
 
 Where a pin's file has no entry with its id, the pin names the universe
 with that id of the analysis whose element the reference names (*The
@@ -1117,9 +1094,8 @@ file's analysis, so what it names is the same under every root:
   ([`UNKNOWN_PIN_UNIVERSE`](#validator)).
 
 So adding or removing an entry `u` in a file's `universes` can change what a
-pin `#u` in that file names, and no rule reports the change itself, though a
-tool may warn of it (§2). A pin that names one of its file's universes is in
-the driver's file, so both rules above hold it. One that names another
+pin `#u` in that file names. A pin that names one of its file's universes is
+in the driver's file, so both rules above hold it. One that names another
 analysis's universe is not, so the first rule alone holds it.
 
 In this root, `inner.result#u1` reads `inner`'s output as the root builds it
@@ -1205,41 +1181,24 @@ What is built in a driver's universes belongs to the driver (§8).
 A declaration with a `commit` names an **analysis from a commit**: the
 declared analysis as it was at that commit. With a `url`, it is the analysis
 at the top level of that repository at the commit. With a `path`, it is the
-analysis at that path at the commit, which the declaring analysis's
-repository has ([`COMMIT_NOT_FOUND`](#validator) or, in a file read from a
-remote, [`REMOTE_UNREACHABLE`](#validator)) and which should be an
-ancestor of the commit the declaration is in or, for a declaration read in
-the working tree, of HEAD ([`COMMIT_NOT_ANCESTOR`](#validator)). It is read
-from the local repository or, when the declaring analysis is itself read
-from a remote, from that remote, and each submodule it reaches through a
-gitlink as §3 says. Every rule of this specification applies to an analysis
-from a commit as it is, with its files read at its commit. Its results are
-those that belong to it or to an analysis reached from it through
-declarations, read at the same commit.
+analysis at that path at the commit, which the repository that holds the
+declaring `astra.yaml` has ([`COMMIT_NOT_FOUND`](#validator) or, in a file
+read from a remote, [`REMOTE_UNREACHABLE`](#validator)) and which should be an
+ancestor of the commit the declaration is in or, for a declaration read in the
+working tree, of HEAD ([`COMMIT_NOT_ANCESTOR`](#validator)). It is read from
+the local repository or, when the declaring analysis is itself read from a
+remote, from that remote, and each submodule it reaches through a gitlink as
+§3 says. Every rule of this specification applies to an analysis from a commit
+as it is, with its files read at its commit. Its results are those that belong
+to it or to an analysis reached from it through declarations, each read at the
+commit its analysis is read at.
 
 **Identity.** An analysis from a commit is its directory at its commit,
 whatever URL it is got from, as **Identity** under Declarations says (above).
 
 **What is read.** An analysis from a commit is read from git at its commit,
-each file as the blob git stores (§3), and git checks everything read against
-the commit id. None of its code runs, and no checkout is needed. Only these
-are read:
-
-- the `astra.yaml` of the declared analysis and of every analysis it
-  declares;
-- the `astra.yaml` of a result's analysis at the commit the result's record
-  names, to tell whether the result is unchanged (§8);
-- the record of each result read or cited, and the records of the results it
-  was made from;
-- which files there are at a commit, and which differ between two commits,
-  without their contents;
-- the bytes of each result or input file that a recipe reads;
-- the `.gitmodules` of each commit whose gitlink a path crosses, and the
-  submodule at the commit the gitlink pins (§3).
-
-Where a tool keeps what it read is the tool's choice, and validators,
-checkers and runners can work offline from what they kept: a commit kept
-from an earlier fetch counts as got ([`REMOTE_UNREACHABLE`](#validator)).
+each file as the blob git stores (§3). Unless it is driven, none of its code
+runs.
 
 **Validity.** The declared analysis, with everything it declares, is valid
 at its commit ([`DECLARED_ANALYSIS_INVALID`](#validator)), each `astra.yaml`
@@ -1253,11 +1212,7 @@ Getting a commit from a remote is checked apart from that validity
 is a declaration's `url` and `commit`, a `path` and `commit` declared in a
 file read from a remote, or the commit a gitlink pins, crossed at a commit
 (§3). The remote is the `url`, the remote the file was read from, or the
-submodule's URL (§3). Files at a commit never change, but remotes do. So
-getting a commit is checked each time, and a commit kept from an earlier
-fetch counts as got. Whether the declared analysis is otherwise valid can't
-change, and a validator can remember the answer for a commit it has
-validated, with the schemas it has.
+submodule's URL (§3). A commit kept from an earlier fetch counts as got.
 
 A commit that can't be got is an error on one declaration in a file outside
 every analysis from a commit, read in the working tree, which the author can
@@ -1266,9 +1221,8 @@ it. It is reported once for each such declaration, so two declarations of
 one commit get one report each. Where the root declares `sub` by `path`,
 `sub` declares `upstream` by `url`, and `upstream` declares `nested` by
 `url`, if `nested`'s commit can't be got, the error is on `sub`'s
-declaration of `upstream`. A published analysis SHOULD
-declare only remotes its readers can fetch. That isn't a `MUST`, since a
-remote can be private while the analysis is being worked on.
+declaration of `upstream`. A published analysis SHOULD declare only remotes
+its readers can fetch.
 
 **Use.** Unless it is driven, none of the recipes of an analysis from a
 commit run ([`REBUILT_FROM_COMMIT`](#runner)), so the rules above let it
@@ -1281,8 +1235,7 @@ own universes belong to it and are read through their records, and no
 recipe runs in those universes, since every result there belongs to it
 ([`REBUILT_FROM_COMMIT`](#runner)). An address that doesn't exist in the
 declared analysis is an error in the declaring one
-([`UNRESOLVED_ADDRESS`](#validator)). Whether the result it names is
-recorded and unchanged is the checker's to tell (§8).
+([`UNRESOLVED_ADDRESS`](#validator)).
 
 **Results.** A result of an analysis from a commit is read through its record
 at the declared commit, in the analysis the result belongs to (§8), in the
@@ -1305,18 +1258,12 @@ as standing in for it (§5).
 
 **Driving.** A driver's universes can drive an analysis from a commit, as any
 declared analysis. Its recipes then run on exactly its files at the declared
-commit ([`NOT_AT_COMMIT`](#runner)). Which environment the recipes run in
-is the runner's choice, as for any recipe, and is recorded in the driver's
-records. Its outputs built once aren't built: like the rest of its results,
-they are read through their records at the declared commit
-([`REBUILT_FROM_COMMIT`](#runner)). Only what the driver's universes build is
-built. It belongs to the driver, and its records name the driver's commit,
-where the declaration says which commit the driven analysis is from and, for
-a remote, where to get it. A git submodule also records a URL and a commit,
-but only in git, and its checkout can drift from them. A `url` and a
-`commit` fix them in `astra.yaml`, so the declared analysis has the same
-identity whether it is read or driven, and what a driver runs is the
-declared commit.
+commit ([`NOT_AT_COMMIT`](#runner)). Its outputs built once aren't built:
+like the rest of its results, they are read through their records at the
+declared commit ([`REBUILT_FROM_COMMIT`](#runner)). Only what the driver's
+universes build is built. It belongs to the driver, and its records name the
+driver's commit, where the declaration says which commit the driven analysis
+is from and, for a remote, where to get it.
 
 ## 8. Results and records
 
@@ -1832,7 +1779,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `CLASHING_RESULT_NAME` | MUST | No output shares its id with a declaration of the same analysis | tidy-up, §4, §8 |
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A declaration's `path`, tidied (§3), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit | 0004, 0007 §1 |
 | `MISSING_DECLARED_ANALYSIS` | MUST | A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` file, with no symlink on the way (§3) | 0004, 0007, §3 |
-| `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit the declaring analysis's repository has | 0007, §3, §7 |
+| `COMMIT_NOT_FOUND` | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the repository that holds the declaring `astra.yaml` | 0007, §3, §7 |
 | `COMMIT_NOT_ANCESTOR` | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD of the repository that holds the declaring file | 0007, §3 |
 | `REMOTE_UNREACHABLE` | MUST | Every commit the stack gets from a remote, through a `url`, a file read from a remote or a gitlink crossed at a commit, can be fetched from that remote or was kept from an earlier fetch | 0007 §6, tidy-up, §3, §7 |
 | `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with everything it declares, is valid at that commit, `REMOTE_UNREACHABLE` aside | 0007, §7 |

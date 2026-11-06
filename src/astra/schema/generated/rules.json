@@ -475,7 +475,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "0007, §3, §7",
-      "statement": "A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit the declaring analysis's repository has"
+      "statement": "A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the repository that holds the declaring `astra.yaml`"
     },
     {
       "code": "COMMIT_NOT_ANCESTOR",

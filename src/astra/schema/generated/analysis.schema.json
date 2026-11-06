@@ -70,7 +70,7 @@
           "type": "string"
         },
         "path": {
-          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml`, with `/` between folders, and inside the repository this file is read from, which in the working tree is the root's, submodules included. It is non-empty and doesn't start with `/`.",
+          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml`, with `/` between folders. It is non-empty and doesn't start with `/`.",
           "pattern": "^[^/]",
           "type": "string"
         },
@@ -672,7 +672,7 @@
           "type": "object"
         },
         "derived_from": {
-          "description": "The id of another universe of the analysis, never an import, whose effective selection this universe's effective selection is built on, so that this universe gives only the decisions it changes.",
+          "description": "The id of another universe of the analysis, never an import, whose effective selection this universe's effective selection is built on, so that this universe gives only the decisions it changes. The universe inherits only that selection.",
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
         },
@@ -681,11 +681,11 @@
           "type": "string"
         },
         "label": {
-          "description": "A short display name for the universe. It is not inherited through `derived_from`.",
+          "description": "A short display name for the universe.",
           "type": "string"
         },
         "tags": {
-          "description": "Keywords for grouping and finding the universe. They are not inherited through `derived_from`.",
+          "description": "Keywords for grouping and finding the universe.",
           "items": {
             "type": "string"
           },

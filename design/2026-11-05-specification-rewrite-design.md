@@ -172,6 +172,13 @@ Decided on 2026-11-06 (the audit's H11-H17 and H19-H21). Spec §3 keeps the read
 
 Restated with no change of meaning: case and Unicode form (H11: a path names the entry at exactly that path, so `data/A.csv` and `data/a.csv` are two paths, and identity compares "the same path"), a submodule that isn't checked out (H13), getting the commit a gitlink pins (H16: from the URL that the `.gitmodules` of the commit holding the gitlink gives, a relative one resolved as git resolves it), and a file's bytes at a commit (H17: the blob git stores).
 
+### Identity across a gitlink, and which universes are built
+
+Settled on 2026-11-06 (the audit's I3, I4 and I5): three passages of spec §6 and §7 now say what the decided rules say.
+- **Identity across a gitlink** (I4). Read at a commit, identity read a path such as `sub/x` at the superproject's commit, while spec §3 read it in the submodule at the commit the gitlink pins, so one analysis could have two identities. Identity now reads a path that crosses a gitlink as §3 does, in the submodule's repository at the commit the gitlink pins, and the directory is a path from the top of the repository it is read in. So `sub/x`, through a gitlink that pins `P`, is the analysis `x` of the submodule's repository at `P`, whichever declaration reaches it (§5 item 17).
+- **Universes built where they are among the universes built** (I5). An imported universe, and a helper's universes of its own, were "built where a pin names it", which is looser than the rule decided in `1d96912` (O1): a pin on an input, or on an output built once, builds nothing. The three sentences now say "where it is among the universes built", and link to the rule.
+- **`COMMIT_NOT_FOUND`** (I3). Its statement read "a commit the declaring analysis's repository has", a phrase `DECLARATION_OUTSIDE_REPOSITORY`'s statement used for the root's working tree. It now reads "a commit of the repository that holds the declaring `astra.yaml`", as spec §3 already said, so no verdict changes; the statement changes in `rules.json`. `AnalysisDeclaration.path`'s description drops its clause on the repository, which `DECLARATION_OUTSIDE_REPOSITORY` states.
+
 ### Records: what makes a result stale, and what a runner's checkout may hold
 
 Decided on 2026-11-06 (the audit's H23, H24 and H37).
