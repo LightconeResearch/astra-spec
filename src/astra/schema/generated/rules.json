@@ -574,6 +574,13 @@
       "statement": "No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit"
     },
     {
+      "code": "LOOPING_KEY",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "main, §6, §7",
+      "statement": "No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included"
+    },
+    {
       "code": "NOT_BUILT_IN_UNIVERSE",
       "layer": "validator",
       "level": "MUST",

@@ -345,7 +345,8 @@ classes:
           key per decision. Each key is the id of a decision of the analysis
           or, for a decision of another analysis, a flat key: the decision's
           address through the declarations, `<declaration>.<decision>`, such
-          as `stage.method`, or another spelling of either.
+          as `stage.method`, or another spelling of that address, through no
+          declaration back to an analysis already on its chain.
 
   DecisionSelection:
     description: >-

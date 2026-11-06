@@ -820,10 +820,14 @@ A universe's `decisions` map decisions to options
 ([DecisionSelection](elements/DecisionSelection.md)), as
 `<decision>: <option>`, such as `model: svm`. A key is the id of a decision
 of the analysis or, for a decision of another analysis, its address,
-`<declaration>.<decision>`, a flat key (§7), or another spelling of either
-through declarations (§4, §7). A key resolves through its declarations to
-one decision: an analysis, known by its identity (§7), and the decision's
-id in it. A universe's own `decisions` give each decision one key, and a
+`<declaration>.<decision>`, a flat key (§7), or another spelling of that
+address through declarations (§4, §7). No key goes through a declaration
+that leads back to an analysis already on its chain, the universe's
+analysis included ([`LOOPING_KEY`](#validator)). So the analysis's own
+decisions are keyed by their ids alone, and where `stage` declares
+`again: {path: .}`, `stage.d` is never written `stage.again.d`. A key
+resolves through its declarations to one decision: an analysis, known by
+its identity (§7), and the decision's id in it. A universe's own `decisions` give each decision one key, and a
 derived universe sets a decision it inherits only under the key it inherits
 (below): two keys that spell one decision break
 [`DUPLICATE_ELEMENT`](#validator), even when they select the same option. A
@@ -993,10 +997,9 @@ declarations reach it. A declaration by `path` alone, or a chain of them,
 that leads back to the declaring analysis's own directory names the analysis
 itself: `self: {path: .}`, say, or `feature_extraction.iris` in the root of
 `examples/iris_pipeline`. An address through it is another spelling of one
-of the analysis's own elements (§4), and a universe's key through it another
-spelling of one of its own decisions. Driving and consuming use another
-analysis's elements (below), so such an address consumes nothing, and such a
-key drives no declaration on its chain.
+of the analysis's own elements (§4). Consuming uses another analysis's
+elements (below), so such an address consumes nothing, and no key goes
+through it (§6).
 
 Declarations by `path` alone can form cycles, such as an analysis declared
 by its parent that declares its parent with `..`, but outputs never depend
@@ -1041,11 +1044,11 @@ analysis with no decisions and no universes of its own has no key to set,
 and is driven by being built in its driver's universes (below).
 
 An analysis's universes **drive** a declaration when a key in the effective
-selection (§6) of any of them, for a decision of another analysis, goes
-through every declaration from the analysis's file to that one, and a
-declaration they drive is driven in every one of them. The key `stage.inner.d`
-drives the driver's `stage` and, through it, `stage`'s `inner`, but not an
-`inner` that the driver's file declares itself: each chain of declarations
+selection (§6) of any of them goes through every declaration from the
+analysis's file to that one, and a declaration they drive is driven in
+every one of them. The key `stage.inner.d` drives the driver's `stage`
+and, through it, `stage`'s `inner`, but not an `inner` that the driver's
+file declares itself: each chain of declarations
 from the driver's file (`stage`, `stage.inner`, `inner`) is driven on its own.
 Two chains that end in one declaration, such as `stage.lib` and
 `stage_undriven.lib` where `stage` and `stage_undriven` declare one directory,
@@ -1079,8 +1082,9 @@ A validator still checks every universe of every analysis of the stack, a
 driven analysis's own included. Each universe's selections are held to §6
 and to driving ([`UNRESOLVED_ADDRESS`](#validator),
 [`UNKNOWN_OPTION`](#validator), [`DUPLICATE_ELEMENT`](#validator),
-[`UNKNOWN_DERIVED_FROM`](#validator), [`DERIVED_FROM_CYCLE`](#validator),
-[`MISSING_DECISION`](#validator), [`INACTIVE_DECISION`](#validator),
+[`LOOPING_KEY`](#validator), [`UNKNOWN_DERIVED_FROM`](#validator),
+[`DERIVED_FROM_CYCLE`](#validator), [`MISSING_DECISION`](#validator),
+[`INACTIVE_DECISION`](#validator),
 [`MISSING_REQUIRED_OPTION`](#validator),
 [`INCOMPATIBLE_OPTIONS`](#validator),
 [`EXCLUDED_OPTION_SELECTED`](#validator)). The declarations driven in a
@@ -1334,11 +1338,12 @@ and a result read through a pin in a declared analysis's own universe
 belongs to that analysis: a consumed analysis's results stay in its own
 directory. A result's **name** is its output's id after the ids of the
 driven declarations from the analysis it belongs to (`subanalysis1.output1`).
-An undriven declaration, a back-edge such as `iris: {path: ..}` included,
-never adds a name, since a pin through it names a universe of an analysis
-further along its reference (§7). So the result of an output of the
-analysis it belongs to is named by the output's id alone, as the result of an
-output built once always is. Reached through two such chains (`inner` and
+An undriven declaration never adds a name, since a pin through it names a
+universe of an analysis further along its reference (§7). No declaration
+that leads back to an analysis already on the chain from the driver, such as
+`feature_extraction`'s `iris` in the root's universes, is driven (§6, §7).
+So the result of an output of the analysis it belongs to is named by the
+output's id alone, as the result of an output built once always is. Reached through two such chains (`inner` and
 `stage.inner`, when keys go through both), a result is made once, and placed
 and recorded under each name, though a planned result should have one
 ([`RESULT_IN_TWO_PLACES`](#validator)). The rule is judged on the planned
@@ -1714,10 +1719,10 @@ both reported, even when one edit fixes both.
    [`UNDRIVEN_DECLARATION`](#validator), [`INPUT_NOT_BUILT`](#validator) and
    [`RESULT_IN_TWO_PLACES`](#validator) aren't checked, and
    [`PIN_INACTIVE`](#validator) isn't checked for a pin naming it.
-   [`UNRESOLVED_ADDRESS`](#validator), [`UNKNOWN_OPTION`](#validator) and
-   [`DUPLICATE_ELEMENT`](#validator) are still checked on its own
-   `decisions`. Driving (§7) counts its own `decisions` in place of its
-   effective selection.
+   [`UNRESOLVED_ADDRESS`](#validator), [`UNKNOWN_OPTION`](#validator),
+   [`DUPLICATE_ELEMENT`](#validator) and [`LOOPING_KEY`](#validator) are
+   still checked on its own `decisions`. Driving (§7) counts its own
+   `decisions` in place of its effective selection.
 9. **An input with no file.** An input that breaks
    [`MISSING_INPUT_FILE`](#validator) isn't checked by
    [`INPUT_NOT_TRACKED`](#validator).
@@ -1726,6 +1731,11 @@ both reported, even when one edit fixes both.
     [`MISPLACED_RECORD`](#check) or [`MISSING_RECORD_INPUTS`](#check). One
     whose record breaks `INVALID_RECORD` isn't checked by the last two.
     [`STALE_RESULT`](#check) isn't checked for a result that is `missing`.
+11. **A key that loops.** [`LOOPING_KEY`](#validator) is judged on a key's
+    declarations up to the first that doesn't resolve or whose analysis is
+    undetermined (5, 6). A key that loops still names its decision, if it
+    resolves, and the rules on selections check it, but it drives no
+    declaration (§7), and no rule counts it as going through one.
 
 **The catalogue as data.** The rules are extracted from this section into
 `rules.json` (§10), so its tables are a format that tools parse, not only
@@ -1813,6 +1823,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `INCOMPATIBLE_OPTIONS` | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects | 0003 |
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | main, tidy-up |
 | `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
+| `LOOPING_KEY` | MUST | No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included | main, §6, §7 |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin, and every decision of another analysis consumed, belongs to an analysis built in the universe being built | 0004 |
 | `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address that reads another analysis's output built per universe without a pin, or consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
 | `INPUT_NOT_BUILT` | MUST | Every output read without a pin is active (its `when` holds) in the universe being built | 0004 |
