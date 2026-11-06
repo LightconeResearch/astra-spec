@@ -2072,43 +2072,7 @@ Pointer can't name a key: an error inside a `propertyNames` is at the map,
 even where a validator's instance location for it ends in the key, and a
 tool reports the key with the code. Any validator that follows JSON Schema
 2019-09 then gives the same set of pairs of an instance location and a
-code, though the number of errors may differ (Ajv's `uniqueItems` departs
-from it, below).
-
-What a validator gives with an error is the path it took to the keyword,
-through `$ref`s, so a tool needs one step to get the location. In both
-validators below, an error comes with the subschema that holds the failing
-keyword, and the location is the schema's `$id`, `#`, that subschema's JSON
-Pointer in the schema, `/` and the keyword. The pointer is found by walking
-the schema once and comparing objects by identity, not by value, since
-equal subschemas sit in different places:
-
-- **Python's `jsonschema`.** It reports the errors inside a failing `then`
-  or `propertyNames`, never the `if` or the `propertyNames` itself, and a
-  failing `oneOf` as one error, with the errors of its branches in its
-  `context`. For a bad key, `error.instance` is the key. An error's
-  `absolute_schema_path` runs through each `$ref` without naming it, so it
-  is not the location. Its `schema` is the subschema, and its `validator`
-  the keyword.
-- **Ajv.** Compile with the options `allErrors: true` and `verbose: true`.
-  Without `allErrors`, Ajv stops at the first error it meets, which can be a
-  `oneOf` above the error that matters, with another code. An error's
-  `schemaPath` is relative to the part of the schema Ajv compiled the
-  keyword in: a `$ref` target that Ajv inlines is written as its reference
-  (`#/$defs/…`), but one it compiles on its own, as it does any target with
-  a `$ref` of its own, starts again from `#`. So `schemaPath` is not always
-  the location. With `verbose: true`, an error's `parentSchema` is the
-  subschema, and its `keyword` the keyword. Ajv reports both levels: the
-  errors inside a failing `then`, `propertyNames` or `oneOf`, and the `if`,
-  `propertyNames` or `oneOf` above them, which has the same code. For a
-  bad key, the key is the inner error's `propertyName`, or
-  `params.propertyName` on the `propertyNames` error. Ajv's `uniqueItems`
-  departs from JSON Schema on a list whose items have a type: it skips the
-  items of another type, and it misses a repeated `__proto__`. So an
-  Ajv-based tool checks for a repeated `__proto__` itself
-  ([`DUPLICATE_ENTRY`](#parse-and-schema)), and a comparison of its codes
-  with another validator's ignores `DUPLICATE_ENTRY` on a list that also
-  has an item of the wrong type ([`WRONG_TYPE`](#parse-and-schema)).
+code, though the number of errors may differ.
 
 A checker maps a record's errors the same way, through the record schema it
 reads the record by, closed or open. It doesn't report them as errors of
