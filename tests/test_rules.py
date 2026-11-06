@@ -1,6 +1,7 @@
 """`rules.json`: the rules extracted from the specification's §9, and the error map derived from the schema (design D13).
 
-The extractor is strict, so it is tested on small specifications, one per way a §9 can be malformed. The committed
+The extractor is strict, so it is tested on small specifications, one per way a §9 can be malformed; so are the readers
+of the codes tables and notes of a Part II, `extract_section_rules` and `extract_notes`. The committed
 `rules.json` holds every rule of §9 in order, and a code for every keyword of the three JSON Schemas whose error can
 make an instance fail (spec §10), each a schema-layer code. `absolute_keyword_location` is checked where `jsonschema`'s
 paths need resolving.
@@ -19,7 +20,14 @@ from jschon import JSON, JSONSchema, create_catalog
 from jsonschema import Draft201909Validator
 from jsonschema_generator import generate
 from linkml_runtime import SchemaView
-from rules import build_catalogue, build_error_map, extract_rules, json_pointer
+from rules import (
+    build_catalogue,
+    build_error_map,
+    extract_notes,
+    extract_rules,
+    extract_section_rules,
+    json_pointer,
+)
 
 from .conftest import (
     GENERATED,
@@ -411,6 +419,352 @@ def test_a_quoted_rule_table_reads_as_the_same_rules(table):
     assert RUNNER in VALID
     text = VALID.replace(RUNNER, "### runner\n\n" + table + "\n")
     assert extract_rules(text) == extract_rules(VALID)
+
+
+# --- The codes tables of Part II, on small specifications ---
+
+INPUTS_TABLE = """\
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `LOOSE_PIN` | validator | SHOULD | No input has a pin |
+"""
+
+SECTIONS = (
+    """\
+# A specification
+
+## Part I: How it works
+
+### 1. What it is
+
+| Layer | Who checks it |
+|---|---|
+| parse | A loader |
+
+## Part II: The specification
+
+### 5. The astra.yaml file
+
+An `astra.yaml` file is YAML.
+
+| Code | Layer | Level | Rule |
+|---|---|---|---|
+| `BAD_ID` | schema | MUST | Every `id` matches the [*id* grammar](#c-grammars) |
+| `EMPTY_MAP` | schema | MUST | No map is empty |
+
+### 6. Names
+
+Names have no codes.
+
+### 7. Inputs
+
+"""
+    + INPUTS_TABLE
+    + """
+### 19. Records
+
+Recommendation: branches that hold records SHOULD be merged, not
+squashed or rebased.
+
+### 20. Checking results
+
+| Code | Layer | Level | Rule | Status when broken |
+|---|---|---|---|---|
+| `NO_RECORD` | check | MUST | Every planned result has a record | `missing` |
+
+Permission: a checker MAY stop at the first [`NO_RECORD`](#20-checking-results).
+
+## Glossary
+
+- **tracked:** in git's index.
+
+## Part III: For tool builders
+
+### A. Reading files
+
+An `astra.yaml` file is read as YAML 1.2.
+"""
+)
+"""A specification in the new layout: codes tables in §5, §7 and §20 of Part II, none in §6, a table that isn't a
+codes table in Part I, a recommendation in §19 and a permission after §20's table. Its lines are numbered from 1:
+§5's table starts at line 17, §7's at line 28 and §20's at line 39."""
+
+
+def test_section_tables_are_read_in_document_order():
+    """Every row of Part II's codes tables, in order, with its section as its source; links reduced to their text."""
+    assert extract_section_rules(SECTIONS) == [
+        {
+            "code": "BAD_ID",
+            "layer": "schema",
+            "level": "MUST",
+            "statement": "Every `id` matches the *id* grammar",
+            "source": "§5 The astra.yaml file",
+        },
+        {
+            "code": "EMPTY_MAP",
+            "layer": "schema",
+            "level": "MUST",
+            "statement": "No map is empty",
+            "source": "§5 The astra.yaml file",
+        },
+        {
+            "code": "LOOSE_PIN",
+            "layer": "validator",
+            "level": "SHOULD",
+            "statement": "No input has a pin",
+            "source": "§7 Inputs",
+        },
+        {
+            "code": "NO_RECORD",
+            "layer": "check",
+            "level": "MUST",
+            "statement": "Every planned result has a record",
+            "status": "`missing`",
+            "source": "§20 Checking results",
+        },
+    ]
+
+
+def codes_table(code: str, layer: str = "validator") -> str:
+    """A codes table of one rule, `code`, in `layer`."""
+    return (
+        "| Code | Layer | Level | Rule |\n|---|---|---|---|\n"
+        f"| `{code}` | {layer} | MUST | Nothing is out of place |\n"
+    )
+
+
+MALFORMED_SECTIONS = {
+    "a table in Part I": (
+        "| Layer | Who checks it |",
+        "| Code | Who checks it |",
+        r"^line 7: a codes table .* must be in a ### section of Part II",
+    ),
+    "a table in Part II before its first section": (
+        "## Part II: The specification\n\n",
+        "## Part II: The specification\n\n" + codes_table("EARLY") + "\n",
+        r"^line 13: a codes table .* must be in a ### section of Part II",
+    ),
+    "a table in the glossary": (
+        "- **tracked:** in git's index.\n",
+        "- **tracked:** in git's index.\n\n" + codes_table("LATE"),
+        r"^line 49: a codes table .* must be in a ### section of Part II",
+    ),
+    "a table in Part III": (
+        "is read as YAML 1.2.\n",
+        "is read as YAML 1.2.\n\n" + codes_table("LATE", "parse"),
+        r"^line 55: a codes table .* must be in a ### section of Part II",
+    ),
+    "two tables in one section": (
+        INPUTS_TABLE,
+        INPUTS_TABLE + "\n" + codes_table("EXTRA_RULE"),
+        r"^line 32, ### 7\. Inputs: a second codes table, but a section has at most one",
+    ),
+    "a table followed by a paragraph": (
+        INPUTS_TABLE,
+        INPUTS_TABLE + "\nInputs are files.\n",
+        r"^line 32, ### 7\. Inputs: a paragraph follows the codes table of line 28, which must be the section's last"
+        r" block",
+    ),
+    "a table followed by a list": (
+        INPUTS_TABLE,
+        INPUTS_TABLE + "\n- Inputs are files.\n",
+        r"^line 32, ### 7\. Inputs: a bullet list follows the codes table of line 28",
+    ),
+    "a table followed by a heading": (
+        INPUTS_TABLE,
+        INPUTS_TABLE + "\n#### More on inputs\n",
+        r"^line 32, ### 7\. Inputs: a heading follows the codes table of line 28",
+    ),
+    "a table with a Source column": (
+        INPUTS_TABLE,
+        INPUTS_TABLE.replace(
+            "| Rule |\n|---|---|---|---|", "| Rule | Source |\n|---|---|---|---|---|"
+        ).replace("a pin |", "a pin | 0003 |"),
+        r"^line 28, ### 7\. Inputs: a codes table's columns are Code, Layer, Level and Rule, and Status when broken"
+        r" after them in a table of check rules, not Code, Layer, Level, Rule, Source",
+    ),
+    "columns out of order": (
+        INPUTS_TABLE,
+        INPUTS_TABLE.replace("| Layer | Level |", "| Level | Layer |").replace(
+            "| validator | SHOULD |", "| SHOULD | validator |"
+        ),
+        r"^line 28, ### 7\. Inputs: a codes table's columns are .*, not Code, Level, Layer, Rule$",
+    ),
+    "a check row in a four-column table": (
+        "| `LOOSE_PIN` | validator |",
+        "| `LOOSE_PIN` | check |",
+        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its layer is check, but its table has no Status when broken"
+        r" column",
+    ),
+    "a five-column table with a validator row": (
+        "| `NO_RECORD` | check |",
+        "| `NO_RECORD` | validator |",
+        r"^line 41, ### 20\. Checking results, row `NO_RECORD`: its layer is validator, but only check rows are in a"
+        r" table with a Status when broken column",
+    ),
+    "an unknown layer": (
+        "| `LOOSE_PIN` | validator |",
+        "| `LOOSE_PIN` | semantic |",
+        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: unknown layer 'semantic': a layer is parse, schema, validator,"
+        r" check or runner",
+    ),
+    "a MAY row on a validator": (
+        "| `LOOSE_PIN` | validator | SHOULD |",
+        "| `LOOSE_PIN` | validator | MAY |",
+        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: unknown level 'MAY': a level is MUST or SHOULD",
+    ),
+    "a MAY row on a runner": (
+        "| `LOOSE_PIN` | validator | SHOULD |",
+        "| `LOOSE_PIN` | runner | MAY |",
+        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: unknown level 'MAY': a level is MUST or SHOULD",
+    ),
+    "a keyword that contradicts the level": (
+        "No input has a pin",
+        "No input MUST have a pin",
+        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its rule says MUST, which contradicts its level, SHOULD",
+    ),
+    "a duplicate code across sections": (
+        "| `LOOSE_PIN` |",
+        "| `BAD_ID` |",
+        r"^line 30, ### 7\. Inputs, row `BAD_ID`: the code BAD_ID is already the code of the row at line 19",
+    ),
+    "a code not in a code span": (
+        "| `LOOSE_PIN` |",
+        "| LOOSE_PIN |",
+        r"^line 30, ### 7\. Inputs, row LOOSE_PIN: the Code cell must be one code span",
+    ),
+    "an empty cell": (
+        "| No input has a pin |",
+        "|  |",
+        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its Rule cell is empty",
+    ),
+    "an extra cell": (
+        "| No input has a pin |",
+        "| No input has a pin | x |",
+        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: it has 5 cells, but the table has 4 columns",
+    ),
+    "two sentences in a rule": (
+        "No input has a pin",
+        "No input has a pin. A pin is ignored",
+        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its Rule cell has more than one sentence",
+    ),
+    "a section heading without its number": (
+        "### 7. Inputs",
+        "### Inputs",
+        r"^line 26, ### Inputs: a section with a codes table or a note is numbered, as in '### 7\. Inputs'",
+    ),
+    "no Part II": (
+        "## Part II: The specification",
+        "## Part II: Rules",
+        r"^the specification must have one '## Part II: The specification' heading, not 0$",
+    ),
+    "two Part IIs": (
+        "## Glossary",
+        "## Part II: The specification",
+        r"^line 45: a second '## Part II: The specification' heading, but the specification has one$",
+    ),
+}
+
+
+@pytest.mark.parametrize(
+    "old, new, message", MALFORMED_SECTIONS.values(), ids=MALFORMED_SECTIONS
+)
+def test_malformed_section_tables_fail(old, new, message):
+    assert old in SECTIONS
+    with pytest.raises(ValueError, match=message):
+        extract_section_rules(SECTIONS.replace(old, new, 1))
+
+
+def test_a_quoted_codes_table_reads_as_the_same_rules():
+    """A codes table in a blockquote is the same rules, and the blockquote is the section's last block."""
+    text = SECTIONS.replace(INPUTS_TABLE, quoted(INPUTS_TABLE))
+    assert extract_section_rules(text) == extract_section_rules(SECTIONS)
+
+
+def test_notes_are_read():
+    """A `Recommendation:` and a `Permission:`, each with its level and section: the text after the label, its links
+    reduced to their text and its lines joined."""
+    assert extract_notes(SECTIONS) == [
+        {
+            "kind": "recommendation",
+            "level": "SHOULD",
+            "text": "branches that hold records SHOULD be merged, not squashed or rebased.",
+            "source": "§19 Records",
+        },
+        {
+            "kind": "permission",
+            "level": "MAY",
+            "text": "a checker MAY stop at the first `NO_RECORD`.",
+            "source": "§20 Checking results",
+        },
+    ]
+
+
+WRONG_NOTES = {
+    "a recommendation that says MAY": (
+        "records SHOULD be merged",
+        "records MAY be merged",
+        r"^line 34, ### 19\. Records, Recommendation: it says MAY, but a Recommendation: says SHOULD once and no other"
+        r" keyword",
+    ),
+    "a recommendation that says SHOULD twice": (
+        "records SHOULD be merged, not\nsquashed",
+        "records SHOULD be merged, and SHOULD NOT be\nsquashed",
+        r"^line 34, ### 19\. Records, Recommendation: it says SHOULD, SHOULD, but a Recommendation: says SHOULD once",
+    ),
+    "a recommendation with no keyword": (
+        "records SHOULD be merged",
+        "records are merged",
+        r"^line 34, ### 19\. Records, Recommendation: it says no keyword, but a Recommendation: says SHOULD once",
+    ),
+    "a permission that says SHOULD": (
+        "a checker MAY stop",
+        "a checker SHOULD stop",
+        r"^line 43, ### 20\. Checking results, Permission: it says SHOULD, but a Permission: says MAY once",
+    ),
+    "a permission whose rendered text says MUST": (
+        "a checker MAY stop",
+        "a checker MAY stop, and MU*ST* go on,",
+        r"^line 43, ### 20\. Checking results, Permission: it says MUST, but a Permission: says MAY once",
+    ),
+}
+
+
+@pytest.mark.parametrize("old, new, message", WRONG_NOTES.values(), ids=WRONG_NOTES)
+def test_a_note_with_the_wrong_keyword_fails(old, new, message):
+    """Both readers fail on it, so no `rules.json` is made from such a specification."""
+    assert old in SECTIONS
+    text = SECTIONS.replace(old, new, 1)
+    for extract in (extract_notes, extract_section_rules):
+        with pytest.raises(ValueError, match=message):
+            extract(text)
+
+
+MISPLACED_NOTES = {
+    "in Part I": (
+        "| parse | A loader |\n",
+        "| parse | A loader |\n\nPermission: a loader MAY stop.\n",
+        11,
+    ),
+    "in the glossary": (
+        "- **tracked:** in git's index.\n",
+        "- **tracked:** in git's index.\n\nRecommendation: a reader SHOULD read it.\n",
+        49,
+    ),
+}
+
+
+@pytest.mark.parametrize(
+    "old, new, line", MISPLACED_NOTES.values(), ids=MISPLACED_NOTES
+)
+def test_a_note_outside_part_ii_fails(old, new, line):
+    """A note belongs to a section of Part II, where its rules are: elsewhere, both readers fail on it."""
+    assert old in SECTIONS
+    text = SECTIONS.replace(old, new, 1)
+    message = rf"^line {line}: a (Recommendation|Permission): note must be in a ### section of Part II"
+    for extract in (extract_notes, extract_section_rules):
+        with pytest.raises(ValueError, match=message):
+            extract(text)
 
 
 # --- rules.json: the rules ---
