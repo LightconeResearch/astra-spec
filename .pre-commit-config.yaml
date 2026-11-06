@@ -9,17 +9,17 @@ repos:
         # What this hook's loader refuses is the point of these fixtures:
         # each fails at parse (a duplicate key, malformed YAML, a %YAML 1.1
         # directive, a local tag, a second document, bytes that aren't UTF-8,
-        # a tab as white space, a C1 control, DEL or NEL). Keep in step with
+        # a tab as white space or a C1 control). Keep in step with
         # .yamllint.yaml.
-        exclude: ^tests/data/invalid/Analysis-(101-duplicate-output|146-duplicate-universe|182-malformed-yaml|183-yaml-1-1-directive|201-local-tag|204-second-document|211-not-utf-8|212-c1-control-in-plain-scalar|224-tab-as-separation|226-c1-control-in-quoted-scalar|227-del-in-quoted-scalar|228-nel-in-block-scalar)\.yaml$
+        exclude: ^tests/data/invalid/Analysis-(101-duplicate-output|146-duplicate-universe|182-malformed-yaml|183-yaml-1-1-directive|201-local-tag|204-second-document|211-not-utf-8|212-c1-control-in-plain-scalar|224-tab-as-separation)\.yaml$
       # Generated files are checked against a fresh generation instead
       # (`just check-generated`), and a tab or a lone CR is the point of these
       # fixtures, so these hooks leave them as they are.
       - id: end-of-file-fixer
-        exclude: ^(src/astra/schema/generated/|tests/data/invalid/Analysis-(215-comment-ended-by-cr|224-tab-as-separation|225-tab-in-quoted-scalar)\.yaml$)
+        exclude: ^(src/astra/schema/generated/|tests/data/invalid/Analysis-(215-comment-ended-by-cr|224-tab-as-separation)\.yaml$)
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: ^(src/astra/schema/generated/|tests/data/invalid/Analysis-(215-comment-ended-by-cr|224-tab-as-separation|225-tab-in-quoted-scalar)\.yaml$)
+        exclude: ^(src/astra/schema/generated/|tests/data/invalid/Analysis-(215-comment-ended-by-cr|224-tab-as-separation)\.yaml$)
 
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.37.0
