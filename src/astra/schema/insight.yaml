@@ -93,9 +93,8 @@ classes:
         range: reference
         description: >-
           A reference to the cited output, written as in an output's
-          `inputs`. It may pin the output to a universe, and should when the
-          output is built per universe: to the universe the claim is about,
-          such as `f1_score#svm_standard`.
+          `inputs`. It may pin the output to a universe, the one the claim is
+          about, such as `f1_score#svm_standard`.
       version:
         range: integer
         minimum_value: 1

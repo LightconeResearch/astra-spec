@@ -201,9 +201,8 @@ classes:
         minimum_cardinality: 1
         description: >-
           What the output is made from, in order: references to inputs and
-          outputs of the analysis or of analyses it declares. A reference to
-          an output can be pinned to a universe with `#`; a reference to an
-          input can't.
+          outputs of the analysis or of analyses it declares. A reference can
+          be pinned to a universe with `#`.
       decisions:
         multivalued: true
         range: address

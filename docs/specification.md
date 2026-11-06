@@ -42,7 +42,7 @@ doesn't restate them.
 | universe | a selection of one option for every active decision | §6 |
 | effective selection | what a universe selects once `derived_from` is resolved | §6 |
 | built per universe, built once | whether an output has one result in each universe where it is active, or one in all | §6 |
-| pin | `#` and a universe id ending a reference, after its address, which reads the output in that universe | §4 |
+| pin | `#` and a universe id ending a reference, after its address, which reads an output in that universe; on an input it changes nothing | §4 |
 | root | the analysis being validated or built | §7 |
 | analysis stack | the root and every analysis it declares, directly or through others | §7 |
 | driver, driven | the analysis whose universes drive, and an analysis reached through a declaration they drive; the analysis whose universe is being built is never driven in it | §7 |
@@ -113,6 +113,10 @@ Four roles conform to this specification:
   record is its runner's testimony, and names it. A runner conforms when it
   keeps the runner `MUST`s, which keep its records true. How it stores bytes
   or builds environments is its own.
+
+A validator or checker may also warn about what no rule covers, under a code
+§9 doesn't define. Such a warning never makes an analysis invalid or changes
+a status.
 
 An analysis that reads a file, makes one artefact per universe and compares
 two universes in a third:
@@ -452,11 +456,10 @@ each of which is the id of the option selected (`model: svm`)
 `outputs: [f1_score]`, is [`WRONG_TYPE`](#parse-and-schema) too. Lists hold
 only what is a list: an insight's `evidence`, a record's `inputs`, and lists
 of strings. No list of strings holds the same entry twice
-([`DUPLICATE_ENTRY`](#parse-and-schema)), nor two spellings of one entry
-([`DUPLICATE_ELEMENT`](#validator)), so an output lists each of its inputs,
-decisions and conditions once. No list of strings is empty: a field with
-nothing to list is left out ([`EMPTY_COLLECTION`](#parse-and-schema)), so an
-output lists `decisions` or has a `when` only when it names at least one.
+([`DUPLICATE_ENTRY`](#parse-and-schema)). No list of strings is empty: a
+field with nothing to list is left out
+([`EMPTY_COLLECTION`](#parse-and-schema)), so an output lists `decisions`
+or has a `when` only when it names at least one.
 
 Every id has the one grammar `id`, and no id is reserved (not even a name
 Windows reserves, §3): an address's kind comes from the field it is written
@@ -498,13 +501,10 @@ Two addresses written differently that resolve to one element of one
 analysis (§7) are two **spellings** of it. In
 `examples/iris_pipeline/classification/astra.yaml`,
 `feature_extraction.features` and `iris.feature_extraction.features` are one
-output. Two conditions, or two option references, are spellings of one entry
-when their addresses spell one decision and they name the same option, and
-two conditions also need both or neither to have `~`. Two references are
-spellings of one entry when their addresses spell one element and both are
-unpinned, or both pin one universe (§7). No list holds two spellings of one
-entry ([`DUPLICATE_ELEMENT`](#validator)), so `{inputs}` never passes one
-entry twice under two spellings.
+output. A list can name one element under two spellings: they are two
+entries, each with its own placeholder (§5) and recorded input (§8). Only
+the same entry written twice is refused
+([`DUPLICATE_ENTRY`](#parse-and-schema)).
 
 A record's `address` is its result as the analysis the result belongs to
 addresses it, and a recorded input's `entry` is an entry of `Output.inputs`
@@ -513,9 +513,10 @@ exactly as written (§8).
 ### Pins
 
 A `reference` can end in `#` and a universe id, a **pin**: `f1_score#svm`. A
-pin reads the output in that universe (§6, §7). `#` is never part of an id,
-so the pin is unambiguous. A decision's address never takes a pin: the
-entries of `Output.decisions` are addresses
+pin on an output reads it in that universe (§6, §7); a pin on an input
+changes nothing. `#` is never part of an id, so the pin is unambiguous. A
+decision's address never takes a pin: the entries of `Output.decisions` are
+addresses
 ([`INVALID_REFERENCE`](#parse-and-schema)), and so are the keys of
 `Universe.decisions` ([`INVALID_ID`](#parse-and-schema)).
 
@@ -599,8 +600,8 @@ format. It is the extension of the result's default place (§8).
 
 - `inputs` lists what the output is made from, in order: references (§4) to
   inputs and outputs of the analysis or of analyses it declares. A reference
-  to an output can be pinned (§6). Their order counts, since `{inputs}`
-  passes them to the recipe in that order.
+  can be pinned (§6). Their order counts, since `{inputs}` passes them to
+  the recipe in that order.
 - `decisions` lists the addresses of the decisions whose option the output
   is made with directly, not through what it reads: a different option for
   any of them, in the universe being built, can give a different result.
@@ -798,13 +799,11 @@ and holds no ASCII space or control character, none of ``"#<>[\]^`{|}``, and
 [`iri`](elements/Iri.md) (§4, [`INVALID_VALUE`](#parse-and-schema)).
 
 Evidence isn't built in a universe. Citing an output built per universe, it
-may pin it, and should ([`UNPINNED_EVIDENCE`](#validator)): the claim is then
-about one universe's result, and the pin says which. A pin on an output built
-once is redundant ([`REDUNDANT_PIN`](#validator)). The pin names a universe as
-one in `Output.inputs` does (§7), so a finding about results a driver builds
-belongs in the driver's `astra.yaml`. Evidence citing a result is checked through
-that result's record, and unpinned evidence through the records of the
-output's results (§8).
+may pin it: the claim is then about one universe's result, and the pin says
+which. The pin names a universe as one in `Output.inputs` does (§7), so a
+finding about results a driver builds belongs in the driver's `astra.yaml`.
+Evidence citing a result is checked through that result's record, and
+unpinned evidence through the records of the output's results (§8).
 
 ## 6. Universes
 
@@ -906,25 +905,23 @@ output built per universe, since the pin fixes the universe it reads.
 An output built once has no universe of its own. It lists no decisions, so
 its recipe has no `{decisions.<entry>}` placeholder
 ([`UNDECLARED_TEMPLATE_REF`](#validator)), and a pin on it doesn't change
-which result a reference names ([`REDUNDANT_PIN`](#validator)): pinned or
-not, the reference names its one result, and `{inputs.<entry>}` gives that
-result's path; the pin still names a universe
-([`UNKNOWN_PIN_UNIVERSE`](#validator)).
+which result a reference names: pinned or not, the reference names its one
+result, and `{inputs.<entry>}` gives that result's path; the pin still names
+a universe ([`UNKNOWN_PIN_UNIVERSE`](#validator)).
 
 An analysis with no decisions, whose outputs read only what is the same in
 every universe, needs no universes. One with decisions, or with outputs built
 per universe, but no universes has none of its own to build those outputs in.
-That is expected when the root's universes drive it or it consumes a decision
-(§7), and is otherwise warned about ([`NO_UNIVERSES`](#validator)).
 
 ### Which universe a reference reads
 
 An unpinned entry of `inputs` reads its output in the universe being built.
 A pinned one, such as `accuracy#svm`, reads it as built in the universe
-`svm`, whichever universe is being built. Only an output takes a pin
-([`PIN_ON_INPUT`](#validator)), and it is active in the universe it is pinned
-to ([`PIN_INACTIVE`](#validator)). Which analysis's universe a pin names is
-set out in §7 ([`UNKNOWN_PIN_UNIVERSE`](#validator)).
+`svm`, whichever universe is being built. A pinned output is active in the
+universe it is pinned to ([`PIN_INACTIVE`](#validator)). A pin on an input,
+as on an output built once, names a universe and changes nothing else.
+Which analysis's universe a pin names is set out in §7
+([`UNKNOWN_PIN_UNIVERSE`](#validator)).
 
 ## 7. Composition
 
@@ -1146,11 +1143,11 @@ file's analysis, so it names one universe under every root. It names the
 universe `u` of the first analysis along its reference, starting from the
 file's own, whose universes drive the reference's declarations from that
 analysis's file to its last. If there is none, it names the universe `u` of
-the analysis whose output it is, which for an output of the analysis itself
-is one of its own universes ([`UNKNOWN_PIN_UNIVERSE`](#validator)). Where
-the root drives `stage` but not `stage.lib`, and `stage`'s universes drive
-`lib`, `stage.lib.out#v1` in the root's file names `stage`'s `v1`. To read
-one of a driven analysis's own universes, the driver declares the same
+the analysis whose element it is, which for an element of the analysis
+itself is one of its own universes ([`UNKNOWN_PIN_UNIVERSE`](#validator)).
+Where the root drives `stage` but not `stage.lib`, and `stage`'s universes
+drive `lib`, `stage.lib.out#v1` in the root's file names `stage`'s `v1`. To
+read one of a driven analysis's own universes, the driver declares the same
 directory a second time, without driving that declaration:
 
 ```yaml
@@ -1710,9 +1707,8 @@ both reported, even when one edit fixes both.
    [`UNRESOLVED_ADDRESS`](#validator), and an option that breaks
    [`UNKNOWN_OPTION`](#validator), name nothing, and no rule is checked on
    what they would name. That leaves out `UNKNOWN_OPTION` under such an
-   address, the pin rules ([`PIN_ON_INPUT`](#validator),
-   [`UNKNOWN_PIN_UNIVERSE`](#validator), [`PIN_INACTIVE`](#validator),
-   [`REDUNDANT_PIN`](#validator), [`UNPINNED_EVIDENCE`](#validator)), and
+   address, the pin rules ([`UNKNOWN_PIN_UNIVERSE`](#validator) and
+   [`PIN_INACTIVE`](#validator)), and
    [`NOT_BUILT_IN_UNIVERSE`](#validator),
    [`UNDRIVEN_DECLARATION`](#validator), [`INPUT_NOT_BUILT`](#validator),
    [`OUTPUT_CYCLE`](#validator) and [`DUPLICATE_ELEMENT`](#validator)
@@ -1847,18 +1843,14 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `MISSING_REQUIRED_OPTION` | MUST | Every effective selection satisfies the `requires` of every option it selects | 0003 |
 | `INCOMPATIBLE_OPTIONS` | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects | 0003 |
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option | main, tidy-up |
-| `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
+| `DUPLICATE_ELEMENT` | MUST | No universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
 | `LOOPING_KEY` | MUST | No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included | main, §6, §7 |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, and every decision of another analysis that such an output, a decision's `when` or a constraint consumes, belongs to an analysis built in that universe | 0004 |
 | `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, or by which such an output, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
 | `INPUT_NOT_BUILT` | MUST | Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there | 0004 |
-| `PIN_ON_INPUT` | MUST | Every pinned reference names an output | 0003 |
-| `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin, read in the file it is written in, names a universe of the first analysis along its reference, starting from that file's own, whose universes drive the reference's declarations from that analysis's file to its last, or, where there is none, of the analysis whose output it is | 0003, 0004, tidy-up, §7 |
+| `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin, read in the file it is written in, names a universe of the first analysis along its reference, starting from that file's own, whose universes drive the reference's declarations from that analysis's file to its last, or, where there is none, of the analysis whose element it is | 0003, 0004, tidy-up, §7 |
 | `PIN_INACTIVE` | MUST | Every pinned output is active in the universe it is pinned to | 0003 |
 | `OUTPUT_CYCLE` | MUST | No output depends on itself, directly or through others | 0004 |
-| `REDUNDANT_PIN` | SHOULD | No reference to an output built once has a pin | 0003 |
-| `UNPINNED_EVIDENCE` | SHOULD | Every evidence citing an output built per universe pins it | 0003, 0004 |
-| `NO_UNIVERSES` | SHOULD | Every analysis with decisions, or with outputs built per universe, has universes, unless the root's universes drive it, or it consumes a decision | 0003, 0004 |
 | `RESULT_IN_TWO_PLACES` | SHOULD | No planned result has two names: its output's analysis is reached through at most one chain of driven declarations from the analysis the result belongs to (§8) | main, §7, §8 |
 
 ### check

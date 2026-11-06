@@ -204,7 +204,7 @@
       "description": "What a claim rests on: a published work, cited by its `doi`, or an output, cited as an `artifact`. It has exactly one of the two, and a `version` only with a `doi`.",
       "properties": {
         "artifact": {
-          "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, and should when the output is built per universe: to the universe the claim is about, such as `f1_score#svm_standard`.",
+          "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, the one the claim is about, such as `f1_score#svm_standard`.",
           "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
           "type": "string"
         },
@@ -425,7 +425,7 @@
           "type": "string"
         },
         "inputs": {
-          "description": "What the output is made from, in order: references to inputs and outputs of the analysis or of analyses it declares. A reference to an output can be pinned to a universe with `#`; a reference to an input can't.",
+          "description": "What the output is made from, in order: references to inputs and outputs of the analysis or of analyses it declares. A reference can be pinned to a universe with `#`.",
           "items": {
             "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$(?!\\n)",
             "type": "string"

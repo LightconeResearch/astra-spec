@@ -571,7 +571,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "tidy-up, §4, §6, §7",
-      "statement": "No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit"
+      "statement": "No universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit"
     },
     {
       "code": "LOOPING_KEY",
@@ -602,18 +602,11 @@
       "statement": "Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there"
     },
     {
-      "code": "PIN_ON_INPUT",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0003",
-      "statement": "Every pinned reference names an output"
-    },
-    {
       "code": "UNKNOWN_PIN_UNIVERSE",
       "layer": "validator",
       "level": "MUST",
       "source": "0003, 0004, tidy-up, §7",
-      "statement": "Every pin, read in the file it is written in, names a universe of the first analysis along its reference, starting from that file's own, whose universes drive the reference's declarations from that analysis's file to its last, or, where there is none, of the analysis whose output it is"
+      "statement": "Every pin, read in the file it is written in, names a universe of the first analysis along its reference, starting from that file's own, whose universes drive the reference's declarations from that analysis's file to its last, or, where there is none, of the analysis whose element it is"
     },
     {
       "code": "PIN_INACTIVE",
@@ -628,27 +621,6 @@
       "level": "MUST",
       "source": "0004",
       "statement": "No output depends on itself, directly or through others"
-    },
-    {
-      "code": "REDUNDANT_PIN",
-      "layer": "validator",
-      "level": "SHOULD",
-      "source": "0003",
-      "statement": "No reference to an output built once has a pin"
-    },
-    {
-      "code": "UNPINNED_EVIDENCE",
-      "layer": "validator",
-      "level": "SHOULD",
-      "source": "0003, 0004",
-      "statement": "Every evidence citing an output built per universe pins it"
-    },
-    {
-      "code": "NO_UNIVERSES",
-      "layer": "validator",
-      "level": "SHOULD",
-      "source": "0003, 0004",
-      "statement": "Every analysis with decisions, or with outputs built per universe, has universes, unless the root's universes drive it, or it consumes a decision"
     },
     {
       "code": "RESULT_IN_TWO_PLACES",
