@@ -6,7 +6,7 @@
       "description": "The environment a recipe ran in, named by an IRI.",
       "properties": {
         "iri": {
-          "description": "An IRI naming exactly that environment, enough for its runner, at the version the record gives, to recreate it. It need not resolve online: a `urn:` IRI or a scheme of the runner's own will do, such as `urn:example-runner:env:sha256:\u2026`.",
+          "description": "An IRI naming exactly that environment, enough for its runner, at the version the record gives, to recreate it, such as a `urn:` IRI (`urn:example:env:sha256:\u2026`) or one in a scheme of the runner's own.",
           "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$",
           "type": "string"
         }
@@ -93,7 +93,7 @@
       "description": "The software that ran the recipe and wrote the record.",
       "properties": {
         "id": {
-          "description": "The runner's name, ideally unique (an IRI, say), such as `example-runner`.",
+          "description": "The runner's name, such as `example-runner`.",
           "type": "string"
         },
         "version": {

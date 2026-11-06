@@ -157,9 +157,9 @@ classes:
         required: true
         description: >-
           An IRI naming exactly that environment, enough for its runner, at
-          the version the record gives, to recreate it. It need not resolve
-          online: a `urn:` IRI or a scheme of the runner's own will do, such as
-          `urn:example-runner:env:sha256:…`.
+          the version the record gives, to recreate it, such as a `urn:` IRI
+          (`urn:example:env:sha256:…`) or one in a scheme of the runner's
+          own.
 
   Runner:
     class_uri: prov:SoftwareAgent
@@ -168,8 +168,7 @@ classes:
       id:
         required: true
         description: >-
-          The runner's name, ideally unique (an IRI, say), such as
-          `example-runner`.
+          The runner's name, such as `example-runner`.
       version:
         required: true
         slot_uri: schema:softwareVersion

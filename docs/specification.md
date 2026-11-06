@@ -301,7 +301,7 @@ is `iris.random_seed.seed_42`.
 | [`commit_id`](elements/CommitId.md) | a full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64 (SHA-256) | `AnalysisDeclaration.commit`, `Generation.commit` |
 | [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits | `ProvenanceRecord.content_hash`, `RecordedInput.content_hash` |
 | [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros | `Analysis.spec_version`, `ProvenanceRecord.spec_version` |
-| [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, each field in its range; whether the day exists in its month, such as 30 February, isn't checked | `Generation.started`, `Generation.finished` |
+| [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, with month 01–12, day 01–31, hour 00–23, and minute and second 00–59 | `Generation.started`, `Generation.finished` |
 | [`iri`](elements/Iri.md) | an IRI, never a CURIE: a scheme, `:`, then characters other than ASCII spaces and controls, C1 controls, `<`, `>`, `"`, `{`, `}`, the vertical bar, `\`, `^`, the backtick and the bidi formatting characters U+200E, U+200F and U+202A–U+202E, with `%` only before two hex digits and at most one `#` | `Environment.iri`, `FragmentSelector.conforms_to` |
 
 A value that doesn't take its type's form fails: a map key or an `id` as
@@ -1280,9 +1280,7 @@ for an output built once. The root's **planned** results are:
 
 An output plans no result in a universe where it is inactive (§5). An output
 of a declared analysis that no planned result reads and no evidence of the
-root cites isn't planned, and building the root doesn't build it. Building it
-on request is the tooling's choice, and a checker gives its record no status
-(below).
+root cites isn't planned, and building the root doesn't build it.
 
 A result belongs to the analysis whose universe it was built in. So what a
 driven analysis builds in its driver's universes belongs to the driver. The
@@ -1354,11 +1352,11 @@ A result is one file, which its recipe writes at `{output}`. An artefact of
 many files is written as an archive, or as several outputs.
 
 A record at a commit can be read whether or not the commit holds the bytes.
-The bytes needn't stay at their default place ([`ABSENT_RESULT`](#check) is a
-`SHOULD`): a runner may keep them elsewhere and leave something standing in
-for them (§5). Anything else at the default place, something standing in for
-the bytes, other bytes or nothing, leaves the result's bytes `absent`
-([`ABSENT_RESULT`](#check)).
+Anything but the recorded bytes at the default place, something standing in
+for them, other bytes or nothing, leaves the result's bytes `absent`. The
+bytes SHOULD be at their default place ([`ABSENT_RESULT`](#check)); a runner
+may keep them elsewhere, with something standing in for them there (§5), so
+`absent` is no error.
 
 ### What a record holds
 
@@ -1386,13 +1384,12 @@ result's bytes, and the run of the recipe that made it, `generated_by`, a
 - `environment`: an [Environment](elements/Environment.md), whose `iri` is an
   IRI of the form §4 gives ([`INVALID_VALUE`](#parse-and-schema)), naming
   exactly the environment the recipe ran in, enough for its runner, at the
-  version the record gives, to recreate it. It needn't resolve online: a
-  `urn:` IRI or a scheme of the runner's own will do.
-- `runner`: a [Runner](elements/Runner.md), the runner's `id`, ideally unique
-  (an IRI, say), and its `version`.
-- `started` and `finished`: when the recipe started and finished, in UTC to
-  the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, each field in its range;
-  whether the day exists in its month, such as 30 February, isn't checked.
+  version the record gives, to recreate it, such as a `urn:` IRI or one in a
+  scheme of the runner's own.
+- `runner`: a [Runner](elements/Runner.md), the runner's `id` and its
+  `version`.
+- `started` and `finished`: when the recipe started and finished, each a
+  [`timestamp`](elements/Timestamp.md) (§4).
 
 Every field of a record is required ([`MISSING_FIELD`](#parse-and-schema))
 but three: `started` and `finished`, which are optional, and `inputs`, which
@@ -1418,7 +1415,7 @@ Every hash names its algorithm: `sha256:`, then the SHA-256 digest
         "size": 10
       }
     ],
-    "environment": {"iri": "urn:example-runner:env:sha256:5d1338d7b2770c256402101e2905173c46fcd60b376b2717cf6b129deb28af15"},
+    "environment": {"iri": "urn:example:env:sha256:5d1338d7b2770c256402101e2905173c46fcd60b376b2717cf6b129deb28af15"},
     "runner": {"id": "example-runner", "version": "1.2.0"},
     "started": "2026-10-26T14:00:00.000Z",
     "finished": "2026-10-26T14:00:02.000Z"
@@ -1431,10 +1428,8 @@ options its decisions select and its format are in the `astra.yaml` files at
 that commit. A record holds only the fields its `spec_version` defines, and is
 read by its minor version's record schema (§1). A checker reading a record of
 a greater minor version than its own validates it against the open variant of
-the record schema, which ignores the fields the checker doesn't know, rather
-than calling the record `missing`. A record whose minor version is smaller
-than the checker's and has no record schema, such as `0.0.9`, is `missing`. A
-record whose `spec_version` is missing or malformed is validated against the
+its own record schema, which ignores the fields it doesn't know. A record
+whose `spec_version` is missing or malformed is validated against the
 checker's own record schema, so every error is a reason
 ([`INVALID_RECORD`](#check), §10). Read as RDF (§10), a record is W3C PROV-O.
 
@@ -1457,10 +1452,7 @@ on two machines say, show whether the result reproduces: their
   git worktree, say), and refuses to run while that checkout has changes
   other than the records and results it writes itself, each result's bytes
   the recorded ones ([`UNCOMMITTED_CHANGES`](#runner)). Changes outside
-  that checkout don't stop it: a runner that runs in a checkout of its own
-  while the working tree has changes writes the results and records into the
-  working tree, and they are committed in a commit that has the commit they
-  name in its history (below). It runs each recipe in its analysis's
+  that checkout don't stop it. It runs each recipe in its analysis's
   directory in that checkout ([`WRONG_WORKING_DIRECTORY`](#runner)).
 - It builds no result of an analysis from a commit (§7)
   ([`REBUILT_FROM_COMMIT`](#runner)), and builds no output that reads such a
@@ -1474,16 +1466,16 @@ A checker sees much of a breach afterwards: a result with no record is
 [`UNDECLARED_READ`](#runner) is the runner's choice (§5).
 
 A record names the commit its recipe ran from, so it is committed in a later
-commit. That commit adds only records and results, so it makes none of the
-results whose records it adds stale. Branches that hold records SHOULD be
-merged, not squashed or rebased, so that the commit each record names stays
-in their history.
+commit. Records and results are no input and no part of a declaration, so
+committing them doesn't by itself make a result stale. Branches that hold
+records SHOULD be merged, not squashed or rebased, so that the commit each
+record names stays in their history.
 
 ### When a result is unchanged
 
-A record guarantees what its result was made from at the commit it names,
-and nothing beyond that commit. At a later commit a result is **unchanged**
-if, since that commit, nothing has changed in ([`STALE_RESULT`](#check)):
+A record says what its result was made from at the commit it names. At a later
+commit a result is **unchanged** if, since that commit, nothing has changed in
+([`STALE_RESULT`](#check)):
 
 - its output's declaration: its recipe's command, its inputs and their order
   (`{inputs}` passes them in that order), its decisions, in any order (each
@@ -1506,7 +1498,7 @@ of §2, selecting `random_forest` in the universe `svm` makes `accuracy#svm`
 stale, and `comparison` with it, while editing the finding leaves both
 unchanged. Editing `src/train.py` leaves both unchanged too, but once
 `accuracy#svm` is made again with other bytes, `comparison` is stale until it
-is rebuilt. How a checker finds this out is the tooling's choice.
+is rebuilt.
 
 ### Statuses
 
@@ -1516,13 +1508,10 @@ where its address says; and one for its bytes, `present` when the bytes at
 its default place have its record's hash and size, `absent` otherwise. A
 result of an analysis from a commit that no recipe reads gets only the first
 (below). Outside a git repository ([`NOT_IN_REPOSITORY`](#validator)), every
-planned result is `missing`. Since the bytes can be kept elsewhere, `absent` is not an error. A
-tool may report more about bytes that are `absent`, such as other bytes at
-the default place, but their status is `absent`.
+planned result is `missing`.
 
 A result with two names gets its statuses at each place. A checker reads
-records only through planned results: a record at no planned result's place
-gets no status, and no check rule applies to it.
+records only through planned results.
 
 Evidence citing a result gets the status of that result's record
 ([`STALE_EVIDENCE`](#check)), the record at the place of the result's name
@@ -2010,9 +1999,7 @@ the run, which `prov:used` its inputs and its environment and
 `content_hash` and `size` describe the result, and its `spec_version` the
 record. The run's `started` and `finished` are `prov:startedAtTime` and
 `prov:endedAtTime`, typed `xsd:dateTime`, and the runner's `version` is
-`schema:softwareVersion`. The schema doesn't check that a time's day exists
-in its month (§4), so a time such as 30 February converts to an ill-typed
-`xsd:dateTime`.
+`schema:softwareVersion`.
 
 **The package.** The `astra-spec` Python package holds the LinkML sources and
 these artefacts, as the namespace package `astra.schema`, read through
