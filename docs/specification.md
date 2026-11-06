@@ -1043,27 +1043,29 @@ universes, by flat keys: the decision's address,
 (`classification.classifier`, `stage.inner.d`). The analysis whose
 universes drive is the **driver**, and each analysis reached through a
 declaration they drive (below) is **driven** through that declaration. An
-analysis with no decisions and no universes of its own has no key to set,
-and is driven by being built in its driver's universes (below).
+analysis with no decisions has no key to set, and is driven by being built
+in its driver's universes (below).
 
 An analysis's universes **drive** a declaration when a key in the effective
 selection (§6) of any of them goes through every declaration from the
 analysis's file to that one, and a declaration they drive is driven in
-every one of them. The key `stage.inner.d` drives the driver's `stage`
-and, through it, `stage`'s `inner`, but not an `inner` that the driver's
-file declares itself: each chain of declarations
-from the driver's file (`stage`, `stage.inner`, `inner`) is driven on its own.
+every one of them. An analysis with no universes drives no declaration. The
+key `stage.inner.d` drives the driver's `stage` and, through it, `stage`'s
+`inner`, but not an `inner` that the driver's file declares itself: each
+chain of declarations from the driver's file (`stage`, `stage.inner`,
+`inner`) is driven on its own.
 Two chains that end in one declaration, such as `stage.lib` and
 `stage_undriven.lib` where `stage` and `stage_undriven` declare one directory,
 are driven on their own too, and an address or a reference is judged on its
-own chain. A declaration of an analysis with no decisions and no universes of
-its own is driven when the chain before it is, and so whenever the driver's
-file declares it, unless the declaration leads back to an analysis already on
-the chain, the declaring analysis itself included (`self: {path: .}`). Such an
-analysis's outputs built per universe (§6) are then built in each of the
-driver's universes where they are planned (§8), and those results belong to
-the driver, while its outputs built once still belong to it. An analysis with
-universes of its own keeps them unless a key drives it.
+own chain. A declaration of an analysis with no decisions is driven when
+the chain before it is, and so whenever the driver's file declares it,
+unless the declaration leads back to an analysis already on the chain, the
+declaring analysis itself included (`self: {path: .}`). Such an analysis's
+outputs built per universe (§6) are then built in each of the driver's
+universes where they are planned (§8), and those results belong to the
+driver, while its outputs built once still belong to it. Universes of its
+own don't change this. They are built only where it is the driver: when it
+is the root, or a pin names one of them (below).
 
 - Every universe sets every active decision of every analysis reached
   through a declaration that its analysis's universes drive
@@ -1196,6 +1198,17 @@ root's file breaks [`UNDRIVEN_DECLARATION`](#validator) too, though the root
 drives `stage`. So does `stage_undriven.inner.result`, where the root's
 `stage_undriven` declares `stage`'s directory a second time, though the root
 drives `stage.inner`.
+
+A second declaration such as `inner_undriven` stays undriven because
+`inner` has a decision, which the root's universes key through `inner` and
+not through `inner_undriven`. A declaration of an analysis with no decisions is driven
+wherever the chain before it is (above). So in a file whose analysis has
+universes, every declaration of another analysis with no decisions is
+driven, and a pin through one names a universe of the file's analysis. A
+pin names one of such an analysis's own universes only where no analysis
+before it along the reference drives the rest: in its own file, for
+instance, or in the file of an analysis with no universes that declares it
+directly.
 
 What is built in a driver's universes belongs to the driver (§8).
 
@@ -1837,7 +1850,7 @@ Every universe of every analysis of the stack is checked as §7 says.
 | `DUPLICATE_ELEMENT` | MUST | No list of addresses, references, option references or conditions holds two spellings of one entry, and no universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit | tidy-up, §4, §6, §7 |
 | `LOOPING_KEY` | MUST | No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included | main, §6, §7 |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, and every decision of another analysis that such an output, a decision's `when` or a constraint consumes, belongs to an analysis built in that universe | 0004 |
-| `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, or by which such an output, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions and no universes of its own, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
+| `UNDRIVEN_DECLARATION` | MUST | In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, or by which such an output, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain) | 0004, tidy-up, §7 |
 | `INPUT_NOT_BUILT` | MUST | Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there | 0004 |
 | `PIN_ON_INPUT` | MUST | Every pinned reference names an output | 0003 |
 | `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin, read in the file it is written in, names a universe of the first analysis along its reference, starting from that file's own, whose universes drive the reference's declarations from that analysis's file to its last, or, where there is none, of the analysis whose output it is | 0003, 0004, tidy-up, §7 |
