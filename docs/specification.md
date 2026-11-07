@@ -1622,11 +1622,10 @@ that commit, and none of `remote`'s recipes runs.
 - With a `path` and a `commit`, the declared analysis is the analysis at that
   path at the commit. The repository that holds the declaring `astra.yaml`
   has that commit
-  ([`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) or,
-  in a file read from a remote,
-  [`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository)),
-  which should be an ancestor of the commit the declaration is in or, for a
-  declaration read in the working tree, HEAD or an ancestor of it
+  ([`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) for
+  a file not read from a remote), which should be an ancestor of the commit
+  the declaration is in or, for a declaration read in the working tree, HEAD
+  or an ancestor of it
   ([`COMMIT_NOT_ANCESTOR`](#17-analyses-from-another-commit-or-repository)).
   It is read from the local repository or, when the declaring analysis is
   itself read from a remote, from that remote, and each submodule it reaches
@@ -1678,30 +1677,19 @@ different identity.
 
 #### Getting a commit from a remote
 
-Getting a commit from a remote is checked apart from that validity
-([`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository)). A
-commit is got from a remote when it is:
+A commit is got from a remote when it is:
 
 - a declaration's `url` and `commit`;
 - a `path` and `commit` declared in a file read from a remote;
-- the commit a gitlink pins, where a declaration's folder crosses it at a
-  commit ([Annex B](#b-paths-and-git)).
+- the commit a gitlink pins, where a path read at a commit crosses it
+  ([Annex B](#b-paths-and-git)).
 
 A file is read from a remote when the commit it is read at is got from one.
 The remote is the `url`, the remote the file was read from, or the
-submodule's URL ([Annex B](#b-paths-and-git)). A commit already in a local
-repository counts as got. An input's path that crosses, at a commit, a
-gitlink whose commit can't be got names no file
-([`MISSING_INPUT_FILE`](#7-inputs)).
-
-A commit that can't be got is an error on one declaration in a file outside
-every analysis from a commit, read in the working tree, which the author can
-edit: the declaration of the outermost analysis from a commit on the way to
-it. It is reported once for each such declaration, so two declarations of
-one commit get one report each. Where the root declares `stage` by `path`,
-`stage` declares `upstream` by `url`, and `upstream` declares `nested` by
-`url`, if `nested`'s commit can't be got, the error is on `stage`'s
-declaration of `upstream`.
+submodule's URL ([Annex B](#b-paths-and-git)). A commit counts as got when it
+can be fetched from that remote or was kept from an earlier fetch and, for a
+gitlink's commit, when the submodule's checkout holds it. A repository left
+in `.git/modules` after `git submodule deinit` doesn't count.
 
 #### Using one
 
@@ -1777,8 +1765,7 @@ analysis is from and, for a remote, where to get it.
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits |
 | `COMMIT_NOT_FOUND` | validator | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the [repository that holds](#glossary) the declaring `astra.yaml` |
 | `COMMIT_NOT_ANCESTOR` | validator | SHOULD | A declaration with a `path` and a `commit` names, in the [repository that holds](#glossary) the declaring file, an ancestor of the commit the declaration is in or, for a declaration read in the working tree, HEAD or an ancestor of it |
-| `REMOTE_UNREACHABLE` | validator | MUST | Every commit the stack gets from a remote for a declaration, through its `url`, a file read from a remote or a gitlink its folder crosses at a commit, can be fetched from that remote or is already in a local repository |
-| `DECLARED_ANALYSIS_INVALID` | validator | MUST | An analysis from a commit, with everything it declares, is valid at that commit, [`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository) aside |
+| `DECLARED_ANALYSIS_INVALID` | validator | MUST | An analysis from a commit, with everything it declares, is valid at that commit |
 
 Recommendation: a published analysis SHOULD declare only remotes its readers
 can fetch.
@@ -2352,12 +2339,10 @@ checkers read git one way:
   tree, it is in the index or, at a commit, in that commit's tree, reached
   through no gitlink. So a staged input is tracked, and an untracked or
   ignored one isn't, nor is one in a plain data submodule.
-- **A gitlink's commit.** It is got from a local repository that holds it, or
-  from the URL that the `.gitmodules` of the commit holding the gitlink gives
-  for that submodule, a relative one (`../other.git`) resolved as git
-  resolves it
-  ([`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository),
-  [§17](#17-analyses-from-another-commit-or-repository)).
+- **A gitlink's commit.** It is got from the submodule's checkout when that
+  holds it, or from the URL that the `.gitmodules` of the commit holding the
+  gitlink gives for that submodule, a relative one (`../other.git`) resolved
+  as git resolves it ([§17](#17-analyses-from-another-commit-or-repository)).
 - **Bytes.** At a commit, a file is the blob git stores. In the working tree,
   an `astra.yaml` is read from the file on disk.
 

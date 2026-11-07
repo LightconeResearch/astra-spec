@@ -625,18 +625,11 @@
       "statement": "A declaration with a `path` and a `commit` names, in the repository that holds the declaring file, an ancestor of the commit the declaration is in or, for a declaration read in the working tree, HEAD or an ancestor of it"
     },
     {
-      "code": "REMOTE_UNREACHABLE",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "§17 Analyses from another commit or repository",
-      "statement": "Every commit the stack gets from a remote for a declaration, through its `url`, a file read from a remote or a gitlink its folder crosses at a commit, can be fetched from that remote or is already in a local repository"
-    },
-    {
       "code": "DECLARED_ANALYSIS_INVALID",
       "layer": "validator",
       "level": "MUST",
       "source": "§17 Analyses from another commit or repository",
-      "statement": "An analysis from a commit, with everything it declares, is valid at that commit, `REMOTE_UNREACHABLE` aside"
+      "statement": "An analysis from a commit, with everything it declares, is valid at that commit"
     },
     {
       "code": "MISSING_RECORD",
