@@ -220,7 +220,7 @@ Cut on 2026-11-06 (the audit's H33 (a), H34 and H38), each a promise with no cod
 Settled on 2026-11-06 (the audit's I14-I16, I20 and O7), with no verdict changed:
 - **`ABSENT_RESULT`** (I20). Its statement read "every result's recorded bytes", but only planned results get statuses (spec §8). It now reads "every planned result's recorded bytes are at its default place". The statement changes in `rules.json`, and so does spec §10's excerpt.
 - **No `MAY` level** (I15). No rule of the catalogue was a `MAY`, so spec §9 defined a category no table used. A level is now `MUST` or `SHOULD`, in spec §9 and in `rules.json`'s `level`, and `tools/rules.py` refuses a `MAY` row. The runner's permission to enforce `UNDECLARED_READ` stays a permission, stated after the runner table with the runner's recommendation, each once (I14); spec §8 and the layer table link to them.
-- **Statuses once** (I16). Spec §9 kept the status table and dropped its restatement of spec §8's statuses. `STALE_EVIDENCE`'s *Status when broken* is "the cited result's status (Statuses)", linking spec §8, so its `status` in `rules.json` changes.
+- **Statuses once** (I16). Spec §9 kept the status table and dropped its restatement of spec §8's statuses. `STALE_EVIDENCE`'s *Status when broken* is "the cited result's record status", so its `status` in `rules.json` changes.
 - **The catalogue as data** (O7). How `tools/rules.py` reads spec §9's tables (subsections, columns, rows, cells) left the spec for the extractor's docstring. Spec §9 keeps what the Code, Level and Rule columns mean, and spec §10 still says `rules.json`'s cells are inline CommonMark.
 
 ### Slips corrected
