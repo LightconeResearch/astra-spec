@@ -2494,8 +2494,9 @@ when one edit fixes both, except a file's parse rules (1).
    [`MISSING_REQUIRED_OPTION`](#12-universes),
    [`INCOMPATIBLE_OPTIONS`](#12-universes) or
    [`EXCLUDED_OPTION_SELECTED`](#12-universes). A key that names no decision
-   still drives the declarations it goes through, as far as they resolve. A
-   `requires` or `incompatible_with` entry that names nothing is ignored.
+   still drives the declarations it goes through, as far as they resolve,
+   unless it loops (10). A `requires` or `incompatible_with` entry that names
+   nothing is ignored.
 6. **An element whose activity is undetermined.** In a universe, a `when` is
    undetermined when one of its conditions names nothing (5), or tests a
    decision that the universe's selection leaves unset
