@@ -20,7 +20,7 @@ nav = [
   { "Specification" = [
       { "Format reference" = "specification.md" },
       { "All rules" = "rules.md" },
-      { "Schema reference" = "elements/index.md" },
+      { "Field reference" = "elements/index.md" },
   ] },
   { "Community" = [
       { "Overview" = "community.md" },
