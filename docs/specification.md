@@ -2327,11 +2327,9 @@ checkers read git one way:
   standing in for one ([§7](#7-inputs)), and otherwise names none
   ([`MISSING_INPUT_FILE`](#7-inputs)).
 - **Stand-ins.** A stand-in is something kept in a file's place, such as a
-  large-file tool's pointer, that is recognised as standing in for the file: by
-  the validator for an input's file ([§7](#7-inputs)), and by the runner for the
-  bytes of a result, or an input, that it gets from a commit
-  ([§17](#17-analyses-from-another-commit-or-repository)). An input's file, or
-  its stand-in, is what is tracked ([`INPUT_NOT_TRACKED`](#7-inputs)).
+  large-file tool's pointer, that is recognised as standing in for the file.
+  An input's file, or its stand-in, is what is tracked
+  ([`INPUT_NOT_TRACKED`](#7-inputs)).
 - **Submodules.** A submodule that is checked out is in the working tree, and
   its entries are read in its own repository. At a commit, a path that looks
   for a file or an analysis goes on through a gitlink into the submodule, at
