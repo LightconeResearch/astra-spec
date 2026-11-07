@@ -618,13 +618,6 @@
       "statement": "A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the repository that holds the declaring `astra.yaml`"
     },
     {
-      "code": "COMMIT_NOT_ANCESTOR",
-      "layer": "validator",
-      "level": "SHOULD",
-      "source": "§17 Analyses from another commit or repository",
-      "statement": "A declaration with a `path` and a `commit` names, in the repository that holds the declaring file, an ancestor of the commit the declaration is in or, for a declaration read in the working tree, HEAD or an ancestor of it"
-    },
-    {
       "code": "DECLARED_ANALYSIS_INVALID",
       "layer": "validator",
       "level": "MUST",

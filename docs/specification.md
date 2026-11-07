@@ -1623,13 +1623,10 @@ that commit, and none of `remote`'s recipes runs.
   path at the commit. The repository that holds the declaring `astra.yaml`
   has that commit
   ([`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) for
-  a file not read from a remote), which should be an ancestor of the commit
-  the declaration is in or, for a declaration read in the working tree, HEAD
-  or an ancestor of it
-  ([`COMMIT_NOT_ANCESTOR`](#17-analyses-from-another-commit-or-repository)).
-  It is read from the local repository or, when the declaring analysis is
-  itself read from a remote, from that remote, and each submodule it reaches
-  through a gitlink as [Annex B](#b-paths-and-git) says.
+  a file not read from a remote). It is read from the local repository or,
+  when the declaring analysis is itself read from a remote, from that remote,
+  and each submodule it reaches through a gitlink as
+  [Annex B](#b-paths-and-git) says.
 - So the folder a declaration with a `commit` names is read at that commit,
   and the folder a `url` names is the top level of its repository. That
   folder holds an `astra.yaml` file
@@ -1764,7 +1761,6 @@ analysis is from and, for a remote, where to get it.
 | `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` |
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits |
 | `COMMIT_NOT_FOUND` | validator | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the [repository that holds](#glossary) the declaring `astra.yaml` |
-| `COMMIT_NOT_ANCESTOR` | validator | SHOULD | A declaration with a `path` and a `commit` names, in the [repository that holds](#glossary) the declaring file, an ancestor of the commit the declaration is in or, for a declaration read in the working tree, HEAD or an ancestor of it |
 | `DECLARED_ANALYSIS_INVALID` | validator | MUST | An analysis from a commit, with everything it declares, is valid at that commit |
 
 Recommendation: a published analysis SHOULD declare only remotes its readers
@@ -2329,10 +2325,8 @@ checkers read git one way:
   gitlink.
 - **The repository that holds a file.** It is the innermost one: for a file
   in a submodule, the submodule's own.
-  [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) and
-  [`COMMIT_NOT_ANCESTOR`](#17-analyses-from-another-commit-or-repository) read
-  the repository that holds the declaring `astra.yaml`, and its HEAD for a
-  declaration read in the working tree
+  [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) reads
+  the repository that holds the declaring `astra.yaml`
   ([§17](#17-analyses-from-another-commit-or-repository)).
 - **Tracked.** [`INPUT_NOT_TRACKED`](#7-inputs) reads the repository that
   holds the input's analysis, where a file is tracked when, in the working
