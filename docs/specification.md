@@ -2415,7 +2415,8 @@ reported. Two rules whose subjects are both determined are both reported, even
 when one edit fixes both.
 
 1. **A file that can't be read, or whose version has no schema.** A file that
-   breaks a parse rule is checked no further. A file whose `spec_version` is
+   breaks a parse rule is checked no further, and at least one of the parse
+   rules it breaks is reported. A file whose `spec_version` is
    missing or malformed isn't checked by
    [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file): it is checked against
    the schema of the tool's own minor version, the validator's schema of
