@@ -817,11 +817,12 @@ environment.
 ### 12. Universes
 
 A universe selects one option for each active decision of its analysis: it
-is one way of making the analysis's choices. No universe is privileged: there
-is no default universe or option, and a universe called `baseline` is one
-with that name and nothing more. [§16](#16-driving-and-consuming) adds the
-decisions of the analyses its universes drive. An analysis's universes are
-entries of its `universes`. An entry can instead be an import (below).
+is one way of making the analysis's choices.
+[§16](#16-driving-and-consuming) adds the decisions of the analyses its
+universes drive. An analysis's universes are entries of its `universes`. An
+entry can instead be an import (below). No universe is privileged: there is
+no default universe or option, and a universe called `baseline` is one with
+that name and nothing more.
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -875,10 +876,6 @@ is resolved. Conditions ([§9](#9-conditions)) are judged on it.
    selection is dropped, so a universe that switches a decision off needn't
    undo what it inherited for it. `u3` selects `decision1: a`, which switches
    `decision3` off, so the `decision3: a` it inherits from `u2` is dropped.
-
-A universe whose `derived_from` doesn't resolve, or whose chain loops back to
-it ([`DERIVED_FROM_CYCLE`](#12-universes)) or reaches a universe that has none,
-has no effective selection.
 
 The effective selection is held to everything a universe written in full is:
 
