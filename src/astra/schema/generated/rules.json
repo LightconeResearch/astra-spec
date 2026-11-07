@@ -683,7 +683,7 @@
       "layer": "check",
       "level": "SHOULD",
       "source": "§20 Checking results",
-      "statement": "Every planned result's recorded bytes are at its default place",
+      "statement": "Every planned result's recorded bytes are at its default place, except a result of an analysis from a commit that no planned result reads",
       "status": "`absent`"
     },
     {

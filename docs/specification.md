@@ -2117,7 +2117,7 @@ schema error ([Annex E](#e-the-schema-files-and-rulesjson)).
 | `MISPLACED_RECORD` | check | MUST | The record at each planned result's place has, as its `address`, the address that place is worked out from | `missing` |
 | `MISSING_RECORD_INPUTS` | check | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` |
 | `STALE_RESULT` | check | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads | `stale` |
-| `ABSENT_RESULT` | check | SHOULD | Every planned result's recorded bytes are at its default place | `absent` |
+| `ABSENT_RESULT` | check | SHOULD | Every planned result's recorded bytes are at its default place, except a result of an analysis from a commit that no planned result reads | `absent` |
 | `STALE_EVIDENCE` | check | MUST | Every evidence citing a result cites an unchanged one | the cited result's record status |
 
 ### 21. Runners
@@ -2619,7 +2619,7 @@ An abridged `rules.json`:
       "layer": "check",
       "level": "SHOULD",
       "source": "§20 Checking results",
-      "statement": "Every planned result's recorded bytes are at its default place",
+      "statement": "Every planned result's recorded bytes are at its default place, except a result of an analysis from a commit that no planned result reads",
       "status": "`absent`"
     }
   ]
