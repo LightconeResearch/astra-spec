@@ -629,7 +629,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "§17 Analyses from another commit or repository",
-      "statement": "Every commit the stack gets from a remote, through a `url`, a file read from a remote or a gitlink crossed at a commit, can be fetched from that remote or is already in a local repository"
+      "statement": "Every commit the stack gets from a remote for a declaration, through its `url`, a file read from a remote or a gitlink its folder crosses at a commit, can be fetched from that remote or is already in a local repository"
     },
     {
       "code": "DECLARED_ANALYSIS_INVALID",

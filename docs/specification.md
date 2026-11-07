@@ -1684,13 +1684,15 @@ commit is got from a remote when it is:
 
 - a declaration's `url` and `commit`;
 - a `path` and `commit` declared in a file read from a remote;
-- the commit a gitlink pins, crossed at a commit
-  ([Annex B](#b-paths-and-git)).
+- the commit a gitlink pins, where a declaration's folder crosses it at a
+  commit ([Annex B](#b-paths-and-git)).
 
 A file is read from a remote when the commit it is read at is got from one.
 The remote is the `url`, the remote the file was read from, or the
 submodule's URL ([Annex B](#b-paths-and-git)). A commit already in a local
-repository counts as got.
+repository counts as got. An input's path that crosses, at a commit, a
+gitlink whose commit can't be got names no file
+([`MISSING_INPUT_FILE`](#7-inputs)).
 
 A commit that can't be got is an error on one declaration in a file outside
 every analysis from a commit, read in the working tree, which the author can
@@ -1773,7 +1775,7 @@ analysis is from and, for a remote, where to get it.
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits |
 | `COMMIT_NOT_FOUND` | validator | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the [repository that holds](#glossary) the declaring `astra.yaml` |
 | `COMMIT_NOT_ANCESTOR` | validator | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD of the [repository that holds](#glossary) the declaring file |
-| `REMOTE_UNREACHABLE` | validator | MUST | Every commit the stack gets from a remote, through a `url`, a file read from a remote or a gitlink crossed at a commit, can be fetched from that remote or is already in a local repository |
+| `REMOTE_UNREACHABLE` | validator | MUST | Every commit the stack gets from a remote for a declaration, through its `url`, a file read from a remote or a gitlink its folder crosses at a commit, can be fetched from that remote or is already in a local repository |
 | `DECLARED_ANALYSIS_INVALID` | validator | MUST | An analysis from a commit, with everything it declares, is valid at that commit, [`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository) aside |
 
 Recommendation: a published analysis SHOULD declare only remotes its readers
