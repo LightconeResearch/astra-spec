@@ -2062,12 +2062,12 @@ Otherwise it is **stale**. Nothing else counts:
   compared: a change to either shows only when the recipe is run again and
   makes other bytes.
 
-A result with a valid record is stale, not `missing`, when what
-[`STALE_RESULT`](#20-checking-results) compares can't be read: its record's
-commit can't be read (it was squashed or rebased away, or wasn't got with
-the declared commit), its output doesn't exist at that commit, or an input's
-content sits behind a stand-in that gives no hash. Nothing shows it
-unchanged.
+A result with a valid record where its address says is stale, not `missing`,
+when what [`STALE_RESULT`](#20-checking-results) compares can't be read: its
+record's commit can't be read (it was squashed or rebased away, or wasn't
+got with the declared commit), its output doesn't exist at that commit, or
+an input's content sits behind a stand-in that gives no hash. Nothing shows
+it unchanged.
 
 An unchanged result suggests, but doesn't guarantee, that the recipe would
 make it again. In the worked example ([§2](#2-a-worked-example)):
@@ -2135,7 +2135,7 @@ schema error ([Annex E](#e-the-schema-files-and-rulesjson)).
 | `MISSING_RECORD` | check | MUST | Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once), for each of its names, in the analysis it belongs to | `missing` |
 | `INVALID_RECORD` | check | MUST | The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema or, when that minor version is greater than the checker's, against the open variant of the checker's own record schema | `missing` |
 | `MISPLACED_RECORD` | check | MUST | The record at each planned result's place has, as its `address`, the address that place is worked out from | `missing` |
-| `MISSING_RECORD_INPUTS` | check | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning) | `missing` |
+| `MISSING_RECORD_INPUTS` | check | MUST | The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, where that commit can be read and its output exists there, matched by `entry`, and no other item (their order carries no meaning) | `missing` |
 | `STALE_RESULT` | check | MUST | Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads | `stale` |
 | `ABSENT_RESULT` | check | SHOULD | Every planned result's recorded bytes are at its default place, except a result of an analysis from a commit that no planned result reads | `absent` |
 | `STALE_EVIDENCE` | check | MUST | Every evidence citing a result cites an unchanged one | the cited result's record status |

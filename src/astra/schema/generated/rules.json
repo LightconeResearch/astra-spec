@@ -667,7 +667,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "§20 Checking results",
-      "statement": "The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning)",
+      "statement": "The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, where that commit can be read and its output exists there, matched by `entry`, and no other item (their order carries no meaning)",
       "status": "`missing`"
     },
     {
