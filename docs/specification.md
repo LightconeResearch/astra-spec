@@ -891,8 +891,8 @@ is resolved. Conditions ([§9](#9-conditions)) are judged on it.
    undo what it inherited for it. `u3` selects `decision1: a`, which switches
    `decision3` off, so the `decision3: a` it inherits from `u2` is dropped.
 
-A universe whose `derived_from` doesn't resolve, or whose chain loops
-([`DERIVED_FROM_CYCLE`](#12-universes)) or reaches a universe that has none,
+A universe whose `derived_from` doesn't resolve, or whose chain loops back to
+it ([`DERIVED_FROM_CYCLE`](#12-universes)) or reaches a universe that has none,
 has no effective selection ([Annex D](#d-when-a-rule-isnt-checked)).
 
 The effective selection is held to everything a universe written in full is:
@@ -2517,9 +2517,9 @@ when one edit fixes both.
    `inputs`. Step 3 of the effective selection ([§12](#12-universes)) doesn't
    drop such a decision.
 7. **A universe with no effective selection.** A universe has none when its
-   `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#12-universes), or its chain
-   breaks [`DERIVED_FROM_CYCLE`](#12-universes) or reaches a universe that has
-   none. For it, [`MISSING_DECISION`](#16-driving-and-consuming),
+   `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#12-universes), or it breaks
+   [`DERIVED_FROM_CYCLE`](#12-universes), or its chain reaches a universe that
+   has none. For it, [`MISSING_DECISION`](#16-driving-and-consuming),
    [`INACTIVE_DECISION`](#12-universes),
    [`MISSING_REQUIRED_OPTION`](#12-universes),
    [`INCOMPATIBLE_OPTIONS`](#12-universes),
