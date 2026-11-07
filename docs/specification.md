@@ -565,9 +565,9 @@ inputs:
   files is many inputs.
 - The path names the file itself (not a symlink:
   [Annex B](#b-paths-and-git)), or a stand-in for it
-  ([`MISSING_INPUT_FILE`](#7-inputs)). A stand-in is something the validator
-  recognises as standing in for the file, such as a large-file tool's
-  pointer. Something standing in for the content isn't the content.
+  ([`MISSING_INPUT_FILE`](#7-inputs)). A stand-in is something kept in the
+  file's place and recognised as standing in for it, such as a large-file
+  tool's pointer. Something standing in for the content isn't the content.
 - The file is inside the analysis's folder and outside every folder below it
   that holds an `astra.yaml` file of its own
   ([`INPUT_IN_ANOTHER_ANALYSIS`](#7-inputs)). Another analysis reads an
