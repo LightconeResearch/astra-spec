@@ -2548,7 +2548,7 @@ when one edit fixes both, except a file's parse rules (1).
    [`INVALID_RECORD`](#20-checking-results) isn't checked by the last two.
    [`STALE_RESULT`](#20-checking-results) and
    [`ABSENT_RESULT`](#20-checking-results) aren't checked for a result that is
-   `missing`, whose bytes are still `absent`.
+   `missing`.
 10. **A key that loops.** [`LOOPING_KEY`](#16-driving-and-consuming) is judged
     on a key's declarations up to the first that doesn't resolve or whose
     analysis is undetermined (4, 5). A key that loops still names its decision,
