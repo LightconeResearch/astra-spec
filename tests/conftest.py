@@ -30,16 +30,12 @@ _RULE_LINE = re.compile(r"# rule: ([A-Z][A-Z0-9_]*)")
 _FAILS_AT_LINE = re.compile(r"# fails at: (\(root\)|parse|(/[^/]*)+)")
 _ALSO_LINE = re.compile(r"# also: ([A-Z][A-Z0-9_]*) at (\(root\)|(/[^/]*)+)")
 
-PARSE_CODES = {"INVALID_SYNTAX", "DUPLICATE_KEY"}
+PARSE_CODES = {"INVALID_SYNTAX"}
 """The parse-layer codes `parse_code` gives."""
 
 
 class YAMLError(ValueError):
     """An `astra.yaml` that breaks a parse rule (spec Annex A), as `load_yaml` reads it."""
-
-
-class DuplicateKeyError(YAMLError):
-    """A map of an `astra.yaml` with two equal keys (spec Annex A)."""
 
 
 class JSONError(ValueError):
@@ -55,13 +51,8 @@ PARSE_ERRORS = (YAMLError, JSONError)
 
 
 def parse_code(error: YAMLError | JSONError) -> str:
-    """The parse-layer code of a loader error: `DUPLICATE_KEY` for a repeated key or name, `INVALID_SYNTAX` for any
-    other."""
-    return (
-        "DUPLICATE_KEY"
-        if isinstance(error, (DuplicateKeyError, DuplicateNameError))
-        else "INVALID_SYNTAX"
-    )
+    """The parse-layer code of a loader error: `INVALID_SYNTAX`."""
+    return "INVALID_SYNTAX"
 
 
 # --- An astra.yaml: a stock YAML 1.2 parser, read under the core schema, whose content is a JSON value ---
@@ -213,8 +204,8 @@ def _root(events: Iterator[Any]) -> _Node | None:
 
 
 def _json_value(node: _Node, path: list[Any]) -> Any:
-    """The JSON value of `node`, at `path` in the document; raises `YAMLError` for a key that isn't a string, and
-    `DuplicateKeyError` for two equal keys of one map (spec Annex A)."""
+    """The JSON value of `node`, at `path` in the document; raises `YAMLError` for a key that isn't a string or for two
+    equal keys of one map."""
     if node.children is None:
         return node.value
     if not node.is_map:
@@ -226,7 +217,7 @@ def _json_value(node: _Node, path: list[Any]) -> Any:
                 f"found a key that isn't a string {_at(key.mark)}: every key of a JSON value is a string"
             )
         if key.value in mapping:
-            raise DuplicateKeyError(
+            raise YAMLError(
                 f"found the key {key.value!r} twice in the map at {_pointer(path)}: its keys are distinct"
             )
         mapping[key.value] = _json_value(value, [*path, key.value])
@@ -241,8 +232,8 @@ def load_yaml(source: Path | str) -> Any:
     events (`_node`): any error the parser raises; at most one document; each scalar read under the core schema, a plain
     one by YAML 1.2.2 §10.3.2's table; only the core schema's tags, each on a node of its kind; every number finite;
     and each alias read as the node it names. Then on the tree, once the whole file has parsed (`_json_value`): every
-    key a string, and no two equal keys in one map (`DuplicateKeyError`). A file with no document (empty, or only
-    comments) is None. A `RecursionError` (a document nested too deep) is left as it is.
+    key a string, and no two equal keys in one map. A file with no document (empty, or only comments) is None. A
+    `RecursionError` (a document nested too deep) is left as it is.
     """
     data = source.read_bytes() if isinstance(source, Path) else source
     root = _root(_events(data))

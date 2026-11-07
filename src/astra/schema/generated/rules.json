@@ -293,14 +293,7 @@
       "layer": "parse",
       "level": "MUST",
       "source": "§5 The astra.yaml file",
-      "statement": "Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8"
-    },
-    {
-      "code": "DUPLICATE_KEY",
-      "layer": "parse",
-      "level": "MUST",
-      "source": "§5 The astra.yaml file",
-      "statement": "No map in an `astra.yaml` has two equal keys, and no object in a record has two equal names"
+      "statement": "Every `astra.yaml` is a YAML 1.2 document whose content is a map, and every record is JSON text in UTF-8 in which no object has two equal names"
     },
     {
       "code": "MISSING_FIELD",

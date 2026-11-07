@@ -844,7 +844,6 @@ def test_every_code_in_the_error_map_is_a_schema_code():
     )
     assert {code for code, layer in layers.items() if layer == "parse"} == {
         "INVALID_SYNTAX",
-        "DUPLICATE_KEY",
     }
 
 

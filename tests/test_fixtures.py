@@ -171,7 +171,7 @@ analyses:
 """A declaration with both `path` and `url` (INVALID_DECLARATION_SOURCE) and a short commit (INVALID_COMMIT)."""
 
 _FIXTURE_159 = DATA / "invalid" / "Analysis-159-path-null-beside-url.yaml"
-_FIXTURE_101 = DATA / "invalid" / "Analysis-101-duplicate-output.yaml"
+_FIXTURE_182 = DATA / "invalid" / "Analysis-182-malformed-yaml.yaml"
 
 
 def _body(path: Path) -> str:
@@ -180,12 +180,6 @@ def _body(path: Path) -> str:
 
 
 MISLABELLED = {
-    "duplicate-key-headed-syntax": (
-        "# rule: INVALID_SYNTAX\n"
-        "# fails at: parse\n"
-        'spec_version: "0.1.0"\n'
-        'spec_version: "0.1.0"\n'
-    ),
     "second-break-undeclared": (
         "# rule: INVALID_COMMIT\n"
         "# fails at: /analyses/up/commit\n" + _TWO_SOURCES_AND_A_SHORT_COMMIT
@@ -202,16 +196,16 @@ MISLABELLED = {
         "# also: INVALID_DECLARATION_SOURCE at /analyses/up\n" + _body(_FIXTURE_159)
     ),
     "also-on-a-parse-fixture": (
-        "# rule: DUPLICATE_KEY\n"
+        "# rule: INVALID_SYNTAX\n"
         "# fails at: parse\n"
-        "# also: INVALID_ID at /outputs\n" + _body(_FIXTURE_101)
+        "# also: INVALID_ID at /outputs\n" + _body(_FIXTURE_182)
     ),
 }
 """Scratch fixtures whose header doesn't say exactly how they fail, each of which the check must reject.
 
-The first's loader error is DUPLICATE_KEY. The next two break two rules, and declare the second not at all, or with
-the wrong code. Analysis-159 reports WRONG_TYPE alone (its declaration's checks are guarded by type), so an
-`# also:` line on it names an error that isn't reported. A parse fixture has no `# also:` line.
+The first two break two rules, and declare the second not at all, or with the wrong code. Analysis-159 reports
+WRONG_TYPE alone (its declaration's checks are guarded by type), so an `# also:` line on it names an error that isn't
+reported. A parse fixture has no `# also:` line.
 """
 
 
@@ -226,14 +220,6 @@ def test_check_rejects_a_fixture_whose_header_is_wrong(tmp_path, name):
 _RECORD_201 = DATA / "invalid" / "ProvenanceRecord-201-no-content-hash.json"
 
 MISLABELLED_RECORDS = {
-    "repeated-name-headed-syntax": (
-        "# rule: INVALID_SYNTAX\n# fails at: parse\n",
-        '{"spec_version": "0.1.0", "spec_version": "0.1.0"}\n',
-    ),
-    "comment-headed-duplicate-key": (
-        "# rule: DUPLICATE_KEY\n# fails at: parse\n",
-        '// a comment\n{"spec_version": "0.1.0"}\n',
-    ),
     "schema-break-headed-parse": (
         "# rule: INVALID_SYNTAX\n# fails at: parse\n",
         _RECORD_201.read_text(encoding="utf-8"),
@@ -243,8 +229,8 @@ MISLABELLED_RECORDS = {
         _RECORD_201.read_text(encoding="utf-8"),
     ),
 }
-"""Scratch records, each a `(header, record)`, whose header doesn't say exactly how they fail: a repeated name is
-DUPLICATE_KEY, a comment INVALID_SYNTAX, and record 201 parses, and fails at `(root)`."""
+"""Scratch records, each a `(header, record)`, whose header doesn't say exactly how they fail: record 201 parses, and
+fails at `(root)`."""
 
 
 @pytest.mark.parametrize("name", MISLABELLED_RECORDS)

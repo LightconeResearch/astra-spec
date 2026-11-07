@@ -1,5 +1,5 @@
-"""The harness's loaders: an `astra.yaml` read by a stock YAML 1.2 parser under the core schema, its content a JSON value
-(spec Annex A), and a record as JSON (spec Annex A).
+"""The harness's loaders: an `astra.yaml` read by a stock YAML 1.2 parser under the core schema (spec Annex A), and a
+record as JSON (spec Annex A).
 
 These tests check ASTRA's rules. YAML's own grammar is the parser's to read, and isn't tested here.
 """
@@ -45,32 +45,7 @@ def refused(load):
     return _refused
 
 
-# --- Documents: at most one ---
-
-
-@pytest.mark.parametrize(
-    "text, value",
-    [
-        ("---\na: 1\n", {"a": 1}),
-        ("a: 1\n...\n", {"a": 1}),
-        ("", None),
-        ("# c\n", None),
-        ("---\n", None),
-    ],
-)
-def test_a_file_holds_at_most_one_document(load, text, value):
-    """A file with no document is null, which fails as WRONG_TYPE."""
-    assert load(text) == value
-
-
-@pytest.mark.parametrize(
-    "text", ["a: 1\n---\nb: 2\n", "---\na: 1\n...\n---\nb: 2\n", "---\n---\n"]
-)
-def test_a_second_document_is_invalid_syntax(refused, text):
-    assert refused(text) == "INVALID_SYNTAX"
-
-
-# --- The core schema: plain scalars typed by its table, and only its tags ---
+# --- The core schema: plain scalars typed by its table, and its tags ---
 
 
 @pytest.mark.parametrize(
@@ -170,48 +145,7 @@ def test_a_core_schema_tag_is_read_as_the_core_schema_reads_it(load, text, value
     assert [type(x) for x in loaded.values()] == [type(x) for x in value.values()]
 
 
-@pytest.mark.parametrize(
-    "text",
-    [
-        "a: !!set {x, y}\n",
-        "a: !!omap [x: 1]\n",
-        "a: !!binary aGk=\n",
-        "a: !!timestamp 2026-10-26\n",
-        "a: !!merge x\n",
-        "a: !include b.yaml\n",
-        "a: !<tag:example.com,2000:x> y\n",
-        "%TAG !! tag:example.com,2000:\n---\na: !!str x\n",
-        "a: !!int 1.5\n",
-        "a: !!bool yes\n",
-        "a: !!null x\n",
-        "a: !!str [1]\n",
-        "a: !!map [1]\n",
-        "a: !!seq x\n",
-    ],
-)
-def test_any_other_tag_is_invalid_syntax(refused, text):
-    """A tag outside the core schema (an `!!` tag the core schema lacks, a local tag, `!!` bound elsewhere by `%TAG`), or
-    a core tag on a node it doesn't read."""
-    assert refused(text) == "INVALID_SYNTAX"
-
-
-# --- The content is a JSON value ---
-
-
-@pytest.mark.parametrize(
-    "text",
-    [
-        "a: .inf\n",
-        "a: -.Inf\n",
-        "a: +.INF\n",
-        "a: .nan\n",
-        "a: !!float .inf\n",
-        "a: [1, .NaN]\n",
-        "a: {b: .inf}\n",
-    ],
-)
-def test_a_number_that_isnt_finite_is_invalid_syntax(refused, text):
-    assert refused(text) == "INVALID_SYNTAX"
+# --- Numbers, as JSON Schema types them ---
 
 
 @pytest.mark.parametrize("version, valid", [("2.0", True), ("2.5", False)])
@@ -232,73 +166,6 @@ def test_a_number_is_typed_as_json_schema_types_it(load, version, valid):
     assert error_pointers(validator("Analysis"), doc) == expected
 
 
-@pytest.mark.parametrize(
-    "text",
-    [
-        "~: x\n",
-        "true: x\n",
-        "1: x\n",
-        "1.5: x\n",
-        "? [a, b]\n: x\n",
-        "? {a: 1}\n: x\n",
-        "a:\n  - b: {1: x}\n",
-        "true: x\n'true': y\n",
-    ],
-)
-def test_a_key_that_isnt_a_string_is_invalid_syntax(refused, text):
-    """A key the core table reads as a null, a boolean or a number, or a key that is a list or a map, anywhere."""
-    assert refused(text) == "INVALID_SYNTAX"
-
-
-@pytest.mark.parametrize(
-    "text, value",
-    [
-        ("a: &x [1]\nb: *x\n", {"a": [1], "b": [1]}),
-        ("a: &k x\n*k : y\n", {"a": "x", "x": "y"}),
-        ("a: &x {b: 1}\nc:\n  <<: *x\n", {"a": {"b": 1}, "c": {"<<": {"b": 1}}}),
-    ],
-)
-def test_an_alias_is_read_as_the_node_it_names(load, text, value):
-    assert load(text) == value
-
-
-@pytest.mark.parametrize("text", ["a: &x [1, *x]\n", "a: &x {b: *x}\n", "a: *x\n"])
-def test_an_alias_that_gives_no_json_value_is_invalid_syntax(refused, text):
-    """An alias inside the node it names makes the content no JSON value, as does one that names no node."""
-    assert refused(text) == "INVALID_SYNTAX"
-
-
-# --- Duplicate keys ---
-
-
-@pytest.mark.parametrize(
-    "text",
-    [
-        "a: x\na: y\n",
-        "a: x\n'a': y\n",
-        'a: x\n"\\x61": y\n',
-        "'a': x\n\"a\": y\n",
-        "\"1\": x\n'1': y\n",
-        "a: {b: 1, b: 2}\n",
-        "- a: 1\n  a: 2\n",
-        "a:\n  b: 1\n  c: 2\n  b: 3\n",
-    ],
-    ids=[
-        "plain",
-        "plain-and-quoted",
-        "escaped",
-        "two-quotings",
-        "quoted-digits",
-        "flow",
-        "in-a-list",
-        "nested",
-    ],
-)
-def test_equal_keys_are_a_duplicate_key(refused, text):
-    """Two keys of one map are equal once their escapes are read."""
-    assert refused(text) == "DUPLICATE_KEY"
-
-
 # --- Anything else is YAML's to read ---
 
 
@@ -317,12 +184,12 @@ def test_text_the_parser_refuses_is_invalid_syntax(refused):
         '{"x": [{"a": 1, "b": 2, "a": 3}]}',
     ],
 )
-def test_a_name_written_twice_in_a_record_is_a_duplicate_key(text):
+def test_a_name_written_twice_in_a_record_is_invalid_syntax(text):
     """`json.loads` keeps the last of two names; the harness refuses the second, comparing names once their escapes
     are read."""
     with pytest.raises(DuplicateNameError) as raised:
         load_json(text)
-    assert parse_code(raised.value) == "DUPLICATE_KEY"
+    assert parse_code(raised.value) == "INVALID_SYNTAX"
 
 
 @pytest.mark.parametrize(

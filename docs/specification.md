@@ -337,11 +337,10 @@ outputs:
       command: python src/output3.py '{inputs.input1}' '{output}'
 ```
 
-- An `astra.yaml` is YAML 1.2 whose content is a JSON value
-  ([`INVALID_SYNTAX`](#5-the-astrayaml-file)), and no map in it has two equal
-  keys ([`DUPLICATE_KEY`](#5-the-astrayaml-file)). A record
-  ([§19](#19-records)) is JSON text in UTF-8, and no object in it has two
-  equal names. [Annex A](#a-reading-files) says how each is read.
+- An `astra.yaml` is a YAML 1.2 document whose content is a map, and a
+  record ([§19](#19-records)) is JSON text in UTF-8 in which no object has
+  two equal names ([`INVALID_SYNTAX`](#5-the-astrayaml-file)).
+  [Annex A](#a-reading-files) says how each is read.
 - An analysis has a `spec_version` and at least one output
   ([`MISSING_FIELD`](#5-the-astrayaml-file),
   [`EMPTY_COLLECTION`](#5-the-astrayaml-file)). Everything else is optional.
@@ -402,8 +401,7 @@ a declared analysis, and a result is read by its address, never by a path.
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
-| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8 |
-| `DUPLICATE_KEY` | parse | MUST | No map in an `astra.yaml` has two equal keys, and no object in a record has two equal names |
+| `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a YAML 1.2 document whose content is a map, and every record is JSON text in UTF-8 in which no object has two equal names |
 | `MISSING_FIELD` | schema | MUST | Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Output.recipe`, `Recipe.command`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size` |
 | `UNKNOWN_FIELD` | schema | MUST | Every field is one the schema defines |
 | `EMPTY_COLLECTION` | schema | MUST | `outputs`, `Decision.options` and `Insight.evidence` each have at least one entry, and no list of strings in an `astra.yaml` is empty |
@@ -447,9 +445,8 @@ selected.
 - The id is written once, as the key
   ([`INVALID_ID`](#6-names)): `a: {}`, never `a: {id: a}`
   ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)).
-- Ids are unique within their map because keys are
-  ([`DUPLICATE_KEY`](#5-the-astrayaml-file)), and the order of a map carries
-  no meaning.
+- Ids are unique within their map, since a map's keys are, and the order of
+  a map carries no meaning.
 - A map's entries are objects, except those of `Universe.decisions`, each of
   which is the id of the option selected (`decision1: a`)
   ([`WRONG_TYPE`](#5-the-astrayaml-file)). A list where a map is expected, as
@@ -2091,8 +2088,7 @@ from what git holds at the declared commit
 
 A checker reports [`INVALID_RECORD`](#20-checking-results) with each code a
 record breaks as its reason: the parser's
-([`INVALID_SYNTAX`](#5-the-astrayaml-file) or
-[`DUPLICATE_KEY`](#5-the-astrayaml-file)), or the one `rules.json` gives the
+([`INVALID_SYNTAX`](#5-the-astrayaml-file)), or the one `rules.json` gives the
 schema error ([Annex D](#d-the-schema-files-and-rulesjson)).
 
 | Code | Layer | Level | Rule | Status when broken |
@@ -2241,15 +2237,10 @@ Part III is normative.
 
 ### A. Reading files
 
-**`astra.yaml`** is a YAML 1.2 stream
-([YAML 1.2.2](https://yaml.org/spec/1.2.2/)) with at most one document, read
-under its core schema, with no tag but the core schema's
-([`INVALID_SYNTAX`](#5-the-astrayaml-file)). A file with no document is null
-([`WRONG_TYPE`](#5-the-astrayaml-file)). Its content is a JSON value: every
-key is a string and every number is finite, not `.inf` or `.nan`
-([`INVALID_SYNTAX`](#5-the-astrayaml-file)), and no map has two equal keys
-([`DUPLICATE_KEY`](#5-the-astrayaml-file)), so `a`, `'a'` and `"a"` are one
-key. The schema checks that value.
+**`astra.yaml`** is a YAML 1.2 document
+([YAML 1.2.2](https://yaml.org/spec/1.2.2/)), read under its core schema,
+whose content is a map ([`INVALID_SYNTAX`](#5-the-astrayaml-file)). The
+schema checks that content.
 
 - Plain scalars are typed by the core schema
   ([YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)),
@@ -2258,17 +2249,8 @@ key. The schema checks that value.
 - A number is checked as JSON Schema checks it, so `2.0` is an integer.
 
 **Records** are JSON text ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259))
-in UTF-8 ([`INVALID_SYNTAX`](#5-the-astrayaml-file)). No object of a record
-has two equal names ([`DUPLICATE_KEY`](#5-the-astrayaml-file)).
-
-**YAML's share.** These parts of the rules above exist only because
-`astra.yaml` is YAML:
-
-- at most one document, read under the core schema, with no tag but its own;
-- a file with no document is null;
-- every key is a string, and every number is finite;
-- `a`, `'a'` and `"a"` are one key;
-- plain scalars are typed by the core schema.
+in UTF-8, in which no object has two equal names
+([`INVALID_SYNTAX`](#5-the-astrayaml-file)).
 
 ### B. Paths and git
 
