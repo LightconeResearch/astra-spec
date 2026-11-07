@@ -574,8 +574,8 @@ decision such as which data release to use
 ([§13](#13-pins-and-outputs-built-per-universe-or-once)), and its record
 holds the hash of what came back. Data kept in another repository, a git
 submodule say, isn't tracked in git with the analysis either, so it isn't an
-input. It belongs in the analysis's own repository or in another analysis, as
-that analysis's input, or comes in through an output whose recipe gets it.
+input. It belongs in the analysis's own repository, or in another analysis as
+that analysis's input.
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
