@@ -945,7 +945,7 @@ universes:
 |---|---|---|---|
 | `INVALID_IMPORT` | schema | MUST | An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from` |
 | `UNKNOWN_DERIVED_FROM` | validator | MUST | A universe's `derived_from` names a universe of the same analysis, never an import |
-| `DERIVED_FROM_CYCLE` | validator | MUST | No universe's chain of `derived_from` loops |
+| `DERIVED_FROM_CYCLE` | validator | MUST | No universe's chain of `derived_from` loops back to it |
 | `MISSING_REQUIRED_OPTION` | validator | MUST | Every effective selection satisfies the `requires` of every option it selects |
 | `INCOMPATIBLE_OPTIONS` | validator | MUST | Every effective selection satisfies the `incompatible_with` of every option it selects |
 | `EXCLUDED_OPTION_SELECTED` | validator | MUST | No effective selection selects an excluded option |

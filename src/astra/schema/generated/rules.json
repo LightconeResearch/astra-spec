@@ -461,7 +461,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "§12 Universes",
-      "statement": "No universe's chain of `derived_from` loops"
+      "statement": "No universe's chain of `derived_from` loops back to it"
     },
     {
       "code": "MISSING_REQUIRED_OPTION",
