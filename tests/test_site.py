@@ -213,33 +213,41 @@ def shown_patterns() -> dict[str, list[str]]:
 def schema_patterns() -> dict[str, list[str]]:
     """Each pattern the LinkML sources write, as they write it, keyed by the page that shows it.
 
-    A named type's page, under its CamelCase name, shows its `pattern`, or its structured pattern's syntax, which
-    `gen-doc` shows uninterpolated. A slot's page, under its own name, shows the pattern of the one class that defines
-    the slot. A slot that more than one class defines, as `Input.path` and `AnalysisDeclaration.path`, has one page,
-    which shows none, even where every class gives it the same pattern."""
+    A named type's page, under its CamelCase name, shows its `pattern`, or its structured pattern's syntax with each
+    `{name}` filled in from the settings. A slot's page, under its own name, shows the pattern of the classes that
+    define the slot, where they all give it the same one: `Input.path` and `AnalysisDeclaration.path` share a page."""
     yaml = YAML(typ="safe", pure=True)
+    sources = [
+        yaml.load(module.read_text(encoding="utf-8"))
+        for module in sorted(SOURCES.glob("*.yaml"))
+    ]
+    settings = {}
+    for source in sources:
+        settings.update(source.get("settings") or {})
     expected = {}
     slots = defaultdict(list)
-    for module in sorted(SOURCES.glob("*.yaml")):
-        source = yaml.load(module.read_text(encoding="utf-8"))
+    for source in sources:
         for name, definition in (source.get("types") or {}).items():
-            pattern = definition.get("pattern") or (
-                definition.get("structured_pattern") or {}
-            ).get("syntax")
+            structured = definition.get("structured_pattern") or {}
+            pattern = definition.get("pattern") or structured.get("syntax")
+            if pattern and structured.get("interpolated"):
+                for key, value in settings.items():
+                    pattern = pattern.replace("{" + key + "}", value)
             if pattern:
                 expected[camelcase(name)] = [pattern]
         for definition in (source.get("classes") or {}).values():
             for name, slot in ((definition or {}).get("attributes") or {}).items():
                 slots[name].append((slot or {}).get("pattern"))
     for name, patterns in slots.items():
-        if len(patterns) == 1 and patterns[0] is not None:
-            expected[name] = patterns
+        if patterns[0] is not None and len(set(patterns)) == 1:
+            expected[name] = patterns[:1]
     return expected
 
 
 def test_element_pages_show_their_patterns():
     """Every Regex Pattern cell of the field reference shows its element's pattern exactly as the LinkML sources
-    write it, and every pattern they write has its cell, whatever backtick, `|`, `[^` or `^` it holds.
+    write it, each `{name}` filled in, and every pattern they write has its cell, whatever backtick, `|`, `[^` or `^`
+    it holds.
 
     The description of `FragmentSelector.value` lists characters one by one, `[`, `\\` and `]` among them: its page
     shows it word for word, as markdown-it renders it."""
