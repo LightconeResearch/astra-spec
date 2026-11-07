@@ -237,6 +237,10 @@ In the spec since the audit of 2026-11-06 (its D3):
 
 The audit's other accepted items (§2's O items but O23, which stays as an explanation of the model, §4's I items and §6's N items) changed wording only: each cut a sentence about a library, a platform, this repository, advice or what is left open, stated a fact once, or made a description say what the rules say. No verdict changes, and no rule's reach changes beyond the entries above. Among them, `rules.json` changes only in `STALE_EVIDENCE`'s `status` (I16) and, recorded above, the statements of `COMMIT_NOT_FOUND`, `ABSENT_RESULT` and `INPUT_IN_ANOTHER_ANALYSIS`.
 
+### What is left to tools
+
+Decided on 2026-11-07 (Tom). Annex D (which codes an already-invalid analysis gets), the reporting text of spec §3 and §17, and `REMOTE_UNREACHABLE`, `UNSUPPORTED_SPEC_VERSION`, `DUPLICATE_KEY` and `COMMIT_NOT_ANCESTOR` leave the spec as tools' business. `INVALID_SYNTAX` shrinks, Annex E becomes Annex D, and `rules.json` has 62 codes.
+
 ## 5. The new specification
 
 The specification is one page: Part I, Part II, a glossary, then Part III.
@@ -255,7 +259,7 @@ The specification is one page: Part I, Part II, a glossary, then Part III.
    - The five layers, in one table: what each reads, and who checks it.
    - What valid means.
    - A broken MUST is an error, and a broken SHOULD is a warning.
-   - A rule left undetermined by another rule's breach isn't checked (Annex D).
+   - A rule left undetermined by another rule's breach isn't checked (Annex D). *Superseded on 2026-11-07 (§4, "What is left to tools").*
 4. **Conventions.** MUST, SHOULD and MAY; how to read a codes table; placeholders in examples; and the field reference, which the spec links to rather than restating it.
 
 ### Part II: The specification
@@ -300,9 +304,9 @@ The specification is one page: Part I, Part II, a glossary, then Part III.
 
 **Part III: For tool builders.** Normative and terse.
 - **A. Reading files:** what an `astra.yaml` and a record are, in full: YAML 1.2 whose content is a JSON value, and JSON. Since the audit of 2026-11-06 this is a few lines.
-- **B. Paths and git:** tidying a path as text, symlinks, gitlinks crossed at a commit, and the glossary's git terms in full.
+- **B. Paths and git:** a path names the entry at exactly that path, case included; tidying a path as text, symlinks, gitlinks crossed at a commit, and the glossary's git terms in full.
 - **C. Grammars and patterns:** the ABNF, each pattern, and the characters of fragment identifiers.
-- **D. When a rule isn't checked.**
+- **D. When a rule isn't checked.** *Superseded on 2026-11-07 (§4, "What is left to tools").*
 - **E. The schema files and `rules.json`:** how an error maps to its code, records as RDF, and the `rules.json` excerpt.
 - **References:** external standards only.
 
@@ -347,7 +351,7 @@ For example:
 >
 > | Code | Layer | Level | Rule |
 > |---|---|---|---|
-> | `INVALID_PATH` | schema | MUST | A declaration's or input's `path` is non-empty and doesn't start with `/` |
+> | `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` is non-empty and doesn't start with `/` |
 > | `MISSING_INPUT_FILE` | validator | MUST | An input's `path` names a file (not a folder, a symlink or a submodule), or a stand-in for one that the validator recognises |
 > | `INPUT_NOT_TRACKED` | validator | MUST | An input's file, or its stand-in, is [tracked](#glossary) in the repository that holds its analysis |
 > | `INPUT_IN_ANOTHER_ANALYSIS` | validator | MUST | An input's file is inside its analysis's folder, and not inside a folder below it that has an `astra.yaml` file of its own |
@@ -363,7 +367,7 @@ The starting placement:
 
 | Spec section | Codes |
 |---|---|
-| 5. The `astra.yaml` file | INVALID_SYNTAX, DUPLICATE_KEY, MISSING_FIELD, UNKNOWN_FIELD, WRONG_TYPE, EMPTY_COLLECTION, DUPLICATE_ENTRY, INVALID_VALUE, UNSUPPORTED_SPEC_VERSION, NOT_IN_REPOSITORY |
+| 5. The `astra.yaml` file | INVALID_SYNTAX, DUPLICATE_KEY, MISSING_FIELD, UNKNOWN_FIELD, WRONG_TYPE, EMPTY_COLLECTION, DUPLICATE_ENTRY, INVALID_VALUE, UNSUPPORTED_SPEC_VERSION, NOT_IN_REPOSITORY. *DUPLICATE_KEY and UNSUPPORTED_SPEC_VERSION superseded on 2026-11-07 (§4, "What is left to tools").* |
 | 6. Names | INVALID_ID, INVALID_REFERENCE, UNRESOLVED_ADDRESS |
 | 7. Inputs | INVALID_PATH, MISSING_INPUT_FILE, INPUT_NOT_TRACKED, INPUT_IN_ANOTHER_ANALYSIS, RESERVED_PATH |
 | 8. Decisions and options | UNKNOWN_OPTION |
@@ -374,7 +378,7 @@ The starting placement:
 | 14. Insights and evidence | INVALID_EVIDENCE_SOURCE, INVALID_INSIGHT_REF |
 | 15. Declared analyses | DECLARATION_OUTSIDE_REPOSITORY, MISSING_DECLARED_ANALYSIS, CLASHING_RESULT_NAME |
 | 16. Driving and consuming | RESULT_IN_TWO_PLACES, NOT_BUILT_IN_UNIVERSE, UNDRIVEN_DECLARATION, MISSING_DECISION, UNKNOWN_PIN_UNIVERSE, DUPLICATE_ELEMENT, LOOPING_KEY |
-| 17. Analyses from another commit or repository | INVALID_DECLARATION_SOURCE, URL_WITHOUT_COMMIT, INVALID_COMMIT, COMMIT_NOT_FOUND, COMMIT_NOT_ANCESTOR, REMOTE_UNREACHABLE, DECLARED_ANALYSIS_INVALID |
+| 17. Analyses from another commit or repository | INVALID_DECLARATION_SOURCE, URL_WITHOUT_COMMIT, INVALID_COMMIT, COMMIT_NOT_FOUND, COMMIT_NOT_ANCESTOR, REMOTE_UNREACHABLE, DECLARED_ANALYSIS_INVALID. *COMMIT_NOT_ANCESTOR and REMOTE_UNREACHABLE superseded on 2026-11-07 (§4, "What is left to tools").* |
 | 20. Checking results | MISSING_RECORD, INVALID_RECORD, MISPLACED_RECORD, MISSING_RECORD_INPUTS, STALE_RESULT, ABSENT_RESULT, STALE_EVIDENCE |
 | 21. Runners | UNRECORDED_RESULT, FALSE_RECORD, UNRECREATABLE_ENVIRONMENT, UNCOMMITTED_CHANGES, WRONG_WORKING_DIRECTORY, NOT_AT_COMMIT, REBUILT_FROM_COMMIT, STALE_INPUT, UNDECLARED_READ |
 
@@ -423,6 +427,8 @@ There is one running example, built up through the spec, with neutral names:
    - Change the spec's reading rules and the fixtures.
    - Reduce the tests to ASTRA's rules, and remove the vendored YAML suite.
    - Then trim any test or fixture that doesn't serve §1, handing the cases to the conformance list.
+
+   Since 2026-11-07 (§4, "What is left to tools"), the parse layer is one rule, `INVALID_SYNTAX`: an `astra.yaml` is a YAML 1.2 document whose content is a map, and a record is JSON text in UTF-8 in which no object has two equal names.
 
    The baseline B is the spec at `c17a491`. It adds the composition changes of 2026-11-06, imported universes, and the content audit's decisions (`80ddb20`..`c17a491`): the smaller parse layer, plain ECMA-262 patterns, and the rules and text the audit cut. Tom's answers are in the handover scratch, `rewrite/audit/AUDIT.md`. The audit's thirteen open questions (Q1-Q13) stay open: the rewrite transcribes B's text where they apply.
 2. **Tooling.** `tools/rules.py`, its tests and the generated page change first, run on today's content adapted to the new table form.
