@@ -102,9 +102,7 @@ universe being built. Its universes can also **drive** another analysis, by
 setting that analysis's decisions under keys such as `subanalysis.decision1`.
 The analysis whose universes drive is the **driver**. The other is
 **driven**, and is built in the driver's universes. Another analysis's
-outputs built per universe can be read in the universe being built, and its
-decisions used, only where that analysis is built in that universe: where it
-is driven there, or where the universe is its own
+outputs and decisions can be used only in the universes where it is built
 ([§16](#16-driving-and-consuming)).
 
 **Results.** A **result** is what a recipe made for one output, in one
