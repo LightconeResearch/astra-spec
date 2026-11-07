@@ -2160,7 +2160,7 @@ holds, as PROV for example, is recommended (below).
   a result while it is `missing` or `stale`, or its bytes can't be got or
   aren't the recorded ones ([`STALE_INPUT`](#21-runners)).
 - A result it reads that [`STALE_INPUT`](#21-runners) doesn't cover may be
-  stale; what it builds from it is then stale too
+  stale or `missing`; what it builds from it is then stale too
   ([§20](#20-checking-results)).
 - When it refuses to run a recipe for
   [`UNCOMMITTED_CHANGES`](#21-runners), or to build an output for
