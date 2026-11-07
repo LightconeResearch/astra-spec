@@ -3,7 +3,7 @@ the schema (design D13).
 
 The extractor is strict, so it is tested on small specifications, one per way a codes table or a note can be malformed;
 so is the All rules page, which reads them. The committed `rules.json` holds every rule of the specification in order,
-and a code for every keyword of the three JSON Schemas whose error can make an instance fail (spec Annex E), each a
+and a code for every keyword of the three JSON Schemas whose error can make an instance fail (spec Annex D), each a
 schema-layer code. `absolute_keyword_location` is checked where `jsonschema`'s paths need resolving.
 """
 
@@ -776,7 +776,7 @@ REPORTING = {
     "if",
 }
 """The keywords that report an error of their own. Nothing inside an `if` or a `not` has an entry: no error there makes
-the instance fail, and a tool drops it (spec Annex E, "From an error to its code")."""
+the instance fail, and a tool drops it (spec Annex D, "From an error to its code")."""
 
 
 def reporting_keywords(node: dict, pointer: str = "") -> Iterator[str]:
@@ -1314,7 +1314,7 @@ def test_absolute_keyword_location_finds_the_subschema_by_identity():
         absolute_keyword_location(validator("Analysis"), error)
 
 
-# --- Annex E's filter of errors, on a validator that writes JSON Schema's standard output formats ---
+# --- Annex D's filter of errors, on a validator that writes JSON Schema's standard output formats ---
 
 NAMED = {"$defs", "properties"}
 """The keywords that hold subschemas by name: in a keyword location, the name follows the keyword."""
@@ -1323,7 +1323,7 @@ INDEXED = {"allOf", "anyOf", "oneOf"}
 LISTED_ABOVE = {"properties", "items", "$ref", "allOf", "then"}
 """The applicators that standard output lists above an error, with an `additionalProperties` that holds a schema: each
 fails only through the keyword that fails inside it, and has no entry, so a tool drops them, as it drops the subschemas
-listed there, and reports that keyword (spec Annex E)."""
+listed there, and reports that keyword (spec Annex D)."""
 OUTPUT_SCHEMAS = {
     "Analysis": "analysis.schema.json",
     "ProvenanceRecord": "provenance.schema.json",
@@ -1404,7 +1404,7 @@ def _schema_at(schema: dict[str, Any], location: str) -> Any:
 
 def listed_above(unit: dict[str, Any], schema: dict[str, Any]) -> bool:
     """True if `unit` is what standard output lists above an error: a subschema (the root, `…/allOf/0`) or an
-    applicator, which fails only through the keyword that fails inside it (spec Annex E)."""
+    applicator, which fails only through the keyword that fails inside it (spec Annex D)."""
     steps = keyword_steps(unit["keywordLocation"])
     if not steps or steps[-1][1] is not None:
         return True
@@ -1416,7 +1416,7 @@ def listed_above(unit: dict[str, Any], schema: dict[str, Any]) -> bool:
 
 
 def makes_the_instance_fail(unit: dict[str, Any], units: list[dict[str, Any]]) -> bool:
-    """False if spec Annex E drops `unit`, of the failing `units`, as an error that doesn't make the instance fail.
+    """False if spec Annex D drops `unit`, of the failing `units`, as an error that doesn't make the instance fail.
 
     That is an error inside an `if` or a `not`, an `if` whose `then` doesn't fail, and an error inside a branch of a
     `oneOf` or an `anyOf` that isn't reported as failing. A unit fails below another when its instance location is the
@@ -1447,7 +1447,7 @@ def makes_the_instance_fail(unit: dict[str, Any], units: list[dict[str, Any]]) -
 def kept_errors(
     units: list[dict[str, Any]], schema: dict[str, Any]
 ) -> set[tuple[str, str]]:
-    """`(pointer, location)` for each of the failing `units` that spec Annex E has a tool keep: not a subschema or an
+    """`(pointer, location)` for each of the failing `units` that spec Annex D has a tool keep: not a subschema or an
     applicator listed above an error, and making the instance fail.
 
     An error inside a `propertyNames` is at its map's pointer: jschon writes the key at the end of its instance
@@ -1481,7 +1481,7 @@ def fixture_document(path: Path) -> tuple[str, Any]:
 @pytest.mark.parametrize("output_format", ["basic", "verbose"])
 @pytest.mark.parametrize("path", SCHEMA_FIXTURES, ids=lambda path: path.stem)
 def test_the_error_filter_gives_the_codes_jsonschema_gives(path, output_format):
-    """On jschon's standard output for each schema-layer invalid fixture, every error spec Annex E keeps has an entry, and
+    """On jschon's standard output for each schema-layer invalid fixture, every error spec Annex D keeps has an entry, and
     the `(pointer, code)` pairs are those of `jsonschema`'s errors."""
     root, document = fixture_document(path)
     error_map = rules_catalogue()["errors"]
@@ -1518,7 +1518,7 @@ LEAKS = {
 @pytest.mark.parametrize("name, leaked", LEAKS.items(), ids=LEAKS)
 def test_the_error_filter_drops_what_doesnt_make_the_instance_fail(name, leaked):
     """jschon's verbose output lists failures that don't make the instance fail, as a validator writing a standard
-    format may: spec Annex E's filter drops exactly those."""
+    format may: spec Annex D's filter drops exactly those."""
     (path,) = [path for path in SCHEMA_FIXTURES if path.stem == name]
     root, document = fixture_document(path)
     schema = load(OUTPUT_SCHEMAS[root])

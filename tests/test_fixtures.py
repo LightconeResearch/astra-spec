@@ -122,10 +122,8 @@ outputs:
 
 
 def test_a_file_without_spec_version_reports_every_schema_error():
-    """A file whose `spec_version` is missing is checked against the validator's own schema, and every schema error
-    in it is reported (spec §5, Annex D): a pre-0.1 file lacks `spec_version` (MISSING_FIELD) and has
-    `version` and `name` (UNKNOWN_FIELD), both at the document. An invalid fixture names one code at each place, so
-    this is a test of its own."""
+    """A pre-0.1 file lacks `spec_version` (MISSING_FIELD) and has `version` and `name` (UNKNOWN_FIELD), both at the
+    document (spec §5). An invalid fixture names one code at each place, so this is a test of its own."""
     document = load_yaml(_PRE_0_1)
     error_map = rules_catalogue()["errors"]
     found = errors(validator("Analysis"), document)

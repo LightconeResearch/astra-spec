@@ -464,7 +464,7 @@ def test_the_harness_refuses_what_ecma_262_reads_otherwise(pattern):
 
 
 def series(version: str) -> str:
-    """The series of a stamped `version`: `X.Y` for a release `X.Y.Z` (spec Annex E), else the whole version (CLAUDE.md)."""
+    """The series of a stamped `version`: `X.Y` for a release `X.Y.Z` (spec Annex D), else the whole version (CLAUDE.md)."""
     release = re.fullmatch(r"([0-9]+\.[0-9]+)\.[0-9]+", version)
     return release[1] if release else version
 
@@ -494,7 +494,7 @@ def test_top_level_holds_only_standard_keywords(name):
 @pytest.mark.parametrize("name", ROOTS)
 def test_two_minor_versions_are_held_side_by_side(name):
     """Copies of a schema stamped `0.1` and `0.2` go into one `referencing` registry, and each URI resolves to its own
-    copy: the `0.2` copy requires one more field, and only a `$ref` to it reports that field missing (spec Annex E)."""
+    copy: the `0.2` copy requires one more field, and only a `$ref` to it reports that field missing (spec Annex D)."""
     schema = load(name)
     copies = {}
     for minor, extra in (("0.1", []), ("0.2", ["added_in_0_2"])):

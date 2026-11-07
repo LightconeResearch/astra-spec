@@ -237,11 +237,9 @@ Four roles conform to this specification:
 - A **document**, an `astra.yaml` or a record, conforms, or is **valid**,
   when it breaks no parse or schema rule.
 - A **validator** reads an analysis, every `astra.yaml` of its stack and git,
-  and reports every parse, schema and validator rule that the analysis, or
-  any analysis of its stack, breaks, except where
-  [Annex D](#d-when-a-rule-isnt-checked) leaves one unchecked. An analysis
-  is **valid** when no analysis of its stack breaks a `MUST` of these three
-  layers.
+  and reports the parse, schema and validator rules that the analysis, or
+  any analysis of its stack, breaks. An analysis is **valid** when no
+  analysis of its stack breaks a `MUST` of these three layers.
 - A **checker** reads an analysis, every `astra.yaml` of its stack and git,
   and its records and results, and gives each planned result its statuses by
   the check rules ([§20](#20-checking-results)). A record that breaks a parse
@@ -249,7 +247,7 @@ Four roles conform to this specification:
   ([`INVALID_RECORD`](#20-checking-results)). A checker implements one
   version, its own. It has the record schema of every
   [minor version](#5-the-astrayaml-file) from 0.1 up to its own
-  ([Annex E](#e-the-schema-files-and-rulesjson)): records begin at 0.1.0, and
+  ([Annex D](#d-the-schema-files-and-rulesjson)): records begin at 0.1.0, and
   no earlier version has a record schema.
 - A **runner** runs recipes and writes each result's bytes and record. A
   record is its runner's testimony, and names it. A runner conforms when it
@@ -262,10 +260,6 @@ What breaking a rule leads to depends on the layer:
 | parse, schema, validator | A broken `MUST` is reported as an **error** and makes the analysis invalid (in a record, it breaks [`INVALID_RECORD`](#20-checking-results) instead); a broken `SHOULD` is reported as a **warning**, and the analysis stays valid |
 | check | A broken `MUST` is reported as an **error** and a broken `SHOULD` as a **warning**. Nothing fails, and **the result gets a status**, given in its codes table's extra column, *Status when broken* |
 | runner | A runner that breaks a `MUST` doesn't conform |
-
-In the cases [Annex D](#d-when-a-rule-isnt-checked) lists, and only those,
-another broken rule leaves what a rule is about undetermined, and that rule
-isn't checked or reported.
 
 ### 4. Conventions
 
@@ -373,8 +367,6 @@ non-negative integers without leading zeros, such as `0.1.0`
 - A validator reads each `astra.yaml` by the schema of the minor version it
   states, so a validator that reads one patch of a minor version reads them
   all ([`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file)).
-- A file whose `spec_version` is missing or malformed is checked as
-  [Annex D](#d-when-a-rule-isnt-checked) says.
 
 #### Values
 
@@ -893,7 +885,7 @@ is resolved. Conditions ([§9](#9-conditions)) are judged on it.
 
 A universe whose `derived_from` doesn't resolve, or whose chain loops back to
 it ([`DERIVED_FROM_CYCLE`](#12-universes)) or reaches a universe that has none,
-has no effective selection ([Annex D](#d-when-a-rule-isnt-checked)).
+has no effective selection.
 
 The effective selection is held to everything a universe written in full is:
 
@@ -1683,14 +1675,6 @@ different identity.
 - The declared analysis, with everything it declares, is valid at its commit
   ([`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)),
   each `astra.yaml` read by the `spec_version` it states.
-- A `MUST` that an analysis from a commit breaks at its commit, judged as
-  its own root, is reported twice:
-  [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
-  on the declaration, in the file the author can edit, and the rule's own
-  code at its place in the commit's file, which says why. A `MUST` broken in
-  its files only as the root drives it is reported once, under its own code,
-  as is a rule broken in the root, or in an analysis reached from it by
-  `path` alone.
 
 #### Getting a commit from a remote
 
@@ -2003,9 +1987,9 @@ A record holds only the fields its `spec_version` defines, and is read by
 its minor version's record schema ([§5](#5-the-astrayaml-file)). A checker
 reading a record of a greater minor version than its own validates it
 against the open variant of its own record schema
-([Annex E](#e-the-schema-files-and-rulesjson)), which ignores the fields it
+([Annex D](#d-the-schema-files-and-rulesjson)), which ignores the fields it
 doesn't know ([`INVALID_RECORD`](#20-checking-results)). Read as RDF
-([Annex E](#e-the-schema-files-and-rulesjson)), a record is W3C PROV-O.
+([Annex D](#d-the-schema-files-and-rulesjson)), a record is W3C PROV-O.
 
 Two records of one result with the same commit, inputs and environment, made
 on two machines say, show whether the result reproduces: it does when their
@@ -2033,8 +2017,6 @@ A checker gives every planned result two statuses
 | `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
 
 - A result with two names gets its statuses at each place.
-- A result whose planning is undetermined gets none
-  ([Annex D](#d-when-a-rule-isnt-checked)).
 - A checker reads records only through planned results.
 
 #### When a result is unchanged
@@ -2130,7 +2112,7 @@ A checker reports [`INVALID_RECORD`](#20-checking-results) with each code a
 record breaks as its reason: the parser's
 ([`INVALID_SYNTAX`](#5-the-astrayaml-file) or
 [`DUPLICATE_KEY`](#5-the-astrayaml-file)), or the one `rules.json` gives the
-schema error ([Annex E](#e-the-schema-files-and-rulesjson)).
+schema error ([Annex D](#d-the-schema-files-and-rulesjson)).
 
 | Code | Layer | Level | Rule | Status when broken |
 |---|---|---|---|---|
@@ -2248,7 +2230,7 @@ Each term links to the sections that define it or give its detail.
   [§18](#18-results-and-where-they-go))
 - **record** ([§1](#1-what-astra-is), [§19](#19-records))
 - **record schema, open variant** ([§5](#5-the-astrayaml-file),
-  [Annex E](#e-the-schema-files-and-rulesjson))
+  [Annex D](#d-the-schema-files-and-rulesjson))
 - **reference** ([§6](#6-names))
 - **repository that holds a file** ([Annex B](#b-paths-and-git)): the innermost
   git repository the file is in: for a file in a submodule, the submodule's
@@ -2415,169 +2397,7 @@ no ASCII space or control character and none of `"`, `#`, `<`, `>`, `[`, `\`,
 ([`INVALID_VALUE`](#5-the-astrayaml-file)). `conforms_to` is an
 [`iri`](elements/Iri.md) (above, [`INVALID_VALUE`](#5-the-astrayaml-file)).
 
-### D. When a rule isn't checked
-
-A tool reports every rule broken, except in the cases below, and the list is
-closed. In each case another broken rule leaves what a rule is about
-undetermined, so the rule isn't checked and isn't reported. Each case starts
-from a broken `MUST`. So a rule left unchecked never makes an invalid analysis
-valid, or a `missing` result anything else: it changes only which codes are
-reported and which results get statuses (12). Two rules whose subjects are both determined are both reported, even
-when one edit fixes both, except a file's parse rules (1).
-
-1. **A file that can't be read, or whose version has no schema.** A file that
-   breaks a parse rule is checked no further, and at least one of the parse
-   rules it breaks is reported. A file whose `spec_version` is
-   missing or malformed isn't checked by
-   [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file): it is checked against
-   the schema of the tool's own minor version, the validator's schema of
-   `astra.yaml` or the checker's record schema, and every schema error in it is
-   reported, a record's as a reason of [`INVALID_RECORD`](#20-checking-results).
-   A file whose well-formed `spec_version` breaks
-   [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file) isn't checked by the
-   schema layer.
-2. **A file that isn't a valid document.** A file that breaks a parse or schema
-   rule, or [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file), isn't checked
-   by the validator layer, and its declarations aren't followed. Its analysis is
-   undetermined (4). [`NOT_IN_REPOSITORY`](#5-the-astrayaml-file) is about the
-   folder, not the file, and is still checked.
-3. **A declaration that can't be read.** On a declaration whose own analysis
-   can't be got, because it breaks
-   [`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses) or
-   [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository), or
-   because a commit that analysis is read from can't be got
-   ([`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository),
-   [§17](#17-analyses-from-another-commit-or-repository)), neither
-   [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses) nor
-   [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
-   is checked. On one that breaks
-   [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository), or
-   whose own `commit` can't be got,
-   [`COMMIT_NOT_ANCESTOR`](#17-analyses-from-another-commit-or-repository) isn't
-   checked either. Its analysis is undetermined (4), and so is the analysis of a
-   declaration that breaks [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses).
-   [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
-   isn't checked on an analysis from a commit whose file breaks
-   [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file). Where
-   [`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository) is
-   reported on a declaration for a commit further in
-   ([§17](#17-analyses-from-another-commit-or-repository)),
-   [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
-   isn't checked on that declaration, and the analysis that couldn't be got is
-   undetermined. The analyses read on the way to it are not: their declarations'
-   [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses), and addresses into them
-   such as `upstream.output1#u1`, are still checked.
-4. **An undetermined analysis.** No validator rule is checked in its file. In
-   the files that declare it, nothing reached through that declaration is
-   checked: no address through it, by [`UNRESOLVED_ADDRESS`](#6-names) or by any
-   rule on what the address would name, no
-   [`MISSING_DECISION`](#16-driving-and-consuming) for its decisions, and no
-   [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) for a name through it.
-5. **A name that names nothing.** An address that breaks
-   [`UNRESOLVED_ADDRESS`](#6-names), an entry of `Output.inputs` that could
-   resolve to two elements ([`AMBIGUOUS_ID`](#10-outputs)), and an option that
-   breaks
-   [`UNKNOWN_OPTION`](#8-decisions-and-options), name nothing, and no rule is
-   checked on what they would name. That leaves out
-   [`UNKNOWN_OPTION`](#8-decisions-and-options) under such an address, the pin
-   rules ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming) and
-   [`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once)), and
-   [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
-   [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming),
-   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once),
-   [`OUTPUT_CYCLE`](#10-outputs) and
-   [`DUPLICATE_ELEMENT`](#16-driving-and-consuming) through it. A pin that
-   breaks [`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming), or that names an
-   import that names nothing or whose address runs through an undetermined
-   analysis (4), names no universe: it builds none, and neither
-   [`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once) nor a rule
-   on the universe being built ([§16](#16-driving-and-consuming)) is checked for
-   it. A selection that names nothing isn't checked by
-   [`INACTIVE_DECISION`](#12-universes),
-   [`MISSING_REQUIRED_OPTION`](#12-universes),
-   [`INCOMPATIBLE_OPTIONS`](#12-universes) or
-   [`EXCLUDED_OPTION_SELECTED`](#12-universes). A key that names no decision
-   still drives the declarations it goes through, as far as they resolve,
-   unless it loops (10). A `requires` or `incompatible_with` entry that names
-   nothing is ignored.
-6. **An element whose activity is undetermined.** In a universe, a `when` is
-   undetermined when one of its conditions names nothing (5), or tests a
-   decision that the universe's selection leaves unset
-   ([`MISSING_DECISION`](#16-driving-and-consuming)) or sets to an option that
-   names nothing. Its element's activity in that universe is then undetermined.
-   [`MISSING_DECISION`](#16-driving-and-consuming) and
-   [`INACTIVE_DECISION`](#12-universes) aren't checked for such a decision,
-   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once) and
-   [`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once) aren't
-   checked for such an output, nor
-   [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) for its result, nor
-   [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
-   [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) or
-   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once) for what
-   it reads or lists in `decisions`. Nor are those three or
-   [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) checked for a result
-   planned only through it, for the `when` of an output whose result would be
-   planned only through it, or in a universe built only through a pin in its
-   `inputs`. Step 3 of the effective selection ([§12](#12-universes)) doesn't
-   drop such a decision.
-7. **A universe with no effective selection.** A universe has none when its
-   `derived_from` breaks [`UNKNOWN_DERIVED_FROM`](#12-universes), or it breaks
-   [`DERIVED_FROM_CYCLE`](#12-universes), or its chain reaches a universe that
-   has none. For it, [`MISSING_DECISION`](#16-driving-and-consuming),
-   [`INACTIVE_DECISION`](#12-universes),
-   [`MISSING_REQUIRED_OPTION`](#12-universes),
-   [`INCOMPATIBLE_OPTIONS`](#12-universes),
-   [`EXCLUDED_OPTION_SELECTED`](#12-universes),
-   [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
-   [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming),
-   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once) and
-   [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) aren't checked, and
-   [`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once) isn't
-   checked for a pin naming it, directly or through an import.
-   [`UNRESOLVED_ADDRESS`](#6-names),
-   [`UNKNOWN_OPTION`](#8-decisions-and-options),
-   [`DUPLICATE_ELEMENT`](#16-driving-and-consuming) and
-   [`LOOPING_KEY`](#16-driving-and-consuming) are still checked on its own
-   `decisions`. Driving ([§16](#16-driving-and-consuming)) counts its own
-   `decisions` in place of its effective selection.
-8. **An input with no file.** An input that breaks
-   [`MISSING_INPUT_FILE`](#7-inputs) isn't checked by
-   [`INPUT_NOT_TRACKED`](#7-inputs).
-9. **A result with no valid record.** A result that breaks
-   [`MISSING_RECORD`](#20-checking-results) isn't checked by
-   [`INVALID_RECORD`](#20-checking-results),
-   [`MISPLACED_RECORD`](#20-checking-results) or
-   [`MISSING_RECORD_INPUTS`](#20-checking-results). One whose record breaks
-   [`INVALID_RECORD`](#20-checking-results) isn't checked by the last two.
-   [`STALE_RESULT`](#20-checking-results) and
-   [`ABSENT_RESULT`](#20-checking-results) aren't checked for a result that is
-   `missing`.
-10. **A key that loops.** [`LOOPING_KEY`](#16-driving-and-consuming) is judged
-    on a key's declarations up to the first that doesn't resolve or whose
-    analysis is undetermined (4, 5). A key that loops still names its decision,
-    if it resolves, and the rules on selections check it, but it drives no
-    declaration ([§16](#16-driving-and-consuming)), and no rule counts it as
-    going through one.
-11. **An analysis outside a repository.** Where the root breaks
-    [`NOT_IN_REPOSITORY`](#5-the-astrayaml-file), no other validator rule but
-    [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file) is checked and its
-    declarations aren't followed, so only its own `astra.yaml` is checked, by
-    the parse and schema rules and by that one.
-12. **A result whose planning is undetermined.** On an analysis that breaks a
-    `MUST`, a checker gives statuses ([§20](#20-checking-results)) only to the
-    results whose planning is determined. Those whose planning is left
-    undetermined, by a file that isn't a valid document (2), an undetermined
-    analysis (4), an element whose activity is undetermined (6), a universe
-    with no effective selection (7), an output on a cycle (13) or a read that
-    breaks [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming), get none, and
-    no check rule is checked for them.
-13. **An output on a cycle.** For an output that depends on itself
-    ([`OUTPUT_CYCLE`](#10-outputs)), whether it is built per universe
-    ([§13](#13-pins-and-outputs-built-per-universe-or-once)) can turn on the
-    cycle, so no rule on its results' places, or on what reads it, is checked.
-    The breach is reported once, as [`OUTPUT_CYCLE`](#10-outputs).
-
-### E. The schema files and rules.json
+### D. The schema files and rules.json
 
 The schema is written in [LinkML](https://linkml.io/), in four modules:
 `types` (the named types of Annex C), `analysis` (`astra.yaml`), `insight`

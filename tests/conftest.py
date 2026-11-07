@@ -412,7 +412,7 @@ def absolute_keyword_location(v: Validator, error: ValidationError) -> str:
 
     That is the keyword's place once every `$ref` is resolved, as JSON Schema 2019-09 defines it and as `rules.json`
     keys its error map. `jsonschema`'s `absolute_schema_path` runs through `$ref`s without naming them, so it isn't
-    that place (spec Annex E). But `error.schema` is the subschema that holds the failing keyword, and `error.validator`
+    that place (spec Annex D). But `error.schema` is the subschema that holds the failing keyword, and `error.validator`
     the keyword: the location is that subschema's JSON Pointer, found in the schema by identity, then the keyword. It
     is an error if the subschema isn't in the schema or doesn't hold the keyword.
     """

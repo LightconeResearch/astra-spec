@@ -340,7 +340,7 @@ def test_the_grammar_is_read_from_annex_c_only():
     for markdown in [
         annex,
         f"### 6. Names\n\n{fence}",
-        f"{annex}### D. When a rule isn't checked\n\n{fence}",
+        f"{annex}### D. The schema files and rules.json\n\n{fence}",
         f"{annex}{fence}{fence}",
     ]:
         with pytest.raises(GrammarError):

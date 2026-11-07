@@ -39,7 +39,7 @@
   code never varies, from a default. A map's keys take their key's code for their ``pattern``. A class's checks (its
   exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the keywords of its
   ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does, since no error there makes the
-  instance fail (spec Annex E, "From an error to its code"). Every such keyword has exactly one code, every code is a
+  instance fail (spec Annex D, "From an error to its code"). Every such keyword has exactly one code, every code is a
   schema-layer rule of the specification, and every ``rule`` annotation gives some keyword its code.
 """
 
@@ -663,7 +663,7 @@ class _ErrorMap:
         has one, then its class rules, in order.
 
         Each member is `{if, then}`. Its `if` takes the check's code, since Ajv reports it when the `then` fails, but
-        nothing inside it does: it only guards the check, and a tool drops any error inside an `if` (spec Annex E). The
+        nothing inside it does: it only guards the check, and a tool drops any error inside an `if` (spec Annex D). The
         keywords of its `then` that can fail take the code too.
         """
         codes = (
@@ -751,7 +751,7 @@ class _ErrorMap:
                 for field, sub in value.items():
                     self.condition(sub, [*here, field], code)
             elif keyword == "not":
-                # Only the `not` is reported: a tool drops any error inside a `not` (spec Annex E).
+                # Only the `not` is reported: a tool drops any error inside a `not` (spec Annex D).
                 self.add(here, code)
             elif keyword in DEFAULTS or keyword in ("required", "pattern"):
                 self.add(here, code)
@@ -924,7 +924,7 @@ def _tree_root(view: SchemaView) -> str:
 def build_error_map(schema: dict, schema_view: SchemaView) -> dict[str, str]:
     """For the generated JSON Schema `schema` of the LinkML schema `schema_view`: absolute keyword location → code.
 
-    It holds every keyword of `schema` whose error can make the instance fail (spec Annex E), and raises `ValueError` for
+    It holds every keyword of `schema` whose error can make the instance fail (spec Annex D), and raises `ValueError` for
     any it can't give a code.
     """
     return dict(sorted(_walk(schema, schema_view).codes.items()))

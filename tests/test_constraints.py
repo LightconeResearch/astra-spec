@@ -728,7 +728,7 @@ def test_negative_case(case):
 @pytest.mark.parametrize("case", RECORD_CASES, ids=case_id)
 def test_negative_record_case_in_the_open_variant(case):
     """The open variant checks every field it knows as the closed schema does, and takes a field it doesn't know
-    (spec Annex E)."""
+    (spec Annex D)."""
     document = edited(case)
     if case.code == "UNKNOWN_FIELD":
         assert errors(validator(root_of(case), closed=False), document) == set()
@@ -747,7 +747,7 @@ SCHEMAS = {
 
 
 def reported_with(location: str) -> Iterator[str]:
-    """The keywords a validator that reports them reports with an error at `location` (spec Annex E): each `if` whose
+    """The keywords a validator that reports them reports with an error at `location` (spec Annex D): each `if` whose
     `then` holds it, and each `propertyNames` that holds it. `jsonschema` reports neither, and Ajv both."""
     schema_id, pointer = location.split("#", 1)
     for keyword, _, here in keyword_steps(pointer)[:-1]:
