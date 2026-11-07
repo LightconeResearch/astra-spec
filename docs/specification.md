@@ -364,9 +364,8 @@ non-negative integers without leading zeros, such as `0.1.0`
   when it is valid under every other `X.Y` version. So each minor version has
   one schema of `astra.yaml` and one of a record, and every `0.1.x` document
   is read by 0.1's.
-- A validator reads each `astra.yaml` by the schema of the minor version it
-  states, so a validator that reads one patch of a minor version reads them
-  all ([`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file)).
+- Each `astra.yaml` is read by the schema of the minor version it states, so
+  a tool that reads one patch of a minor version reads them all.
 
 #### Values
 
@@ -412,7 +411,6 @@ a declared analysis, and a result is read by its address, never by a path.
 | `DUPLICATE_ENTRY` | schema | MUST | No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`) |
 | `INVALID_VALUE` | schema | MUST | Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1 |
 | `NOT_IN_REPOSITORY` | validator | MUST | The folder of the analysis being validated is in the working tree of a git repository |
-| `UNSUPPORTED_SPEC_VERSION` | validator | MUST | Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of |
 
 ### 6. Names
 
@@ -2462,8 +2460,7 @@ An abridged `rules.json`:
 }
 ```
 
-**From an error to its code.** A parse code is reported for the whole file,
-and [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file) at `/spec_version`.
+**From an error to its code.** A parse code is reported for the whole file.
 A schema error is reported with the code that `errors` gives its keyword's
 absolute keyword location, at the instance location where it fails; an error
 on a key is reported at its map, naming the key, and an unknown field at its

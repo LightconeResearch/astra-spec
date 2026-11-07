@@ -352,13 +352,6 @@
       "statement": "The folder of the analysis being validated is in the working tree of a git repository"
     },
     {
-      "code": "UNSUPPORTED_SPEC_VERSION",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "§5 The astra.yaml file",
-      "statement": "Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of"
-    },
-    {
       "code": "INVALID_ID",
       "layer": "schema",
       "level": "MUST",
