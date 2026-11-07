@@ -2114,9 +2114,6 @@ holds, as PROV for example, is recommended (below).
 - A result it reads that [`STALE_INPUT`](#21-runners) doesn't cover may be
   stale or `missing`; what it builds from it is then stale too
   ([§20](#20-checking-results)).
-- When it refuses to run a recipe for
-  [`UNCOMMITTED_CHANGES`](#21-runners), or to build an output for
-  [`STALE_INPUT`](#21-runners), it reports the code.
 
 [`UNDECLARED_READ`](#21-runners) binds the recipe ([§11](#11-recipes)), and
 breaking it leaves the analysis valid.
@@ -2141,7 +2138,7 @@ Recommendation: a runner SHOULD let someone see what an environment it
 recorded holds.
 
 Permission: a runner MAY enforce [`UNDECLARED_READ`](#21-runners); one that
-does fails the recipe and reports the code.
+does fails the recipe.
 
 ## Glossary
 
