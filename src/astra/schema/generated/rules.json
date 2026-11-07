@@ -727,7 +727,7 @@
       "layer": "runner",
       "level": "MUST",
       "source": "§21 Runners",
-      "statement": "A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it"
+      "statement": "A runner runs each recipe in the folder of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it"
     },
     {
       "code": "NOT_AT_COMMIT",
