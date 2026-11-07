@@ -46,7 +46,7 @@ classes:
           The result's address, as the analysis it belongs to names it: the
           output's id after the ids of the driven declarations that lead to
           it, then, for a result built in a universe, `#` and that universe's
-          own id, never an import's, such as `subanalysis1.output1#u1`.
+          own id, never an import's, such as `subanalysis.output1#u1`.
       content_hash:
         range: content_hash
         required: true

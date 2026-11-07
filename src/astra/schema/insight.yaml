@@ -89,7 +89,7 @@ classes:
         description: >-
           The DOI name of the cited work, under the `10` directory: `10.`, the
           registrant code, `/` and a non-empty suffix, such as
-          `10.48550/arXiv.1706.03762`.
+          `10.5555/12345678`.
       artifact:
         range: reference
         description: >-

@@ -651,7 +651,7 @@
       "layer": "check",
       "level": "MUST",
       "source": "§20 Checking results",
-      "statement": "The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema, or against the open variant when that minor version is greater than the checker's",
+      "statement": "The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema or, when that minor version is greater than the checker's, against the open variant of the checker's own record schema",
       "status": "`missing`"
     },
     {
