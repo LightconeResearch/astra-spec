@@ -2428,7 +2428,8 @@ when one edit fixes both.
 2. **A file that isn't a valid document.** A file that breaks a parse or schema
    rule, or [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file), isn't checked
    by the validator layer, and its declarations aren't followed. Its analysis is
-   undetermined (4).
+   undetermined (4). [`NOT_IN_REPOSITORY`](#5-the-astrayaml-file) is about the
+   folder, not the file, and is still checked.
 3. **A declaration that can't be read.** On a declaration whose own analysis
    can't be got, because it breaks
    [`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses) or
@@ -2542,9 +2543,10 @@ when one edit fixes both.
     declaration ([§16](#16-driving-and-consuming)), and no rule counts it as
     going through one.
 11. **An analysis outside a repository.** Where the root breaks
-    [`NOT_IN_REPOSITORY`](#5-the-astrayaml-file), no other validator rule is
-    checked and its declarations aren't followed, so only its own `astra.yaml`
-    is checked, by the parse and schema rules.
+    [`NOT_IN_REPOSITORY`](#5-the-astrayaml-file), no other validator rule but
+    [`UNSUPPORTED_SPEC_VERSION`](#5-the-astrayaml-file) is checked and its
+    declarations aren't followed, so only its own `astra.yaml` is checked, by
+    the parse and schema rules and by that one.
 12. **A result whose planning is undetermined.** On an analysis that breaks a
     `MUST`, a checker gives statuses ([§20](#20-checking-results)) only to the
     results whose planning is determined. Those whose planning is left
