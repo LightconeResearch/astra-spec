@@ -292,357 +292,329 @@
       "code": "INVALID_SYNTAX",
       "layer": "parse",
       "level": "MUST",
-      "source": "0005, tidy-up, §3",
-      "statement": "Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8"
-    },
-    {
-      "code": "DUPLICATE_KEY",
-      "layer": "parse",
-      "level": "MUST",
-      "source": "0003, 0004, tidy-up, §3, §4",
-      "statement": "No map in an `astra.yaml` has two equal keys, and no object in a record has two equal names"
-    },
-    {
-      "code": "INVALID_ID",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "tidy-up, main, §3, §4",
-      "statement": "Every map key matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar"
-    },
-    {
-      "code": "INVALID_REFERENCE",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "0003, 0004",
-      "statement": "Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar"
+      "source": "§5 The astra.yaml file",
+      "statement": "Every `astra.yaml` is a YAML 1.2 document whose content is a map, and every record is JSON text in UTF-8 in which no object has two equal names"
     },
     {
       "code": "MISSING_FIELD",
       "layer": "schema",
       "level": "MUST",
-      "source": "0004, 0005, 0006, tidy-up, main, §5",
+      "source": "§5 The astra.yaml file",
       "statement": "Every required field is present: in `astra.yaml`, `spec_version`, `outputs`, `Output.type`, `Output.format`, `Output.recipe`, `Recipe.command`, `Input.path`, `Decision.options`, `Insight.claim`, `Insight.evidence`, `TextQuoteSelector.exact` and `FragmentSelector.value`; in a record, `spec_version`, `address`, `content_hash`, `size`, `generated_by`, `Generation.commit`, `Generation.environment`, `Generation.runner`, `Environment.iri`, `Runner.id`, `Runner.version`, `RecordedInput.entry`, `RecordedInput.content_hash` and `RecordedInput.size`"
     },
     {
       "code": "UNKNOWN_FIELD",
       "layer": "schema",
       "level": "MUST",
-      "source": "tidy-up, §10",
+      "source": "§5 The astra.yaml file",
       "statement": "Every field is one the schema defines"
     },
     {
       "code": "EMPTY_COLLECTION",
       "layer": "schema",
       "level": "MUST",
-      "source": "0004, tidy-up, main",
+      "source": "§5 The astra.yaml file",
       "statement": "`outputs`, `Decision.options` and `Insight.evidence` each have at least one entry, and no list of strings in an `astra.yaml` is empty"
-    },
-    {
-      "code": "INVALID_DECLARATION_SOURCE",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "0007",
-      "statement": "A declaration has exactly one of `path` and `url`"
-    },
-    {
-      "code": "URL_WITHOUT_COMMIT",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "0007",
-      "statement": "A declaration with a `url` has a `commit`"
-    },
-    {
-      "code": "INVALID_IMPORT",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "§6, §7",
-      "statement": "An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from`"
-    },
-    {
-      "code": "INVALID_COMMIT",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "0007, tidy-up",
-      "statement": "Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits"
-    },
-    {
-      "code": "INVALID_PATH",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "0004, 0006, tidy-up",
-      "statement": "Every declaration's and input's `path` is non-empty and doesn't start with `/`"
-    },
-    {
-      "code": "INVALID_EVIDENCE_SOURCE",
-      "layer": "schema",
-      "level": "MUST",
-      "source": "tidy-up",
-      "statement": "Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi`"
     },
     {
       "code": "WRONG_TYPE",
       "layer": "schema",
       "level": "MUST",
-      "source": "tidy-up, §4, §10",
+      "source": "§5 The astra.yaml file",
       "statement": "Every value has the JSON type its field takes: a string, a number, an integer, a list or a map"
     },
     {
       "code": "DUPLICATE_ENTRY",
       "layer": "schema",
       "level": "MUST",
-      "source": "tidy-up, §4",
+      "source": "§5 The astra.yaml file",
       "statement": "No list of strings holds the same entry twice (`Output.inputs`, `Output.decisions`, `when`, `requires`, `incompatible_with`, `insights`, `tags`)"
     },
     {
       "code": "INVALID_VALUE",
       "layer": "schema",
       "level": "MUST",
-      "source": "0005, 0007, tidy-up, main, #73",
+      "source": "§5 The astra.yaml file",
       "statement": "Every value matches its pattern, enumeration or range: `Output.type` (one of `OutputType`), `Output.format`, `Evidence.doi`, `FragmentSelector.value` (a fragment identifier's characters), `FragmentSelector.conforms_to` (an IRI), `AnalysisDeclaration.url` (a remote URL), every hash, IRI and time, every `spec_version`, `size` ≥ 0, `Evidence.version` ≥ 1, `Resources.cpus` ≥ 0 and `Resources.gpus` ≥ 1"
     },
     {
       "code": "NOT_IN_REPOSITORY",
       "layer": "validator",
       "level": "MUST",
-      "source": "§3",
+      "source": "§5 The astra.yaml file",
       "statement": "The folder of the analysis being validated is in the working tree of a git repository"
     },
     {
-      "code": "UNSUPPORTED_SPEC_VERSION",
-      "layer": "validator",
+      "code": "INVALID_ID",
+      "layer": "schema",
       "level": "MUST",
-      "source": "0007 §6, §1",
-      "statement": "Every `astra.yaml` in the stack has a `spec_version` whose minor version the validator has the schema of"
+      "source": "§6 Names",
+      "statement": "Every map key matches its key's type where the map has one (an `id`, or an `address` in `Universe.decisions`); every `id`-typed value matches the `id` grammar"
+    },
+    {
+      "code": "INVALID_REFERENCE",
+      "layer": "schema",
+      "level": "MUST",
+      "source": "§6 Names",
+      "statement": "Every address, reference, option reference and condition, other than a key of `Universe.decisions`, matches its grammar"
     },
     {
       "code": "UNRESOLVED_ADDRESS",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004, §7",
+      "source": "§6 Names",
       "statement": "Every address resolves, through the declarations, to an element of the kind its field takes: an input or output in `Output.inputs`, a decision in `Output.decisions` and in `Universe.decisions` keys, a decision in conditions and option references, an output in `Evidence.artifact`, one of another analysis's universes in an import"
     },
     {
-      "code": "UNKNOWN_OPTION",
-      "layer": "validator",
+      "code": "INVALID_PATH",
+      "layer": "schema",
       "level": "MUST",
-      "source": "0003, 0004",
-      "statement": "Every option named by a condition, option reference or selection is one of its decision's options"
-    },
-    {
-      "code": "INVALID_INSIGHT_REF",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "main",
-      "statement": "Every entry of `Option.insights` names a prior insight of the analysis"
-    },
-    {
-      "code": "UNDECLARED_TEMPLATE_REF",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0003, 0004",
-      "statement": "Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left (§5), and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written"
-    },
-    {
-      "code": "AMBIGUOUS_ID",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "tidy-up, §4",
-      "statement": "No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes)"
-    },
-    {
-      "code": "CLASHING_RESULT_NAME",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "tidy-up, §4, §8",
-      "statement": "No output shares its id with a declaration of the same analysis"
-    },
-    {
-      "code": "DECLARATION_OUTSIDE_REPOSITORY",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0004, 0007 §1",
-      "statement": "A declaration's `path`, tidied (§3), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit"
-    },
-    {
-      "code": "MISSING_DECLARED_ANALYSIS",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0004, 0007, §3",
-      "statement": "A declaration's `path` (at its `commit`, if it has one), or the top level of its `url`'s repository at its `commit`, holds an `astra.yaml` file, with no symlink on the way (§3)"
-    },
-    {
-      "code": "COMMIT_NOT_FOUND",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0007, §3, §7",
-      "statement": "A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the repository that holds the declaring `astra.yaml`"
-    },
-    {
-      "code": "COMMIT_NOT_ANCESTOR",
-      "layer": "validator",
-      "level": "SHOULD",
-      "source": "0007, §3",
-      "statement": "A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD of the repository that holds the declaring file"
-    },
-    {
-      "code": "REMOTE_UNREACHABLE",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0007 §6, tidy-up, §3, §7",
-      "statement": "Every commit the stack gets from a remote, through a `url`, a file read from a remote or a gitlink crossed at a commit, can be fetched from that remote or was kept from an earlier fetch"
-    },
-    {
-      "code": "DECLARED_ANALYSIS_INVALID",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0007, §7",
-      "statement": "An analysis from a commit, with everything it declares, is valid at that commit, `REMOTE_UNREACHABLE` aside"
+      "source": "§7 Inputs",
+      "statement": "Every declaration's and input's `path` is non-empty and doesn't start with `/`"
     },
     {
       "code": "MISSING_INPUT_FILE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0006, §3",
-      "statement": "An input's `path` names a file (not a symlink, directory or gitlink), or something the validator recognises as standing in for one (§5)"
+      "source": "§7 Inputs",
+      "statement": "An input's `path` names a file (not a symlink, folder or gitlink), or something the validator recognises as a stand-in for one"
     },
     {
       "code": "INPUT_NOT_TRACKED",
       "layer": "validator",
       "level": "MUST",
-      "source": "0006, §3",
-      "statement": "An input's file, or what stands in for it (§5), is in the index of the repository that holds the input's analysis or, read at a commit, in that commit's tree there, reached through no gitlink"
+      "source": "§7 Inputs",
+      "statement": "An input's file, or its stand-in, is tracked in the repository that holds the input's analysis: in its index or, read at a commit, in that commit's tree there, reached through no gitlink"
     },
     {
       "code": "INPUT_IN_ANOTHER_ANALYSIS",
       "layer": "validator",
       "level": "MUST",
-      "source": "0006",
-      "statement": "An input's file is inside its analysis's directory and outside every directory below it that holds an `astra.yaml` file of its own"
+      "source": "§7 Inputs",
+      "statement": "An input's file is inside its analysis's folder and outside every folder below it that holds an `astra.yaml` file of its own"
     },
     {
       "code": "RESERVED_PATH",
       "layer": "validator",
       "level": "MUST",
-      "source": "tidy-up, §3",
-      "statement": "No input's `path` and no declaration's `path`, tidied (§3), is or lies in the `results/` or `.astra/` of an analysis of the stack"
+      "source": "§7 Inputs",
+      "statement": "No input's `path` and no declaration's `path`, tidied (Annex B), is, or lies inside, the `results/` or `.astra/` folder of an analysis of the stack read in the same tree as that path: the working tree, or one commit"
+    },
+    {
+      "code": "UNKNOWN_OPTION",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§8 Decisions and options",
+      "statement": "Every option named by a condition, option reference or selection is one of its decision's options"
+    },
+    {
+      "code": "AMBIGUOUS_ID",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§10 Outputs",
+      "statement": "No two elements that one field could resolve to share an id (an input and an output, both of which `Output.inputs` takes)"
+    },
+    {
+      "code": "OUTPUT_CYCLE",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§10 Outputs",
+      "statement": "No output depends on itself, directly or through others"
+    },
+    {
+      "code": "UNDECLARED_TEMPLATE_REF",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§11 Recipes",
+      "statement": "Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left, and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written"
+    },
+    {
+      "code": "INVALID_IMPORT",
+      "layer": "schema",
+      "level": "MUST",
+      "source": "§12 Universes",
+      "statement": "An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from`"
     },
     {
       "code": "UNKNOWN_DERIVED_FROM",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003, §6",
+      "source": "§12 Universes",
       "statement": "A universe's `derived_from` names a universe of the same analysis, never an import"
     },
     {
       "code": "DERIVED_FROM_CYCLE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003",
-      "statement": "No universe's chain of `derived_from` loops"
-    },
-    {
-      "code": "MISSING_DECISION",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0003, 0004, tidy-up, §6, §7",
-      "statement": "Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that its analysis's universes drive"
-    },
-    {
-      "code": "INACTIVE_DECISION",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0003",
-      "statement": "A universe itself sets only decisions whose `when` holds in its effective selection"
+      "source": "§12 Universes",
+      "statement": "No universe's chain of `derived_from` loops back to it"
     },
     {
       "code": "MISSING_REQUIRED_OPTION",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003",
+      "source": "§12 Universes",
       "statement": "Every effective selection satisfies the `requires` of every option it selects"
     },
     {
       "code": "INCOMPATIBLE_OPTIONS",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003",
+      "source": "§12 Universes",
       "statement": "Every effective selection satisfies the `incompatible_with` of every option it selects"
     },
     {
       "code": "EXCLUDED_OPTION_SELECTED",
       "layer": "validator",
       "level": "MUST",
-      "source": "main, tidy-up",
+      "source": "§12 Universes",
       "statement": "No effective selection selects an excluded option"
+    },
+    {
+      "code": "INACTIVE_DECISION",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§12 Universes",
+      "statement": "A universe itself sets only decisions whose `when` holds in its effective selection"
+    },
+    {
+      "code": "PIN_INACTIVE",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§13 Pins, and outputs built per universe or once",
+      "statement": "Every pinned output is active in the universe it is pinned to"
+    },
+    {
+      "code": "INPUT_NOT_BUILT",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§13 Pins, and outputs built per universe or once",
+      "statement": "Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there"
+    },
+    {
+      "code": "INVALID_EVIDENCE_SOURCE",
+      "layer": "schema",
+      "level": "MUST",
+      "source": "§14 Insights and evidence",
+      "statement": "Evidence has exactly one of `doi` and `artifact`, and has a `version` only with a `doi`"
+    },
+    {
+      "code": "INVALID_INSIGHT_REF",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§14 Insights and evidence",
+      "statement": "Every entry of `Option.insights` names a prior insight of the analysis"
+    },
+    {
+      "code": "DECLARATION_OUTSIDE_REPOSITORY",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§15 Declared analyses",
+      "statement": "A declaration's `path`, tidied (Annex B), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit"
+    },
+    {
+      "code": "MISSING_DECLARED_ANALYSIS",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§15 Declared analyses",
+      "statement": "The folder a declaration names holds an `astra.yaml` file, reached through no symlink (Annex B)"
+    },
+    {
+      "code": "CLASHING_RESULT_NAME",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§15 Declared analyses",
+      "statement": "No output shares its id with a declaration of the same analysis"
+    },
+    {
+      "code": "NOT_BUILT_IN_UNIVERSE",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§16 Driving and consuming",
+      "statement": "Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the root's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe"
     },
     {
       "code": "DUPLICATE_ELEMENT",
       "layer": "validator",
       "level": "MUST",
-      "source": "tidy-up, §4, §6, §7",
+      "source": "§16 Driving and consuming",
       "statement": "No universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit"
     },
     {
       "code": "LOOPING_KEY",
       "layer": "validator",
       "level": "MUST",
-      "source": "main, §6, §7",
+      "source": "§16 Driving and consuming",
       "statement": "No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included"
     },
     {
-      "code": "NOT_BUILT_IN_UNIVERSE",
+      "code": "MISSING_DECISION",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004, §7",
-      "statement": "Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the root's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe"
+      "source": "§16 Driving and consuming",
+      "statement": "Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that its analysis's universes drive"
     },
     {
       "code": "UNDRIVEN_DECLARATION",
       "layer": "validator",
       "level": "MUST",
-      "source": "0004, tidy-up, §7",
+      "source": "§16 Driving and consuming",
       "statement": "In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, by which the output of a planned result or the root's evidence pins another analysis's output built per universe to that universe, or by which the output of a result planned there, an output's `when` where the output's result would be planned if the `when` held, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain)"
-    },
-    {
-      "code": "INPUT_NOT_BUILT",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0004",
-      "statement": "Every output read without a pin by the output of a result planned in the universe being built is active (its `when` holds) there"
     },
     {
       "code": "UNKNOWN_PIN_UNIVERSE",
       "layer": "validator",
       "level": "MUST",
-      "source": "0003, 0004, tidy-up, §4, §6, §7",
+      "source": "§16 Driving and consuming",
       "statement": "Every pin in an `astra.yaml` names an entry of that file's `universes` or, where the file has no entry with its id, a universe of the analysis whose element its reference names"
-    },
-    {
-      "code": "PIN_INACTIVE",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0003",
-      "statement": "Every pinned output is active in the universe it is pinned to"
-    },
-    {
-      "code": "OUTPUT_CYCLE",
-      "layer": "validator",
-      "level": "MUST",
-      "source": "0004",
-      "statement": "No output depends on itself, directly or through others"
     },
     {
       "code": "RESULT_IN_TWO_PLACES",
       "layer": "validator",
       "level": "SHOULD",
-      "source": "main, §7, §8",
-      "statement": "No planned result has two names: its output's analysis is reached through at most one chain of driven declarations from the analysis the result belongs to (§8)"
+      "source": "§16 Driving and consuming",
+      "statement": "No planned result has two names: its output's analysis is reached through at most one chain of driven declarations from the analysis the result belongs to (§18)"
+    },
+    {
+      "code": "INVALID_DECLARATION_SOURCE",
+      "layer": "schema",
+      "level": "MUST",
+      "source": "§17 Analyses from another commit or repository",
+      "statement": "A declaration has exactly one of `path` and `url`"
+    },
+    {
+      "code": "URL_WITHOUT_COMMIT",
+      "layer": "schema",
+      "level": "MUST",
+      "source": "§17 Analyses from another commit or repository",
+      "statement": "A declaration with a `url` has a `commit`"
+    },
+    {
+      "code": "INVALID_COMMIT",
+      "layer": "schema",
+      "level": "MUST",
+      "source": "§17 Analyses from another commit or repository",
+      "statement": "Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits"
+    },
+    {
+      "code": "COMMIT_NOT_FOUND",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§17 Analyses from another commit or repository",
+      "statement": "A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the repository that holds the declaring `astra.yaml`"
+    },
+    {
+      "code": "DECLARED_ANALYSIS_INVALID",
+      "layer": "validator",
+      "level": "MUST",
+      "source": "§17 Analyses from another commit or repository",
+      "statement": "An analysis from a commit, with everything it declares, is valid at that commit"
     },
     {
       "code": "MISSING_RECORD",
       "layer": "check",
       "level": "MUST",
-      "source": "0005 §1",
+      "source": "§20 Checking results",
       "statement": "Every planned result has a record at `.astra/records/{universe}/{name}.json` (or `{name}.json` for an output built once), for each of its names, in the analysis it belongs to",
       "status": "`missing`"
     },
@@ -650,15 +622,15 @@
       "code": "INVALID_RECORD",
       "layer": "check",
       "level": "MUST",
-      "source": "0005 §2, tidy-up, §3, §8",
-      "statement": "The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema, or against the open variant when that minor version is greater than the checker's",
+      "source": "§20 Checking results",
+      "statement": "The record at each planned result's place breaks no parse rule, states a `spec_version` whose minor version has a record schema or is greater than the checker's, and breaks no schema rule against that minor version's record schema or, when that minor version is greater than the checker's, against the open variant of the checker's own record schema",
       "status": "`missing`"
     },
     {
       "code": "MISPLACED_RECORD",
       "layer": "check",
       "level": "MUST",
-      "source": "0005 §1",
+      "source": "§20 Checking results",
       "statement": "The record at each planned result's place has, as its `address`, the address that place is worked out from",
       "status": "`missing`"
     },
@@ -666,15 +638,15 @@
       "code": "MISSING_RECORD_INPUTS",
       "layer": "check",
       "level": "MUST",
-      "source": "0005 §2",
-      "statement": "The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, matched by `entry`, and no other item (their order carries no meaning)",
+      "source": "§20 Checking results",
+      "statement": "The record at each planned result's place has exactly one `inputs` item for each entry its output lists at the commit the record names, where that commit can be read and its output exists there, matched by `entry`, and no other item (their order carries no meaning)",
       "status": "`missing`"
     },
     {
       "code": "STALE_RESULT",
       "layer": "check",
       "level": "MUST",
-      "source": "0005 §4",
+      "source": "§20 Checking results",
       "statement": "Since the commit in a result's record, nothing has changed in its output's declaration (command, inputs and their order, decisions, format), the options its decisions select in its universe, the content of its inputs, never what stands in for it, or the results it reads",
       "status": "`stale`"
     },
@@ -682,79 +654,79 @@
       "code": "ABSENT_RESULT",
       "layer": "check",
       "level": "SHOULD",
-      "source": "0005 §1",
-      "statement": "Every planned result's recorded bytes are at its default place",
+      "source": "§20 Checking results",
+      "statement": "Every planned result's recorded bytes are at its default place, except a result of an analysis from a commit that no planned result reads",
       "status": "`absent`"
     },
     {
       "code": "STALE_EVIDENCE",
       "layer": "check",
       "level": "MUST",
-      "source": "0005 §5",
+      "source": "§20 Checking results",
       "statement": "Every evidence citing a result cites an unchanged one",
-      "status": "the cited result's status (Statuses)"
+      "status": "the cited result's record status"
     },
     {
       "code": "UNRECORDED_RESULT",
       "layer": "runner",
       "level": "MUST",
-      "source": "0005 §1, 0005 §3",
+      "source": "§21 Runners",
       "statement": "A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places"
     },
     {
       "code": "FALSE_RECORD",
       "layer": "runner",
       "level": "MUST",
-      "source": "0005 §2, 0005 §3",
+      "source": "§21 Runners",
       "statement": "Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times"
     },
     {
       "code": "UNRECREATABLE_ENVIRONMENT",
       "layer": "runner",
       "level": "MUST",
-      "source": "0005 §3",
-      "statement": "A runner records each recipe's environment as an RFC 3987 IRI that it can recreate at its version"
+      "source": "§21 Runners",
+      "statement": "A runner records each recipe's environment as an IRI, of the form Annex C gives, that it can recreate at its version"
     },
     {
       "code": "UNCOMMITTED_CHANGES",
       "layer": "runner",
       "level": "MUST",
-      "source": "0005 §3, 0007 §2, 0007 §7",
-      "statement": "A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones"
+      "source": "§21 Runners",
+      "statement": "A runner runs each recipe in a checkout of a commit whose only changes (what git reports in it, untracked files and submodules included, ignored files not) are the records and results of any run, each result's bytes the recorded ones"
     },
     {
       "code": "WRONG_WORKING_DIRECTORY",
       "layer": "runner",
       "level": "MUST",
-      "source": "0004 §1, 0004 §5",
-      "statement": "A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it"
+      "source": "§21 Runners",
+      "statement": "A runner runs each recipe in the folder of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it"
     },
     {
       "code": "NOT_AT_COMMIT",
       "layer": "runner",
       "level": "MUST",
-      "source": "0007 §7",
+      "source": "§21 Runners",
       "statement": "A runner drives an analysis from a commit on exactly its files at that commit"
     },
     {
       "code": "REBUILT_FROM_COMMIT",
       "layer": "runner",
       "level": "MUST",
-      "source": "0007 §3, 0007 §7",
+      "source": "§21 Runners",
       "statement": "A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each of those results through its record at the commit that analysis is read at"
     },
     {
       "code": "STALE_INPUT",
       "layer": "runner",
       "level": "MUST",
-      "source": "0007 §4, 0007 §5",
+      "source": "§21 Runners",
       "statement": "A runner builds no output that reads a result belonging to an analysis from a commit, or to an analysis reached from it through declarations, while that result is `missing` or `stale`, or its bytes can't be got or aren't the recorded ones"
     },
     {
       "code": "UNDECLARED_READ",
       "layer": "runner",
       "level": "SHOULD",
-      "source": "0005 §3, tidy-up",
+      "source": "§21 Runners",
       "statement": "A recipe reads the files inputs name, and other outputs' results, only through its output's inputs"
     }
   ]

@@ -62,13 +62,13 @@ classes:
           fractional, such as 0.5.
       memory:
         description: >-
-          The memory the recipe asks for, as free text, such as `16Gi`.
+          The memory the recipe asks for, as free text, such as `4GB`.
       time_limit:
         description: >-
           The longest the recipe may run, as free text, such as `2h`.
       disk:
         description: >-
-          The disk space the recipe asks for, as free text, such as `10Gi`.
+          The disk space the recipe asks for, as free text, such as `10GB`.
       gpus:
         range: integer
         minimum_value: 1
@@ -86,7 +86,7 @@ classes:
         required: true
         description: >-
           The POSIX shell command that makes the output, such as
-          `python src/train.py`. It is a template. Read from the left, `{{`
+          `python src/output1.py`. It is a template. Read from the left, `{{`
           stands for a literal `{` and `}}` for a literal `}`, and any other
           `{` opens a placeholder, which ends at the next `}`. A runner
           substitutes each placeholder, and each `{{` and `}}`, before running
@@ -210,8 +210,8 @@ classes:
 
   Decision:
     description: >-
-      A choice the analysis makes between options, such as which estimator
-      to use.
+      A choice the analysis makes between options, such as which method to
+      use.
     attributes:
       id:
         key: true
@@ -331,7 +331,7 @@ classes:
         description: >-
           For an import, the address of the declaration that leads to the
           analysis whose universe it imports, through as many declarations as
-          lead to it, such as `catalog` or `stage.inner`.
+          lead to it, such as `subanalysis` or `stage.inner`.
       universe:
         range: id
         description: >-
@@ -388,13 +388,14 @@ classes:
   DecisionSelection:
     description: >-
       The option a universe selects for one decision, written in the
-      universe's `decisions` as `<decision>: <option>`, such as `model: svm`.
+      universe's `decisions` as `<decision>: <option>`, such as
+      `decision1: a`.
     attributes:
       decision:
         key: true
         range: address
         # A map key that doesn't match its key's type is a bad id, whatever
-        # that type (§9), so this names its code over `address`'s.
+        # that type (§6), so this names its code over `address`'s.
         annotations:
           rule: INVALID_ID
         description: >-
@@ -433,11 +434,15 @@ classes:
           rule: INVALID_VALUE
         description: >-
           Where git fetches another repository from, as a remote with no ASCII
-          space or control character: `scheme://…`, such as
-          `https://github.com/owner/analysis` or `file:///srv/repo`, or
-          `[user@]host:path`, such as `git@github.com:owner/repo`. The declared
-          analysis is the one at the top level of that repository, at
-          `commit`.
+          space or control character, in one of two forms: `scheme://`
+          and at least one character, where the scheme is an ASCII letter
+          followed by any ASCII letters, digits, `+`, `.` and `-`, such as
+          `https://example.org/remote.git` or `file:///srv/remote.git`; or
+          scp-like, `[user@]host:path`, where `host`, `path` and any `user`
+          are non-empty, `user` and `host` hold no `/`, `@` or `:`, and the
+          value doesn't start with a scheme and `://`, such as
+          `git@example.org:remote.git`. The declared analysis is the one at
+          the top level of that repository, at `commit`.
       commit:
         range: commit_id
         description: >-

@@ -75,12 +75,15 @@ Full walk-through: **[Getting started →](https://astra-spec.org/latest/getting
 This repository (`astra-spec`) holds the LinkML schema and the documentation site.
 
 ```
-src/astra/
-  schema/       # LinkML schema source (edit these)
-  datamodel/    # Generated Python datamodel (do not edit directly)
-docs/           # Documentation source (Zensical → astra-spec.org)
-tests/data/    # Valid/invalid fixtures: astra.yaml files and records
-project/        # Multi-language bindings (Python, TS, JSON Schema, JSON-LD, OWL, Java)
+src/astra/schema/   # LinkML schema sources (edit these)
+  generated/        # JSON Schemas, JSON-LD context and rules.json (generated, do not edit)
+docs/               # Documentation source, the specification included (Zensical → astra-spec.org)
+examples/           # Example analyses
+tests/data/         # Valid/invalid fixtures: astra.yaml files and records
+tools/              # Generators and checks of the schema files and the docs
+linkml-templates/   # Templates for the generated field reference
+design/             # Design records
+rfcs/               # RFCs
 ```
 
 The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/). The `astra-spec` package holds the LinkML sources and the generated schema files, as the namespace package `astra.schema`, read through `importlib.resources`; it ships no Python models and has no dependencies.
@@ -99,7 +102,7 @@ Requires Python 3.9+, [uv](https://docs.astral.sh/uv/), and [just](https://githu
 just test         # Schema generation, Python datamodel, examples
 just lint         # LinkML schema lint
 just gen-python   # Regenerate Python datamodels
-just gen-doc      # Regenerate the schema reference docs
+just gen-doc      # Regenerate the field reference docs
 just docs-serve   # Live-reload local preview of the docs site
 just --list       # Everything else
 ```

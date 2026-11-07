@@ -20,7 +20,7 @@ A tool that follows the specification and uses the schemas conforms. astra-tools
 
 - The generated files are what the sources give, and the build tools do what they claim.
 - Each schema constraint refuses what it should, and each parse and schema code has a document that breaks it.
-- The schemas are standard JSON Schema that reads the same in any validator: portable patterns, standard keywords, a strict compile, one `$id` per minor version.
+- The schemas are standard JSON Schema that reads the same in any validator: ECMA-262 patterns as JSON Schema reads them, standard keywords, a strict compile, one `$id` per minor version.
 - `rules.json` matches the specification and the schemas.
 - The specification's grammars match the schema's patterns, and its examples break no parse or schema rule.
 - The JSON-LD context reads a record as the specification's PROV-O mapping says.
@@ -51,7 +51,7 @@ It is done when:
 5. **Ground up.** Part II is read in order. Each section uses only Part I's vocabulary and the sections before it, with three exceptions:
    - a link to the glossary, for an exact definition;
    - a link to an annex, for a tool builder's detail;
-   - the Rule of a general schema code (`MISSING_FIELD` and its kind, `INVALID_ID`, `INVALID_REFERENCE`, `INVALID_PATH`, `INVALID_COMMIT`), which may list fields that later sections introduce, as the field reference does.
+   - the Rule of a general schema code (`MISSING_FIELD` and its kind, `INVALID_ID`, `INVALID_REFERENCE`, `INVALID_PATH`, `INVALID_COMMIT`), of `UNRESOLVED_ADDRESS` or of `UNKNOWN_OPTION`, which may list fields that later sections introduce, as the field reference does.
 
    A glossary link never stands in for a concept that a later section introduces. Part I may link forward to the section of each piece it names.
 6. **Readable, with nothing superfluous.** Prose where it reads well, bullets where text would be dense, short sentences. No sentence that only says what something doesn't do, unless it clarifies, and no advice that isn't a rule. These go, for example:
@@ -98,7 +98,7 @@ Outside a repository:
 
 Annex D lists the case. An analysis read at a commit is always in a repository.
 
-In the spec since the audit of 2026-11-06 (its D5): the validator table's first row, with Source `§3`, so `rules.json` has 66 rules; §3's definition of an analysis ("in a git repository: in its working tree, or at one of its commits"); *What is checked* case 11, which also says that the root's declarations aren't followed, since without a working tree a path names nothing, so only its own `astra.yaml` is checked by the parse and schema rules; §8's statuses; and the check layer's `missing`. It has no fixture, since its case needs a folder outside git: it is on scratch `for-conformance.md`.
+In the spec since the audit of 2026-11-06 (its D5): the validator table's first row, with Source `§3`, so `rules.json` has 66 rules; §3's definition of an analysis ("in a git repository: in its working tree, or at one of its commits"); *What is checked* case 11, which also says that the root's declarations aren't followed, since without a working tree a path names nothing, so only its own `astra.yaml` is checked by the parse and schema rules and, since 2026-11-07 (Tom), `UNSUPPORTED_SPEC_VERSION`; §8's statuses; and the check layer's `missing`. It has no fixture, since its case needs a folder outside git: it is on scratch `for-conformance.md`.
 
 ### The parse layer
 
@@ -173,7 +173,7 @@ Decided on 2026-11-06 (the audit's H11-H17 and H19-H21). Spec §3 keeps the read
 - **Intent-to-add and unmerged entries** (H14). "In the index" reads as git's index does, so an intent-to-add entry (`git add -N`) is tracked now, as an unmerged one already was.
 - **MERGE_HEAD** (H15, with H21). `COMMIT_NOT_ANCESTOR` stays, and in the working tree HEAD alone stands for the commit a declaration is in, so during a merge a declaration merged in from the other branch may draw the warning until the merge is committed. The rule's statement changes in `rules.json`.
 - **Shallow clones and unborn branches** (H19, H20). Decided on 2026-11-05 but never in the spec: where a shallow clone couldn't decide, `COMMIT_NOT_ANCESTOR` wasn't to be reported, and with no commit yet it wasn't to be checked, an Annex D case. Both are left out. The rule means ancestry, which is exact; how a tool decides it on a history it lacks is the tool's. With no commit yet, HEAD stands for the first commit, of which no declared commit is an ancestor, so the warning is the rule's answer. Annex D has no such case.
-- **The submodule's local repository** (H16). Spec §3 got the commit a gitlink pins from any repository that had it, the submodule's local repository included, and fetched it from the URL in `.gitmodules` only otherwise. Now it is got from that URL, and a commit kept from an earlier fetch counts as got. So where a gitlink crossed at a commit pins a commit made in the submodule and never pushed, the declaration that reaches it breaks `REMOTE_UNREACHABLE`, which §3 didn't say before. The rule's statement doesn't change: it always named only the remote and an earlier fetch, and §3 now agrees with it.
+- **The submodule's local repository** (H16). Spec §3 got the commit a gitlink pins from any repository that had it, the submodule's local repository included, and fetched it from the URL in `.gitmodules` only otherwise. Now it is got from that URL, and a commit kept from an earlier fetch counts as got. So where a gitlink crossed at a commit pins a commit made in the submodule and never pushed, the declaration that reaches it breaks `REMOTE_UNREACHABLE`, which §3 didn't say before. The rule's statement doesn't change: it always named only the remote and an earlier fetch, and §3 now agrees with it. Since 2026-11-07 (Tom), a commit already in a local repository counts as got, so a submodule commit never pushed but held locally doesn't break `REMOTE_UNREACHABLE`; the rule's statement changes in `rules.json`.
 
 Restated with no change of meaning: case and Unicode form (H11: a path names the entry at exactly that path, so `data/A.csv` and `data/a.csv` are two paths, and identity compares "the same path"), a submodule that isn't checked out (H13), the URL a gitlink's commit is got from (H16: the one the `.gitmodules` of the commit holding the gitlink gives, a relative one resolved as git resolves it), and a file's bytes at a commit (H17: the blob git stores).
 
@@ -188,7 +188,7 @@ Settled on 2026-11-06 (the audit's I3, I4 and I5): three passages of spec §6 an
 
 Decided on 2026-11-06 (the audit's H23, H24 and H37).
 - **The options of a result's decisions** (H23). `STALE_RESULT` compared "the options of its decisions", which read literally made a result stale when an option was added to one of its decisions. It now compares the options its decisions select: a result is stale in its universe if any of its decisions selects a different option there than at the commit its record names. This is the reading agreed in X53 (1) on 2026-11-04, brought forward from RFC L; X53 (2) and (3) stay there. The rule's statement changes in `rules.json`.
-- **`UNCOMMITTED_CHANGES` has no exemption** (H37). A runner's checkout could also hold what a tool keeps of, or puts in place to drive, an analysis from a commit. Now its only changes are the records and results the runner writes itself, each result's bytes the recorded ones; where a tool puts a driven commit's files is its own business, and they mustn't be changes in that checkout. The rule's statement changes in `rules.json`, and §7's two restatements of the exemption go.
+- **`UNCOMMITTED_CHANGES` has no exemption** (H37). A runner's checkout could also hold what a tool keeps of, or puts in place to drive, an analysis from a commit. Now its only changes are the records and results of any run (since 2026-11-07, Tom; before, those the runner writes itself), each result's bytes the recorded ones; where a tool puts a driven commit's files is its own business, and they mustn't be changes in that checkout. The rule's statement changes in `rules.json`, and §7's two restatements of the exemption go.
 
 With no change of meaning: "the commit a record names has to stay in the history" read as a rule with no code. It is now the recommendation alone (H24): branches that hold records SHOULD be merged, not squashed or rebased.
 
@@ -220,7 +220,7 @@ Cut on 2026-11-06 (the audit's H33 (a), H34 and H38), each a promise with no cod
 Settled on 2026-11-06 (the audit's I14-I16, I20 and O7), with no verdict changed:
 - **`ABSENT_RESULT`** (I20). Its statement read "every result's recorded bytes", but only planned results get statuses (spec §8). It now reads "every planned result's recorded bytes are at its default place". The statement changes in `rules.json`, and so does spec §10's excerpt.
 - **No `MAY` level** (I15). No rule of the catalogue was a `MAY`, so spec §9 defined a category no table used. A level is now `MUST` or `SHOULD`, in spec §9 and in `rules.json`'s `level`, and `tools/rules.py` refuses a `MAY` row. The runner's permission to enforce `UNDECLARED_READ` stays a permission, stated after the runner table with the runner's recommendation, each once (I14); spec §8 and the layer table link to them.
-- **Statuses once** (I16). Spec §9 kept the status table and dropped its restatement of spec §8's statuses. `STALE_EVIDENCE`'s *Status when broken* is "the cited result's status (Statuses)", linking spec §8, so its `status` in `rules.json` changes.
+- **Statuses once** (I16). Spec §9 kept the status table and dropped its restatement of spec §8's statuses. `STALE_EVIDENCE`'s *Status when broken* is "the cited result's record status", so its `status` in `rules.json` changes.
 - **The catalogue as data** (O7). How `tools/rules.py` reads spec §9's tables (subsections, columns, rows, cells) left the spec for the extractor's docstring. Spec §9 keeps what the Code, Level and Rule columns mean, and spec §10 still says `rules.json`'s cells are inline CommonMark.
 
 ### Slips corrected
@@ -237,6 +237,10 @@ In the spec since the audit of 2026-11-06 (its D3):
 
 The audit's other accepted items (§2's O items but O23, which stays as an explanation of the model, §4's I items and §6's N items) changed wording only: each cut a sentence about a library, a platform, this repository, advice or what is left open, stated a fact once, or made a description say what the rules say. No verdict changes, and no rule's reach changes beyond the entries above. Among them, `rules.json` changes only in `STALE_EVIDENCE`'s `status` (I16) and, recorded above, the statements of `COMMIT_NOT_FOUND`, `ABSENT_RESULT` and `INPUT_IN_ANOTHER_ANALYSIS`.
 
+### What is left to tools
+
+Decided on 2026-11-07 (Tom). Annex D (which codes an already-invalid analysis gets), the reporting text of spec §3 and §17, and `REMOTE_UNREACHABLE`, `UNSUPPORTED_SPEC_VERSION`, `DUPLICATE_KEY` and `COMMIT_NOT_ANCESTOR` leave the spec as tools' business. `INVALID_SYNTAX` shrinks, Annex E becomes Annex D, and `rules.json` has 62 codes.
+
 ## 5. The new specification
 
 The specification is one page: Part I, Part II, a glossary, then Part III.
@@ -246,16 +250,16 @@ The specification is one page: Part I, Part II, a glossary, then Part III.
 1. **What ASTRA is.** A sentence or two on why ASTRA exists, then the pieces, in prose with a short list. No rules. It gives the meaning of every term Part II leans on before its own section:
    - an analysis, its folder and its repository;
    - inputs, outputs and recipes;
-   - decisions, options and universes;
+   - decisions, options, universes and imports;
    - building an analysis in one of its universes, and the universe being built;
-   - declaring another analysis, the root, and its stack. Every declared analysis is an analysis at a commit, and the URL says only where to get it. A declaration by `path` without a `commit` is one still being worked on, inside the declaring analysis's repository. When it is published, its declaration becomes a `url` and a `commit`, and its own results go with it, since they are kept in its folder. So two declarations name one analysis when they reach the same directory at the same commit, or the same directory of the working tree (Tom, 2026-11-06);
-   - results, records, runners and checkers.
+   - declaring another analysis, the root, its stack, and an analysis from a commit. Every declared analysis is an analysis at a commit, and the URL says only where to get it. A declaration by `path` without a `commit` is one still being worked on, and is read in the working tree. When it is published, its declaration becomes a `url` and a `commit`, and its own results go with it, since they are kept in its folder. So two declarations name one analysis when they reach the same directory at the same commit, or the same directory of the working tree (Tom, 2026-11-06);
+   - results, planned results, the analysis a result belongs to, a result's name, place and default place, records, runners and checkers.
 2. **A worked example.** The minimal example (see §7), then what validating, building, recording and checking do.
 3. **Conformance.**
    - The five layers, in one table: what each reads, and who checks it.
    - What valid means.
    - A broken MUST is an error, and a broken SHOULD is a warning.
-   - A rule left undetermined by another rule's breach isn't checked (Annex D).
+   - A rule left undetermined by another rule's breach isn't checked (Annex D). *Superseded on 2026-11-07 (§4, "What is left to tools").*
 4. **Conventions.** MUST, SHOULD and MAY; how to read a codes table; placeholders in examples; and the field reference, which the spec links to rather than restating it.
 
 ### Part II: The specification
@@ -296,13 +300,13 @@ The specification is one page: Part I, Part II, a glossary, then Part III.
 
 **Glossary.** Normative and alphabetical, with one line per term, for every term a rule relies on.
 - A concept points to the section that defines it.
-- A technical term is defined here, with Annex B giving the detail: tracked (the index, intent-to-add and unmerged entries, submodules), lies inside, stand-in, and the repository that holds a file.
+- A technical term is defined here, with Annex B giving the detail: tracked (in git's index), lies inside, stand-in, and the repository that holds a file.
 
 **Part III: For tool builders.** Normative and terse.
-- **A. Reading files:** the parse layer, with what follows from YAML marked.
-- **B. Paths and git:** tidying a path, case and Unicode form, symlinks, submodules, shallow clones, and the glossary's git terms in full.
+- **A. Reading files:** what an `astra.yaml` and a record are, in full: YAML 1.2 whose content is a JSON value, and JSON. Since the audit of 2026-11-06 this is a few lines.
+- **B. Paths and git:** a path names the entry at exactly that path, case included; tidying a path as text, symlinks, gitlinks crossed at a commit, and the glossary's git terms in full.
 - **C. Grammars and patterns:** the ABNF, each pattern, and the characters of fragment identifiers.
-- **D. When a rule isn't checked.**
+- **D. When a rule isn't checked.** *Superseded on 2026-11-07 (§4, "What is left to tools").*
 - **E. The schema files and `rules.json`:** how an error maps to its code, records as RDF, and the `rules.json` excerpt.
 - **References:** external standards only.
 
@@ -343,11 +347,11 @@ For example:
 > - An input is one file. Data in many files is many inputs.
 > - The file is in the analysis's folder, but not in a folder below it that has an `astra.yaml` file of its own: that folder is another analysis.
 > - It is tracked in the analysis's repository, so a file in a git submodule can't be an input.
-> - It may be a stand-in kept in git in place of the data, such as a large-file tool's pointer. Which stand-ins count is up to the tool.
+> - It may be a stand-in kept in git in place of the data, such as a large-file tool's pointer, where the validator recognises it.
 >
 > | Code | Layer | Level | Rule |
 > |---|---|---|---|
-> | `INVALID_PATH` | schema | MUST | A declaration's or input's `path` is non-empty, doesn't start with `/` or `~`, and has no `\` and no ASCII control character; an input's `path` also has no `..` segment and doesn't end in `/` |
+> | `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` is non-empty and doesn't start with `/` |
 > | `MISSING_INPUT_FILE` | validator | MUST | An input's `path` names a file (not a folder, a symlink or a submodule), or a stand-in for one that the validator recognises |
 > | `INPUT_NOT_TRACKED` | validator | MUST | An input's file, or its stand-in, is [tracked](#glossary) in the repository that holds its analysis |
 > | `INPUT_IN_ANOTHER_ANALYSIS` | validator | MUST | An input's file is inside its analysis's folder, and not inside a folder below it that has an `astra.yaml` file of its own |
@@ -363,10 +367,10 @@ The starting placement:
 
 | Spec section | Codes |
 |---|---|
-| 5. The `astra.yaml` file | INVALID_SYNTAX, DUPLICATE_KEY, MISSING_FIELD, UNKNOWN_FIELD, WRONG_TYPE, EMPTY_COLLECTION, DUPLICATE_ENTRY, INVALID_VALUE, UNSUPPORTED_SPEC_VERSION, NOT_IN_REPOSITORY |
+| 5. The `astra.yaml` file | INVALID_SYNTAX, DUPLICATE_KEY, MISSING_FIELD, UNKNOWN_FIELD, WRONG_TYPE, EMPTY_COLLECTION, DUPLICATE_ENTRY, INVALID_VALUE, UNSUPPORTED_SPEC_VERSION, NOT_IN_REPOSITORY. *DUPLICATE_KEY and UNSUPPORTED_SPEC_VERSION superseded on 2026-11-07 (§4, "What is left to tools").* |
 | 6. Names | INVALID_ID, INVALID_REFERENCE, UNRESOLVED_ADDRESS |
 | 7. Inputs | INVALID_PATH, MISSING_INPUT_FILE, INPUT_NOT_TRACKED, INPUT_IN_ANOTHER_ANALYSIS, RESERVED_PATH |
-| 8. Decisions and options | BLANK_EXCLUDED, UNKNOWN_OPTION |
+| 8. Decisions and options | UNKNOWN_OPTION |
 | 10. Outputs | OUTPUT_CYCLE, AMBIGUOUS_ID |
 | 11. Recipes | UNDECLARED_TEMPLATE_REF |
 | 12. Universes | UNKNOWN_DERIVED_FROM, DERIVED_FROM_CYCLE, INACTIVE_DECISION, MISSING_REQUIRED_OPTION, INCOMPATIBLE_OPTIONS, EXCLUDED_OPTION_SELECTED, INVALID_IMPORT |
@@ -374,7 +378,7 @@ The starting placement:
 | 14. Insights and evidence | INVALID_EVIDENCE_SOURCE, INVALID_INSIGHT_REF |
 | 15. Declared analyses | DECLARATION_OUTSIDE_REPOSITORY, MISSING_DECLARED_ANALYSIS, CLASHING_RESULT_NAME |
 | 16. Driving and consuming | RESULT_IN_TWO_PLACES, NOT_BUILT_IN_UNIVERSE, UNDRIVEN_DECLARATION, MISSING_DECISION, UNKNOWN_PIN_UNIVERSE, DUPLICATE_ELEMENT, LOOPING_KEY |
-| 17. Analyses from another commit or repository | INVALID_DECLARATION_SOURCE, URL_WITHOUT_COMMIT, INVALID_COMMIT, COMMIT_NOT_FOUND, COMMIT_NOT_ANCESTOR, REMOTE_UNREACHABLE, DECLARED_ANALYSIS_INVALID |
+| 17. Analyses from another commit or repository | INVALID_DECLARATION_SOURCE, URL_WITHOUT_COMMIT, INVALID_COMMIT, COMMIT_NOT_FOUND, COMMIT_NOT_ANCESTOR, REMOTE_UNREACHABLE, DECLARED_ANALYSIS_INVALID. *COMMIT_NOT_ANCESTOR and REMOTE_UNREACHABLE superseded on 2026-11-07 (§4, "What is left to tools").* |
 | 20. Checking results | MISSING_RECORD, INVALID_RECORD, MISPLACED_RECORD, MISSING_RECORD_INPUTS, STALE_RESULT, ABSENT_RESULT, STALE_EVIDENCE |
 | 21. Runners | UNRECORDED_RESULT, FALSE_RECORD, UNRECREATABLE_ENVIRONMENT, UNCOMMITTED_CHANGES, WRONG_WORKING_DIRECTORY, NOT_AT_COMMIT, REBUILT_FROM_COMMIT, STALE_INPUT, UNDECLARED_READ |
 
@@ -424,7 +428,9 @@ There is one running example, built up through the spec, with neutral names:
    - Reduce the tests to ASTRA's rules, and remove the vendored YAML suite.
    - Then trim any test or fixture that doesn't serve §1, handing the cases to the conformance list.
 
-   The baseline is the spec at `3905eab`, which adds today's composition changes and imported universes.
+   Since 2026-11-07 (§4, "What is left to tools"), the parse layer is one rule, `INVALID_SYNTAX`: an `astra.yaml` is a YAML 1.2 document whose content is a map, and a record is JSON text in UTF-8 in which no object has two equal names.
+
+   The baseline B is the spec at `c17a491`. It adds the composition changes of 2026-11-06, imported universes, and the content audit's decisions (`80ddb20`..`c17a491`): the smaller parse layer, plain ECMA-262 patterns, and the rules and text the audit cut. Tom's answers are in the handover scratch, `rewrite/audit/AUDIT.md`. The audit's thirteen open questions (Q1-Q13) stay open: the rewrite transcribes B's text where they apply.
 2. **Tooling.** `tools/rules.py`, its tests and the generated page change first, run on today's content adapted to the new table form.
 3. **The rewrite.**
    - It goes section by section, following the inventory's destination map as amended by §5. The inventory's line numbers (made at `ad50115`) are first mapped to the baseline.

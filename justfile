@@ -118,7 +118,10 @@ docs-serve: _docs-prep
 docs-clean:
   rm -rf site
 
+# Prepare the docs: the field reference, the published schema files, and the
+# All rules page, written from the specification (`tools/rules_page.py`)
 _docs-prep: gen-doc docs-install
+  uv run python tools/rules_page.py docs/specification.md docs/rules.md
 
 # Run all tests: the generated files are current, pytest, and the schema lints clean
 [group('model development')]
@@ -132,7 +135,8 @@ test: check-generated _pytest lint
 # filled in by the generator: `0.1` for every 0.1.x, a pre-release's whole
 # version, or `dev`), so the closed and open record schemas are distinct, and
 # so are two minor versions. `rules.json` holds the rules extracted from the
-# specification's §9, and the code of each JSON Schema keyword that can fail
+# codes tables of the specification's Part II, and the code of each JSON
+# Schema keyword that can fail
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned
   mkdir -p {{out}}
@@ -220,12 +224,13 @@ release version:
 # Generate md documentation for the schema and add artifacts: both roots, the
 # analysis document and the provenance record, in one run (`--include`), so
 # that the slots the two share get one page each, rather than one run
-# overwriting the other's. Each Regex Pattern cell is then written as HTML,
-# every character but an ASCII letter or digit as a character reference, so
-# that the site shows the pattern exactly (`tools/pattern_cells.py`)
+# overwriting the other's. The type and slot pages use the templates in
+# linkml-templates/. Each Regex Pattern cell is then written as HTML, every
+# character but an ASCII letter or digit as a character reference, so that the
+# site shows the pattern exactly (`tools/pattern_cells.py`)
 [group('model development')]
 gen-doc: _stage-versioned _gen-yaml && _add-artifacts
-  uv run gen-doc {{gen_doc_args}} --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
+  uv run gen-doc {{gen_doc_args}} --template-directory linkml-templates --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
   uv run python tools/pattern_cells.py {{docdir}}
 
 # ============== Migrations recipes for Copier ==============

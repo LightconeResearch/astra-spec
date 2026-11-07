@@ -30,24 +30,20 @@ _RULE_LINE = re.compile(r"# rule: ([A-Z][A-Z0-9_]*)")
 _FAILS_AT_LINE = re.compile(r"# fails at: (\(root\)|parse|(/[^/]*)+)")
 _ALSO_LINE = re.compile(r"# also: ([A-Z][A-Z0-9_]*) at (\(root\)|(/[^/]*)+)")
 
-PARSE_CODES = {"INVALID_SYNTAX", "DUPLICATE_KEY"}
+PARSE_CODES = {"INVALID_SYNTAX"}
 """The parse-layer codes `parse_code` gives."""
 
 
 class YAMLError(ValueError):
-    """An `astra.yaml` that breaks a parse rule (spec §3), as `load_yaml` reads it."""
-
-
-class DuplicateKeyError(YAMLError):
-    """A map of an `astra.yaml` with two equal keys (spec §3)."""
+    """An `astra.yaml` that breaks a parse rule (spec Annex A), as `load_yaml` reads it."""
 
 
 class JSONError(ValueError):
-    """A record's text that breaks a parse rule (spec §3), as `load_json` reads it."""
+    """A record's text that breaks a parse rule (spec Annex A), as `load_json` reads it."""
 
 
 class DuplicateNameError(JSONError):
-    """An object of a record with a name written twice (spec §3)."""
+    """An object of a record with a name written twice (spec Annex A)."""
 
 
 PARSE_ERRORS = (YAMLError, JSONError)
@@ -55,13 +51,8 @@ PARSE_ERRORS = (YAMLError, JSONError)
 
 
 def parse_code(error: YAMLError | JSONError) -> str:
-    """The parse-layer code of a loader error: `DUPLICATE_KEY` for a repeated key or name, `INVALID_SYNTAX` for any
-    other."""
-    return (
-        "DUPLICATE_KEY"
-        if isinstance(error, (DuplicateKeyError, DuplicateNameError))
-        else "INVALID_SYNTAX"
-    )
+    """The parse-layer code of a loader error: `INVALID_SYNTAX`."""
+    return "INVALID_SYNTAX"
 
 
 # --- An astra.yaml: a stock YAML 1.2 parser, read under the core schema, whose content is a JSON value ---
@@ -103,7 +94,7 @@ def _tag_error(tag: str, mark: Any) -> YAMLError:
 
 def _scalar(event: ScalarEvent) -> Any:
     """The value of the scalar `event` under the core schema; raises `YAMLError` for a tag outside it, a scalar its tag
-    doesn't read, or a number that isn't finite (spec §3).
+    doesn't read, or a number that isn't finite (spec Annex A).
 
     A plain scalar with no tag is typed by the core table: by the first row it matches, or as a string if it matches
     none. Any other scalar with no tag, and one with the non-specific tag `!` or with `!!str`, is a string. `!!null`,
@@ -148,7 +139,7 @@ class _Node:
 
 def _events(data: bytes | str) -> Iterator[Any]:
     """The events of stock ruamel.yaml's parser for `data`; an error it raises, whatever its class, is a `YAMLError`:
-    the file isn't YAML 1.2 the parser reads (spec §3). A `RecursionError` (a document nested too deep) is left as it
+    the file isn't YAML 1.2 the parser reads (spec Annex A). A `RecursionError` (a document nested too deep) is left as it
     is."""
     events = YAML(typ="safe", pure=True).parse(data)
     while True:
@@ -167,7 +158,7 @@ def _node(event: Any, events: Iterator[Any], anchors: dict[str, _Node]) -> _Node
     """The node that `event` starts, its children read from `events`, and an alias read as the node its anchor names
     in `anchors`; raises `YAMLError` for a node with no value under the core schema (`_scalar`), a collection with
     another tag than its kind's, and an alias that names no node before it or one it is inside of, which leaves the
-    content no JSON value (spec §3)."""
+    content no JSON value (spec Annex A)."""
     if isinstance(event, AliasEvent):
         node = anchors.get(event.anchor)
         if node is None:
@@ -213,8 +204,8 @@ def _root(events: Iterator[Any]) -> _Node | None:
 
 
 def _json_value(node: _Node, path: list[Any]) -> Any:
-    """The JSON value of `node`, at `path` in the document; raises `YAMLError` for a key that isn't a string, and
-    `DuplicateKeyError` for two equal keys of one map (spec §3)."""
+    """The JSON value of `node`, at `path` in the document; raises `YAMLError` for a key that isn't a string or for two
+    equal keys of one map."""
     if node.children is None:
         return node.value
     if not node.is_map:
@@ -226,7 +217,7 @@ def _json_value(node: _Node, path: list[Any]) -> Any:
                 f"found a key that isn't a string {_at(key.mark)}: every key of a JSON value is a string"
             )
         if key.value in mapping:
-            raise DuplicateKeyError(
+            raise YAMLError(
                 f"found the key {key.value!r} twice in the map at {_pointer(path)}: its keys are distinct"
             )
         mapping[key.value] = _json_value(value, [*path, key.value])
@@ -234,15 +225,15 @@ def _json_value(node: _Node, path: list[Any]) -> Any:
 
 
 def load_yaml(source: Path | str) -> Any:
-    """The JSON value of the `astra.yaml` in `source`, a file or a text, as spec §3 reads it; raises a `YAMLError` if it
+    """The JSON value of the `astra.yaml` in `source`, a file or a text, as spec Annex A reads it; raises a `YAMLError` if it
     breaks a parse rule.
 
     The file goes to ruamel.yaml's stock parser as it is, so that the parser reads its encoding. Then, on the parser's
     events (`_node`): any error the parser raises; at most one document; each scalar read under the core schema, a plain
     one by YAML 1.2.2 §10.3.2's table; only the core schema's tags, each on a node of its kind; every number finite;
     and each alias read as the node it names. Then on the tree, once the whole file has parsed (`_json_value`): every
-    key a string, and no two equal keys in one map (`DuplicateKeyError`). A file with no document (empty, or only
-    comments) is None. A `RecursionError` (a document nested too deep) is left as it is.
+    key a string, and no two equal keys in one map. A file with no document (empty, or only comments) is None. A
+    `RecursionError` (a document nested too deep) is left as it is.
     """
     data = source.read_bytes() if isinstance(source, Path) else source
     root = _root(_events(data))
@@ -270,7 +261,7 @@ def _json_constant(text: str) -> Any:
 
 
 def load_json(source: Path | str) -> Any:
-    """The record in `source`, a file or a text, as spec §3 reads a record: JSON text (RFC 8259) in UTF-8, with distinct
+    """The record in `source`, a file or a text, as spec Annex A reads a record: JSON text (RFC 8259) in UTF-8, with distinct
     names; raises a `JSONError` if it isn't one.
 
     A file's bytes are decoded as UTF-8, strictly. The text is read by `json.loads`, which takes only JSON's forms but
@@ -377,7 +368,7 @@ def validator(root: str, *, closed: bool = True) -> Validator:
 
 @functools.cache
 def rules_catalogue() -> dict[str, Any]:
-    """The committed `rules.json`: the rules of the specification's §9, and the error map of the JSON Schemas."""
+    """The committed `rules.json`: the rules of the specification's codes tables, and the error map of the JSON Schemas."""
     return json.loads((GENERATED / "rules.json").read_text(encoding="utf-8"))
 
 
@@ -412,7 +403,7 @@ def absolute_keyword_location(v: Validator, error: ValidationError) -> str:
 
     That is the keyword's place once every `$ref` is resolved, as JSON Schema 2019-09 defines it and as `rules.json`
     keys its error map. `jsonschema`'s `absolute_schema_path` runs through `$ref`s without naming them, so it isn't
-    that place (spec §10). But `error.schema` is the subschema that holds the failing keyword, and `error.validator`
+    that place (spec Annex D). But `error.schema` is the subschema that holds the failing keyword, and `error.validator`
     the keyword: the location is that subschema's JSON Pointer, found in the schema by identity, then the keyword. It
     is an error if the subschema isn't in the schema or doesn't hold the keyword.
     """

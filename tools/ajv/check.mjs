@@ -1,7 +1,7 @@
 // Compiles each JSON Schema named on the command line with the pinned Ajv's
 // draft 2019-09 build under `strict: true`, which turns on every strict check
-// (strictSchema, strictTypes, strictTuples, strictRequired), with the options
-// spec §10 gives for mapping errors to codes. Exits non-zero if any fails.
+// (strictSchema, strictTypes, strictTuples, strictRequired), with allErrors
+// and verbose. Exits non-zero if any fails.
 import { readFileSync } from "node:fs";
 import Ajv2019 from "ajv/dist/2019.js";
 

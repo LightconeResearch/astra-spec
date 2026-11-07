@@ -55,6 +55,11 @@ jobs:
       - name: Install dependencies
         run: uv sync --group dev --group docs --no-progress
 
+      # mike builds without --strict: build strict first, so a warning stops
+      # the deploy.
+      - name: Build documentation in strict mode
+        run: just docs-strict
+
       - name: Configure git for the bot
         run: |
           git config user.name  github-actions[bot]

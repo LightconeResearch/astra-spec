@@ -1,4 +1,4 @@
-"""The provenance record: its open variant, and its RDF reading, which is PROV-O (spec §10; design §3, §6, D10).
+"""The provenance record: its open variant, and its RDF reading, which is PROV-O (spec Annex D; design §3, §6, D10).
 
 A record's RDF is what JSON-LD 1.1's toRdf gives for it with the published context, plus each node's class URI as its
 `rdf:type` (:func:`as_rdf`, with rdflib). The context comes from LinkML's, with every IRI in full and no term a prefix
@@ -187,7 +187,7 @@ def class_uri(name: str) -> str:
 
 
 def as_rdf(record: dict[str, Any]) -> Graph:
-    """The record's RDF (spec §10): JSON-LD 1.1 toRdf with the published context, plus each node's class URI as its
+    """The record's RDF (spec Annex D): JSON-LD 1.1 toRdf with the published context, plus each node's class URI as its
     `rdf:type`."""
     typed = copy.deepcopy(record)
     run = typed["generated_by"]

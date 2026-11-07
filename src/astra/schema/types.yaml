@@ -23,8 +23,8 @@ imports:
 
 # The id grammar, written once: the structured patterns below are built from it.
 #
-# Each pattern names the rule it enforces, a code of the specification's §9,
-# in a `rule` annotation: `rules.json` maps its errors to that code.
+# Each pattern names the rule it enforces, a code of the specification's codes
+# tables, in a `rule` annotation: `rules.json` maps its errors to that code.
 settings:
   id: "[a-z][a-z0-9_]*"
 
@@ -139,11 +139,14 @@ types:
   iri:
     typeof: string
     description: >-
-      An IRI, never a CURIE: a scheme, `:`, then characters other than ASCII
-      spaces and controls, C1 controls, `<`, `>`, `"`, `{`, `}`, the vertical
-      bar, `\`, `^`, the backtick and the bidi formatting characters U+200E,
-      U+200F and U+202A–U+202E, with `%` only before two hex digits and at
-      most one `#`, such as `http://tools.ietf.org/rfc/rfc7111`.
+      An IRI, never a CURIE: a scheme (an ASCII letter, then any ASCII
+      letters, digits, `+`, `.` and `-`), `:`, at least one character other
+      than `#`, then optionally `#` and any characters other than `#`, such
+      as `http://tools.ietf.org/rfc/rfc7111`. None of these characters is an
+      ASCII space or control, a C1 control, `<`, `>`, `"`, `{`, `}`, the
+      vertical bar, `\`, `^`, the backtick or a bidi formatting character
+      U+200E, U+200F or U+202A–U+202E, and `%` comes only before two hex
+      digits.
     pattern: '^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$'
     annotations:
       rule: INVALID_VALUE
