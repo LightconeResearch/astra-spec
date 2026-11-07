@@ -575,7 +575,8 @@ decision such as which data release to use
 ([§13](#13-pins-and-outputs-built-per-universe-or-once)), and its record
 holds the hash of what came back. Data kept in another repository, a git
 submodule say, isn't tracked in git with the analysis either, so it isn't an
-input.
+input. It belongs in the analysis's own repository or in another analysis, as
+that analysis's input, or comes in through an output whose recipe gets it.
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
@@ -788,10 +789,7 @@ placeholder, and each `{{` and `}}`, before running the command:
 
 - A placeholder gives a path, relative or absolute, that the recipe can open
   from the folder it runs in.
-- A runner substitutes each placeholder verbatim, with no shell quoting, so
-  quoting is the author's job: a path may hold a space or a character the
-  shell treats specially, and a command that may meet one quotes the
-  placeholder, as in `--data '{inputs.input1}'`.
+- A runner substitutes each placeholder verbatim, with no shell quoting.
 - In `{inputs.<entry>}` and `{decisions.<entry>}`, `<entry>` is an entry of
   the output's `inputs` or `decisions` exactly as written, dots and `#`
   included: `{inputs.subanalysis.output1}`, `{inputs.output1#u1}`,
@@ -820,10 +818,11 @@ environment.
 ### 12. Universes
 
 A universe selects one option for each active decision of its analysis: it
-is one way of making the analysis's choices.
-[§16](#16-driving-and-consuming) adds the decisions of the analyses its
-universes drive. An analysis's universes are entries of its `universes`. An
-entry can instead be an import (below).
+is one way of making the analysis's choices. No universe is privileged: there
+is no default universe or option, and a universe called `baseline` is one
+with that name and nothing more. [§16](#16-driving-and-consuming) adds the
+decisions of the analyses its universes drive. An analysis's universes are
+entries of its `universes`. An entry can instead be an import (below).
 
 <!-- fragment: Analysis -->
 ```yaml
