@@ -2594,9 +2594,9 @@ followed by its file name:
 schemas are distinct resources, and so are the schemas of two minor versions.
 The patches of one minor version share each URI: a patch release never changes
 what is valid ([§5](#5-the-astrayaml-file)), so the URI names one schema
-whichever patch's file a tool holds. A JSON Schema's top level holds only
-standard JSON Schema keywords, and the version of the release it was generated
-from is in its `$comment`.
+whichever patch's file a tool holds. Each JSON Schema uses only JSON Schema
+2019-09 keywords, and the version of the release it was generated from is in
+its `$comment`.
 
 **The contract.** `analysis.schema.json` is the contract for `astra.yaml`: a
 document breaks no schema rule exactly when a JSON Schema draft 2019-09
