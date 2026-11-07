@@ -2463,7 +2463,9 @@ when one edit fixes both.
    [`MISSING_DECISION`](#16-driving-and-consuming) for its decisions, and no
    [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) for a name through it.
 5. **A name that names nothing.** An address that breaks
-   [`UNRESOLVED_ADDRESS`](#6-names), and an option that breaks
+   [`UNRESOLVED_ADDRESS`](#6-names), an entry of `Output.inputs` that could
+   resolve to two elements ([`AMBIGUOUS_ID`](#10-outputs)), and an option that
+   breaks
    [`UNKNOWN_OPTION`](#8-decisions-and-options), name nothing, and no rule is
    checked on what they would name. That leaves out
    [`UNKNOWN_OPTION`](#8-decisions-and-options) under such an address, the pin
