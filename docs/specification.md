@@ -361,8 +361,7 @@ non-negative integers without leading zeros, such as `0.1.0`
 - A patch release never changes what is valid, nor the code a broken rule is
   reported under: an `astra.yaml` or a record is valid under `X.Y.Z` exactly
   when it is valid under every other `X.Y` version. So each minor version has
-  one schema of `astra.yaml` and one of a record, and every `0.1.x` document
-  is read by 0.1's.
+  one schema of `astra.yaml` and one of a record.
 - Each `astra.yaml` is read by the schema of the minor version it states, so
   a tool that reads one patch of a minor version reads them all.
 
