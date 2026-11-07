@@ -2042,6 +2042,13 @@ Otherwise it is **stale**. Nothing else counts:
   compared: a change to either shows only when the recipe is run again and
   makes other bytes.
 
+A result with a valid record is stale, not `missing`, when what
+[`STALE_RESULT`](#20-checking-results) compares can't be read: its record's
+commit can't be read (it was squashed or rebased away, or wasn't got with
+the declared commit), its output doesn't exist at that commit, or an input's
+content sits behind a stand-in that gives no hash. Nothing shows it
+unchanged.
+
 An unchanged result suggests, but doesn't guarantee, that the recipe would
 make it again. In the worked example ([§2](#2-a-worked-example)):
 
