@@ -2269,7 +2269,8 @@ checkers read git one way:
 
 - **Tidying.** A path is joined to the folder of the `astra.yaml` that
   writes it and tidied as text, never through the file system: empty and `.`
-  segments are dropped, and each `..` removes the segment before it. So
+  segments are dropped, each `..` removes the segment before it, and a `..`
+  with no segment before it takes the path above the top. So
   `./data.csv` is `data.csv`, `subanalysis/` is `subanalysis`, and
   `subanalysis/../data` is `data`, whatever `subanalysis` is on disk.
 - **The top.** A path is measured from the top of the root's working tree
