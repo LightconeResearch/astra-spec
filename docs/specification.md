@@ -7,8 +7,9 @@ them. This document specifies the format and what conforming tools do with
 it.
 
 Part I shows how ASTRA works. Part II states its rules, one element at a
-time, each section building on those before it. The glossary defines every
-term a rule relies on, and Part III gives the details tool builders need.
+time, each section building on those before it. The glossary links every
+term a rule relies on to the sections that define it, and Part III gives the
+details tool builders need.
 
 ## Part I: How ASTRA works
 
@@ -638,7 +639,8 @@ decisions:
 
 - `decisions` maps each decision's id to the decision, and a decision's
   `options` map each option's id to the option ([§6](#6-names)).
-- An option constrains every selection it is part of:
+- A **constraint**, an option's `requires` or `incompatible_with`, constrains
+  every selection the option is part of:
   - `requires` lists options that are also selected whenever it is
     ([`MISSING_REQUIRED_OPTION`](#12-universes)). Here `decision2.b` is
     selected wherever `decision1.b` is.
@@ -1923,8 +1925,9 @@ place ([§19](#19-records)).
 
 #### Where records and bytes go
 
-A result's record, and its bytes at their **default place**, are in the
-folder of the analysis it belongs to:
+A result's **place**, for one of its addresses, is where its record, and its
+bytes at their **default place**, go in the folder of the analysis it belongs
+to:
 
 | | Built in the universe `{universe}` | Built once |
 |---|---|---|
@@ -2257,189 +2260,80 @@ does fails the recipe and reports the code.
 
 Each term links to the sections that define it or give its detail.
 
-- **active** ([§1](#1-what-astra-is), [§9](#9-conditions)): of a decision or an
-  output in a universe, when every condition of its `when` holds in that
-  universe's effective selection. One without `when` is always active.
+- **active** ([§1](#1-what-astra-is), [§9](#9-conditions))
 - **address** ([§1](#1-what-astra-is), [§6](#6-names),
-  [§18](#18-results-and-where-they-go)): the name of an element other than an
-  option, through the declarations that lead to it: their ids, then the
-  element's, joined by `.`. An option is named by an option reference. A
-  result's address is its name followed, for a result built in a universe, by
-  `#` and the universe's own id, never an import's.
-- **analysis** ([§1](#1-what-astra-is), [§5](#5-the-astrayaml-file)): a folder
-  with an `astra.yaml` at its top, in a git repository: in its working tree, or
-  at one of its commits.
+  [§18](#18-results-and-where-they-go))
+- **analysis** ([§1](#1-what-astra-is), [§5](#5-the-astrayaml-file))
 - **analysis from a commit** ([§1](#1-what-astra-is),
-  [§17](#17-analyses-from-another-commit-or-repository)): the analysis a
-  declaration with a `commit` names, as it was at that commit.
+  [§17](#17-analyses-from-another-commit-or-repository))
 - **analysis stack**, or **stack** ([§1](#1-what-astra-is),
-  [§15](#15-declared-analyses)): the root and every analysis it declares,
-  directly or through others.
+  [§15](#15-declared-analyses))
 - **another analysis** ([§1](#1-what-astra-is),
-  [§17](#17-analyses-from-another-commit-or-repository)): an analysis with a
-  different identity.
-- **belongs to** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go)):
-  a result belongs to the analysis whose universe it was built in or, for an
-  output built once, to the analysis whose output it is.
+  [§17](#17-analyses-from-another-commit-or-repository))
+- **belongs to** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go))
 - **built per universe, built once** ([§1](#1-what-astra-is),
-  [§13](#13-pins-and-outputs-built-per-universe-or-once)): an output is built
-  per universe when it lists `decisions`, has a `when`, or has an unpinned entry
-  of `inputs` that names an output built per universe, and it then has one
-  result in each universe where it is active. Any other output is built once,
-  with one result in all.
-- **chain of declarations** ([§15](#15-declared-analyses)): declarations
-  that start in one file, each in the file of the analysis the one before
-  reaches, as an address's declarations are.
-- **checker** ([§1](#1-what-astra-is), [§3](#3-conformance)): a tool that reads
-  an analysis, every `astra.yaml` of its stack, git, and its records and
-  results, and gives each planned result its statuses by the check rules.
-- **condition** ([§6](#6-names), [§9](#9-conditions)): an option reference,
-  possibly after `~`. The condition `d.o` holds when the option `o` of the
-  decision `d` is selected, and `~d.o` holds when it isn't.
-- **constraint** ([§8](#8-decisions-and-options)): an option's `requires` or
-  `incompatible_with`, which constrains every selection the option is part of.
-- **consuming** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming)):
-  using another analysis's element by address.
-- **declaration** ([§1](#1-what-astra-is), [§15](#15-declared-analyses)): an
-  entry of an analysis's `analyses`, keyed by the id the analysis addresses the
-  declared analysis by. It has a `path` or a `url`, and may have a `commit`.
+  [§13](#13-pins-and-outputs-built-per-universe-or-once))
+- **chain of declarations** ([§15](#15-declared-analyses))
+- **checker** ([§1](#1-what-astra-is), [§3](#3-conformance))
+- **condition** ([§6](#6-names), [§9](#9-conditions))
+- **constraint** ([§8](#8-decisions-and-options))
+- **consuming** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming))
+- **declaration** ([§1](#1-what-astra-is), [§15](#15-declared-analyses))
 - **default place** ([§1](#1-what-astra-is),
-  [§18](#18-results-and-where-they-go)): where a result's bytes go in the
-  analysis it belongs to: `results/{universe}/{name}.{format}`, or
-  `results/{name}.{format}` for an output built once.
-- **drive** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming)): an
-  analysis's universes drive a declaration when a key in the effective selection
-  of any of them, other than a key that loops, goes through every declaration
-  from the analysis's file to it; or when the declared analysis has no
-  decisions, the chain before the declaration is driven, and the declaration
-  leads back to no analysis already on the chain. A declaration they drive is
-  driven in every one of them.
-- **driver, driven** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming)):
-  the analysis whose universes drive, and an analysis reached through a
-  declaration they drive. The analysis whose universe is being built is never
-  driven in it.
-- **effective selection** ([§12](#12-universes)): what a universe selects once
-  `derived_from` is resolved.
-- **element** ([§1](#1-what-astra-is), [§6](#6-names)): an input, output,
-  decision, option, universe, import, declaration or insight of an analysis.
-- **excluded option** ([§8](#8-decisions-and-options)): an option with an
-  `excluded` reason. No effective selection selects it.
-- **flat key** ([§16](#16-driving-and-consuming)): a key of a universe's
-  `decisions` that sets another analysis's decision: the decision's address,
-  `<declaration>.<decision>`, through as many declarations as lead to it.
-- **id** ([§6](#6-names), [Annex C](#c-grammars-and-patterns)): an element's
-  name in its map, written once, as the entry's key: a letter `a`-`z`, followed
-  by any number of letters `a`-`z`, digits `0`-`9` and `_`.
+  [§18](#18-results-and-where-they-go))
+- **drive** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming))
+- **driver, driven** ([§1](#1-what-astra-is), [§16](#16-driving-and-consuming))
+- **effective selection** ([§12](#12-universes))
+- **element** ([§1](#1-what-astra-is), [§6](#6-names))
+- **excluded option** ([§8](#8-decisions-and-options))
+- **flat key** ([§16](#16-driving-and-consuming))
+- **id** ([§6](#6-names), [Annex C](#c-grammars-and-patterns))
 - **identity** ([§1](#1-what-astra-is),
-  [§17](#17-analyses-from-another-commit-or-repository)): an analysis's folder,
-  as a path from the top of the repository it is read in (in the working tree,
-  from the top of the root's working tree), and the commit it is read at, or the
-  working tree. At a commit, a path that crosses a gitlink is read in the
-  submodule's repository at the commit the gitlink pins. Two declarations name
-  one analysis when their folders are the same path, read at the same commit or
-  both in the working tree, whatever URL the commit is got from.
+  [§17](#17-analyses-from-another-commit-or-repository))
 - **import** ([§1](#1-what-astra-is), [§12](#12-universes),
-  [§16](#16-driving-and-consuming)): an entry
-  of `universes` that names one of another analysis's universes, in which that
-  analysis is the driver. It selects nothing, and is not one of the importing
-  analysis's universes.
-- **imported universe** ([§16](#16-driving-and-consuming)): the universe an
-  import names, or that a pin names where its file has no entry with the pin's
-  id. Its own analysis is its only driver.
-- **insight** ([§1](#1-what-astra-is), [§14](#14-insights-and-evidence)): a
-  claim backed by evidence: a prior insight, which earlier work establishes and
-  the analysis builds on, or a finding, which the analysis concludes.
-- **leads back** ([§15](#15-declared-analyses)): of a declaration on a chain
-  of declarations: the analysis it reaches, known by its identity, is already
-  on the chain.
+  [§16](#16-driving-and-consuming))
+- **imported universe** ([§16](#16-driving-and-consuming))
+- **insight** ([§1](#1-what-astra-is), [§14](#14-insights-and-evidence))
+- **leads back** ([§15](#15-declared-analyses))
 - **lies inside** ([Annex B](#b-paths-and-git)): of a path and a folder, both
   tidied: the folder's segments begin the path's, and the path has more.
-- **minor version** ([§5](#5-the-astrayaml-file)): of a version
-  `MAJOR.MINOR.PATCH`, its MAJOR and MINOR: `0.1` for `0.1.3`.
+- **minor version** ([§5](#5-the-astrayaml-file))
 - **name of a result** ([§1](#1-what-astra-is),
-  [§18](#18-results-and-where-they-go)): its output's id after the ids of the
-  driven declarations from the analysis it belongs to, such as
-  `subanalysis.output1`. A result reached through two chains of driven
-  declarations has two names.
-- **on the chain** ([§15](#15-declared-analyses)): of an analysis and a chain
-  of declarations: it is the one whose file the chain starts in, or one that
-  the chain's declarations reach.
-- **option reference** ([§6](#6-names)): a decision's address, `.`, then the id
-  of one of its options.
+  [§18](#18-results-and-where-they-go))
+- **on the chain** ([§15](#15-declared-analyses))
+- **option reference** ([§6](#6-names))
 - **pin** ([§1](#1-what-astra-is),
   [§13](#13-pins-and-outputs-built-per-universe-or-once),
-  [§16](#16-driving-and-consuming)): `#` and a universe id ending a reference,
-  after its address. In an `astra.yaml`, it names the entry of the file's
-  `universes` with that id or, where the file has none, the universe with that
-  id of the analysis whose element the reference names. A pin on an output built
-  per universe reads it in that universe. On an input or an output built once, a
-  pin names a universe and changes nothing else.
-- **place** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go)): of
-  a result, where its record and its bytes go for one of its addresses, in the
-  folder of the analysis it belongs to: the record at
-  `.astra/records/{universe}/{name}.json`, or `.astra/records/{name}.json` for
-  an output built once, and the bytes at their default place.
-- **placeholder** ([§11](#11-recipes)): in a recipe's `command`, read from the
-  left, `{{` and `}}` are a literal `{` and `}`, and any other `{` opens a
-  placeholder, which ends at the next `}`. A runner substitutes each
-  placeholder before running the command.
+  [§16](#16-driving-and-consuming))
+- **place** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go))
+- **placeholder** ([§11](#11-recipes))
 - **planned result** ([§1](#1-what-astra-is),
-  [§18](#18-results-and-where-they-go)): a result a check of the root covers:
-  every result of the root's active outputs, every result the root's evidence
-  cites, and every result those read, transitively.
-- **record** ([§1](#1-what-astra-is), [§19](#19-records)): the provenance record
-  of one result: a JSON file at each place of the result, written by the runner
-  that made it.
+  [§18](#18-results-and-where-they-go))
+- **record** ([§1](#1-what-astra-is), [§19](#19-records))
 - **record schema, open variant** ([§5](#5-the-astrayaml-file),
-  [Annex E](#e-the-schema-files-and-rulesjson)): the JSON Schema of a record of
-  one minor version, `provenance.schema.json`, which is closed; and its open
-  variant, `provenance.open.schema.json`, which differs from it only in allowing
-  fields it doesn't define.
-- **reference** ([§6](#6-names)): an address, possibly followed by a pin.
+  [Annex E](#e-the-schema-files-and-rulesjson))
+- **reference** ([§6](#6-names))
 - **repository that holds a file** ([Annex B](#b-paths-and-git)): the innermost
-  git repository the file is in. For a file in a submodule, it is the
-  submodule's own.
-- **result** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go)):
-  what a recipe made for one output in one universe, or once for an output built
-  once.
-- **root** ([§1](#1-what-astra-is), [§15](#15-declared-analyses)): the analysis
-  being validated or built.
-- **runner** ([§1](#1-what-astra-is), [§3](#3-conformance), [§21](#21-runners)):
-  whatever runs recipes, writing each result's bytes and record.
-- **spelling** ([§15](#15-declared-analyses)): one of two or more addresses,
-  written differently, that resolve to one element of one analysis.
+  git repository the file is in: for a file in a submodule, the submodule's
+  own.
+- **result** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go))
+- **root** ([§1](#1-what-astra-is), [§15](#15-declared-analyses))
+- **runner** ([§1](#1-what-astra-is), [§3](#3-conformance), [§21](#21-runners))
+- **spelling** ([§15](#15-declared-analyses))
 - **stand-in** ([§7](#7-inputs), [Annex B](#b-paths-and-git)): something kept in
   a file's place, such as a large-file tool's pointer, that is recognised as
-  standing in for the file. Something standing in for the content isn't the
-  content.
-- **status** ([§1](#1-what-astra-is), [§20](#20-checking-results)): what a
-  checker gives a planned result: for its record, `unchanged`, `stale` or
-  `missing`, and for its bytes, `present` or `absent`.
+  standing in for the file.
+- **status** ([§1](#1-what-astra-is), [§20](#20-checking-results))
 - **tracked** ([Annex B](#b-paths-and-git)): of a file in a repository: read in
   the working tree, in the repository's index; read at a commit, in that
   commit's tree; either way reached through no gitlink.
-- **unchanged, stale** ([§1](#1-what-astra-is), [§20](#20-checking-results)): of
-  a result with a valid record: nothing has changed, since the commit its record
-  names, in its output's declaration, the options its decisions select in its
-  universe, the content of its inputs or the results it reads; or something has.
-- **universe** ([§1](#1-what-astra-is), [§12](#12-universes)): an entry of an
-  analysis's `universes` other than an import: a selection of one option for
-  every active decision of the analysis and of every analysis reached through a
-  declaration its universes drive.
+- **unchanged, stale** ([§1](#1-what-astra-is), [§20](#20-checking-results))
+- **universe** ([§1](#1-what-astra-is), [§12](#12-universes))
 - **universe being built** ([§1](#1-what-astra-is),
-  [§16](#16-driving-and-consuming)): when an analysis is built in one of its
-  universes, that universe, in the analysis and in every analysis reached
-  through a declaration its universes drive.
-- **universes built** ([§16](#16-driving-and-consuming)): the root's universes,
-  and those named by a pin on an output built per universe in the `inputs` of a
-  planned result's output or in the root's evidence.
-- **valid** ([§3](#3-conformance)): of a document, an `astra.yaml` or a record:
-  it breaks no parse or schema rule. Of an analysis: no analysis of its stack
-  breaks a parse, schema or validator `MUST`.
-- **validator** ([§1](#1-what-astra-is), [§3](#3-conformance)): a tool that
-  reads an analysis, every `astra.yaml` of its stack and git, and reports every
-  parse, schema and validator rule that any analysis of its stack breaks, except
-  where [Annex D](#d-when-a-rule-isnt-checked) leaves one unchecked.
+  [§16](#16-driving-and-consuming))
+- **universes built** ([§16](#16-driving-and-consuming))
+- **valid** ([§3](#3-conformance))
+- **validator** ([§1](#1-what-astra-is), [§3](#3-conformance))
 
 ## Part III: For tool builders
 
