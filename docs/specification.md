@@ -402,8 +402,9 @@ In an analysis's folder:
 
 `results/` and `.astra/` belong to runners. No input's `path` and no
 declaration's `path`, tidied as text ([Annex B](#b-paths-and-git)), is, or
-[lies inside](#glossary), the `results/` or `.astra/` of any analysis of the
-stack ([`RESERVED_PATH`](#7-inputs)). So a run never writes over an input or
+[lies inside](#glossary), the `results/` or `.astra/` of an analysis of the
+stack read in the same tree as that path: the working tree, or one commit
+([`RESERVED_PATH`](#7-inputs)). So a run never writes over an input or
 a declared analysis, and a result is read by its address, never by a path.
 
 #### The rules
