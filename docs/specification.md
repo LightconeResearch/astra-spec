@@ -1813,10 +1813,7 @@ each. Where the root declares `inner` and `stage`, and `stage` declares the
 same folder as `inner`, a result of `inner` reached through `inner` and
 through `stage.inner`, when keys go through both, is made once. It is placed
 and recorded under each name, though a planned result should have one
-([`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming)). For each pair of a
-result's names, the rule is reported at the first declaration of each of
-their chains that the other chain doesn't go through, in the file that holds
-it: here, at the root's `inner` and `stage`.
+([`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming)).
 
 A result's **address** is a name followed, for a result built in a universe,
 by `#` and the universe's own id, never an import's:
