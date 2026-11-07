@@ -2568,9 +2568,9 @@ when one edit fixes both, except a file's parse rules (1).
     get none, and no check rule is checked for them.
 13. **An output on a cycle.** For an output that depends on itself
     ([`OUTPUT_CYCLE`](#10-outputs)), whether it is built per universe
-    ([§13](#13-pins-and-outputs-built-per-universe-or-once)) is undetermined,
-    so no rule on its results' places, or on what reads it, is checked. The
-    breach is reported once, as [`OUTPUT_CYCLE`](#10-outputs).
+    ([§13](#13-pins-and-outputs-built-per-universe-or-once)) can turn on the
+    cycle, so no rule on its results' places, or on what reads it, is checked.
+    The breach is reported once, as [`OUTPUT_CYCLE`](#10-outputs).
 
 ### E. The schema files and rules.json
 
