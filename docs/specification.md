@@ -2420,7 +2420,7 @@ undetermined, so the rule isn't checked and isn't reported. Each case starts
 from a broken `MUST`. So a rule left unchecked never makes an invalid analysis
 valid, or a `missing` result anything else: it changes only which codes are
 reported. Two rules whose subjects are both determined are both reported, even
-when one edit fixes both.
+when one edit fixes both, except a file's parse rules (1).
 
 1. **A file that can't be read, or whose version has no schema.** A file that
    breaks a parse rule is checked no further, and at least one of the parse
