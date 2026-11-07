@@ -62,7 +62,7 @@ jobs:
         run: uv sync --group dev --group docs --no-progress
 
       - name: Build documentation
-        run: just docs
+        run: just docs-strict
 
       # The extractor reads the codes tables as CommonMark, the site renders
       # them with Python-Markdown: the built page must show each rule's cells

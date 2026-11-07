@@ -16,7 +16,8 @@ the page to a fragment of the page names an element there.
 The field reference's pages are built from `gen-doc`'s Markdown, where a pattern's backtick, `|`, `[^` or `^` would be
 read as Markdown. So another test reads each element's page and compares its Regex Pattern cell with the pattern the
 LinkML sources write. The All rules page (`tools/rules_page.py`) is written by the docs build, and a last test reads
-it. The tests run in CI after the docs build (`test_pages_build.yaml`), and are skipped when there is no `site/`.
+it. The tests run in CI after the docs build (`main.yaml`, `test_pages_build.yaml`), and are skipped when there is no
+`site/`.
 """
 
 from collections import defaultdict

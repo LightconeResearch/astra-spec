@@ -57,6 +57,10 @@ jobs:
       - name: Install project
         run: uv sync --dev
 
+      # Before the tests: tests/test_site.py reads the built site.
+      - name: Build documentation
+        run: just docs-strict
+
       - name: Run test suite
         run: just test
 
