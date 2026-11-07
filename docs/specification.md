@@ -2013,6 +2013,8 @@ A checker gives every planned result two statuses
 | `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
 
 - A result with two names gets its statuses at each place.
+- A result whose planning is undetermined gets none
+  ([Annex D](#d-when-a-rule-isnt-checked)).
 - A checker reads records only through planned results.
 
 #### When a result is unchanged
@@ -2539,6 +2541,13 @@ when one edit fixes both.
     [`NOT_IN_REPOSITORY`](#5-the-astrayaml-file), no other validator rule is
     checked and its declarations aren't followed, so only its own `astra.yaml`
     is checked, by the parse and schema rules.
+12. **A result whose planning is undetermined.** On an analysis that breaks a
+    `MUST`, a checker gives statuses ([§20](#20-checking-results)) only to the
+    results whose planning is determined. Those whose planning is left
+    undetermined, by a file that isn't a valid document (2), an element whose
+    activity is undetermined (6), a universe with no effective selection (7)
+    or a read that breaks [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
+    get none, and no check rule is checked for them.
 
 ### E. The schema files and rules.json
 
