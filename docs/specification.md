@@ -1903,7 +1903,9 @@ results/
 - A record at a commit can be read whether or not the commit holds the
   bytes.
 - The bytes should be at their default place
-  ([`ABSENT_RESULT`](#20-checking-results)). Where a runner keeps them
+  ([`ABSENT_RESULT`](#20-checking-results)), except for a result of an
+  analysis from a commit that no planned result reads
+  ([§20](#20-checking-results)). Where a runner keeps them
   elsewhere, with a stand-in for them there ([§7](#7-inputs)), they are
   `absent`, which is no error.
 
