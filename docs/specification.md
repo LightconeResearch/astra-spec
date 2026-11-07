@@ -2368,9 +2368,10 @@ checkers read git one way:
   tree, it is in the index or, at a commit, in that commit's tree, reached
   through no gitlink. So a staged input is tracked, and an untracked or
   ignored one isn't, nor is one in a plain data submodule.
-- **A gitlink's commit.** It is got from the URL that the `.gitmodules` of
-  the commit holding the gitlink gives for that submodule, a relative one
-  (`../other.git`) resolved as git resolves it
+- **A gitlink's commit.** It is got from a local repository that holds it, or
+  from the URL that the `.gitmodules` of the commit holding the gitlink gives
+  for that submodule, a relative one (`../other.git`) resolved as git
+  resolves it
   ([`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository),
   [§17](#17-analyses-from-another-commit-or-repository)).
 - **Bytes.** At a commit, a file is the blob git stores. In the working tree,
