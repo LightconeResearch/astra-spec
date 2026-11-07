@@ -2007,7 +2007,7 @@ A checker gives every planned result two statuses
 | Status | Means |
 |---|---|
 | `unchanged` | The result has a valid record where its address says, and [`STALE_RESULT`](#20-checking-results) holds |
-| `stale` | The result has a valid record where its address says, and [`STALE_RESULT`](#20-checking-results) doesn't hold. The checker says what changed |
+| `stale` | The result has a valid record where its address says, and [`STALE_RESULT`](#20-checking-results) doesn't hold |
 | `missing` | The result has no valid record where its address says: [`MISSING_RECORD`](#20-checking-results), [`INVALID_RECORD`](#20-checking-results), [`MISPLACED_RECORD`](#20-checking-results) or [`MISSING_RECORD_INPUTS`](#20-checking-results) doesn't hold; or the root is outside a git repository ([`NOT_IN_REPOSITORY`](#5-the-astrayaml-file)) |
 | `present` | The bytes at the result's default place hash to the record's `content_hash` and have its `size` |
 | `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
