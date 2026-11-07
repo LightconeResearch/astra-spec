@@ -2028,9 +2028,10 @@ that commit, nothing has changed in ([`STALE_RESULT`](#20-checking-results)):
   of its decisions selects a different option there than at the commit its
   record names;
 - the content of its inputs, never what stands in for it;
-- the results it reads. A result made from a stale one is stale, and once
-  that one is rebuilt, it is unchanged again if the rebuilt bytes are the
-  same.
+- the results it reads, compared through their records: a result made from a
+  stale or `missing` one is stale, and once that one is rebuilt, it is
+  unchanged again only if the rebuilt one's `content_hash` is the one its own
+  record noted for it.
 
 Otherwise it is **stale**. Nothing else counts:
 
