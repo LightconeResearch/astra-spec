@@ -81,11 +81,10 @@ The analysis being validated or built is the **root**. Its **stack** is the
 root and every analysis it declares, directly or through others.
 
 A declaration with a `commit` names an **analysis from a commit**: the
-declared analysis as it was at that commit, in the same repository or, with
-a `url`, in another
+declared analysis as it was at that commit
 ([§17](#17-analyses-from-another-commit-or-repository)). A declaration by
-`path` without a `commit` is one still being worked on, inside the declaring
-analysis's repository. When it is published, its declaration becomes a `url`
+`path` without a `commit` is one still being worked on, and is read in the
+working tree. When it is published, its declaration becomes a `url`
 and a `commit`, and its own results go with it, since they are kept in its
 folder. So every declared analysis is, once published, an analysis at a
 commit, and a URL says only where to get it.
