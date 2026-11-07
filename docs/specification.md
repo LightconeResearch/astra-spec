@@ -1667,12 +1667,14 @@ different identity.
 - The declared analysis, with everything it declares, is valid at its commit
   ([`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)),
   each `astra.yaml` read by the `spec_version` it states.
-- A `MUST` broken inside an analysis from a commit is reported twice:
+- A `MUST` that an analysis from a commit breaks at its commit, judged as
+  its own root, is reported twice:
   [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)
   on the declaration, in the file the author can edit, and the rule's own
-  code at its place in the commit's file, which says why. A rule broken in
-  the root, or in an analysis reached from it by `path` alone, is reported
-  once, under its own code.
+  code at its place in the commit's file, which says why. A `MUST` broken in
+  its files only as the root drives it is reported once, under its own code,
+  as is a rule broken in the root, or in an analysis reached from it by
+  `path` alone.
 
 #### Getting a commit from a remote
 
