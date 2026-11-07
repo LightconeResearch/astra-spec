@@ -2419,7 +2419,7 @@ closed. In each case another broken rule leaves what a rule is about
 undetermined, so the rule isn't checked and isn't reported. Each case starts
 from a broken `MUST`. So a rule left unchecked never makes an invalid analysis
 valid, or a `missing` result anything else: it changes only which codes are
-reported. Two rules whose subjects are both determined are both reported, even
+reported and which results get statuses (12). Two rules whose subjects are both determined are both reported, even
 when one edit fixes both, except a file's parse rules (1).
 
 1. **A file that can't be read, or whose version has no schema.** A file that
