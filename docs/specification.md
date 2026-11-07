@@ -2137,7 +2137,7 @@ A checker sees much of a breach afterwards: a result with no record is
 |---|---|---|---|
 | `UNRECORDED_RESULT` | runner | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places |
 | `FALSE_RECORD` | runner | MUST | Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times |
-| `UNRECREATABLE_ENVIRONMENT` | runner | MUST | A runner records each recipe's environment as an RFC 3987 IRI that it can recreate at its version |
+| `UNRECREATABLE_ENVIRONMENT` | runner | MUST | A runner records each recipe's environment as an IRI, of the form [Annex C](#c-grammars-and-patterns) gives, that it can recreate at its version |
 | `UNCOMMITTED_CHANGES` | runner | MUST | A runner runs each recipe in a checkout of a commit whose only changes (what git reports in it, untracked files and submodules included, ignored files not) are the records and results of any run, each result's bytes the recorded ones |
 | `WRONG_WORKING_DIRECTORY` | runner | MUST | A runner runs each recipe in the folder of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it |
 | `NOT_AT_COMMIT` | runner | MUST | A runner drives an analysis from a commit on exactly its files at that commit |
@@ -2505,8 +2505,6 @@ record. The run's `started` and `finished` are `prov:startedAtTime` and
   Type](https://www.rfc-editor.org/rfc/rfc3236).
 - **RFC 3778**: [The application/pdf Media
   Type](https://www.rfc-editor.org/rfc/rfc3778), obsoleted by RFC 8118.
-- **RFC 3987**: [Internationalized Resource Identifiers
-  (IRIs)](https://www.rfc-editor.org/rfc/rfc3987).
 - **RFC 5147**: [URI Fragment Identifiers for the text/plain Media
   Type](https://www.rfc-editor.org/rfc/rfc5147).
 - **RFC 5234**: [Augmented BNF for Syntax Specifications:
