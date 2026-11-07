@@ -1659,8 +1659,7 @@ different identity.
   through declarations, each read at the commit its analysis is read at
   ([§20](#20-checking-results)).
 - The declared analysis, with everything it declares, is valid at its commit
-  ([`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)),
-  each `astra.yaml` read by the `spec_version` it states.
+  ([`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)).
 
 #### Getting a commit from a remote
 
@@ -1674,8 +1673,8 @@ A commit is got from a remote when it is:
 A file is read from a remote when the commit it is read at is got from one.
 The remote is the `url`, the remote the file was read from, or the
 submodule's URL ([Annex B](#b-paths-and-git)). A commit counts as got when it
-can be fetched from that remote or was kept from an earlier fetch and, for a
-gitlink's commit, when the submodule's checkout holds it. A repository left
+can be fetched from that remote, was kept from an earlier fetch or, for a
+gitlink's commit, is held by the submodule's checkout. A repository left
 in `.git/modules` after `git submodule deinit` doesn't count.
 
 #### Using one
