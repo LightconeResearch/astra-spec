@@ -406,6 +406,8 @@ declaration's `path`, tidied as text ([Annex B](#b-paths-and-git)), is, or
 stack ([`RESERVED_PATH`](#7-inputs)). So a run never writes over an input or
 a declared analysis, and a result is read by its address, never by a path.
 
+#### The rules
+
 | Code | Layer | Level | Rule |
 |---|---|---|---|
 | `INVALID_SYNTAX` | parse | MUST | Every `astra.yaml` is a YAML 1.2 stream with at most one document, read under the core schema with no tag but the core schema's, and its content is a JSON value, with string keys and finite numbers; every record is RFC 8259 JSON text in UTF-8 |
@@ -527,6 +529,8 @@ analysis's elements by address: `<id>` for an element of the analysis,
 Inputs, outputs, decisions, universes, imports, prior insights, findings and
 declared analyses are addressable, and an import's address names the
 universe it imports ([§12](#12-universes)).
+
+#### The rules
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
@@ -819,6 +823,8 @@ checker sees a change to them only through those inputs. Anything else it
 uses, its own scripts among them, is pinned by the commit or is part of the
 environment.
 
+#### The rules
+
 | Code | Layer | Level | Rule |
 |---|---|---|---|
 | `UNDECLARED_TEMPLATE_REF` | validator | MUST | Every brace in a recipe's `command` belongs to a `{{`, a `}}` or a placeholder, read from the left, and every placeholder is `{inputs}`, `{output}`, or an `{inputs.<entry>}` or `{decisions.<entry>}` whose `<entry>` is an entry of its output's `inputs` or `decisions` exactly as written |
@@ -937,6 +943,8 @@ universes:
 - [§16](#16-driving-and-consuming) says which analysis drives the universe
   an import names, and where it is built.
 
+#### The rules
+
 | Code | Layer | Level | Rule |
 |---|---|---|---|
 | `INVALID_IMPORT` | schema | MUST | An entry of `universes` with an `analysis` or a `universe` is an import, which has both and has neither `decisions` nor `derived_from` |
@@ -1021,6 +1029,8 @@ selects `decision1: a`. An output with a result planned
 ([§18](#18-results-and-where-they-go)) in `u1` that reads `output4` without a
 pin breaks
 [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once).
+
+#### The rules
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
@@ -1120,6 +1130,8 @@ may pin it, as `output1#u2`: the claim is then about one universe's result,
 and the pin says which. The pin names a universe as one in `Output.inputs`
 does ([§13](#13-pins-and-outputs-built-per-universe-or-once),
 [§16](#16-driving-and-consuming)).
+
+#### The rules
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
@@ -1237,6 +1249,8 @@ declarations reach it ([§17](#17-analyses-from-another-commit-or-repository)).
   their results' default places could then be the same
   ([§18](#18-results-and-where-they-go),
   [`CLASHING_RESULT_NAME`](#15-declared-analyses)).
+
+#### The rules
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
@@ -1553,6 +1567,8 @@ analysis's own included. Each universe's selections are held to
   output only where its result is planned or, for its `when`, would be if the
   `when` held.
 
+#### The rules
+
 | Code | Layer | Level | Rule |
 |---|---|---|---|
 | `NOT_BUILT_IN_UNIVERSE` | validator | MUST | Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the root's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe |
@@ -1766,6 +1782,8 @@ declared commit ([`REBUILT_FROM_COMMIT`](#21-runners)). Only what the
 driver's universes build is built. It belongs to the driver, and its records
 name the driver's commit, where the declaration says which commit the driven
 analysis is from and, for a remote, where to get it.
+
+#### The rules
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
