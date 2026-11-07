@@ -103,8 +103,9 @@ universe being built. Its universes can also **drive** another analysis, by
 setting that analysis's decisions under keys such as `subanalysis.decision1`.
 The analysis whose universes drive is the **driver**. The other is
 **driven**, and is built in the driver's universes. Another analysis's
-outputs built per universe are read, and its decisions used, in the
-universes it is built in: its driver's, or its own
+outputs built per universe can be read in the universe being built, and its
+decisions used, only where that analysis is built in that universe: where it
+is driven there, or where the universe is its own
 ([§16](#16-driving-and-consuming)).
 
 **Results.** A **result** is what a recipe made for one output, in one
@@ -127,8 +128,15 @@ universe or once ([§18](#18-results-and-where-they-go)).
   the hash and size of what it read and of what it made, the environment it
   ran in, and the runner ([§19](#19-records), [§21](#21-runners)).
 - A **checker** gives each planned result two statuses
-  ([§20](#20-checking-results)): its record is **unchanged**, **stale** or
-  **missing**, and its bytes **present** or **absent**.
+  ([§20](#20-checking-results)).
+
+A result's record status is **unchanged** where it has a valid record and,
+since the commit the record names, nothing has changed in its output's
+declaration, the options its decisions select, the content of its inputs or
+the results it reads. It is **stale** where it has a valid record and one of
+those has changed, and **missing** where it has no valid record. Its bytes'
+status is **present** when the bytes at their default place are the recorded
+ones, and **absent** otherwise.
 
 ### 2. A worked example
 
@@ -731,6 +739,10 @@ outputs:
   Their order carries no meaning.
 - `when` makes the output conditional ([§9](#9-conditions)).
 - `recipe` says how the output is made ([§11](#11-recipes)).
+
+An input and an output never share an id, since `Output.inputs` takes both
+([`AMBIGUOUS_ID`](#10-outputs)). No output depends on itself, directly or
+through others ([`OUTPUT_CYCLE`](#10-outputs)).
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
@@ -1429,9 +1441,11 @@ drives `stage.inner`.
 A pin `#u` resolves in the file it is written in
 ([§13](#13-pins-and-outputs-built-per-universe-or-once)), whatever drives
 that file's analysis, so what it names is the same under every root. Where
-the file's `universes` has no entry `u`, and the analysis whose element the
-reference names has no universe `u` either, as for an element of the file's
-own analysis, the pin names nothing
+the file's `universes` has no entry `u`, the pin names the universe `u` of
+the analysis whose element the reference names, as an import of it would:
+one of that analysis's universes, never an import in its file. Where that
+analysis has no universe `u` either, as for an element of the file's own
+analysis, the pin names nothing
 ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
 
 So adding or removing an entry `u` in a file's `universes` can change what a
@@ -2099,14 +2113,27 @@ schema error ([Annex E](#e-the-schema-files-and-rulesjson)).
 A runner runs recipes, and writes each result's bytes and its record
 ([`UNRECORDED_RESULT`](#21-runners), [§18](#18-results-and-where-they-go),
 [§19](#19-records)). Every field of the record is true of the run, as
-[§19](#19-records) defines the field ([`FALSE_RECORD`](#21-runners)).
-Letting someone see what an environment it recorded holds, as PROV for
-example, is recommended (below).
+[§19](#19-records) defines the field ([`FALSE_RECORD`](#21-runners)). The
+runner records each recipe's environment as an RFC 3987 IRI that it can
+recreate at its version ([`UNRECREATABLE_ENVIRONMENT`](#21-runners)).
+Letting someone see what that environment holds, as PROV for example, is
+recommended (below).
 
 - It runs only committed code. It runs each recipe in a checkout of a
   commit: the repository's own working tree, or one it makes for the run (a
-  git worktree, say). Changes outside that checkout don't stop it
-  ([`UNCOMMITTED_CHANGES`](#21-runners)).
+  git worktree, say). It refuses to run while that checkout has changes
+  other than the records and results it writes itself, each result's bytes
+  the recorded ones ([`UNCOMMITTED_CHANGES`](#21-runners)). Changes outside
+  that checkout don't stop it.
+- It runs each recipe in its analysis's folder in that checkout, even when
+  another analysis drives it ([`WRONG_WORKING_DIRECTORY`](#21-runners)).
+- Where a driver's universes drive an analysis from a commit, it runs that
+  analysis's recipes on exactly its files at the declared commit
+  ([`NOT_AT_COMMIT`](#21-runners)).
+- It builds no result that belongs to an analysis from a commit, or to an
+  analysis reached from it through declarations
+  ([§17](#17-analyses-from-another-commit-or-repository),
+  [`REBUILT_FROM_COMMIT`](#21-runners)).
 - A result it reads that [`STALE_INPUT`](#21-runners) doesn't cover may be
   stale; what it builds from it is then stale too
   ([§20](#20-checking-results)).
@@ -2534,6 +2561,9 @@ from is in its `$comment`.
 document breaks no schema rule exactly when a JSON Schema draft 2019-09
 validator reports no error for it against this file.
 `provenance.schema.json` is the contract for records in the same way.
+
+**The open variant.** `provenance.open.schema.json` differs from
+`provenance.schema.json` only in allowing fields it doesn't define.
 
 **The rule catalogue.** `rules.json` is made from this specification and the
 schema, so that every tool reports the same code for the same error and words
