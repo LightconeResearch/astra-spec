@@ -201,7 +201,7 @@ TYPED = {
     ("RecordedInput", "content_hash"): "content_hash",
     ("Environment", "iri"): "iri",
 }
-"""The named type of each slot that takes one, a map's key aside (spec Annex C, Named types), written by hand."""
+"""The named type of each slot that takes one, a map's key aside (spec §6 and the field reference), written by hand."""
 
 KEY_TYPES = {("Universe", "decisions"): "address"}
 """The type of the keys of each map not keyed by an `id`: `Universe.decisions`, keyed by a decision's address."""

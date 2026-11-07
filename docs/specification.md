@@ -2372,13 +2372,13 @@ condition        = [ "~" ] option-reference     ; "~": the option is not selecte
 
 **Named types.** The other named types' values take these forms:
 
-| Type | Form | Used by |
-|---|---|---|
-| [`commit_id`](elements/CommitId.md) | a full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64 (SHA-256) | `AnalysisDeclaration.commit`, `Generation.commit` |
-| [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits | `ProvenanceRecord.content_hash`, `RecordedInput.content_hash` |
-| [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros | `Analysis.spec_version`, `ProvenanceRecord.spec_version` |
-| [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, with month 01–12, day 01–31, hour 00–23, and minute and second 00–59 | `Generation.started`, `Generation.finished` |
-| [`iri`](elements/Iri.md) | an IRI, never a CURIE: a scheme (an ASCII letter, then any ASCII letters, digits, `+`, `.` and `-`), `:`, at least one character other than `#`, then optionally `#` and any characters other than `#`; none of these characters is an ASCII space or control, a C1 control, `<`, `>`, `"`, `{`, `}`, the vertical bar, `\`, `^`, the backtick or a bidi formatting character U+200E, U+200F or U+202A–U+202E, and `%` comes only before two hex digits | `Environment.iri`, `FragmentSelector.conforms_to` |
+| Type | Form |
+|---|---|
+| [`commit_id`](elements/CommitId.md) | a full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64 (SHA-256) |
+| [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits |
+| [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros |
+| [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, with month 01–12, day 01–31, hour 00–23, and minute and second 00–59 |
+| [`iri`](elements/Iri.md) | an IRI, never a CURIE: a scheme (an ASCII letter, then any ASCII letters, digits, `+`, `.` and `-`), `:`, at least one character other than `#`, then optionally `#` and any characters other than `#`; none of these characters is an ASCII space or control, a C1 control, `<`, `>`, `"`, `{`, `}`, the vertical bar, `\`, `^`, the backtick or a bidi formatting character U+200E, U+200F or U+202A–U+202E, and `%` comes only before two hex digits |
 
 **Other patterns.** The other fields with a pattern state it in their sections:
 `Output.format` ([§10](#10-outputs)), an input's and a declaration's `path`
