@@ -1594,7 +1594,7 @@ that commit, and none of `remote`'s recipes runs.
 - `url` is a remote that git fetches another repository from. The declared
   analysis is the one at the top level of that repository, at the
   declaration's `commit`. A `url` holds no ASCII space or control character,
-  and takes one of git's two forms
+  and takes one of two forms
   ([`INVALID_VALUE`](#5-the-astrayaml-file)):
   - `scheme://` and at least one character, where the scheme is an ASCII
     letter followed by any ASCII letters, digits, `+`, `.` and `-`:

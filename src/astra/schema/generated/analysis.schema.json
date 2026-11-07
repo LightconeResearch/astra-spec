@@ -75,7 +75,7 @@
           "type": "string"
         },
         "url": {
-          "description": "Where git fetches another repository from, as a remote with no ASCII space or control character, in one of git's two forms: `scheme://` and at least one character, where the scheme is an ASCII letter followed by any ASCII letters, digits, `+`, `.` and `-`, such as `https://example.org/remote.git` or `file:///srv/remote.git`; or scp-like, `[user@]host:path`, where `host`, `path` and any `user` are non-empty, `user` and `host` hold no `/`, `@` or `:`, and the value doesn't start with a scheme and `://`, such as `git@example.org:remote.git`. The declared analysis is the one at the top level of that repository, at `commit`.",
+          "description": "Where git fetches another repository from, as a remote with no ASCII space or control character, in one of two forms: `scheme://` and at least one character, where the scheme is an ASCII letter followed by any ASCII letters, digits, `+`, `.` and `-`, such as `https://example.org/remote.git` or `file:///srv/remote.git`; or scp-like, `[user@]host:path`, where `host`, `path` and any `user` are non-empty, `user` and `host` hold no `/`, `@` or `:`, and the value doesn't start with a scheme and `://`, such as `git@example.org:remote.git`. The declared analysis is the one at the top level of that repository, at `commit`.",
           "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$",
           "type": "string"
         }

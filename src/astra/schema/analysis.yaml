@@ -434,7 +434,7 @@ classes:
           rule: INVALID_VALUE
         description: >-
           Where git fetches another repository from, as a remote with no ASCII
-          space or control character, in one of git's two forms: `scheme://`
+          space or control character, in one of two forms: `scheme://`
           and at least one character, where the scheme is an ASCII letter
           followed by any ASCII letters, digits, `+`, `.` and `-`, such as
           `https://example.org/remote.git` or `file:///srv/remote.git`; or
