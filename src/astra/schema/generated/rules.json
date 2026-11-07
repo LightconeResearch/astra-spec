@@ -622,7 +622,7 @@
       "layer": "validator",
       "level": "SHOULD",
       "source": "§17 Analyses from another commit or repository",
-      "statement": "A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, of HEAD of the repository that holds the declaring file"
+      "statement": "A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, HEAD or an ancestor of it, of the repository that holds the declaring file"
     },
     {
       "code": "REMOTE_UNREACHABLE",
