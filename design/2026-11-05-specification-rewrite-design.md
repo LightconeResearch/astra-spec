@@ -51,7 +51,7 @@ It is done when:
 5. **Ground up.** Part II is read in order. Each section uses only Part I's vocabulary and the sections before it, with three exceptions:
    - a link to the glossary, for an exact definition;
    - a link to an annex, for a tool builder's detail;
-   - the Rule of a general schema code (`MISSING_FIELD` and its kind, `INVALID_ID`, `INVALID_REFERENCE`, `INVALID_PATH`, `INVALID_COMMIT`), which may list fields that later sections introduce, as the field reference does.
+   - the Rule of a general schema code (`MISSING_FIELD` and its kind, `INVALID_ID`, `INVALID_REFERENCE`, `INVALID_PATH`, `INVALID_COMMIT`), of `UNRESOLVED_ADDRESS` or of `UNKNOWN_OPTION`, which may list fields that later sections introduce, as the field reference does.
 
    A glossary link never stands in for a concept that a later section introduces. Part I may link forward to the section of each piece it names.
 6. **Readable, with nothing superfluous.** Prose where it reads well, bullets where text would be dense, short sentences. No sentence that only says what something doesn't do, unless it clarifies, and no advice that isn't a rule. These go, for example:
@@ -246,10 +246,10 @@ The specification is one page: Part I, Part II, a glossary, then Part III.
 1. **What ASTRA is.** A sentence or two on why ASTRA exists, then the pieces, in prose with a short list. No rules. It gives the meaning of every term Part II leans on before its own section:
    - an analysis, its folder and its repository;
    - inputs, outputs and recipes;
-   - decisions, options and universes;
+   - decisions, options, universes and imports;
    - building an analysis in one of its universes, and the universe being built;
-   - declaring another analysis, the root, and its stack. Every declared analysis is an analysis at a commit, and the URL says only where to get it. A declaration by `path` without a `commit` is one still being worked on, inside the declaring analysis's repository. When it is published, its declaration becomes a `url` and a `commit`, and its own results go with it, since they are kept in its folder. So two declarations name one analysis when they reach the same directory at the same commit, or the same directory of the working tree (Tom, 2026-11-06);
-   - results, records, runners and checkers.
+   - declaring another analysis, the root, its stack, and an analysis from a commit. Every declared analysis is an analysis at a commit, and the URL says only where to get it. A declaration by `path` without a `commit` is one still being worked on, inside the declaring analysis's repository. When it is published, its declaration becomes a `url` and a `commit`, and its own results go with it, since they are kept in its folder. So two declarations name one analysis when they reach the same directory at the same commit, or the same directory of the working tree (Tom, 2026-11-06);
+   - results, planned results, the analysis a result belongs to, a result's name, place and default place, records, runners and checkers.
 2. **A worked example.** The minimal example (see §7), then what validating, building, recording and checking do.
 3. **Conformance.**
    - The five layers, in one table: what each reads, and who checks it.
