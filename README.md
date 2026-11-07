@@ -99,7 +99,7 @@ Requires Python 3.9+, [uv](https://docs.astral.sh/uv/), and [just](https://githu
 just test         # Schema generation, Python datamodel, examples
 just lint         # LinkML schema lint
 just gen-python   # Regenerate Python datamodels
-just gen-doc      # Regenerate the schema reference docs
+just gen-doc      # Regenerate the field reference docs
 just docs-serve   # Live-reload local preview of the docs site
 just --list       # Everything else
 ```

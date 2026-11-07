@@ -3,7 +3,7 @@
 Its rule catalogue, the codes tables at the end of Part II's sections, read by `tools/rules.py`'s extractor, the one
 parser of them: every layer, every code once, each rule's source a section of Part II, every link to a code pointing at
 the section whose table lists it, every fixture's rule a parse or schema code in it, and every parse and schema code
-with a fixture and a loader error or a place in the schema that enforces it. Its links to the schema reference, and
+with a fixture and a loader error or a place in the schema that enforces it. Its links to the field reference, and
 every example block, once the commits, hashes and sizes it shows as placeholders are filled: whole documents validated,
 marked fragments validated over a stub, and the `rules.json` excerpt a subset of the generated file. Annex C's ABNF is
 matched with the named types' patterns in `test_grammar.py`.
