@@ -741,8 +741,11 @@ outputs:
 - `recipe` says how the output is made ([§11](#11-recipes)).
 
 An input and an output never share an id, since `Output.inputs` takes both
-([`AMBIGUOUS_ID`](#10-outputs)). No output depends on itself, directly or
-through others ([`OUTPUT_CYCLE`](#10-outputs)).
+([`AMBIGUOUS_ID`](#10-outputs)). An output depends on another, known by its
+analysis's identity ([§17](#17-analyses-from-another-commit-or-repository)),
+when it reads it through `Output.inputs`, directly or through others, pinned
+or not. No output depends on itself, directly or through others
+([`OUTPUT_CYCLE`](#10-outputs)).
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
@@ -2548,6 +2551,11 @@ when one edit fixes both.
     activity is undetermined (6), a universe with no effective selection (7)
     or a read that breaks [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
     get none, and no check rule is checked for them.
+13. **An output on a cycle.** For an output that depends on itself
+    ([`OUTPUT_CYCLE`](#10-outputs)), whether it is built per universe
+    ([§13](#13-pins-and-outputs-built-per-universe-or-once)) is undetermined,
+    so no rule on its results' places, or on what reads it, is checked. The
+    breach is reported once, as [`OUTPUT_CYCLE`](#10-outputs).
 
 ### E. The schema files and rules.json
 
