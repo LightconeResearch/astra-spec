@@ -720,7 +720,7 @@
       "layer": "runner",
       "level": "MUST",
       "source": "§21 Runners",
-      "statement": "A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones"
+      "statement": "A runner runs each recipe in a checkout of a commit whose only changes (what git reports in it, untracked files and a submodule at another commit or with edits included, ignored files not) are the records and results of any run, each result's bytes the recorded ones"
     },
     {
       "code": "WRONG_WORKING_DIRECTORY",

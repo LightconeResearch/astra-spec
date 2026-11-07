@@ -2139,9 +2139,9 @@ recommended (below).
 - It runs only committed code. It runs each recipe in a checkout of a
   commit: the repository's own working tree, or one it makes for the run (a
   git worktree, say). It refuses to run while that checkout has changes
-  other than the records and results it writes itself, each result's bytes
-  the recorded ones ([`UNCOMMITTED_CHANGES`](#21-runners)). Changes outside
-  that checkout don't stop it.
+  other than the records and results of any run, each result's bytes the
+  recorded ones ([`UNCOMMITTED_CHANGES`](#21-runners)). Changes outside that
+  checkout don't stop it.
 - It runs each recipe in its analysis's folder in that checkout, even when
   another analysis drives it ([`WRONG_WORKING_DIRECTORY`](#21-runners)).
 - Where a driver's universes drive an analysis from a commit, it runs that
@@ -2170,7 +2170,7 @@ A checker sees much of a breach afterwards: a result with no record is
 | `UNRECORDED_RESULT` | runner | MUST | A runner writes a record for every result it makes, at the place of each of its names in the analysis the result belongs to, and writes the bytes to their default places |
 | `FALSE_RECORD` | runner | MUST | Every field of a record a runner writes is true of the run it records: the commit the recipe ran from, the hash and size of what it read and of what it made, the environment it ran in, the runner and its version, and the times |
 | `UNRECREATABLE_ENVIRONMENT` | runner | MUST | A runner records each recipe's environment as an RFC 3987 IRI that it can recreate at its version |
-| `UNCOMMITTED_CHANGES` | runner | MUST | A runner runs each recipe in a checkout of a commit whose only changes are the records and results it writes itself, each result's bytes the recorded ones |
+| `UNCOMMITTED_CHANGES` | runner | MUST | A runner runs each recipe in a checkout of a commit whose only changes (what git reports in it, untracked files and a submodule at another commit or with edits included, ignored files not) are the records and results of any run, each result's bytes the recorded ones |
 | `WRONG_WORKING_DIRECTORY` | runner | MUST | A runner runs each recipe in the directory of the recipe's own analysis, in the checkout it runs in, even when another analysis drives it |
 | `NOT_AT_COMMIT` | runner | MUST | A runner drives an analysis from a commit on exactly its files at that commit |
 | `REBUILT_FROM_COMMIT` | runner | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each of those results through its record at the commit that analysis is read at |
