@@ -197,7 +197,7 @@ findings:
 - The finding `insight1` cites `output2` as its evidence.
 
 **Validating.** A validator reads this `astra.yaml` and git, and reports
-every rule the analysis breaks ([§3](#3-conformance)). It checks that the
+the rules the analysis breaks ([§3](#3-conformance)). It checks that the
 file is YAML whose content the schema accepts, and then, among other things,
 that `data/input1.csv` is a file tracked in git, that every address names an
 element, that each universe selects an option of `decision1`, and that each
