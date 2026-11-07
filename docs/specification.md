@@ -1792,7 +1792,7 @@ analysis is from and, for a remote, where to get it.
 | `URL_WITHOUT_COMMIT` | schema | MUST | A declaration with a `url` has a `commit` |
 | `INVALID_COMMIT` | schema | MUST | Every `commit` is a full commit id: 40 or 64 lowercase hexadecimal digits |
 | `COMMIT_NOT_FOUND` | validator | MUST | A declaration with a `path` and a `commit`, in a file not read from a remote, names a commit of the [repository that holds](#glossary) the declaring `astra.yaml` |
-| `COMMIT_NOT_ANCESTOR` | validator | SHOULD | A declaration with a `path` and a `commit` names an ancestor of the commit the declaration is in or, for a declaration read in the working tree, HEAD or an ancestor of it, of the [repository that holds](#glossary) the declaring file |
+| `COMMIT_NOT_ANCESTOR` | validator | SHOULD | A declaration with a `path` and a `commit` names, in the [repository that holds](#glossary) the declaring file, an ancestor of the commit the declaration is in or, for a declaration read in the working tree, HEAD or an ancestor of it |
 | `REMOTE_UNREACHABLE` | validator | MUST | Every commit the stack gets from a remote for a declaration, through its `url`, a file read from a remote or a gitlink its folder crosses at a commit, can be fetched from that remote or is already in a local repository |
 | `DECLARED_ANALYSIS_INVALID` | validator | MUST | An analysis from a commit, with everything it declares, is valid at that commit, [`REMOTE_UNREACHABLE`](#17-analyses-from-another-commit-or-repository) aside |
 
@@ -2360,8 +2360,8 @@ checkers read git one way:
   in a submodule, the submodule's own.
   [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) and
   [`COMMIT_NOT_ANCESTOR`](#17-analyses-from-another-commit-or-repository) read
-  the repository that holds the declaring `astra.yaml`, where, in the working
-  tree, HEAD stands for the commit a declaration is in
+  the repository that holds the declaring `astra.yaml`, and its HEAD for a
+  declaration read in the working tree
   ([§17](#17-analyses-from-another-commit-or-repository)).
 - **Tracked.** [`INPUT_NOT_TRACKED`](#7-inputs) reads the repository that
   holds the input's analysis, where a file is tracked when, in the working
