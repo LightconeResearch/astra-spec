@@ -287,8 +287,7 @@ such as `DIGIT`. Patterns are regular expressions as JSON Schema reads them
 **Codes tables.** Each rule that a tool checks or keeps has a code, and is
 stated in the codes table at the end of a section of Part II. These tables
 are the only place this specification states such a rule. The section's text
-explains what its rules are about and links to their codes, as in
-[`MISSING_DECISION`](#16-driving-and-consuming). A table's columns are:
+explains what its rules are about. A table's columns are:
 
 - **Code:** names what is wrong when the rule is broken. It is what a tool
   reports. Each code is unique and matches `[A-Z][A-Z0-9_]*`.
@@ -2129,12 +2128,8 @@ schema error ([Annex E](#e-the-schema-files-and-rulesjson)).
 
 A runner runs recipes, and writes each result's bytes and its record
 ([`UNRECORDED_RESULT`](#21-runners), [§18](#18-results-and-where-they-go),
-[§19](#19-records)). Every field of the record is true of the run, as
-[§19](#19-records) defines the field ([`FALSE_RECORD`](#21-runners)). The
-runner records each recipe's environment as an RFC 3987 IRI that it can
-recreate at its version ([`UNRECREATABLE_ENVIRONMENT`](#21-runners)).
-Letting someone see what that environment holds, as PROV for example, is
-recommended (below).
+[§19](#19-records)). Letting someone see what an environment it recorded
+holds, as PROV for example, is recommended (below).
 
 - It runs only committed code. It runs each recipe in a checkout of a
   commit: the repository's own working tree, or one it makes for the run (a
@@ -2142,11 +2137,6 @@ recommended (below).
   other than the records and results of any run, each result's bytes the
   recorded ones ([`UNCOMMITTED_CHANGES`](#21-runners)). Changes outside that
   checkout don't stop it.
-- It runs each recipe in its analysis's folder in that checkout, even when
-  another analysis drives it ([`WRONG_WORKING_DIRECTORY`](#21-runners)).
-- Where a driver's universes drive an analysis from a commit, it runs that
-  analysis's recipes on exactly its files at the declared commit
-  ([`NOT_AT_COMMIT`](#21-runners)).
 - It builds no result that belongs to an analysis from a commit, or to an
   analysis reached from it through declarations
   ([§17](#17-analyses-from-another-commit-or-repository),
