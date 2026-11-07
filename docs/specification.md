@@ -2562,10 +2562,11 @@ when one edit fixes both, except a file's parse rules (1).
 12. **A result whose planning is undetermined.** On an analysis that breaks a
     `MUST`, a checker gives statuses ([§20](#20-checking-results)) only to the
     results whose planning is determined. Those whose planning is left
-    undetermined, by a file that isn't a valid document (2), an element whose
-    activity is undetermined (6), a universe with no effective selection (7)
-    or a read that breaks [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
-    get none, and no check rule is checked for them.
+    undetermined, by a file that isn't a valid document (2), an undetermined
+    analysis (4), an element whose activity is undetermined (6), a universe
+    with no effective selection (7), an output on a cycle (13) or a read that
+    breaks [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming), get none, and
+    no check rule is checked for them.
 13. **An output on a cycle.** For an output that depends on itself
     ([`OUTPUT_CYCLE`](#10-outputs)), whether it is built per universe
     ([§13](#13-pins-and-outputs-built-per-universe-or-once)) can turn on the
