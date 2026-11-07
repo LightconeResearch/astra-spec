@@ -2012,7 +2012,7 @@ A checker gives every planned result two statuses
 | `unchanged` | The result has a valid record where its address says, and [`STALE_RESULT`](#20-checking-results) holds |
 | `stale` | The result has a valid record where its address says, and [`STALE_RESULT`](#20-checking-results) doesn't hold |
 | `missing` | The result has no valid record where its address says: [`MISSING_RECORD`](#20-checking-results), [`INVALID_RECORD`](#20-checking-results), [`MISPLACED_RECORD`](#20-checking-results) or [`MISSING_RECORD_INPUTS`](#20-checking-results) doesn't hold; or the root is outside a git repository ([`NOT_IN_REPOSITORY`](#5-the-astrayaml-file)) |
-| `present` | The bytes at the result's default place hash to the record's `content_hash` and have its `size` |
+| `present` | The bytes at the result's default place hash to its valid record's `content_hash` and have its `size` |
 | `absent` | Anything else is at the default place, nothing, a stand-in or other bytes included |
 
 - A result with two names gets its statuses at each place.
@@ -2537,8 +2537,9 @@ when one edit fixes both.
    [`MISPLACED_RECORD`](#20-checking-results) or
    [`MISSING_RECORD_INPUTS`](#20-checking-results). One whose record breaks
    [`INVALID_RECORD`](#20-checking-results) isn't checked by the last two.
-   [`STALE_RESULT`](#20-checking-results) isn't checked for a result that is
-   `missing`.
+   [`STALE_RESULT`](#20-checking-results) and
+   [`ABSENT_RESULT`](#20-checking-results) aren't checked for a result that is
+   `missing`, whose bytes are still `absent`.
 10. **A key that loops.** [`LOOPING_KEY`](#16-driving-and-consuming) is judged
     on a key's declarations up to the first that doesn't resolve or whose
     analysis is undetermined (4, 5). A key that loops still names its decision,
