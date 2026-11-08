@@ -2075,17 +2075,14 @@ declaration's path names the entry at exactly that path
 and `subanalysis` declare two analyses
 ([§17](#17-analyses-from-another-commit-or-repository)).
 
-**Stand-ins.** A stand-in ([§7](#7-inputs)) is something kept in a file's
-place, such as a large-file tool's pointer, that is recognised as standing in
-for the file.
-
 **Symlinks.** A symlink is an entry, and is never followed: it is neither a
 file nor a folder, and a path through a symlinked folder names nothing. So a
 declaration whose path, or whose `astra.yaml`, is a symlink or goes through
 one finds no analysis
 ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)). An input's path that
 is a symlink names a file only where the validator recognises the symlink as a
-stand-in for one, and otherwise names none ([`MISSING_INPUT_FILE`](#7-inputs)).
+[stand-in](#7-inputs) for one, and otherwise names none
+([`MISSING_INPUT_FILE`](#7-inputs)).
 
 **Submodules.** A checked-out submodule is in the working tree, and its
 entries are read in its own repository. At a commit, a path that looks for a
