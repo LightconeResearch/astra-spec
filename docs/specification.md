@@ -361,13 +361,13 @@ a path.
 ### 6. Names
 
 An analysis's **elements** are its inputs, outputs, decisions, options,
-universes and [imports](#12-universes) (`universes`), declarations
-(`analyses`), prior insights and findings, each an entry of a map keyed by
-its id. An element other than an option is named by its **address**: the ids
-of the declarations that lead to it, then its own id, joined by dots, as in
-`subanalysis.decision1`.
-An element of the analysis itself is named by its id alone. An option is
-named by an option reference (below).
+universes and [imports](#12-universes) (`universes`),
+[declarations](#15-declared-analyses) (`analyses`), prior insights and
+findings ([§14](#14-insights-and-evidence)), each an entry of a map keyed by
+its **id**. An element other than an option is named by its **address**: the
+ids of the declarations that lead to it, then its own id, joined by dots, as
+in `subanalysis.decision1`. An element of the analysis itself is named by its
+id alone. An option is named by an option reference (below).
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -391,18 +391,17 @@ selected.
 
 #### Ids and maps
 
-- The id is written once, as the key
-  ([`INVALID_ID`](#6-names)): `a: {}`, never `a: {id: a}`
-  ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)).
+- The id is written once, as the key ([`INVALID_ID`](#6-names)): `a: {}`,
+  never `a: {id: a}` ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)).
 - Ids are unique within their map, since a map's keys are, and the order of
   a map carries no meaning.
-- A map's entries are objects, except those of `Universe.decisions`, each of
-  which is the id of the option selected (`decision1: a`)
-  ([`WRONG_TYPE`](#5-the-astrayaml-file)). A list where a map is expected, as
-  in `outputs: [output1]`, is [`WRONG_TYPE`](#5-the-astrayaml-file) too.
-- Ids of different kinds can be the same, with two exceptions: an input and
-  an output never share an id ([`AMBIGUOUS_ID`](#10-outputs)), and an output
-  never shares its id with a declaration of its analysis
+- A map's entries are objects, except those of `Universe.decisions`, each the
+  id of the option selected (`decision1: a`). A list, such as
+  `outputs: [output1]`, is never a map
+  ([`WRONG_TYPE`](#5-the-astrayaml-file)).
+- Ids of different kinds can be the same, except that an input and an output
+  never share an id ([`AMBIGUOUS_ID`](#10-outputs)), nor an output and a
+  declaration of its analysis
   ([`CLASHING_RESULT_NAME`](#15-declared-analyses)).
 
 #### The forms of a name
@@ -419,53 +418,30 @@ A name takes one of five forms. Each is a type of the
 | [option reference](elements/OptionReference.md): a decision's address, `.`, then an option's id | `subanalysis.decision1.a` | `Option.requires`, `Option.incompatible_with` |
 | [condition](elements/Condition.md): an option reference, possibly after `~` ([§9](#9-conditions)) | `~decision1.b` | `Output.when`, `Decision.when` |
 
-- Every id has the one grammar `id`; an address's kind comes from the field
-  it is written in, so an element can be called `inputs`.
-- The last segment of an option reference is always the option, so the
-  option `a` of the decision `decision1` of a declared analysis
-  `subanalysis` is `subanalysis.decision1.a`.
-- A decision's address never takes a pin: the entries of `Output.decisions`
-  are addresses ([`INVALID_REFERENCE`](#6-names)), and so are the keys of
-  `Universe.decisions` ([`INVALID_ID`](#6-names)).
-- A value that doesn't take its type's form fails: a map key or an `id` as
-  [`INVALID_ID`](#6-names), any other address, reference, option reference
-  or condition as [`INVALID_REFERENCE`](#6-names), a commit id as
-  [`INVALID_COMMIT`](#17-analyses-from-another-commit-or-repository), and a
-  value of any other named type of [Annex C](#c-grammars-and-patterns) as
-  [`INVALID_VALUE`](#5-the-astrayaml-file).
+A decision's address never takes a pin: the entries of `Output.decisions`
+are addresses ([`INVALID_REFERENCE`](#6-names)), and so are the keys of
+`Universe.decisions` ([`INVALID_ID`](#6-names)).
 
 #### Addresses
 
-An address is read in the analysis whose `astra.yaml` it is written in. In
-an option reference, the address is the segments before the last, which is
-the option; a condition's leading `~` and a reference's pin are not part of
-the address.
+An address is read in the analysis whose `astra.yaml` it is written in. A
+report on an analysis, written outside `astra.yaml`, also names the
+analysis's elements by address, read in that analysis. An
+[import](#12-universes)'s address names the universe it imports.
+
+A condition's leading `~` and a reference's pin are not part of the address.
+In an option reference, the address is every segment but the last, which is
+the option: the option `a` of the decision `decision1` of the declared
+analysis `subanalysis` is `subanalysis.decision1.a`.
 
 - Every segment of an address but the last is the id of a declaration: the
   first names an entry of the `analyses` of the analysis the address is read
   in, the next an entry of the declared analysis's `analyses`, and so on
   ([§15](#15-declared-analyses)).
-- The last segment is the id of an element of the analysis reached. Which
-  kind of element comes from the field the address is written in:
-
-| Written in | Resolves to |
-|---|---|
-| `Output.inputs` | an input or an output |
-| `Output.decisions`, the keys of `Universe.decisions` | a decision |
-| a condition, `Option.requires`, `Option.incompatible_with` | a decision, then one of its options |
-| `Evidence.artifact` | an output |
-| an [import](#12-universes)'s `analysis`, then `.` and its `universe` | one of another analysis's universes |
-
-An address that doesn't resolve to an element of its field's kind breaks
-[`UNRESOLVED_ADDRESS`](#6-names), and an option that isn't one of its
-decision's options breaks [`UNKNOWN_OPTION`](#8-decisions-and-options).
-
-A report on an analysis, written outside `astra.yaml`, refers to the
-analysis's elements by address: `<id>` for an element of the analysis,
-`<declaration>.<id>` for an element of a declared analysis, and so on.
-Inputs, outputs, decisions, universes, imports, prior insights, findings and
-declared analyses are addressable, and an [import](#12-universes)'s address
-names the universe it imports.
+- The last segment is the id of an element of the analysis reached. The
+  field the address is written in gives the element's kind, as
+  [`UNRESOLVED_ADDRESS`](#6-names) lists, so an element can be called
+  `inputs`.
 
 #### The rules
 
