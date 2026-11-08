@@ -453,8 +453,10 @@ analysis `subanalysis` is `subanalysis.decision1.a`.
 
 ### 7. Inputs
 
-An input is a file the analysis reads, named by its `path`. It is tracked
-in git with the analysis, so a commit pins the data along with the code.
+An [Input](elements/Input.md) is a file the analysis reads, named by its
+`path`. It is [tracked](#glossary) in git with the analysis
+([`INPUT_NOT_TRACKED`](#7-inputs)), so a commit holds the data along with the
+code.
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -466,42 +468,32 @@ inputs:
     path: data/input2.csv
 ```
 
-- An input's fields are in the [field reference](elements/Input.md).
-- The `path` of an input, or of a declaration
-  ([§15](#15-declared-analyses)), is relative to the folder of the
-  `astra.yaml` that writes it, with `/` between folders, and is tidied as
-  text ([Annex B](#b-paths-and-git)): `./data/input1.csv` is
-  `data/input1.csv`. It is non-empty and doesn't start with `/`
-  ([`INVALID_PATH`](#7-inputs)).
+- `path`, here and in a [declaration](#15-declared-analyses), is relative to
+  the folder of the `astra.yaml` that writes it, with `/` between folders
+  ([`INVALID_PATH`](#7-inputs)). It is tidied as text
+  ([Annex B](#b-paths-and-git)): `./data/input1.csv` is `data/input1.csv`.
+  The folders that belong to runners are reserved
+  ([§5](#5-the-astrayaml-file), [`RESERVED_PATH`](#7-inputs)).
 - An input is one file ([`MISSING_INPUT_FILE`](#7-inputs)). Data in many
   files is many inputs.
-- The path names the file itself (not a symlink:
-  [Annex B](#b-paths-and-git)), or a stand-in for it
-  ([`MISSING_INPUT_FILE`](#7-inputs)). A stand-in is something kept in the
-  file's place and recognised as standing in for it, such as a large-file
-  tool's pointer. Something standing in for the content isn't the content.
-- The file is inside the analysis's folder and outside every folder below it
-  that holds an `astra.yaml` file of its own
-  ([`INPUT_IN_ANOTHER_ANALYSIS`](#7-inputs)). Another analysis reads an
-  input by its address, such as `subanalysis.input1`, not by a path.
-- The file is outside the folders that belong to runners
-  ([§5](#5-the-astrayaml-file), [`RESERVED_PATH`](#7-inputs)).
-- The file, or its stand-in, is [tracked](#glossary) in git
-  ([`INPUT_NOT_TRACKED`](#7-inputs)), in the repository that holds the
-  analysis ([Annex B](#b-paths-and-git)).
+- A **stand-in** is something kept where a file would be and recognised as
+  standing in for it, such as a large-file tool's pointer
+  ([`MISSING_INPUT_FILE`](#7-inputs)). It isn't the content it stands in for.
+- The record of each result that reads an input holds the hash of what it
+  read, so a change to the file makes those results stale
+  ([§19](#19-records), [§20](#20-checking-results)).
 
-The record of each result that reads an input holds the hash of what it read
-([§19](#19-records)), so a change to the file makes those results stale.
+Data that isn't an input of the analysis comes in another way:
 
-Data that isn't tracked in git with the analysis, such as a download, a
-loader's output or a query's answer, comes in through an output whose recipe
-gets it. That output is
-[built once](#13-pins-and-outputs-built-per-universe-or-once), or per
-universe when it depends on a decision such as which data release to use,
-and its record holds the hash of what came back. Data kept in another
-repository, a git submodule say, isn't tracked in git with the analysis
-either, so it isn't an input. It belongs in the analysis's own repository, or
-in another analysis as that analysis's input.
+- An input of another analysis is read by its [address](#6-names), such as
+  `subanalysis.input1`, not by a path
+  ([`INPUT_IN_ANOTHER_ANALYSIS`](#7-inputs)).
+- Data kept in another repository, such as a git submodule, isn't tracked
+  with the analysis, so it isn't an input. It belongs in the analysis's own
+  repository, or in another analysis as that analysis's input.
+- Other data that isn't tracked with the analysis, such as a download, a
+  loader's output or a query's answer, comes in through an output whose recipe
+  gets it. That output's record holds the hash of what came back.
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
