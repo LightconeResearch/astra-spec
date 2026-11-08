@@ -2015,7 +2015,10 @@ Each term links to the sections that define it or give its detail.
 
 ## Part III: For tool builders
 
-Part III is normative.
+Part III is normative. It gives the detail a tool needs: how files are read
+([Annex A](#a-reading-files)), paths and git ([Annex B](#b-paths-and-git)),
+grammars and patterns ([Annex C](#c-grammars-and-patterns)), and the schema
+files and `rules.json` ([Annex D](#d-the-schema-files-and-rulesjson)).
 
 ### A. Reading files
 
