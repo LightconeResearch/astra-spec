@@ -2040,72 +2040,70 @@ object has two equal names ([`INVALID_SYNTAX`](#5-the-astrayaml-file)).
 
 ### B. Paths and git
 
-**Paths.** The path of an input or a declaration ([§7](#7-inputs),
-[§15](#15-declared-analyses)) names the entry at exactly that path: on disk in
-the working tree, or in the commit's tree at a commit
-([`MISSING_INPUT_FILE`](#7-inputs),
-[`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)). So `data/A.csv` and
-`data/a.csv` are two paths, which name two files or folders, and `Subanalysis`
-and `subanalysis` declare two analyses
+Validators and checkers read paths and git as below, for an analysis read in
+the working tree or at a commit
 ([§17](#17-analyses-from-another-commit-or-repository)).
 
-**Reading git.** An analysis is read in the working tree or at a commit
-([§17](#17-analyses-from-another-commit-or-repository)), and validators and
-checkers read git one way:
+**The repository that holds a file** is the innermost git repository it is
+in: for a file in a submodule, the submodule's own. The repository that holds
+an analysis is the one that holds its `astra.yaml`, and the root's working
+tree is that of the repository that holds the root's `astra.yaml`.
 
-- **Tidying.** A path is joined to the folder of the `astra.yaml` that
-  writes it and tidied as text, never through the file system: empty and `.`
-  segments are dropped, each `..` removes the segment before it, and a `..`
-  with no segment before it takes the path above the top. So
-  `./data.csv` is `data.csv`, `subanalysis/` is `subanalysis`, and
-  `subanalysis/../data` is `data`, whatever `subanalysis` is on disk.
-- **The top.** A path is measured from the top of the root's working tree
-  or, at a commit, from the top of the repository that holds it. A
-  declaration's path that goes above that top breaks
-  [`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses). The root's
-  working tree is that of the repository that holds the root's `astra.yaml`,
-  and the repository that holds an analysis is the one that holds its
-  `astra.yaml`.
-- **Lies inside.** A path lies inside a folder, or is inside it, when, both
-  tidied, the folder's segments begin the path's, and the path has more. So
-  `results/u1/output1.csv` lies inside `results`, and `results2/x.csv`
-  doesn't.
-- **Entries.** In the working tree, a path names an entry on disk below the
-  top of the root's working tree, tracked, untracked or ignored. At a commit,
-  a path names an entry of that commit's tree.
-- **Symlinks.** A symlink is an entry, and is never followed: at a path, it is
-  neither a file nor a folder, and a path through a symlinked folder names
-  nothing. So a declaration finds no analysis where its path, or its
-  `astra.yaml`, is a symlink or goes through one
-  ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)). An input's path that
-  is a symlink names a file only where the validator recognises the symlink as
-  standing in for one ([§7](#7-inputs)), and otherwise names none
-  ([`MISSING_INPUT_FILE`](#7-inputs)).
-- **Stand-ins.** A stand-in is something kept in a file's place, such as a
-  large-file tool's pointer, that is recognised as standing in for the file.
-  An input's file, or its stand-in, is what is tracked
-  ([`INPUT_NOT_TRACKED`](#7-inputs)).
-- **Submodules.** A submodule that is checked out is in the working tree, and
-  its entries are read in its own repository. At a commit, a path that looks
-  for a file or an analysis goes on through a gitlink into the submodule, at
-  the commit the gitlink pins. Whether an input is tracked never crosses a
-  gitlink.
-- **The repository that holds a file.** It is the innermost one: for a file
-  in a submodule, the submodule's own.
-  [`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) reads
-  the repository that holds the declaring `astra.yaml`
-  ([§17](#17-analyses-from-another-commit-or-repository)).
-- **Tracked.** [`INPUT_NOT_TRACKED`](#7-inputs) reads the repository that
-  holds the input's analysis, where a file is tracked when, in the working
-  tree, it is in the index or, at a commit, in that commit's tree, reached
-  through no gitlink. So a staged input is tracked, and an untracked or
-  ignored one isn't, nor is one in a plain data submodule.
-- **A gitlink's commit.** It is got from the submodule's checkout when that
-  holds it, or from the URL that the `.gitmodules` of the commit holding the
-  gitlink gives for that submodule, a relative one (`../other.git`) resolved
-  as git resolves it ([§17](#17-analyses-from-another-commit-or-repository)).
-- **Bytes.** At a commit, a file is the blob git stores. In the working tree,
-  an `astra.yaml` is read from the file on disk.
+**Tidying.** A path is joined to the folder of the `astra.yaml` that writes it
+and tidied as text, never through the file system: empty and `.` segments are
+dropped, each `..` removes the segment before it, and a `..` with no segment
+before it takes the path above the top. So `./data.csv` is `data.csv`,
+`subanalysis/` is `subanalysis`, and `subanalysis/../data` is `data`, whatever
+`subanalysis` is on disk.
+
+**The top.** A path read in the working tree is measured from the top of the
+root's working tree, and one read at a commit from the top of the repository
+it is read in. A declaration's path that goes above the top breaks
+[`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses).
+
+**Lies inside.** A path lies inside a folder, or is inside it, when, both
+tidied, the folder's segments begin the path's and the path has more. So
+`results/u1/output1.csv` lies inside `results`, and `results2/x.csv` doesn't.
+
+**What a path names.** In the working tree, a path names an entry on disk
+below the top of the root's working tree, tracked, untracked or ignored. At a
+commit, it names an entry of that commit's tree. An input's or a
+declaration's path names the entry at exactly that path
+([`MISSING_INPUT_FILE`](#7-inputs),
+[`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)): `data/A.csv` and
+`data/a.csv` are two paths, and `Subanalysis` and `subanalysis` declare two
+analyses ([§17](#17-analyses-from-another-commit-or-repository)).
+
+**Stand-ins.** A stand-in ([§7](#7-inputs)) is something kept in a file's
+place, such as a large-file tool's pointer, that is recognised as standing in
+for the file.
+
+**Symlinks.** A symlink is an entry, and is never followed: it is neither a
+file nor a folder, and a path through a symlinked folder names nothing. So a
+declaration whose path, or whose `astra.yaml`, is a symlink or goes through
+one finds no analysis
+([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)). An input's path that
+is a symlink names a file only where the validator recognises the symlink as a
+stand-in for one, and otherwise names none ([`MISSING_INPUT_FILE`](#7-inputs)).
+
+**Submodules.** A checked-out submodule is in the working tree, and its
+entries are read in its own repository. At a commit, a path that looks for a
+file or an analysis goes on through a gitlink into the submodule, at the
+commit the gitlink pins.
+
+**A gitlink's commit** is got from the submodule's checkout when that holds
+it, or from the URL that the `.gitmodules` of the commit holding the gitlink
+gives for that submodule, a relative one (`../other.git`) resolved as git
+resolves it ([§17](#17-analyses-from-another-commit-or-repository)).
+
+**Tracked.** A file is tracked in a repository when, read in the working
+tree, it is in the repository's index or, read at a commit, in that commit's
+tree, reached through no gitlink either way. So a staged input is tracked
+([`INPUT_NOT_TRACKED`](#7-inputs)), and an untracked or ignored one isn't, nor
+is one in a plain data submodule.
+
+**Bytes.** At a commit, a file is the blob git stores. In the working tree, an
+`astra.yaml` is read from the file on disk.
 
 ### C. Grammars and patterns
 
