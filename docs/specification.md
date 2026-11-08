@@ -123,37 +123,34 @@ Rules are enforced in five layers, set apart by what each one sees:
 |---|---|---|
 | **parse** | a YAML 1.2 reader (`astra.yaml`) or a JSON reader (records), as [Annex A](#a-reading-files) says | one file's bytes |
 | **schema** | the generated JSON Schema | one file's data |
-| **validator** | a semantic validator | every `astra.yaml` of the analysis stack, and git ([Annex B](#b-paths-and-git)); no results |
-| **check** | a results checker | every `astra.yaml` of the analysis stack, now and at each record's commit, and git ([Annex B](#b-paths-and-git)); records and results |
-| **runner** | whatever runs recipes | its own actions, the checkouts it runs recipes in, and what the recipes read |
+| **validator** | a validator | every `astra.yaml` of the stack, and git ([Annex B](#b-paths-and-git)); no results |
+| **check** | a checker | every `astra.yaml` of the stack, now and at each record's commit, and git ([Annex B](#b-paths-and-git)); records and results |
+| **runner** | a runner | its own actions, the checkouts it runs recipes in, and what the recipes read |
 
 Four roles conform to this specification:
 
 - A **document**, an `astra.yaml` or a record, conforms, or is **valid**,
   when it breaks no parse or schema rule.
-- A **validator** reads an analysis, every `astra.yaml` of its stack and git,
-  and reports the parse, schema and validator rules that the analysis, or
-  any analysis of its stack, breaks. An analysis is **valid** when no
-  analysis of its stack breaks a `MUST` of these three layers.
-- A **checker** reads an analysis, every `astra.yaml` of its stack and git,
-  and its records and results, and gives each planned result its statuses by
-  the check rules ([§20](#20-checking-results)). A record that breaks a parse
-  or schema rule leaves its result `missing`
+- A **validator** reports every parse, schema and validator rule that the
+  analysis, or any analysis of its stack, breaks. An analysis is **valid**
+  when no analysis of its stack breaks a `MUST` of these three layers.
+- A **checker** gives each [planned result](#18-results-and-where-they-go)
+  its statuses by the check rules ([§20](#20-checking-results)). A record
+  that breaks a parse or schema rule leaves its result `missing`
   ([`INVALID_RECORD`](#20-checking-results)). A checker implements one
-  version, its own. It has the record schema of every
-  [minor version](#5-the-astrayaml-file) from 0.1 up to its own
-  ([Annex D](#d-the-schema-files-and-rulesjson)): records begin at 0.1.0, and
-  no earlier version has a record schema.
+  version, its own, and has the record schema of every
+  [minor version](#5-the-astrayaml-file) from 0.1, the first with records,
+  up to its own ([Annex D](#d-the-schema-files-and-rulesjson)).
 - A **runner** runs recipes and writes each result's bytes and record. A
   record is its runner's testimony, and names it. A runner conforms when it
   keeps the runner `MUST`s, which keep its records true.
 
-What breaking a rule leads to depends on the layer:
+What breaking a rule leads to depends on its layer:
 
 | Layer | When a rule is broken |
 |---|---|
 | parse, schema, validator | A broken `MUST` is reported as an **error** and makes the analysis invalid (in a record, it breaks [`INVALID_RECORD`](#20-checking-results) instead); a broken `SHOULD` is reported as a **warning**, and the analysis stays valid |
-| check | A broken `MUST` is reported as an **error** and a broken `SHOULD` as a **warning**. Nothing fails, and **the result gets a status**, given in its codes table's extra column, *Status when broken* |
+| check | A broken `MUST` is reported as an **error** and a broken `SHOULD` as a **warning**. Nothing fails: the result gets the status in the rule's *Status when broken* column |
 | runner | A runner that breaks a `MUST` doesn't conform |
 
 ### 4. Conventions
