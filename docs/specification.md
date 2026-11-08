@@ -2152,57 +2152,62 @@ declaration ([§7](#7-inputs), [§15](#15-declared-analyses)),
 ### D. The schema files and rules.json
 
 The schema is written in [LinkML](https://linkml.io/), in four modules:
-`types` (the named types of Annex C), `analysis` (`astra.yaml`), `insight`
-(insights and evidence) and `provenance` (the record). Their descriptions are
-the normative definitions of the fields, published as the
-[field reference](elements/index.md). These files are generated from them,
-and `rules.json` also from the codes tables of Part II. Each is published at
-`https://w3id.org/astra/`, its minor version (`0.1` for every 0.1.x) and `/`,
-followed by its file name:
+`types` (the named types of [Annex C](#c-grammars-and-patterns)), `analysis`
+(`astra.yaml`), `insight` (insights and evidence) and `provenance` (the
+record). Their descriptions are the normative definitions of the fields,
+published as the [field reference](elements/index.md). The files below are
+generated from them, and `rules.json` also from the codes tables of Part II.
 
-| File | URI | What it is |
-|---|---|---|
-| `analysis.schema.json` | `https://w3id.org/astra/0.1/analysis.schema.json` | the JSON Schema of `astra.yaml`, rooted at `Analysis` |
-| `provenance.schema.json` | `https://w3id.org/astra/0.1/provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
-| `provenance.open.schema.json` | `https://w3id.org/astra/0.1/provenance.open.schema.json` | the same schema, open: it allows fields it doesn't define |
-| `provenance.context.jsonld` | `https://w3id.org/astra/0.1/provenance.context.jsonld` | the JSON-LD context of a record |
-| `rules.json` | `https://w3id.org/astra/0.1/rules.json` | the rule catalogue: every rule of the codes tables, with the code of each JSON Schema error that makes an instance fail |
+| File | What it is |
+|---|---|
+| `analysis.schema.json` | the JSON Schema of `astra.yaml`, rooted at `Analysis` |
+| `provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
+| `provenance.open.schema.json` | the **open variant** of the record schema: `provenance.schema.json`, except that it allows fields it doesn't define |
+| `provenance.context.jsonld` | the JSON-LD context of a record |
+| `rules.json` | the rule catalogue |
 
-**URIs.** Each JSON Schema's `$id` is its URI. So the closed and open record
-schemas are distinct resources, and so are the schemas of two minor versions.
-The patches of one minor version share each URI: a patch release never changes
-what is valid ([§5](#5-the-astrayaml-file)), so the URI names one schema
-whichever patch's file a tool holds. Each JSON Schema uses only JSON Schema
-2019-09 keywords, and the version of the release it was generated from is in
-its `$comment`.
+**URIs.** Each file is published at `https://w3id.org/astra/`, its minor
+version, `/` and its file name, such as
+`https://w3id.org/astra/0.1/analysis.schema.json`. The patches of a minor
+version share each URI, which names one schema whichever patch's file a tool
+holds ([§5](#5-the-astrayaml-file)). Each JSON Schema's `$id` is its URI, so
+the closed and open record schemas are distinct resources, and so are the
+schemas of two minor versions.
 
-**The contract.** `analysis.schema.json` is the contract for `astra.yaml`: a
-document breaks no schema rule exactly when a JSON Schema draft 2019-09
-validator reports no error for it against this file.
-`provenance.schema.json` is the contract for records in the same way.
+**The contract.** Each JSON Schema uses only JSON Schema 2019-09 keywords, and
+its `$comment` holds the version of the release it was generated from. An
+`astra.yaml` breaks no schema rule exactly when a JSON Schema 2019-09
+validator reports no error for it against `analysis.schema.json`, and a record
+exactly when one reports none against `provenance.schema.json`.
 
-**The open variant.** `provenance.open.schema.json` differs from
-`provenance.schema.json` only in allowing fields it doesn't define.
+**The rule catalogue.** `rules.json` gives every tool the same code for each
+error and the same words for each rule. It holds:
 
-**The rule catalogue.** `rules.json` is made from this specification and the
-schema, so that every tool reports the same code for the same error and words
-each rule the same way. It holds:
-
-- `rules`: one entry per row of the codes tables, in document order. Each has
-  its `code`; its `layer` (`parse`, `schema`, `validator`, `check` or
-  `runner`); its `level` (`MUST` or `SHOULD`); its `statement`, the Rule
-  cell; its `source`, the section whose table lists it, as in `§7 Inputs`;
-  and, for a rule of the check layer, its `status`, the Status when broken
-  cell. The cells are given as inline CommonMark, with each link reduced to
-  its text. A `status` is display text naming the status a result, or
-  evidence citing it, gets when the rule is broken, not a status token.
-- `errors`: the code of every keyword of the three JSON Schemas whose error
-  can make an instance fail (*From an error to its code*, below), keyed by
-  the keyword's absolute keyword location, as JSON Schema 2019-09 defines it:
-  the schema's `$id`, `#`, and the JSON Pointer to the keyword once every
-  `$ref` is resolved. So each key names its minor version, through `$id`.
-  Each code is a schema-layer rule's.
 - `$comment`: the version of the release it was made from.
+- `rules`: one entry per row of the codes tables, in document order, with
+  the fields below.
+- `errors`: the code of every keyword of the three JSON Schemas whose error
+  can make an instance fail (*From an error to its code*, below), each a
+  schema-layer rule's code. Each key is the keyword's absolute keyword
+  location, as JSON Schema 2019-09 defines it: the schema's `$id`, `#`, and
+  the [JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901) to the keyword
+  once every `$ref` is resolved. So each key names its minor version,
+  through `$id`.
+
+An entry of `rules` has these fields:
+
+| Field | Holds |
+|---|---|
+| `code` | the rule's code |
+| `layer` | `parse`, `schema`, `validator`, `check` or `runner` |
+| `level` | `MUST` or `SHOULD` |
+| `statement` | the Rule cell |
+| `source` | the section whose table lists the rule, as in `§7 Inputs` |
+| `status` | for a rule of the check layer only, the Status when broken cell: display text naming the status that a result, or evidence citing it, gets when the rule is broken, not a status token |
+
+`statement` and `status` are given as inline
+[CommonMark](https://spec.commonmark.org/), with each link reduced to its
+text.
 
 An abridged `rules.json`:
 
@@ -2235,33 +2240,44 @@ An abridged `rules.json`:
 }
 ```
 
-**From an error to its code.** A parse code is reported for the whole file.
-A schema error is reported with the code that `errors` gives its keyword's
-absolute keyword location, at the instance location where it fails; an error
-on a key is reported at its map, naming the key, and an unknown field at its
-object, naming the field. Only the failures that make the document fail are
-reported, not those inside an `if` or a `not`, or inside a branch of a
-combinator that doesn't fail. So any JSON Schema 2019-09 validator gives the
-same set of pairs of an instance location and a code.
+**From an error to its code.**
+
+- A parse code is reported for the whole file.
+- A schema error is reported at the instance location where it fails, with
+  the code that `errors` gives its keyword's absolute keyword location. An
+  error on a key is reported at its map, naming the key, and an unknown field
+  at its object, naming the field.
+- Only the failures that make the document fail are reported, not those
+  inside an `if` or a `not`, or inside a branch of a combinator that doesn't
+  fail.
+
+So any JSON Schema 2019-09 validator gives the same set of pairs of an
+instance location and a code.
 
 **RDF.** A record's RDF is what the
 [JSON-LD 1.1](https://www.w3.org/TR/json-ld11-api/) toRdf algorithm gives for
 it, with `provenance.context.jsonld` supplied as its context (a record carries
-no `@context`), plus each node's class URI as its `rdf:type`: the root node
-(the record's top-level object), each item of `inputs` and the `environment`
-are `prov:Entity`, `generated_by` is a `prov:Activity`, and the `runner` a
-`prov:SoftwareAgent`. The context maps a record's terms onto
-[W3C PROV-O](https://www.w3.org/TR/prov-o/), with ASTRA's own, where PROV has
-none, in the `https://w3id.org/astra/` namespace. The context is JSON-LD 1.1,
-and an `iri` is its node's `@id` exactly as written, whatever its scheme
-(`prov:env:1` too). Read this way, a record is PROV-O. The root node stands
-for the result: a `prov:Entity` that `prov:wasGeneratedBy` its
-`generated_by`, the run, which `prov:used` its inputs and its environment and
-`prov:wasAssociatedWith` its runner. The root node's `address`,
-`content_hash` and `size` describe the result, and its `spec_version` the
-record. The run's `started` and `finished` are `prov:startedAtTime` and
-`prov:endedAtTime`, typed `xsd:dateTime`, and the runner's `version` is
-`schema:softwareVersion`.
+no `@context`), plus each node's class URI as its `rdf:type`:
+
+- the root node (the record's top-level object), each item of `inputs` and
+  the `environment` are `prov:Entity`;
+- `generated_by` is a `prov:Activity`;
+- the `runner` is a `prov:SoftwareAgent`.
+
+The context is JSON-LD 1.1. It maps a record's terms onto
+[W3C PROV-O](https://www.w3.org/TR/prov-o/), and, where PROV has none, onto
+ASTRA's own, in the `https://w3id.org/astra/` namespace. An `iri` is its
+node's `@id` exactly as written, whatever its scheme (`prov:env:1` too). So a
+record is PROV-O:
+
+- The root node stands for the result, which `prov:wasGeneratedBy` its
+  `generated_by`, the run. The run `prov:used` its inputs and its environment,
+  and `prov:wasAssociatedWith` its runner.
+- The root node's `address`, `content_hash` and `size` describe the result,
+  and its `spec_version` the record.
+- The run's `started` and `finished` are `prov:startedAtTime` and
+  `prov:endedAtTime`, typed `xsd:dateTime`, and the runner's `version` is
+  `schema:softwareVersion`.
 
 ### References
 
