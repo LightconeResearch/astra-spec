@@ -498,7 +498,7 @@ Data that isn't an input of the analysis comes in another way:
 | Code | Layer | Level | Rule |
 |---|---|---|---|
 | `INVALID_PATH` | schema | MUST | Every declaration's and input's `path` is non-empty and doesn't start with `/` |
-| `MISSING_INPUT_FILE` | validator | MUST | An input's `path` names a file (not a symlink, folder or gitlink), or something the validator recognises as a [stand-in](#glossary) for one |
+| `MISSING_INPUT_FILE` | validator | MUST | An input's `path` names a file (not a symlink, folder or gitlink), or something the validator recognises as a [stand-in](#7-inputs) for one |
 | `INPUT_NOT_TRACKED` | validator | MUST | An input's file, or its stand-in, is [tracked](#glossary) in the repository that holds the input's analysis: in its index or, read at a commit, in that commit's tree there, reached through no gitlink |
 | `INPUT_IN_ANOTHER_ANALYSIS` | validator | MUST | An input's file is inside its analysis's folder and outside every folder below it that holds an `astra.yaml` file of its own |
 | `RESERVED_PATH` | validator | MUST | No input's `path` and no declaration's `path`, tidied ([Annex B](#b-paths-and-git)), is, or [lies inside](#glossary), the `results/` or `.astra/` folder of an analysis of the stack read in the same tree as that path: the working tree, or one commit |
