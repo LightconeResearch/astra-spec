@@ -1661,10 +1661,10 @@ analysis share a default place.
 
 ### 19. Records
 
-A record is the provenance of one result: what the result is, and the run of
-the recipe that made it. The runner that made the result writes it as JSON
-at each of the result's places ([§18](#18-results-and-where-they-go)). The
-record of `output1` in `u1`, in the worked example
+A **record** is the provenance of one result: what the result is, and the
+run of the recipe that made it. The runner that made the result writes it as
+JSON at each of the result's places ([§18](#18-results-and-where-they-go)).
+The record of `output1` in `u1`, in the worked example
 ([§2](#2-a-worked-example)):
 
 ```json
@@ -1698,57 +1698,47 @@ record of `output1` in `u1`, in the worked example
 }
 ```
 
-A record, a [ProvenanceRecord](elements/ProvenanceRecord.md), gives its
-`spec_version` ([§5](#5-the-astrayaml-file)), the result's `address`, the
-`content_hash` and `size` (in bytes) of the result's bytes, and the run of
-the recipe that made it, `generated_by`, a
-[Generation](elements/Generation.md). Its `address` is the result's address
-as the analysis the result belongs to addresses it
-([§18](#18-results-and-where-they-go)). The run gives:
+A record is a [ProvenanceRecord](elements/ProvenanceRecord.md). It gives its
+`spec_version` ([§5](#5-the-astrayaml-file)), the result's `address`
+([§18](#18-results-and-where-they-go)), the `content_hash` and `size` (in
+bytes) of the result's bytes, and `generated_by`, the run of the recipe that
+made it, a [Generation](elements/Generation.md). The run gives:
 
-- `commit`: the full id of the git commit the recipe ran from. It is a commit
-  of the repository the record is committed in: for a result that belongs to
-  an analysis in a submodule, the submodule's own commit, and for what a
+- `commit`: the full id of the git commit the recipe ran from, a commit of
+  the repository the record is committed in. For a result that belongs to an
+  analysis in a submodule, it is the submodule's own commit, and for what a
   driver's universes build, the driver's commit
   ([§16](#16-driving-and-consuming)). It pins every file of the code and
   every `astra.yaml` in that repository: an analysis in a submodule of it
   through the commit the submodule is pinned at, and an analysis from a
   commit through its declaration's `commit`.
-- `inputs`: what the recipe read, as one
+- `inputs`: what the recipe read, one
   [RecordedInput](elements/RecordedInput.md) for each entry the output lists
   in the `astra.yaml` files at the record's `commit`, and no other item
-  ([`MISSING_RECORD_INPUTS`](#20-checking-results)).
-  - Each item is matched by its `entry`, which is an entry of
-    `Output.inputs` exactly as written.
-  - Each gives the `content_hash` and `size` of what the recipe read through
-    the entry: another output's result, or the file an input names.
-  - The order of the items carries no meaning.
-  - A later change to the list makes the result `stale`
-    ([`STALE_RESULT`](#20-checking-results)), not `missing`.
-- `environment`: an [Environment](elements/Environment.md), whose `iri` is
-  an IRI of the form [Annex C](#c-grammars-and-patterns) gives
-  ([`INVALID_VALUE`](#5-the-astrayaml-file)). The IRI names exactly the
-  environment the recipe ran in, enough for its runner, at the version the
-  record gives, to recreate it ([`UNRECREATABLE_ENVIRONMENT`](#21-runners)).
-  It can be a `urn:` IRI, say, or one in a scheme of the runner's own.
+  ([`MISSING_RECORD_INPUTS`](#20-checking-results)). Each item is matched by
+  its `entry`, the entry exactly as `Output.inputs` writes it, and gives the
+  `content_hash` and `size` of what the recipe read through it: another
+  output's result, or the file an input names. A later change to the
+  output's `inputs` makes the result `stale`
+  ([`STALE_RESULT`](#20-checking-results)), not `missing`.
+- `environment`: an [Environment](elements/Environment.md), whose `iri`
+  names exactly the environment the recipe ran in, enough for its runner, at
+  the version the record gives, to recreate it
+  ([`UNRECREATABLE_ENVIRONMENT`](#21-runners)). The IRI takes the form
+  [Annex C](#c-grammars-and-patterns) gives
+  ([`INVALID_VALUE`](#5-the-astrayaml-file)): a `urn:` IRI, say, or one in a
+  scheme of the runner's own.
 - `runner`: a [Runner](elements/Runner.md), the runner's `id` and its
   `version`.
 - `started` and `finished`: when the recipe started and finished, each a
   [`timestamp`](elements/Timestamp.md) ([Annex C](#c-grammars-and-patterns)).
 
-Every field of a record is required
-([`MISSING_FIELD`](#5-the-astrayaml-file)) but three: `started` and
-`finished`, which are optional, and `inputs`, which the schema leaves
-optional and [`MISSING_RECORD_INPUTS`](#20-checking-results) holds to the
-entries the output lists. So a record of an output that lists no inputs can
-leave `inputs` out.
-
-Every hash names its algorithm: `sha256:`, then the SHA-256 digest
+Every field is required ([`MISSING_FIELD`](#5-the-astrayaml-file)) except
+`started`, `finished` and `inputs`. The schema leaves `inputs` optional, and
+[`MISSING_RECORD_INPUTS`](#20-checking-results) holds it to the entries the
+output lists, so a record of an output that lists no inputs can leave it
+out. Every hash names its algorithm: `sha256:`, then the SHA-256 digest
 ([`INVALID_VALUE`](#5-the-astrayaml-file)).
-
-A record holds only what its commit can't give: the output's declaration,
-the options its decisions select and its format are in the `astra.yaml`
-files at that commit.
 
 A record holds only the fields its `spec_version` defines, and is read by
 its minor version's record schema ([§5](#5-the-astrayaml-file)). A checker
@@ -1758,9 +1748,13 @@ against the open variant of its own record schema
 doesn't know ([`INVALID_RECORD`](#20-checking-results)). Read as RDF
 ([Annex D](#d-the-schema-files-and-rulesjson)), a record is W3C PROV-O.
 
-Two records of one result with the same commit, inputs and environment, made
-on two machines say, show whether the result reproduces: it does when their
-`content_hash` is the same.
+A record holds only what its commit can't give: the output's declaration,
+the options its decisions select and its format are in the `astra.yaml`
+files at that commit.
+
+Two records of one result with the same commit, inputs and environment,
+made on two machines say, show whether the result reproduces: it does when
+their `content_hash` is the same.
 
 A record names the commit its recipe ran from, so it is committed in a later
 commit. Records and results are no input and no part of a declaration, so
