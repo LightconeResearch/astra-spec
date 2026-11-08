@@ -824,9 +824,12 @@ universes:
 ### 13. Pins, and outputs built per universe or once
 
 An output is either built per universe, with a result in each universe where
-it is active, or built once, with one result for all of them. A pin fixes the
-universe a reference reads, so an output built once can compare the results
-of two universes:
+it is active, or built once, with one result for all of them. A
+[reference](elements/Reference.md) ([§6](#6-names)) can end in a **pin**,
+`#` and a universe's id, as in `output1#u1`, which fixes the universe the
+reference reads. So an output built once can compare the results of two
+universes, as `output2` of the worked example ([§2](#2-a-worked-example))
+does:
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -841,60 +844,47 @@ outputs:
         '{output}'
 ```
 
-`output1` lists `decisions`, so it is built per universe
-([§10](#10-outputs)). `output2` reads it as built in `u1` and as built in
-`u2`, and is built once. So is `output3`, which reads only `input1`.
-
-#### Pins
-
-A [reference](elements/Reference.md) ([§6](#6-names)) can end in `#` and a
-universe id, a **pin**: `output1#u1`. `#` is never part of an id, so the pin
-is unambiguous. In an `astra.yaml`, a pin names the entry of the file's
-`universes` with its id, one of the file's analysis's universes or an import
-([§12](#12-universes)), or, where the file has no such entry, the universe
-with that id of the analysis whose element the reference names.
-[§16](#16-driving-and-consuming) gives that case in full
-([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
-
-- A pin on an output reads it in that universe.
-- A pin on an input names a universe and changes nothing else.
-
 #### Built per universe or built once
 
 An output is **built per universe** when it lists `decisions`, has a `when`,
 or has an unpinned entry of `inputs` that names an output built per
 universe. Any other output is **built once**: it has one result, the same in
-every universe.
+every universe, and no universe of its own. `output1` lists `decision1`, so
+it is built per universe; `output2` reads it only pinned, and is built once.
 
-- Inputs carry no universe, and a pinned entry never makes an output built
-  per universe, since the pin fixes the universe it reads.
+- Inputs carry no universe, and a pin fixes the universe an entry reads, so
+  neither makes an output built per universe.
 - Listing a decision that reaches the output through an unpinned input gives
-  the output the same results as not listing it, though listing a decision
-  of another analysis [consumes](#16-driving-and-consuming) it, and the
-  address it is listed under is then held to the rules on consuming
+  the same results as not listing it. Listing a decision of another analysis
+  still [consumes](#16-driving-and-consuming) it, so the address it is listed
+  under is held to the rules on consuming
   ([`UNDRIVEN_DECLARATION`](#16-driving-and-consuming)).
-- Listing a decision that only a pinned input brings in makes the output
-  built per universe, so a comparison between universes, such as `output2`,
-  lists none.
-- An output built once has no universe of its own. It lists no decisions, so
-  its recipe has no `{decisions.<entry>}` placeholder
-  ([`UNDECLARED_TEMPLATE_REF`](#11-recipes)). A pin on it doesn't change
-  which result a reference names: pinned or not, the reference names its one
-  result, and `{inputs.<entry>}` gives that result's path. The pin still
-  names a universe ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
+- Listing a decision makes an output built per universe even when only a
+  pinned input brings it in, so a comparison between universes, such as
+  `output2`, lists none.
 
-#### Which universe a reference reads
+#### Pins
 
-An unpinned entry of `inputs` reads its output in the
-[universe being built](#16-driving-and-consuming).
-A pinned one, such as `output1#u1`, reads it as built in the universe the
-pin names, whichever universe is being built.
+In an `astra.yaml`, a pin names the entry of the file's `universes` with its
+id, a universe or an import ([§12](#12-universes)), or, where the file has
+no such entry, the universe with that id of the analysis whose element the
+reference names. [§16](#16-driving-and-consuming) gives that case in full
+([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
 
-Where `output4` has `when: [decision1.b]`, the reference `output4#u1` breaks
-[`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once), since `u1`
-selects `decision1: a`. An output with a result planned
-([§18](#18-results-and-where-they-go)) in `u1` that reads `output4` without a
-pin breaks
+- An unpinned entry of `inputs` reads its output in the
+  [universe being built](#16-driving-and-consuming). A pinned one reads it as
+  built in the universe the pin names, whichever universe is being built.
+- A pin on an input names a universe and changes nothing else.
+- A pin on an output built once doesn't change which result the reference
+  names: pinned or not, it names the output's one result, whose path
+  `{inputs.<entry>}` gives. The pin still names a universe
+  ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
+
+Where `output4` has `when: [decision1.b]` ([§9](#9-conditions)) and `u1`
+selects `decision1: a`, `output4#u1` breaks
+[`PIN_INACTIVE`](#13-pins-and-outputs-built-per-universe-or-once). An output
+with a result [planned](#18-results-and-where-they-go) in `u1` that reads
+`output4` without a pin breaks
 [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once).
 
 #### The rules
