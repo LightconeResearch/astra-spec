@@ -396,9 +396,8 @@ selected.
 - Ids are unique within their map, since a map's keys are, and the order of
   a map carries no meaning.
 - A map's entries are objects, except those of `Universe.decisions`, each the
-  id of the option selected (`decision1: a`). A list, such as
-  `outputs: [output1]`, is never a map
-  ([`WRONG_TYPE`](#5-the-astrayaml-file)).
+  id of the option selected (`decision1: a`). A map is never written as a
+  list, as in `outputs: [output1]` ([`WRONG_TYPE`](#5-the-astrayaml-file)).
 - Ids of different kinds can be the same, except that an input and an output
   never share an id ([`AMBIGUOUS_ID`](#10-outputs)), nor an output and a
   declaration of its analysis
@@ -441,7 +440,8 @@ analysis `subanalysis` is `subanalysis.decision1.a`.
 - The last segment is the id of an element of the analysis reached. The
   field the address is written in gives the element's kind, as
   [`UNRESOLVED_ADDRESS`](#6-names) lists, so an element can be called
-  `inputs`.
+  `inputs`. In an [import](#12-universes), the address is its `analysis`,
+  then `.` and its `universe`.
 
 #### The rules
 
