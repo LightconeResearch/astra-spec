@@ -589,9 +589,11 @@ isn't built in it ([§13](#13-pins-and-outputs-built-per-universe-or-once)).
 
 ### 10. Outputs
 
-An output is an artefact the analysis makes, such as a metric, a figure or a
-table. It says what it is made from, the decisions it is made with, and the
-recipe that makes it ([§11](#11-recipes)).
+An [Output](elements/Output.md) is an artefact the analysis makes, such as a
+metric, a figure or a table. It has a `type`, a `format` and a `recipe`, the
+command that makes it ([§11](#11-recipes),
+[`MISSING_FIELD`](#5-the-astrayaml-file)), and says what it is made from and
+the decisions it is made with.
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -613,35 +615,29 @@ outputs:
       command: python src/output3.py '{inputs.input1}' '{output}'
 ```
 
-- An output's fields are in the [field reference](elements/Output.md).
-- An output has a `type`, a `format` and a `recipe`
-  ([`MISSING_FIELD`](#5-the-astrayaml-file)).
 - `type` is one of [OutputType](elements/OutputType.md): `metric`, `figure`,
   `table`, `data` or `report` ([`INVALID_VALUE`](#5-the-astrayaml-file)).
-- `format` is how the artefact is encoded, as a lowercase token,
-  `^[a-z0-9][a-z0-9_.+-]*$`: the file extension it is written with, without
-  the leading dot, such as `png`, `csv` or `parquet`
-  ([`INVALID_VALUE`](#5-the-astrayaml-file)). It is the extension of the
+- `format` is how the artefact is encoded: the file extension it is written
+  with, without the leading dot, such as `png`, `csv` or `parquet`. It is a
+  lowercase token, `^[a-z0-9][a-z0-9_.+-]*$`
+  ([`INVALID_VALUE`](#5-the-astrayaml-file)), and the extension of the
   result's [default place](#18-results-and-where-they-go).
-- `inputs` lists what the output is made from, in order: references
-  ([§6](#6-names)) to inputs and outputs of the analysis or of analyses it
-  declares, such as `subanalysis.output1` ([§15](#15-declared-analyses)). A
-  reference can be pinned
-  ([§13](#13-pins-and-outputs-built-per-universe-or-once)). Their order
-  counts, since `{inputs}` passes them to the recipe in that order
-  ([§11](#11-recipes)).
-- `decisions` lists the addresses of the decisions whose option the output
-  is made with directly, not through what it reads: a different option for
-  any of them, in the [universe being built](#16-driving-and-consuming), can
-  give a different result. Their order carries no meaning.
+- `inputs` lists what the output is made from: [references](#6-names) to
+  inputs and outputs of the analysis or of analyses it
+  [declares](#15-declared-analyses), such as `subanalysis.output1`, each of
+  which can be [pinned](#13-pins-and-outputs-built-per-universe-or-once).
+  Their order counts, since `{inputs}` passes them to the recipe in that
+  order ([§11](#11-recipes)).
+- `decisions` lists the [addresses](#6-names) of the decisions whose option
+  the output is made with directly, not through what it reads: a different
+  option for any of them, in the
+  [universe being built](#16-driving-and-consuming), can give a different
+  result. Their order carries no meaning.
 - `when` makes the output conditional ([§9](#9-conditions)).
-- `recipe` says how the output is made ([§11](#11-recipes)).
 
-An input and an output never share an id, since `Output.inputs` takes both
-([`AMBIGUOUS_ID`](#10-outputs)). An output depends on another, known by its
-analysis's identity ([§17](#17-analyses-from-another-commit-or-repository)),
-when it reads it through `Output.inputs`, directly or through others, pinned
-or not. No output depends on itself, directly or through others
+An output **depends on** another, known by its analysis's
+[identity](#17-analyses-from-another-commit-or-repository), when it reads it
+through `Output.inputs`, directly or through others, pinned or not
 ([`OUTPUT_CYCLE`](#10-outputs)).
 
 | Code | Layer | Level | Rule |
@@ -2102,6 +2098,7 @@ Each term links to the sections that define it or give its detail.
 - **consuming** ([§16](#16-driving-and-consuming))
 - **declaration** ([§1](#1-what-astra-is), [§15](#15-declared-analyses))
 - **default place** ([§18](#18-results-and-where-they-go))
+- **depends on** ([§10](#10-outputs))
 - **drive** ([§16](#16-driving-and-consuming))
 - **driver, driven** ([§16](#16-driving-and-consuming))
 - **effective selection** ([§12](#12-universes))
