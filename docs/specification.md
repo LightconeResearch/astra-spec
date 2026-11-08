@@ -92,38 +92,28 @@ findings:
       - artifact: output2
 ```
 
-- `input1` is a file kept in git with the analysis.
-- `decision1` has two options. The universe `u1` selects `a`, and `u2`
-  selects `b`.
-- `output1` lists `decision1`, so it is built per universe: it has one result
-  in `u1` and one in `u2`.
-- `output2` reads `output1` pinned to each universe, as `output1#u1` and
-  `output1#u2`, so it is built once, from both.
-- The finding `insight1` cites `output2` as its evidence.
+- `output1` lists `decision1`, so it is
+  [built per universe](#13-pins-and-outputs-built-per-universe-or-once): it
+  has one result in `u1` and one in `u2`.
+- `output2` reads `output1`
+  [pinned](#13-pins-and-outputs-built-per-universe-or-once) to each universe,
+  as `output1#u1` and `output1#u2`, so it is built once, from both.
 
-**Validating.** A validator reads this `astra.yaml` and git, and reports
-the rules the analysis breaks ([§3](#3-conformance)). It checks that the
-file is YAML whose content the schema accepts, and then, among other things,
-that `data/input1.csv` is a file tracked in git, that every address names an
-element, that each universe selects an option of `decision1`, and that each
-pin names one of the file's universes.
+**Validating.** A validator reads this file and git, and reports any rule
+the analysis breaks ([§3](#3-conformance)), such as an input that isn't
+tracked in git or a universe that selects no option of `decision1`.
 
-**Building.** A runner builds `output1` in `u1`, running its recipe with
-`{decisions.decision1}` replaced by `a`, and in `u2`, with `b`. It builds
-`output2` once, with `{inputs.output1#u1}` and `{inputs.output1#u2}` replaced
-by the paths of those two results. Each `{output}` is replaced by the path
-the result is written to.
+**Building.** A runner runs `output1`'s recipe twice, with
+`{decisions.decision1}` replaced by `a` in `u1` and by `b` in `u2`, then
+`output2`'s once, with the paths of those two results ([§11](#11-recipes)).
 
-**Recording.** For each result, the runner writes its bytes under `results/`
-and a record under `.astra/records/`, in the analysis's folder
-([§18](#18-results-and-where-they-go), [§19](#19-records)). Built, the
-analysis has three results, each with a record: `output1` in `u1`, `output1`
-in `u2`, and `output2`. They are its planned results.
+**Recording.** For each of the three results, it writes the bytes under
+`results/` and a record under `.astra/records/`
+([§18](#18-results-and-where-they-go), [§19](#19-records)).
 
 **Checking.** A checker later compares each record with the analysis as it
 is then ([§20](#20-checking-results)). Change `data/input1.csv`, and all
-three results are stale. Select `a` in `u2`, and `output1#u2` is stale, and
-`output2` with it. Editing the finding leaves all three unchanged.
+three results are stale; edit the finding, and all three stay unchanged.
 
 ### 3. Conformance
 
