@@ -724,13 +724,14 @@ software and the container are the recipe's environment.
 
 ### 12. Universes
 
-A universe selects one option for each active decision of its analysis: it
-is one way of making the analysis's choices.
-[§16](#16-driving-and-consuming) adds the decisions of the analyses its
-universes [drive](#16-driving-and-consuming). An analysis's universes are
-entries of its `universes`. An entry can instead be an import (below). No
-universe is privileged: there is no default universe or option, and a
-universe called `baseline` is one with that name and nothing more.
+A [Universe](elements/Universe.md) is one way of making an analysis's
+choices: it selects one option for each active decision ([§9](#9-conditions))
+of the analysis, and of the analyses its universes
+[drive](#16-driving-and-consuming)
+([`MISSING_DECISION`](#16-driving-and-consuming)). An analysis's universes
+are the entries of its `universes`, other than imports (below). No universe
+is privileged: there is no default universe or option, and a universe called
+`baseline` is one with that name and nothing more.
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -745,31 +746,18 @@ universes:
     decisions: {decision1: a}   # the inherited decision3 is dropped
 ```
 
-Here `decision3` has `when: [decision1.b]` ([§9](#9-conditions)), and
-`subanalysis.decision1` is a decision of the declared analysis
-`subanalysis`, which these universes set ([§16](#16-driving-and-consuming)).
-Once `derived_from` is resolved (below), the three universes select:
-
-| Universe | Selects |
-|---|---|
-| `u1` | `decision1: a`, `decision2: a`, `subanalysis.decision1: a` |
-| `u2` | `decision1: b`, `decision2: b`, `decision3: a`, `subanalysis.decision1: a` |
-| `u3` | `decision1: a`, `decision2: b`, `subanalysis.decision1: a` |
-
-- A universe's fields are in the [field reference](elements/Universe.md).
-- A universe's `decisions` map decisions to options
-  ([DecisionSelection](elements/DecisionSelection.md)), as
-  `<decision>: <option>`, such as `decision1: a`.
-- A key is the id of a decision of the analysis or, for a decision of
-  another analysis, its address, `<declaration>.<decision>` ([§6](#6-names)).
-  [§16](#16-driving-and-consuming) gives in full the keys that set another
-  analysis's decisions.
-- A value is the id of one of that decision's options
-  ([`UNKNOWN_OPTION`](#8-decisions-and-options)).
-- `derived_from` names another universe of the same analysis, never an
-  import ([`UNKNOWN_DERIVED_FROM`](#12-universes)). The universe inherits
-  that universe's selection, so it gives only the decisions it changes.
-- A derived universe inherits only the selection.
+- `decisions` maps decisions to options, as `<decision>: <option>`
+  ([DecisionSelection](elements/DecisionSelection.md)). A key is a decision's
+  id or, for a decision of another analysis, its address ([§6](#6-names)):
+  `subanalysis.decision1` is the decision `decision1` of the
+  [declared](#15-declared-analyses) analysis `subanalysis`, which these
+  universes set. [§16](#16-driving-and-consuming) gives in full the keys that
+  set another analysis's decisions. A value is the id of one of the
+  decision's options ([`UNKNOWN_OPTION`](#8-decisions-and-options)).
+- `derived_from` names another universe of the same analysis
+  ([`UNKNOWN_DERIVED_FROM`](#12-universes)). The universe inherits that
+  universe's selection, and nothing else, so it gives only the decisions it
+  changes.
 
 #### The effective selection
 
@@ -778,61 +766,48 @@ is resolved. Conditions ([§9](#9-conditions)) are judged on it.
 
 1. Without `derived_from`, it is the universe's own `decisions`.
 2. With `derived_from`, it is the effective selection of the universe named
-   there, each of the universe's own selections replacing what the universe
-   inherits for its decision.
-3. An inherited selection of a decision that isn't active in the resulting
-   selection is dropped, so a universe that switches a decision off needn't
-   undo what it inherited for it. `u3` selects `decision1: a`, which switches
-   `decision3` off, so the `decision3: a` it inherits from `u2` is dropped.
+   there, with each of the universe's own selections replacing what it
+   inherits for that decision.
+3. An inherited selection of a decision that isn't active in the result is
+   dropped, so a universe that switches a decision off needn't undo what it
+   inherits for it.
 
-The effective selection is held to everything a universe written in full is:
+The effective selection is held to everything a universe written in full is,
+so a universe that switches a decision on sets it.
 
-- it selects every active decision of its analysis, so a universe that
-  switches a decision on sets it
-  ([`MISSING_DECISION`](#16-driving-and-consuming), which
-  [§16](#16-driving-and-consuming) extends to the analyses a universe
-  drives);
-- it names only declared decisions and their options
-  ([`UNRESOLVED_ADDRESS`](#6-names),
-  [`UNKNOWN_OPTION`](#8-decisions-and-options));
-- it breaks no `requires` ([`MISSING_REQUIRED_OPTION`](#12-universes)) and
-  no `incompatible_with` ([`INCOMPATIBLE_OPTIONS`](#12-universes)), and
-  selects no excluded option ([`EXCLUDED_OPTION_SELECTED`](#12-universes)).
+In the example, `decision3` has `when: [decision1.b]`. `u3` selects
+`decision1: a`, which switches `decision3` off, so the `decision3: a` it
+inherits from `u2` is dropped. `u3` couldn't select `decision3` itself
+([`INACTIVE_DECISION`](#12-universes)). The three universes select:
 
-A selection the universe makes itself, rather than inherits, is of an
-active decision ([`INACTIVE_DECISION`](#12-universes)). So `u3` couldn't
-select `decision3` itself.
+| Universe | Selects |
+|---|---|
+| `u1` | `decision1: a`, `decision2: a`, `subanalysis.decision1: a` |
+| `u2` | `decision1: b`, `decision2: b`, `decision3: a`, `subanalysis.decision1: a` |
+| `u3` | `decision1: a`, `decision2: b`, `subanalysis.decision1: a` |
 
 #### Imports
 
-An entry of `universes` can instead be an **import**, which names one of
-another analysis's universes under the entry's id and selects nothing. Its
-`analysis` is the address of the declaration that leads to that analysis,
-and its `universe` is the id of one of that analysis's universes. Where
-`subanalysis` has a universe `v1` of its own, `u1` is a universe of this
-file and `subanalysis_v1` an import:
+An entry of `universes` can instead be an **import**
+([`INVALID_IMPORT`](#12-universes)), which names one of another analysis's
+universes under the entry's id, and selects nothing. Its `analysis` is the
+address of the declaration that leads to that analysis, and its `universe`
+is the id of one of that analysis's universes. Where `subanalysis` has a
+universe `v1` of its own, this import names it as `subanalysis_v1`:
 
 <!-- fragment: Analysis -->
 ```yaml
-analyses:
-  subanalysis: {path: subanalysis}
 universes:
-  u1:
-    decisions: {decision1: a, decision2: a, subanalysis.decision1: a}
-  subanalysis_v1:                  # an import of subanalysis's own universe v1
+  subanalysis_v1:
     analysis: subanalysis
     universe: v1
 ```
 
-- An import has both `analysis` and `universe`, and neither `decisions` nor
-  `derived_from` ([`INVALID_IMPORT`](#12-universes)).
-- It is not one of the analysis's universes.
-- A universe and an import are both written as a
-  [Universe](elements/Universe.md) object. An import's `label`,
-  `description` and `tags` are its own: they describe the universe it
-  imports under the import's id.
-- [§16](#16-driving-and-consuming) says which analysis drives the universe
-  an import names, and where it is built.
+- An import is written as a [Universe](elements/Universe.md) object. Its
+  `label`, `description` and `tags` are its own: they describe the universe
+  it imports, under the import's id.
+- [§16](#16-driving-and-consuming) says which analysis drives the universe an
+  import names, and where it is built.
 
 #### The rules
 
