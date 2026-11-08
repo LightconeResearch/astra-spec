@@ -1107,8 +1107,7 @@ universes:
 ([§12](#12-universes)). So in each of the root's universes, the root's
 `output1` reads `subanalysis.output1` as `subanalysis` builds it with its
 `decision1` set to `a`, and those results
-[belong to](#18-results-and-where-they-go) the root. A universe's
-keys are in the [field reference](elements/DecisionSelection.md).
+[belong to](#18-results-and-where-they-go) the root.
 
 #### Consuming
 
@@ -1151,15 +1150,17 @@ declaration that leads back drives none.
   reference is judged on its own chain. The key `stage.inner.d` drives the
   driver's `stage` and, through it, `stage`'s `inner`, but not an `inner`
   that the driver's file declares itself. Two chains that end in one
-  declaration are driven on their own too (below).
+  declaration, such as `stage.inner` and `stage_undriven.inner` where
+  `stage` and `stage_undriven` declare one folder, are driven on their own
+  too (below).
 - A declaration of an analysis with no decisions is driven when the chain
-  before it is, and so whenever the driver's file declares it, unless it
-  leads back (`self: {path: .}`). That analysis's outputs built per universe
-  are then built in each of the driver's universes where they are
-  [planned](#18-results-and-where-they-go), and those results belong to the
-  driver. Universes of its own don't change this: they are built only where
-  it is the driver, when it is the root or where one of them is among the
-  universes built (below).
+  before it is, and so whenever the driver's file declares it, unless the
+  declaration leads back (`self: {path: .}`). That analysis's outputs built
+  per universe are then built in each of the driver's universes where they
+  are [planned](#18-results-and-where-they-go), and those results belong to
+  the driver. Universes of its own don't change this: they are built only
+  where it is the driver, when it is the root or where one of them is among
+  the universes built (below).
 
 **What a universe sets.**
 
