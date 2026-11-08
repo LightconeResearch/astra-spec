@@ -1933,6 +1933,7 @@ breaks it.
 
 Each term links to the sections that define it or give its detail.
 
+- **absent** ([§20](#20-checking-results))
 - **active** ([§9](#9-conditions))
 - **address** ([§6](#6-names), [§18](#18-results-and-where-they-go))
 - **analysis** ([§1](#1-what-astra-is), [§5](#5-the-astrayaml-file))
@@ -1944,17 +1945,23 @@ Each term links to the sections that define it or give its detail.
 - **belongs to** ([§18](#18-results-and-where-they-go))
 - **built per universe, built once** ([§13](#13-pins-and-outputs-built-per-universe-or-once))
 - **chain of declarations** ([§15](#15-declared-analyses))
-- **checker** ([§1](#1-what-astra-is), [§3](#3-conformance))
+- **checker** ([§1](#1-what-astra-is), [§3](#3-conformance),
+  [§20](#20-checking-results))
+- **code, codes table** ([§4](#4-conventions))
 - **condition** ([§6](#6-names), [§9](#9-conditions))
 - **constraint** ([§8](#8-decisions-and-options))
 - **consuming** ([§16](#16-driving-and-consuming))
-- **declaration** ([§1](#1-what-astra-is), [§15](#15-declared-analyses))
+- **decision** ([§1](#1-what-astra-is), [§8](#8-decisions-and-options))
+- **declaration, declared analysis** ([§1](#1-what-astra-is),
+  [§15](#15-declared-analyses))
 - **default place** ([§18](#18-results-and-where-they-go))
 - **depends on** ([§10](#10-outputs))
-- **drive** ([§16](#16-driving-and-consuming))
+- **document** ([§3](#3-conformance))
+- **drive, driving** ([§16](#16-driving-and-consuming))
 - **driver, driven** ([§16](#16-driving-and-consuming))
 - **effective selection** ([§12](#12-universes))
 - **element** ([§6](#6-names))
+- **error, warning** ([§3](#3-conformance))
 - **excluded option** ([§8](#8-decisions-and-options))
 - **flat key** ([§16](#16-driving-and-consuming))
 - **id** ([§6](#6-names), [Annex C](#c-grammars-and-patterns))
@@ -1962,22 +1969,29 @@ Each term links to the sections that define it or give its detail.
   [§17](#17-analyses-from-another-commit-or-repository))
 - **import** ([§12](#12-universes), [§16](#16-driving-and-consuming))
 - **imported universe** ([§16](#16-driving-and-consuming))
+- **input** ([§1](#1-what-astra-is), [§7](#7-inputs))
 - **insight** ([§1](#1-what-astra-is), [§14](#14-insights-and-evidence))
+- **layer** ([§3](#3-conformance))
 - **leads back** ([§15](#15-declared-analyses))
 - **lies inside** ([Annex B](#b-paths-and-git)): of a path and a folder, both
   tidied: the folder's segments begin the path's, and the path has more.
 - **minor version** ([§5](#5-the-astrayaml-file))
+- **missing** ([§1](#1-what-astra-is), [§20](#20-checking-results))
 - **name of a result** ([§18](#18-results-and-where-they-go))
 - **on the chain** ([§15](#15-declared-analyses))
+- **option** ([§1](#1-what-astra-is), [§8](#8-decisions-and-options))
 - **option reference** ([§6](#6-names))
+- **output** ([§1](#1-what-astra-is), [§10](#10-outputs))
 - **pin** ([§13](#13-pins-and-outputs-built-per-universe-or-once),
   [§16](#16-driving-and-consuming))
 - **place** ([§18](#18-results-and-where-they-go))
 - **placeholder** ([§11](#11-recipes))
 - **planned result** ([§18](#18-results-and-where-they-go))
+- **present** ([§1](#1-what-astra-is), [§20](#20-checking-results))
+- **recipe** ([§1](#1-what-astra-is), [§11](#11-recipes))
 - **record** ([§1](#1-what-astra-is), [§19](#19-records))
 - **record schema, open variant** ([§5](#5-the-astrayaml-file),
-  [Annex D](#d-the-schema-files-and-rulesjson))
+  [§19](#19-records), [Annex D](#d-the-schema-files-and-rulesjson))
 - **reference** ([§6](#6-names))
 - **repository that holds a file** ([Annex B](#b-paths-and-git)): the innermost
   git repository the file is in: for a file in a submodule, the submodule's
@@ -1986,14 +2000,13 @@ Each term links to the sections that define it or give its detail.
 - **root** ([§1](#1-what-astra-is), [§15](#15-declared-analyses))
 - **runner** ([§1](#1-what-astra-is), [§3](#3-conformance), [§21](#21-runners))
 - **spelling** ([§15](#15-declared-analyses))
-- **stand-in** ([§7](#7-inputs), [Annex B](#b-paths-and-git)): something kept in
-  a file's place, such as a large-file tool's pointer, that is recognised as
-  standing in for the file.
+- **stale** ([§1](#1-what-astra-is), [§20](#20-checking-results))
+- **stand-in** ([§7](#7-inputs), [Annex B](#b-paths-and-git))
 - **status** ([§20](#20-checking-results))
 - **tracked** ([Annex B](#b-paths-and-git)): of a file in a repository: read in
   the working tree, in the repository's index; read at a commit, in that
   commit's tree; either way reached through no gitlink.
-- **unchanged, stale** ([§1](#1-what-astra-is), [§20](#20-checking-results))
+- **unchanged** ([§1](#1-what-astra-is), [§20](#20-checking-results))
 - **universe** ([§1](#1-what-astra-is), [§12](#12-universes))
 - **universe being built** ([§16](#16-driving-and-consuming))
 - **universes built** ([§16](#16-driving-and-consuming))
