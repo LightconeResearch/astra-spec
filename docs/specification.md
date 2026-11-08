@@ -1374,160 +1374,143 @@ analysis's own included. Each universe's selections are held to
 
 A declaration with a `commit` names an **analysis from a commit**: the
 declared analysis as it was at that commit. With a `url` in place of a
-`path`, it comes from another repository. Here the root declares
-`subanalysis`, in its own repository, and `remote`, an analysis of another
-repository at a commit:
+`path`, it comes from another repository. The worked example's root
+([§2](#2-a-worked-example)) declares `stage` by `path`, and `upstream` by
+`url` and `commit`:
 
 <!-- fragment: Analysis -->
 ```yaml
 analyses:
-  subanalysis:
-    path: subanalysis
-  remote:
-    url: https://example.org/remote.git
+  stage:
+    path: stage
+  upstream:
+    url: https://example.org/upstream.git
     commit: <commit>
 ```
 
-`remote`'s `output1` is built once, so an output of the root reads it as
-`remote.output1`, without a pin. Its result is read through its record at
-that commit, and none of `remote`'s recipes runs.
+`upstream`'s `output4` is built once, so an output of the root reads it as
+`upstream.output4`, without a pin. Its result is read through its
+[record](#19-records) at `<commit>`, and none of `upstream`'s recipes runs.
 
-- A declaration has exactly one of `path` and `url`
-  ([`INVALID_DECLARATION_SOURCE`](#17-analyses-from-another-commit-or-repository)),
-  and may have a `commit`, which a `url` needs
-  ([`URL_WITHOUT_COMMIT`](#17-analyses-from-another-commit-or-repository)).
-  Its fields are in the [field reference](elements/AnalysisDeclaration.md).
-- `url` is a remote that git fetches another repository from. The declared
-  analysis is the one at the top level of that repository, at the
-  declaration's `commit`. A `url` holds no ASCII space or control character,
-  and takes one of two forms
+A declaration, whose fields are in the
+[field reference](elements/AnalysisDeclaration.md), takes one of three forms
+([`INVALID_DECLARATION_SOURCE`](#17-analyses-from-another-commit-or-repository),
+[`URL_WITHOUT_COMMIT`](#17-analyses-from-another-commit-or-repository)):
+
+| Declaration | The analysis it names |
+|---|---|
+| `path` | the analysis in the folder `path`, read as the declaring analysis is read |
+| `path` and `commit` | the analysis in the folder `path`, read at `commit` in the [repository that holds](#glossary) the declaring `astra.yaml` |
+| `url` and `commit` | the analysis at the top of the repository at `url`, read at `commit` |
+
+- In each form, the folder holds an `astra.yaml` file
+  ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)).
+- `url` is a remote that git fetches another repository from. It holds no
+  ASCII space or control character, and takes one of two forms
   ([`INVALID_VALUE`](#5-the-astrayaml-file)):
   - `scheme://` and at least one character, where the scheme is an ASCII
     letter followed by any ASCII letters, digits, `+`, `.` and `-`:
-    `https://example.org/remote.git`, `ssh://git@example.org/remote.git`,
-    `file:///srv/remote.git`;
+    `https://example.org/upstream.git`, `ssh://git@example.org/upstream.git`,
+    `file:///srv/upstream.git`;
   - scp-like, `[user@]host:path`, where `host`, `path` and any `user` are
     non-empty, `user` and `host` hold no `/`, `@` or `:`, and the value
-    doesn't start with a scheme and `://`: `git@example.org:remote.git`.
-- A bare word or a local path (`a`, `owner/repo`, `../repo`) is not a `url`
-  ([`INVALID_VALUE`](#5-the-astrayaml-file)): an analysis in the declaring
-  analysis's repository is declared by `path`, and another repository on this
-  machine by an explicit `file://` URL.
-- `commit` is a full commit id
-  ([`INVALID_COMMIT`](#17-analyses-from-another-commit-or-repository)): a
-  branch moves, a tag can be moved or name another commit in a fork or a
-  mirror, and a shortened id can become ambiguous as a repository grows.
-- With a `path` and a `commit`, the declared analysis is the analysis at that
-  path at the commit. The repository that holds the declaring `astra.yaml`
-  has that commit
-  ([`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository) for
-  a file not read from a remote). It is read from the local repository or,
-  when the declaring analysis is itself read from a remote, from that remote,
-  and each submodule it reaches through a gitlink as
-  [Annex B](#b-paths-and-git) says.
-- So the folder a declaration with a `commit` names is read at that commit,
-  and the folder a `url` names is the top level of its repository. That
-  folder holds an `astra.yaml` file
-  ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)).
+    doesn't start with a scheme and `://`: `git@example.org:upstream.git`.
+- A bare word or a local path, such as `a`, `owner/repo` or `../repo`, is
+  not a `url` ([`INVALID_VALUE`](#5-the-astrayaml-file)): an analysis in the
+  declaring analysis's repository is declared by `path`, and another
+  repository on this machine by a `file://` URL.
+- `commit` is a full commit id, never a branch, a tag or a shortened id, each
+  of which can come to name another commit
+  ([`INVALID_COMMIT`](#17-analyses-from-another-commit-or-repository)).
 
 #### Identity
 
 An analysis's **identity** is its folder at a commit, or its folder in the
 working tree. Two declarations name the same analysis when their folders are
 the same path, read at the same commit or both in the working tree.
-
-- A declaration's folder is, with a `url`, the top level of that repository
-  and, with a `path`, the `path` joined to the folder of the declaring
-  `astra.yaml` and tidied as text ([Annex B](#b-paths-and-git)).
-- It is read at the declaration's `commit` or, without one, as the declaring
-  analysis is read. The root, and every analysis reached from it by `path`
-  alone, is read in the working tree.
-- At a commit, a path that crosses a gitlink is read in the submodule's
-  repository at the commit the gitlink pins ([Annex B](#b-paths-and-git)).
-  So a path to the top of a submodule, read at a commit, names the same
-  analysis as a `url` declaration of the submodule's repository at the commit
-  the gitlink pins. A checked-out submodule read in the working tree is an
-  analysis of the working tree, since it may differ from the commit the
-  gitlink pins.
-- The folder is a path from the top of the repository it is read in or, read
-  in the working tree, from the top of the root's working tree.
-- A URL says only where to get the commit, so a fork or a mirror with the
-  same commit gives the same analysis: an analysis from a commit is its
-  folder at its commit, whatever URL it is got from.
-
-*Another analysis*, everywhere in this specification, is one with a
+**Another analysis**, everywhere in this specification, is one with a
 different identity.
 
-#### What is read, and validity
+- The folder is a path from the top of the repository it is read in or, read
+  in the working tree, from the top of the root's working tree. A
+  declaration's `path` is joined to the folder of the declaring `astra.yaml`
+  and tidied as text ([Annex B](#b-paths-and-git)).
+- The root, and every analysis reached from it by `path` alone, is read in
+  the working tree.
+- A URL says only where to get the commit, so a fork or a mirror with the
+  same commit gives the same analysis.
+- At a commit, a path that crosses a gitlink is read in the submodule's
+  repository at the commit the gitlink pins ([Annex B](#b-paths-and-git)).
+  So, read at a commit, a path to the top of a submodule names the same
+  analysis as a `url` declaration of the submodule's repository at the
+  commit the gitlink pins. A checked-out submodule read in the working tree
+  is an analysis of the working tree, since it may differ from that commit.
 
-- Every rule of this specification applies to an analysis from a commit as
-  it is, with its files read at its commit, each file as the blob git stores
-  ([Annex B](#b-paths-and-git)).
-- Its results are those that [belong to](#18-results-and-where-they-go) it
-  or to an analysis reached from it through declarations, each read at the
-  commit its analysis is read at ([§20](#20-checking-results)).
-- The declared analysis, with everything it declares, is valid at its commit
-  ([`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)).
+#### Reading one
 
-#### Getting a commit from a remote
+Every rule of this specification applies to an analysis from a commit as it
+is, its files read at its commit, each as the blob git stores
+([Annex B](#b-paths-and-git),
+[`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)).
+Its results are those that [belong to](#18-results-and-where-they-go) it or
+to an analysis reached from it through declarations, each read at the commit
+its analysis is read at ([§20](#20-checking-results)).
 
 A commit is got from a remote when it is:
 
-- a declaration's `url` and `commit`;
-- a `path` and `commit` declared in a file read from a remote;
-- the commit a gitlink pins, where a path read at a commit crosses it
-  ([Annex B](#b-paths-and-git)).
+- a declaration's `url` and `commit`, got from that `url`;
+- a `path` and `commit` declared in a file read from a remote, got from the
+  remote that file was read from;
+- the commit a gitlink pins, where a path read at a commit crosses it, got
+  from the submodule's URL ([Annex B](#b-paths-and-git)).
 
 A file is read from a remote when the commit it is read at is got from one.
-The remote is the `url`, the remote the file was read from, or the
-submodule's URL ([Annex B](#b-paths-and-git)). A commit counts as got when it
-can be fetched from that remote, was kept from an earlier fetch or, for a
-gitlink's commit, is held by the submodule's checkout. A repository left
-in `.git/modules` after `git submodule deinit` doesn't count.
+A `path` and `commit` declared in any other file is read from the local
+repository
+([`COMMIT_NOT_FOUND`](#17-analyses-from-another-commit-or-repository)). A
+commit counts as got when it can be fetched from its remote, was kept from an
+earlier fetch or, for a gitlink's commit, is held by the submodule's
+checkout. A repository left in `.git/modules` after `git submodule deinit`
+doesn't count.
 
 #### Using one
 
-Unless it is driven, none of the recipes of an analysis from a commit run
-([`REBUILT_FROM_COMMIT`](#21-runners)), so the rules on the universe being
-built ([§16](#16-driving-and-consuming)) let it give only:
+Unless an analysis from a commit is [driven](#16-driving-and-consuming),
+none of its recipes runs ([`REBUILT_FROM_COMMIT`](#21-runners)), so the rules
+on the [universe being built](#16-driving-and-consuming) let it give only:
 
 - its outputs in its own universes, pinned, in a file with no entry with the
   pin's id or through an import;
-- its outputs built once, such as `remote.output1`;
+- its outputs built once, such as `upstream.output4`;
 - its inputs.
 
-Evidence cites its results in the same way. One with no decisions is driven
-wherever the chain before its declaration is
-([§16](#16-driving-and-consuming)). Driven or not, its results in its own
-universes belong to it and are read through their records, and no recipe
-runs in those universes, since every result there belongs to it
-([`REBUILT_FROM_COMMIT`](#21-runners)). An address that doesn't exist in the
-declared analysis is an error in the declaring one
-([`UNRESOLVED_ADDRESS`](#6-names)).
+Evidence cites its results in the same way.
 
-When a recipe reads such a result, the runner gets its bytes from what the
-declared commit holds at the result's
-[default place](#18-results-and-where-they-go), or through something
-there it recognises as standing in for them ([§7](#7-inputs)), and they are
-checked against the record ([`STALE_INPUT`](#21-runners)). An input of the
-declared analysis read by address is got from its `path` at the declared
-commit, in the repository that holds the declared analysis
-([Annex B](#b-paths-and-git)), or through what the runner recognises as
-standing in for it ([§7](#7-inputs)).
+A driver's universes can drive an analysis from a commit as any declared
+analysis, and one with no decisions is driven wherever the chain before its
+declaration is ([§16](#16-driving-and-consuming)). A driven one's recipes run
+on exactly its files at its commit ([`NOT_AT_COMMIT`](#21-runners)). Only
+what the driver's universes build is built: it
+[belongs to](#18-results-and-where-they-go) the driver, and its records name
+the driver's commit, where the declaration says which commit the driven
+analysis is from and, for a remote, where to get it.
+Driven or not, its outputs built once and its results in its own universes
+belong to it, so no recipe makes them: they are read through their records
+([`REBUILT_FROM_COMMIT`](#21-runners)).
 
-An earlier commit's results are read the same way, through a pin or an
-import. Where the declaration `previous` names the analysis's own folder at
-a commit, its universes often have the ids of the analysis's own. If both
-have a `u1`, `previous.output1#u1` names the analysis's own `u1`. Where
-`previous` has decisions and no key of the analysis's universes goes through
-it, the analysis doesn't build `previous` in its `u1`: a
-[planned result](#18-results-and-where-they-go)'s output that reads
-`output1`, built per universe, through this pin breaks
-[`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) and
-[`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming). With this import,
-`previous.output1#previous_u1` reads `output1` in `u1`, through its record
-at that commit, and no recipe runs. The commit is one that holds the
-records, later than the one they name ([§20](#20-checking-results)):
+When a recipe reads a result of an analysis from a commit, the runner gets
+the bytes from what the declared commit holds at the result's
+[default place](#18-results-and-where-they-go), or through a
+[stand-in](#7-inputs) there, and checks them against the record
+([`STALE_INPUT`](#21-runners)). An input of the declared analysis read by
+address is got from its `path` at the declared commit, in the repository
+that holds the declared analysis ([Annex B](#b-paths-and-git)), or through a
+stand-in.
+
+**Earlier results.** An earlier commit's results are read the same way,
+through a pin or an import. Here `previous` declares the analysis's own
+folder at a commit that holds the records, later than the commit they name
+([§20](#20-checking-results)):
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -1541,16 +1524,17 @@ universes:
     universe: u1
 ```
 
-#### Driving one
-
-A driver's universes can drive an analysis from a commit, as any declared
-analysis. Its recipes then run on exactly its files at the declared commit
-([`NOT_AT_COMMIT`](#21-runners)). Its outputs built once aren't built: like
-the rest of its results, they are read through their records at the
-declared commit ([`REBUILT_FROM_COMMIT`](#21-runners)). Only what the
-driver's universes build is built. It belongs to the driver, and its records
-name the driver's commit, where the declaration says which commit the driven
-analysis is from and, for a remote, where to get it.
+`previous`'s universes often have the ids of the analysis's own. Where both
+have a `u1`, `previous.output1#u1` names the analysis's own `u1`
+([§13](#13-pins-and-outputs-built-per-universe-or-once)). Where `previous`
+has decisions and no key of the analysis's universes goes through it, the
+analysis doesn't build `previous` in its `u1`: a
+[planned result](#18-results-and-where-they-go)'s output that reads
+`output1`, built per universe, through that pin breaks
+[`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) and
+[`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming). Through the import,
+`previous.output1#previous_u1` reads `output1` in `previous`'s own `u1`,
+through its record at `<commit>`, and no recipe runs.
 
 #### The rules
 
