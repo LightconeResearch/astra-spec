@@ -1445,7 +1445,8 @@ different identity.
   So, read at a commit, a path to the top of a submodule names the same
   analysis as a `url` declaration of the submodule's repository at the
   commit the gitlink pins. A checked-out submodule read in the working tree
-  is an analysis of the working tree, since it may differ from that commit.
+  is an analysis of the working tree, since it may differ from the commit
+  the gitlink pins.
 
 #### Reading one
 
