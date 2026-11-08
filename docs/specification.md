@@ -1765,9 +1765,9 @@ rebased.
 
 ### 20. Checking results
 
-A checker gives every planned result two statuses
-([§18](#18-results-and-where-they-go)): one for its record, `unchanged`,
-`stale` or `missing`, and one for its bytes, `present` or `absent`.
+A checker gives every [planned result](#18-results-and-where-they-go) two
+statuses: one for its record, `unchanged`, `stale` or `missing`, and one for
+its bytes, `present` or `absent`.
 
 | Status | Means |
 |---|---|
@@ -1782,29 +1782,24 @@ A checker gives every planned result two statuses
 
 #### When a result is unchanged
 
-A record says what its result was made from at the commit it names. Later,
-in the working tree or at a later commit, a result is **unchanged** if, since
-that commit, nothing has changed in ([`STALE_RESULT`](#20-checking-results)):
+A record says what its result was made from at the commit it names. The
+result is **unchanged** if nothing that
+[`STALE_RESULT`](#20-checking-results) compares has changed since then, in
+the working tree or at a later commit, and **stale** otherwise.
 
-- its output's declaration: its recipe's command, its inputs and their order
-  (`{inputs}` passes them in that order), its decisions, in any order (each
-  reaches the recipe by name), and its format;
-- the options its decisions select: a result is stale in its universe if any
-  of its decisions selects a different option there than at the commit its
-  record names;
-- the content of its inputs, never what stands in for it;
-- the results it reads, compared through their records: a result made from a
-  stale or `missing` one is stale, and once that one is rebuilt, it is
+- The order of its output's inputs counts, since `{inputs}` passes them in
+  that order. The order of its decisions doesn't, since each reaches the
+  recipe by name.
+- The results it reads are compared through their records. A result made
+  from a stale or `missing` one is stale. Once that one is rebuilt, it is
   unchanged again only if the rebuilt one's `content_hash` is the one its own
   record noted for it.
-
-Otherwise it is **stale**. Nothing else counts:
-
-- Editing a finding, a description or another output leaves a result
-  unchanged, unless the edit changes something listed above (an
-  `astra.yaml` named as an input, or an output whose results it reads, say).
+- Nothing else counts. Editing a finding, a description or another output
+  leaves a result unchanged, unless the edit changes something that
+  [`STALE_RESULT`](#20-checking-results) compares: an `astra.yaml` named as
+  an input, say, or an output whose results it reads.
 - The code, through the commit, and the environment are recorded but not
-  compared: a change to either shows only when the recipe is run again and
+  compared. A change to either shows only when the recipe is run again and
   makes other bytes.
 
 A result with a valid record where its address says is stale, not `missing`,
@@ -1825,49 +1820,51 @@ make it again. In the worked example ([§2](#2-a-worked-example)):
 
 #### Evidence
 
-Evidence citing a result gets the status of that result's record
-([`STALE_EVIDENCE`](#20-checking-results)): the record at the place of the
-result's name along the `artifact`'s declarations, from the analysis the
-result belongs to. So evidence citing `stage.inner.output1#u1` reads the
-record of `stage.inner.output1`, not of `inner.output1`
-([§18](#18-results-and-where-they-go)). Where those declarations give none
-of the result's names, as for `subanalysis`'s evidence citing its own
-`output1` pinned to an import of its parent's universe, the evidence gets
-the worst status of the records at the result's names.
+A check covers the evidence of the analysis it is run on. Of each analysis
+that analysis declares, directly or through others, it covers only the items
+of evidence that cite a result the root plans.
+
+An item of [evidence](#14-insights-and-evidence) whose `artifact` names an
+output gets its status by [`STALE_EVIDENCE`](#20-checking-results):
 
 - An `artifact` that is pinned, or that names an output built once, names
   exactly one result.
 - An `artifact` that names an output built per universe without a pin cites
   that output's results in each of the root's universes where it is active
-  and its analysis is built.
-
-The evidence gets the worst of their record statuses: `missing`, then
-`stale`. If there are none, it is `missing`. A check covers the evidence of
-the analysis it is run on. Of each analysis that analysis declares, directly
-or through others, it covers only the items of evidence that cite a result
-the root plans.
+  and its analysis is built. If it cites none, the evidence is `missing`.
+- The record read is the one at the place of the result's name along the
+  `artifact`'s declarations, from the analysis the result belongs to. So
+  evidence citing `stage.inner.output1#u1` reads the record of
+  `stage.inner.output1`, not of `inner.output1`
+  ([§18](#18-results-and-where-they-go)). Where those declarations give none
+  of the result's names, as for `subanalysis`'s evidence citing its own
+  `output1` pinned to an import of its parent's universe, the evidence reads
+  the records at all the result's names.
+- Evidence that reads several records, of several results or at several
+  names, gets the worst of their statuses: `missing`, then `stale`.
 
 #### Results of an analysis from a commit
 
-A result of an analysis from a commit is read through its record at the
-declared commit, in the analysis the result belongs to
-([§18](#18-results-and-where-they-go)), in the repository that holds that
-analysis at the commit it is read at ([Annex B](#b-paths-and-git)). If the
-declared analysis itself declares an analysis from a commit, that analysis's
-records are read in its own repository, at the commit named for it.
+A result of an
+[analysis from a commit](#17-analyses-from-another-commit-or-repository) is
+read through its record at the declared commit, in the analysis the result
+belongs to ([§18](#18-results-and-where-they-go)), in the repository that
+holds that analysis at the commit it is read at
+([Annex B](#b-paths-and-git)). If the declared analysis itself declares an
+analysis from a commit, that analysis's records are read in its own
+repository, at the commit named for it.
 
-A result can be read only once its record is committed. So the declaration
+A result can be read only once its record is committed, so the declaration
 names a commit that holds the records, `B`, later than the commit their
 recipes ran from, `A`, which the records name. The result is unchanged if
 nothing that [`STALE_RESULT`](#20-checking-results) compares changed between
-`A` and `B`, and the results it was made from are unchanged too. Their
-content hashes are taken from their records, without their bytes.
+`A` and `B`, and the results it was made from are unchanged too, their
+content hashes taken from their records, without their bytes.
 
 The results of an analysis from a commit that are read or cited get their
-record status (`unchanged`, `stale`, `missing`) by the same rules. Only those
-a recipe reads get a bytes status ([`ABSENT_RESULT`](#20-checking-results)),
-from what git holds at the declared commit
-([§17](#17-analyses-from-another-commit-or-repository)).
+record status by the same rules. Only those a recipe reads get a bytes status
+([`ABSENT_RESULT`](#20-checking-results)), from what git holds at the
+declared commit ([§17](#17-analyses-from-another-commit-or-repository)).
 
 #### The rules
 
