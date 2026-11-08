@@ -168,12 +168,11 @@ such as `DIGIT`. Patterns are regular expressions as JSON Schema reads them
 (ECMA-262).
 
 **Codes tables.** Each rule that a tool checks or keeps has a code, and is
-stated in the codes table at the end of a section of Part II. These tables
-are the only place this specification states such a rule. The section's text
+stated only in the codes table at the end of a section of Part II, whose text
 explains what its rules are about. A table's columns are:
 
-- **Code:** names what is wrong when the rule is broken. It is what a tool
-  reports. Each code is unique and matches `[A-Z][A-Z0-9_]*`.
+- **Code:** what is wrong when the rule is broken, and what a tool reports.
+  Each code is unique and matches `[A-Z][A-Z0-9_]*`.
 - **Layer:** the layer whose tool checks or keeps the rule
   ([§3](#3-conformance)).
 - **Level:** `MUST` or `SHOULD`, applied to the rule's sentence.
@@ -184,16 +183,16 @@ explains what its rules are about. A table's columns are:
   ([§20](#20-checking-results)).
 
 The recommendations and the permission that have no code are each stated on
-a line of their own at the end of their section, starting "Recommendation:"
-or "Permission:", in [§17](#17-analyses-from-another-commit-or-repository),
-[§19](#19-records) and [§21](#21-runners). The [All rules](rules.md) page
-lists every rule of the codes tables, by layer, and then the recommendations
-and the permission.
+a line of their own, starting "Recommendation:" or "Permission:", at the end
+of their section ([§17](#17-analyses-from-another-commit-or-repository),
+[§19](#19-records), [§21](#21-runners)). The [All rules](rules.md) page lists
+every rule of the codes tables by layer, then the recommendations and the
+permission.
 
-**Examples.** An example shows a whole file, or only the part of one that
-its section is about. Commits, hashes and sizes are shown as placeholders:
-`<commit>` stands for a full commit id, and `sha256:<hash of …>` and
-`<size of …>` for the hash and the size, in bytes, of what they name.
+**Examples.** An example shows a whole file, or only the part its section is
+about. Commits, hashes and sizes are placeholders: `<commit>` stands for a
+full commit id, and `sha256:<hash of …>` and `<size of …>` for the hash and
+the size, in bytes, of what they name.
 
 **Fields.** Every class of the format has a page in the
 [field reference](elements/index.md), generated from the schema, whose
