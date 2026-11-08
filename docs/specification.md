@@ -277,14 +277,14 @@ and sections 18 to 21 results.
 ### 5. The astra.yaml file
 
 An analysis is a folder with an `astra.yaml` at its top, in a git
-repository: in its working tree, or at one of its commits
+repository's working tree or at one of its commits
 ([`NOT_IN_REPOSITORY`](#5-the-astrayaml-file)).
 [Analysis](elements/Analysis.md) is the content of an `astra.yaml`:
 
 ```yaml
 spec_version: "0.1.0"
 label: Example analysis
-description: Cleans the measurements before any method is applied.
+description: Makes output3 from input1.
 tags: [example]
 inputs:
   input1:
@@ -298,47 +298,36 @@ outputs:
       command: python src/output3.py '{inputs.input1}' '{output}'
 ```
 
-- An `astra.yaml` is a YAML 1.2 document whose content is a map, and a
-  record ([§19](#19-records)) is JSON text in UTF-8 in which no object has
-  two equal names ([`INVALID_SYNTAX`](#5-the-astrayaml-file)).
-  [Annex A](#a-reading-files) says how each is read.
-- An analysis has a `spec_version` and at least one output
-  ([`MISSING_FIELD`](#5-the-astrayaml-file),
-  [`EMPTY_COLLECTION`](#5-the-astrayaml-file)). Everything else is optional.
-- Most [elements](#6-names) also take a `label`, a short display name that
-  is optional everywhere, a `description` in free prose, and `tags`, keywords
-  for grouping and finding them.
+- An `astra.yaml` is written in YAML 1.2, and a record ([§19](#19-records))
+  in JSON. [Annex A](#a-reading-files) says how each is read
+  ([`INVALID_SYNTAX`](#5-the-astrayaml-file)).
+- Like the analysis, most [elements](#6-names) take a `label`, a short
+  display name; a `description`, in free prose; and `tags`, keywords for
+  grouping and finding them. All three are optional.
+- Every list is a list of strings, except an
+  [insight](#14-insights-and-evidence)'s `evidence` and a record's `inputs`.
+- No field takes `null`: an optional field without a value is left out, and
+  so is a list of strings with nothing in it
+  ([`EMPTY_COLLECTION`](#5-the-astrayaml-file)). So an
+  [output](#10-outputs) lists `decisions`, or has a [`when`](#9-conditions),
+  only when it names at least one.
 
 #### Versions
 
-Every `astra.yaml` and every record states, in `spec_version`, the version of
-this specification it is written against, as `MAJOR.MINOR.PATCH`: three
+Every `astra.yaml` and every record states, in `spec_version`, the version
+of this specification it is written against: `MAJOR.MINOR.PATCH`, three
 non-negative integers without leading zeros, such as `0.1.0`
 ([`INVALID_VALUE`](#5-the-astrayaml-file)).
 
 - Versions are ordered by MAJOR, then MINOR, then PATCH, each compared as an
   integer, so `0.10.0` comes after `0.9.0`.
-- A version's minor version is its MAJOR and MINOR: `0.1` for `0.1.3`.
+- A version's **minor version** is its MAJOR and MINOR: `0.1` for `0.1.3`.
 - A patch release never changes what is valid, nor the code a broken rule is
   reported under: an `astra.yaml` or a record is valid under `X.Y.Z` exactly
   when it is valid under every other `X.Y` version. So each minor version has
-  one schema of `astra.yaml` and one of a record.
+  one schema of `astra.yaml` and one record schema.
 - Each `astra.yaml` is read by the schema of the minor version it states, so
   a tool that reads one patch of a minor version reads them all.
-
-#### Values
-
-- Every document, an `astra.yaml` or a record, holds only the fields its
-  schema defines ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)), each with the
-  JSON type the field takes ([`WRONG_TYPE`](#5-the-astrayaml-file)).
-- An optional field without a value is left out: no field takes `null`.
-- Apart from lists of strings, the only lists are an insight's `evidence`
-  and a record's `inputs`.
-- No list of strings holds the same entry twice
-  ([`DUPLICATE_ENTRY`](#5-the-astrayaml-file)).
-- No list of strings is empty: a field with nothing to list is left out
-  ([`EMPTY_COLLECTION`](#5-the-astrayaml-file)), so an output lists
-  `decisions` or has a `when` only when it names at least one.
 
 #### The folder
 
@@ -350,12 +339,10 @@ In an analysis's folder:
 | `.astra/records/` | the records of the results that [belong to](#18-results-and-where-they-go) the analysis |
 | `results/` | the [default places](#18-results-and-where-they-go) of those results' bytes |
 
-`results/` and `.astra/` belong to runners. No input's `path` and no
-declaration's `path`, tidied as text ([Annex B](#b-paths-and-git)), is, or
-[lies inside](#glossary), the `results/` or `.astra/` of an analysis of the
-stack read in the same tree as that path: the working tree, or one commit
-([`RESERVED_PATH`](#7-inputs)). So a run never writes over an input or
-a declared analysis, and a result is read by its [address](#6-names), never by
+`results/` and `.astra/` belong to runners, and no input's or
+[declaration](#15-declared-analyses)'s `path` points into them
+([`RESERVED_PATH`](#7-inputs)). So a run never writes over an input or a
+declared analysis, and a result is read by its [address](#6-names), never by
 a path.
 
 #### The rules
