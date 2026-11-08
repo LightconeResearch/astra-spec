@@ -1589,11 +1589,11 @@ declarations from the analysis it belongs to. In the worked example
 result of `stage`'s `output3` in `u1` is the root's, named `stage.output3`.
 
 - A declaration that leads back to an analysis already on the chain from
-  the driver is never driven ([§16](#16-driving-and-consuming)). So the
-  result of an output of the analysis it belongs to is named by the output's
-  id alone, as the result of an output built once always is. Where `stage`
-  declares `parent: {path: ..}`, that declaration isn't driven in the root's
-  universes, and adds nothing to a name there.
+  the driver is never driven ([§16](#16-driving-and-consuming)): where
+  `stage` declares `parent: {path: ..}`, that declaration isn't driven in
+  the root's universes, and adds nothing to a name there. So the result of
+  an output of the analysis it belongs to is named by the output's id
+  alone, as the result of an output built once always is.
 - A sub-analysis's declaration of its parent doesn't lead back where the
   sub-analysis is the driver. The root's `output1`, built in `stage`'s
   universe `v1` through a driven `parent: {path: ..}`, belongs to `stage`
@@ -1603,8 +1603,7 @@ result of `stage`'s `output3` in `u1` is the root's, named `stage.output3`.
   and has a name for each. Where the root declares `inner` and `stage`,
   `stage` declares the same folder as `inner`, and keys go through both, the
   result of `inner`'s `output1` is named `inner.output1` and
-  `stage.inner.output1`. It is placed and recorded under each name, though a
-  planned result should have one
+  `stage.inner.output1`, though a planned result should have one name
   ([`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming)).
 
 A result's **address** is a name followed, for a result built in a
@@ -1654,10 +1653,11 @@ results/
   ([`ABSENT_RESULT`](#20-checking-results)), which is no error.
 
 Ids hold no `.`, but a format can (`tar.gz`). So two default places
-`{name}.{format}` in one folder can be the same only where an output and a
-declaration of one analysis share an id, as an output `stage` in the format
-`output3.csv` and the result `stage.output3` in the format `csv` would.
-Every analysis of the stack keeps
+`{name}.{format}` in one folder are the same only when one name is a proper
+dotted prefix of the other: an output `stage` in the format `output3.csv`,
+and the result `stage.output3` in the format `csv`, say. That needs an
+output and a declaration that share an id in some analysis on the longer
+name's chain of declarations. Every analysis of the stack keeps
 [`CLASHING_RESULT_NAME`](#15-declared-analyses), so no two results of one
 analysis share a default place.
 
