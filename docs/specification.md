@@ -1991,8 +1991,9 @@ the worst status of the records at the result's names.
 
 The evidence gets the worst of their record statuses: `missing`, then
 `stale`. If there are none, it is `missing`. A check covers the evidence of
-the analysis it is run on, and of each analysis it declares, directly or
-through others, whose evidence cites a result the root plans.
+the analysis it is run on. Of each analysis that analysis declares, directly
+or through others, it covers only the items of evidence that cite a result
+the root plans.
 
 #### Results of an analysis from a commit
 
