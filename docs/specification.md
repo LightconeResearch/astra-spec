@@ -42,12 +42,22 @@ analysis as it is then. It says whether the result is **unchanged**,
 
 ### 2. A worked example
 
-This analysis reads one file, makes one result in each of two universes, and
-compares them:
+This analysis, the root, reads a file of its own and an output of each of
+two other analyses: `stage`, in a folder of the same repository, and
+`upstream`, in another repository. It makes one result from them in each of
+two universes, and compares the two:
 
 ```yaml
+# astra.yaml
 spec_version: "0.1.0"
 label: Example analysis
+
+analyses:
+  stage:
+    path: stage
+  upstream:
+    url: https://example.org/upstream.git
+    commit: <commit>
 
 inputs:
   input1:
@@ -64,12 +74,12 @@ outputs:
   output1:
     type: metric
     format: json
-    inputs: [input1]
+    inputs: [input1, stage.output3, upstream.output4]
     decisions: [decision1]
     recipe:
       command: >-
-        python src/output1.py '{inputs.input1}' '{decisions.decision1}'
-        '{output}'
+        python src/output1.py '{inputs.input1}' '{inputs.stage.output3}'
+        '{inputs.upstream.output4}' '{decisions.decision1}' '{output}'
   output2:
     type: table
     format: csv
@@ -81,39 +91,99 @@ outputs:
 
 universes:
   u1:
-    decisions: {decision1: a}
+    decisions: {decision1: a, stage.decision2: a}
   u2:
-    decisions: {decision1: b}
+    decisions: {decision1: b, stage.decision2: b}
 
 findings:
   insight1:
-    claim: Options a and b of decision1 give different results.
+    claim: The two universes give different results.
     evidence:
       - artifact: output2
 ```
 
+The folder `stage`, in the root's folder, holds the analysis declared as
+`stage`. The paths in its `astra.yaml` are relative to that folder, and its
+recipe runs there:
+
+```yaml
+# stage/astra.yaml
+spec_version: "0.1.0"
+
+inputs:
+  input2:
+    path: data/input2.csv
+
+decisions:
+  decision2:
+    options:
+      a: {}
+      b: {}
+
+outputs:
+  output3:
+    type: data
+    format: csv
+    inputs: [input2]
+    decisions: [decision2]
+    recipe:
+      command: >-
+        python src/output3.py '{inputs.input2}' '{decisions.decision2}'
+        '{output}'
+```
+
+The repository at `https://example.org/upstream.git` holds, at its top, an
+analysis with an output `output4`, built once. At `<commit>`, it also holds
+`output4`'s result and that result's record.
+
 - `output1` lists `decision1`, so it is
   [built per universe](#13-pins-and-outputs-built-per-universe-or-once): it
   has one result in `u1` and one in `u2`.
+- `stage` is declared by `path` ([§15](#15-declared-analyses)), and is read
+  in the working tree, as the root is. The root's universes set its
+  `decision2`, under the key `stage.decision2`: they
+  [drive](#16-driving-and-consuming) `stage`. In `u1`, `output1` reads
+  `stage.output3` as `stage` builds it with `decision2` set to `a`, and in
+  `u2` with it set to `b`.
+- `upstream` is declared by `url` and `commit`, so it is that repository's
+  analysis as it was at `<commit>`
+  ([§17](#17-analyses-from-another-commit-or-repository)). `output1` reads
+  its `output4` without a pin, as `upstream.output4`: built once, it is the
+  same result in both universes.
 - `output2` reads `output1`
   [pinned](#13-pins-and-outputs-built-per-universe-or-once) to each universe,
   as `output1#u1` and `output1#u2`, so it is built once, from both.
 
-**Validating.** A validator reads this file and git, and reports any rule
-the analysis breaks ([§3](#3-conformance)), such as an input that isn't
-tracked in git or a universe that selects no option of `decision1`.
+**Validating.** A validator reads the root's and `stage`'s `astra.yaml` in
+the working tree, `upstream`'s at `<commit>`, and git. It reports any rule
+that an analysis of the [stack](#15-declared-analyses) breaks
+([§3](#3-conformance)), such as an input that isn't tracked in git or a
+universe that selects no option of `decision1` or of `stage.decision2`.
 
-**Building.** A runner runs `output1`'s recipe twice, with
-`{decisions.decision1}` replaced by `a` in `u1` and by `b` in `u2`, then
-`output2`'s once, with the paths of those two results ([§11](#11-recipes)).
+**Building.** A runner runs `stage`'s recipe in `stage`'s folder, with
+`{decisions.decision2}` replaced by `a` in `u1` and by `b` in `u2`. It runs
+`output1`'s with `{decisions.decision1}` replaced in the same way, then
+`output2`'s once, with the paths of `output1`'s two results
+([§11](#11-recipes), [§16](#16-driving-and-consuming)). `output4` belongs to
+`upstream`, an
+[analysis from a commit](#17-analyses-from-another-commit-or-repository), so
+its recipe doesn't run: for `output1`'s recipe, the runner gets `output4`'s
+bytes from `<commit>` and checks them against its record there.
 
-**Recording.** For each of the three results, it writes the bytes under
-`results/` and a record under `.astra/records/`
-([§18](#18-results-and-where-they-go), [§19](#19-records)).
+**Recording.** For each of the five results it builds, the runner writes the
+bytes under `results/` and a record under `.astra/records/`, all in the
+root's folder ([§18](#18-results-and-where-they-go), [§19](#19-records)).
+`stage`'s two results belong to the root, whose universes built them, and
+are named `stage.output3`: in `u1`, its bytes are at
+`results/u1/stage.output3.csv` and its record at
+`.astra/records/u1/stage.output3.json`.
 
 **Checking.** A checker later compares each record with the analysis as it
-is then ([§20](#20-checking-results)). Change `data/input1.csv`, and all
-three results are stale; edit the finding, and all three stay unchanged.
+is then ([§20](#20-checking-results)). Change `stage/data/input2.csv`, and
+the five results the runner built are all stale, since each is made from it,
+directly or through others; edit the finding, and every result stays
+unchanged. `upstream.output4` is checked the same way, between the commit
+its record names and `<commit>`.
 
 ### 3. Conformance
 
@@ -1731,17 +1801,22 @@ to:
 | Its record | `.astra/records/{universe}/{name}.json` | `.astra/records/{name}.json` |
 | Its bytes, at their default place | `results/{universe}/{name}.{format}` | `results/{name}.{format}` |
 
-Once built, the worked example's folder ([§2](#2-a-worked-example)) holds:
+Once built, the root's folder in the worked example
+([§2](#2-a-worked-example)) holds:
 
 ```text
 .astra/records/
   output2.json
   u1/output1.json
+  u1/stage.output3.json
   u2/output1.json
+  u2/stage.output3.json
 results/
   output2.csv
   u1/output1.json
+  u1/stage.output3.csv
   u2/output1.json
+  u2/stage.output3.csv
 ```
 
 - Both are worked out from an address of the result, so a result with two
@@ -1792,6 +1867,16 @@ record of `output1` in `u1`, in the worked example
         "entry": "input1",
         "content_hash": "sha256:<hash of input1>",
         "size": <size of input1>
+      },
+      {
+        "entry": "stage.output3",
+        "content_hash": "sha256:<hash of stage.output3 in u1>",
+        "size": <size of stage.output3 in u1>
+      },
+      {
+        "entry": "upstream.output4",
+        "content_hash": "sha256:<hash of upstream.output4>",
+        "size": <size of upstream.output4>
       }
     ],
     "environment": {"iri": "urn:example:environment1"},
@@ -1928,8 +2013,8 @@ make it again. In the worked example ([§2](#2-a-worked-example)):
 | Edit | Effect |
 |---|---|
 | `u1` selects another option for `decision1` | `output1` in `u1` is stale, and so is `output2`, which reads it |
-| `insight1`'s claim is reworded | All three results stay unchanged |
-| The script that `output1`'s recipe runs is edited | All three results stay unchanged; once `output1` in `u1` is made again with other bytes, `output2` is stale until it is rebuilt |
+| `insight1`'s claim is reworded | Every result stays unchanged |
+| The script that `output1`'s recipe runs is edited | Every result stays unchanged; once `output1` in `u1` is made again with other bytes, `output2` is stale until it is rebuilt |
 
 #### Evidence
 
