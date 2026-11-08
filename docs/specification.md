@@ -647,9 +647,10 @@ through `Output.inputs`, directly or through others, pinned or not
 
 ### 11. Recipes
 
-A recipe says how an output is made: a shell command, and optionally the
-context it runs in. The command reaches the output's inputs and decisions
-through placeholders, which a runner fills in before running it.
+A [Recipe](elements/Recipe.md) says how an output is made: a `command`
+([`MISSING_FIELD`](#5-the-astrayaml-file)), run in its analysis's folder
+([`WRONG_WORKING_DIRECTORY`](#21-runners)), and optionally the context it
+runs in.
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -666,23 +667,20 @@ outputs:
       resources: {cpus: 2, memory: 4GB}
 ```
 
-- A recipe has a `command` ([`MISSING_FIELD`](#5-the-astrayaml-file)); its
-  fields are in the [field reference](elements/Recipe.md).
 - `resources` ([Resources](elements/Resources.md)) are the CPUs, memory,
   time, disk and GPUs the recipe asks for. `cpus` is at least 0 and `gpus` at
   least 1 ([`INVALID_VALUE`](#5-the-astrayaml-file)).
 - `container` is the container the recipe runs in: an image, or a
   Containerfile it is built from. `Analysis.container` is the default
   container of the analysis's recipes.
-- A recipe runs in its analysis's folder
-  ([`WRONG_WORKING_DIRECTORY`](#21-runners)).
 
 #### The command as a template
 
 The `command` is a POSIX shell command and a template. Read from the left,
 `{{` stands for a literal `{` and `}}` for a literal `}`, and any other `{`
-opens a placeholder, which ends at the next `}`. A runner substitutes each
-placeholder, and each `{{` and `}}`, before running the command:
+opens a **placeholder**, which ends at the next `}`. Before running the
+command, a runner replaces each `{{` and `}}` by its brace, and each
+placeholder by what it becomes, verbatim and with no shell quoting:
 
 | Placeholder | Becomes |
 |---|---|
@@ -691,20 +689,18 @@ placeholder, and each `{{` and `}}`, before running the command:
 | `{inputs}` | the paths of all the output's inputs, in the order of `inputs`, separated by spaces |
 | `{output}` | the path the result is written to |
 
-- A placeholder gives a path, relative or absolute, that the recipe can open
-  from the folder it runs in.
-- A runner substitutes each placeholder verbatim, with no shell quoting.
+- A path a placeholder gives is relative or absolute, and the recipe can
+  open it from the folder it runs in.
 - In `{inputs.<entry>}` and `{decisions.<entry>}`, `<entry>` is an entry of
   the output's `inputs` or `decisions` exactly as written, dots and `#`
   included: `{inputs.subanalysis.output1}`, `{inputs.output1#u1}`,
   `{decisions.subanalysis.decision1}`. Two
   [pins](#13-pins-and-outputs-built-per-universe-or-once) of one output are
   two entries, each with its own placeholder.
-- Any other placeholder breaks [`UNDECLARED_TEMPLATE_REF`](#11-recipes): one
-  naming an entry the output doesn't list, such as `{inputs.input2}` when
-  `input2` isn't among its `inputs`, or one of none of these forms, such as
-  `{foo}`. So does a stray brace: a `{` with no `}` after it, or a `}` that
-  ends no placeholder, as in `echo }`.
+- Any other placeholder, such as `{inputs.input2}` where `input2` isn't among
+  the output's `inputs`, or `{foo}`, breaks
+  [`UNDECLARED_TEMPLATE_REF`](#11-recipes). So does a stray brace: a `{` with
+  no `}` after it, or a `}` that ends no placeholder, as in `echo }`.
 
 #### What a recipe reads
 
