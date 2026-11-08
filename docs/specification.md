@@ -1571,62 +1571,56 @@ An output plans no result in a universe where it is inactive
 result reads and no evidence of the root cites isn't planned, and building
 the root doesn't build it.
 
-#### Whose a result is, and its name
+#### Which analysis a result belongs to, and its name
 
 A result **belongs** to the analysis whose universe it was built in or, for
-an output built once, to the analysis whose output it is:
-
-- What a driven analysis builds in its driver's universes belongs to the
-  driver.
-- A result built in a universe that a pin names belongs to that universe's
-  analysis, whichever file the pin is in and whether it names the universe
-  through an import or not ([§16](#16-driving-and-consuming)). It is placed
-  in that analysis's folder, under the universe's own id.
+an output built once, to the analysis whose output it is. So what a
+[driven](#16-driving-and-consuming) analysis builds in its driver's
+universes belongs to the driver. A result built in a universe that a pin
+names belongs to that universe's analysis, whichever file the pin is in and
+whether it names the universe through an import or not
+([§16](#16-driving-and-consuming)).
 
 A result's **name** is its output's id after the ids of the driven
-declarations from the analysis it belongs to. The root's universes drive
-`subanalysis`, so the result of `subanalysis`'s `output1` in `u1` is the
-root's, named `subanalysis.output1`.
+declarations from the analysis it belongs to. In the worked example
+([§2](#2-a-worked-example)), the root's universes drive `stage`, so the
+result of `stage`'s `output3` in `u1` is the root's, named `stage.output3`.
 
-- An undriven declaration never adds a name. Where `subanalysis` declares
-  `parent: {path: ..}`, that declaration isn't driven in the root's
-  universes, and adds no name there.
-- No declaration that leads back to an analysis already on the chain from
-  the driver is driven ([§16](#16-driving-and-consuming)). So the result of
-  an output of the analysis it belongs to is named by the output's id alone,
-  as the result of an output built once always is.
+- A declaration that leads back to an analysis already on the chain from
+  the driver is never driven ([§16](#16-driving-and-consuming)). So the
+  result of an output of the analysis it belongs to is named by the output's
+  id alone, as the result of an output built once always is. Where `stage`
+  declares `parent: {path: ..}`, that declaration isn't driven in the root's
+  universes, and adds nothing to a name there.
 - A sub-analysis's declaration of its parent doesn't lead back where the
-  sub-analysis is the driver. The parent's `output1`, built in
-  `subanalysis`'s universe `v1` through a driven `parent: {path: ..}`, is
-  named `parent.output1` in `subanalysis`'s records. It is named so also
-  where the parent's own file imports `v1` as `subanalysis_v1` and reads
-  `output1#subanalysis_v1`.
+  sub-analysis is the driver. The root's `output1`, built in `stage`'s
+  universe `v1` through a driven `parent: {path: ..}`, belongs to `stage`
+  and is named `parent.output1`. It is named so also where the root's own
+  file imports `v1` as `stage_v1` and reads `output1#stage_v1`.
+- A result reached through two chains of driven declarations is made once,
+  and has a name for each. Where the root declares `inner` and `stage`,
+  `stage` declares the same folder as `inner`, and keys go through both, the
+  result of `inner`'s `output1` is named `inner.output1` and
+  `stage.inner.output1`. It is placed and recorded under each name, though a
+  planned result should have one
+  ([`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming)).
 
-A result reached through two chains of driven declarations has a name for
-each. Where the root declares `inner` and `stage`, and `stage` declares the
-same folder as `inner`, a result of `inner` reached through `inner` and
-through `stage.inner`, when keys go through both, is made once. It is placed
-and recorded under each name, though a planned result should have one
-([`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming)).
-
-A result's **address** is a name followed, for a result built in a universe,
-by `#` and the universe's own id, never an import's:
-`subanalysis.output1#u1`. Each address is the `address` of the record at its
-place ([§19](#19-records)).
+A result's **address** is a name followed, for a result built in a
+universe, by `#` and the universe's own id, never an import's:
+`stage.output3#u1`.
 
 #### Where records and bytes go
 
-A result's **place**, for one of its addresses, is where its record, and its
-bytes at their **default place**, go in the folder of the analysis it belongs
-to:
+A result's **place**, for one of its addresses, is where its record
+([§19](#19-records)), and its bytes at their **default place**, go in the
+folder of the analysis it belongs to:
 
 | | Built in the universe `{universe}` | Built once |
 |---|---|---|
 | Its record | `.astra/records/{universe}/{name}.json` | `.astra/records/{name}.json` |
 | Its bytes, at their default place | `results/{universe}/{name}.{format}` | `results/{name}.{format}` |
 
-Once built, the root's folder in the worked example
-([§2](#2-a-worked-example)) holds:
+Once built, the root's folder in the worked example holds:
 
 ```text
 .astra/records/
@@ -1643,32 +1637,27 @@ results/
   u2/stage.output3.csv
 ```
 
-- Both are worked out from an address of the result, so a result with two
-  names has two of each.
+- A result with two names has a place, and a default place, for each.
 - A record is the record only of the result its `address` names, under that
   name ([`MISSING_RECORD`](#20-checking-results),
   [`MISPLACED_RECORD`](#20-checking-results)).
 - The runner writes the bytes to their default places
   ([`UNRECORDED_RESULT`](#21-runners)), and tells the recipe where to write
   through `{output}`. So a driven analysis's recipes write what they build in
-  the driver's universes into the driver's results.
+  the driver's universes into the driver's `results/`.
 - A record at a commit can be read whether or not the commit holds the
   bytes.
-- The bytes should be at their default place
-  ([`ABSENT_RESULT`](#20-checking-results)), except for a result of an
-  analysis from a commit that no planned result reads
-  ([§20](#20-checking-results)). Where a runner keeps them
-  elsewhere, with a stand-in for them there ([§7](#7-inputs)), they are
-  `absent`, which is no error.
+- Bytes that a runner keeps elsewhere, with a [stand-in](#7-inputs) for them
+  at their default place, are `absent`
+  ([`ABSENT_RESULT`](#20-checking-results)), which is no error.
 
 Ids hold no `.`, but a format can (`tar.gz`). So two default places
-`{name}.{format}` in one folder are the same only when one name is a proper
-dotted prefix of the other: an output `subanalysis` in the format
-`output1.json`, and the result `subanalysis.output1` in the format `json`,
-say. That needs an output and a declaration that share an id in some
-analysis on the longer name's chain of declarations. Every analysis of the
-stack keeps [`CLASHING_RESULT_NAME`](#15-declared-analyses), so no two
-results of one analysis share a default place.
+`{name}.{format}` in one folder can be the same only where an output and a
+declaration of one analysis share an id, as an output `stage` in the format
+`output3.csv` and the result `stage.output3` in the format `csv` would.
+Every analysis of the stack keeps
+[`CLASHING_RESULT_NAME`](#15-declared-analyses), so no two results of one
+analysis share a default place.
 
 ### 19. Records
 
