@@ -1837,8 +1837,8 @@ output gets its status by [`STALE_EVIDENCE`](#20-checking-results):
   evidence citing `stage.inner.output1#u1` reads the record of
   `stage.inner.output1`, not of `inner.output1`
   ([§18](#18-results-and-where-they-go)). Where those declarations give none
-  of the result's names, as for `subanalysis`'s evidence citing its own
-  `output1` pinned to an import of its parent's universe, the evidence reads
+  of the result's names, as for `stage`'s evidence citing its own
+  `output3` pinned to an import of its parent's universe, the evidence reads
   the records at all the result's names.
 - Evidence that reads several records, of several results or at several
   names, gets the worst of their statuses: `missing`, then `stale`.
