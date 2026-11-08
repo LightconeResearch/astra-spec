@@ -1131,61 +1131,47 @@ drive is **driven** through that declaration. An analysis with no decisions
 has no key to set, and is driven by being built in its driver's universes.
 
 - A key resolves through its declarations to one decision: an analysis,
-  known by its identity
-  ([§17](#17-analyses-from-another-commit-or-repository)), and the decision's
-  id in it, so two keys can spell one decision (below).
-- No key goes through a declaration that leads back to an analysis already
-  on its chain, the universe's analysis included
+  known by its [identity](#17-analyses-from-another-commit-or-repository),
+  and the decision's id in it. So two keys can be two
+  [spellings](#15-declared-analyses) of one decision.
+- No key goes through a declaration that
+  [leads back](#15-declared-analyses)
   ([`LOOPING_KEY`](#16-driving-and-consuming)). So the analysis's own
   decisions are keyed by their ids alone, and where `stage` declares
   `again: {path: .}`, `stage.d` is never written `stage.again.d`.
 
 **Which declarations are driven.** An analysis's universes **drive** a
-declaration when a key in the effective selection ([§12](#12-universes)) of
-any of them goes through every declaration from the analysis's file to that
-one, and a declaration they drive is driven in every one of them. A key that
-loops ([`LOOPING_KEY`](#16-driving-and-consuming)) drives no declaration.
+declaration when a key in the [effective selection](#12-universes) of any of
+them goes through every declaration from the analysis's file to that one. A
+declaration they drive is driven in every one of them, and a key through a
+declaration that leads back drives none.
 
 - Each chain of declarations from the driver's file, such as `stage`,
-  `stage.inner` and `inner`, is driven on its own. The key `stage.inner.d`
-  drives the driver's `stage` and, through it, `stage`'s `inner`, but not an
-  `inner` that the driver's file declares itself. Two chains that end in one
-  declaration, such as `stage.lib` and `stage_undriven.lib` where `stage` and
-  `stage_undriven` declare one folder, are driven on their own too, and an
-  address or a reference is judged on its own chain.
+  `stage.inner` and `inner`, is driven on its own, and an address or a
+  reference is judged on its own chain. The key `stage.inner.d` drives the
+  driver's `stage` and, through it, `stage`'s `inner`, but not an `inner`
+  that the driver's file declares itself. Two chains that end in one
+  declaration are driven on their own too (below).
 - A declaration of an analysis with no decisions is driven when the chain
-  before it is, and so whenever the driver's file declares it, unless the
-  declaration leads back to an analysis already on the chain, the declaring
-  analysis itself included (`self: {path: .}`). Such an analysis's outputs
-  built per universe are then built in each of the driver's universes where
-  they are [planned](#18-results-and-where-they-go), and those results
-  belong to the driver, while its outputs built once still belong to it.
-  Universes of its own don't change this. They are built only where it is the
-  driver: when it is the root, or where one of them is among the universes
-  built (below).
+  before it is, and so whenever the driver's file declares it, unless it
+  leads back (`self: {path: .}`). That analysis's outputs built per universe
+  are then built in each of the driver's universes where they are
+  [planned](#18-results-and-where-they-go), and those results belong to the
+  driver. Universes of its own don't change this: they are built only where
+  it is the driver, when it is the root or where one of them is among the
+  universes built (below).
 
 **What a universe sets.**
 
-- Every universe sets every active decision of every analysis reached
-  through a declaration that its analysis's universes drive
-  ([`MISSING_DECISION`](#16-driving-and-consuming)), whichever of them has
-  the key that drives it. A universe in which `when` switches off every
-  decision of a driven analysis sets nothing for it.
-- Driving is judged on the effective selections, so a key a derived universe
-  inherits counts as one it sets.
+- A universe sets the active decisions of every analysis driven by its
+  analysis's universes, even where the key that drives it is another
+  universe's ([`MISSING_DECISION`](#16-driving-and-consuming)).
 - An analysis reached through two driven declarations can have a decision
   set under either spelling (`stage.inner.d` or `inner.d`). A universe's own
-  `decisions` give each decision one key: two keys that spell one decision
+  `decisions` give each decision one key, and a universe that inherits a
+  decision changes it under the key it inherits. Two keys for one decision
   break [`DUPLICATE_ELEMENT`](#16-driving-and-consuming), even when they
-  select the same option. A universe that inherits a decision under one key
-  changes it under that key: setting it under another, even to the same
-  option, breaks [`DUPLICATE_ELEMENT`](#16-driving-and-consuming) at its own
-  key.
-- In a universe being built, a driven analysis's own universes don't set its
-  decisions. A pin naming one of them still reads it: in its own file, or in
-  another through an import or, for one of its own elements, where that file
-  has no entry with the pin's id (below). Each universe being built has one
-  driver, the analysis whose universe it is.
+  select the same option.
 
 Driving leaves an analysis able to stand alone, and consuming a decision
 ties the outputs that use it to the decision's analysis. By convention, a
@@ -1197,7 +1183,10 @@ such as the seed of a whole stack, is consumed.
 A universe is named by its analysis and its id, since the same id can name a
 universe in several analyses. When an analysis is built in one of its
 universes, that universe is the **universe being built** in the analysis and
-in every analysis reached through a declaration its universes drive.
+in every analysis reached through a declaration its universes drive. It has
+one driver, the analysis whose universe it is. A driven analysis's own
+universes don't set its decisions there, though a pin naming one of them
+still reads it (below).
 
 The **universes built** are the root's and those named by a pin on an output
 built per universe, in the `inputs` of a
@@ -1210,40 +1199,21 @@ pin's id, another analysis's universe (below).
   when a declaration in its stack leads back to it.
 - Another analysis's universe is used only where such a pin names it, in
   that analysis's file or in another. That analysis is then its only driver:
-  like the root, it is never driven in that universe, and what is built there
-  [belongs to](#18-results-and-where-they-go) it.
+  like the root, it is never driven in that universe.
 - Neither the root nor the analysis whose file imports the universe is the
-  driver there: a declaration of either in that analysis's file, such as
+  driver there. A declaration of either in the driver's file, such as
   `parent: {path: ..}`, leads back to no analysis already on the chain, and
-  is an ordinary declaration. Where that analysis's universes drive one of
-  them, as the key `parent.decision1` drives a parent, it is driven and built
-  in that universe like any other analysis.
+  is an ordinary declaration: where the driver's universes drive it, as the
+  key `parent.decision1` drives a parent, it is driven and built in that
+  universe like any other analysis.
 
-Two rules hold in the universe being built. They apply wherever:
-
-- the output of a result planned there reads an output built per universe
-  without a pin, or consumes a decision;
-- the output of a planned result, or the root's evidence, pins an output
-  built per universe to the universe being built;
-- an output's `when` consumes a decision where the output's result would be
-  planned if the `when` held;
-- in an analysis built in that universe, a decision's `when` or a constraint
-  consumes one.
-
-The rules are:
-
-1. The analysis of the output read or pinned, or of the decision consumed,
-   is built in the universe being built
-   ([`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming)). The analysis
-   whose universe is being built is always built in it, so an analysis it
-   drives can consume its decisions and read its outputs back through `..`:
-   where `subanalysis` declares `parent: {path: ..}`, it can consume the
-   root's `decision1` as `parent.decision1`.
-2. In the file of the analysis whose universe is being built, the file's
-   universes drive the chain of each such address of another analysis, from
-   the file's declaration to the address's last
-   ([`UNDRIVEN_DECLARATION`](#16-driving-and-consuming)). Uses in other files
-   come under the first rule alone.
+Two rules of this section hold in the universe being built:
+[`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming) in every file, and
+[`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) only in the driver's
+file. The driver is always built in its own universe, so an analysis it
+drives can consume its decisions and read its outputs back through `..`:
+where `subanalysis` declares `parent: {path: ..}`, it can consume the root's
+`decision1` as `parent.decision1`.
 
 **A second declaration of one folder.** Where the root also declares
 `subanalysis`'s folder as `undriven: {path: subanalysis}`, which no key of
@@ -1270,31 +1240,32 @@ outputs:
       command: python make.py '{output}'
 ```
 
-The address's whole chain decides, up to its last declaration. Where the
-root's universes drive `stage.inner` but not `stage`'s second declaration
-`inner_undriven`, `stage.inner_undriven.out` read in the root's file, without
-a pin or pinned to one of the root's universes, breaks
-[`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) too, though the root
-drives `stage`. So does `stage_undriven.inner.out`, where the root's
-`stage_undriven` declares `stage`'s folder a second time, though the root
-drives `stage.inner`.
+The address's whole chain decides, up to its last declaration. Read in the
+root's file, without a pin or pinned to one of the root's universes, each of
+these breaks [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) too:
+
+- `stage.inner_undriven.out`, where the root's universes drive `stage.inner`
+  but not `inner_undriven`, `stage`'s second declaration of `inner`'s folder,
+  though the root drives `stage`;
+- `stage_undriven.inner.out`, where the root's `stage_undriven` declares
+  `stage`'s folder a second time, though the root drives `stage.inner`.
 
 #### Pins and imported universes
 
 A pin `#u` resolves in the file it is written in
 ([§13](#13-pins-and-outputs-built-per-universe-or-once)), whatever drives
-that file's analysis, so what it names is the same under every root. Where
-the file's `universes` has no entry `u`, the pin names the universe `u` of
-the analysis whose element the reference names, as an import of it would:
-one of that analysis's universes, never an import in its file. Where that
-analysis has no universe `u` either, as for an element of the file's own
-analysis, the pin names nothing
-([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
+that file's analysis, so it names the same universe under every root. Where
+the file's `universes` has no entry `u`, the pin names, as an import would,
+the universe `u` of the analysis whose element the reference names: one of
+that analysis's universes, never an import in its file. Where that analysis
+has no universe `u` either, as for an element of the file's own analysis,
+the pin names nothing ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
 
-So adding or removing an entry `u` in a file's `universes` can change what a
-pin `#u` in that file names. A pin that names one of its file's universes is
-in the driver's file, so both rules above hold it. One that names another
-analysis's universe is not, so the first rule alone holds it.
+- Adding or removing an entry `u` in a file's `universes` can change what a
+  pin `#u` in that file names.
+- A pin that names one of its file's universes is in the driver's file, so
+  both rules above hold it. One that names another analysis's universe is
+  not, so only [`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming) holds it.
 
 The universe an import ([§12](#12-universes)) names is an **imported
 universe** of the importing file, which a pin there names by the import's
@@ -1303,25 +1274,24 @@ under every root. Its `analysis` can lead to any analysis the file's
 declarations reach: one below, its parent through `..`, a sibling through
 the parent, or an
 [analysis from a commit](#17-analyses-from-another-commit-or-repository).
-That is another analysis than the file's own, and its `universe` is one of
-that analysis's universes, never an import in its file
-([`UNRESOLVED_ADDRESS`](#6-names)).
 
 - An import selects nothing and drives nothing. No selection rule
-  ([§12](#12-universes)) checks it in the importing analysis, and no
-  `derived_from` names it ([`UNKNOWN_DERIVED_FROM`](#12-universes)). The
-  universe it names is checked as a universe of its own analysis (below).
+  ([§12](#12-universes)) checks it in the importing analysis. The universe it
+  names is checked as a universe of its own analysis (below).
 - The importing analysis is built in the universe an import names only where
   that universe drives it, as a key `parent.d` drives a parent.
-- An imported universe is built where it is among the universes built
-  (above). Imports of one universe, in one file or several and under any ids,
-  name that one universe, which is built once.
+- Imports of one universe, in one file or several and under any ids, name
+  that one universe. It is built once, when it is among the universes built.
 
 The universe a pin names where its file has no entry with its id is an
-imported universe too, and all of the bullets above hold of it. So an import
-is needed only where the file has an entry with the universe's id, or for a
-universe of another analysis than the one whose element the reference names,
-such as `stage`'s for `stage.lib.out`.
+imported universe too, and the bullets above hold of it. So an import is
+needed only where the file has an entry with the universe's id, or for a
+universe of another analysis than the one whose element the reference
+names. In a file with no `v1`, `stage.lib.out#v1` names `lib`'s `v1`, since
+`out` is `lib`'s output. Where `stage`'s universes drive `lib`, the file
+reads `out` as `stage` builds it in its own `v1` by importing that universe,
+`stage_v1: {analysis: stage, universe: v1}`, and pinning
+`stage.lib.out#stage_v1`.
 
 Where `subanalysis` has universes of its own, `u1` and `v1`, this root reads
 its `output1` in three universes:
@@ -1349,21 +1319,14 @@ universes:
     universe: u1
 ```
 
-- `subanalysis.output1#u1` reads `subanalysis`'s output as the root builds it
-  in its `u1`, where the root's universes drive `subanalysis`, and the result
-  belongs to the root.
-- `subanalysis.output1#subanalysis_u1`, since the root has a `u1` of its
-  own, reads it through an import, as `subanalysis` builds it in its own
-  `u1`.
-- `subanalysis.output1#v1`, since the root has no `v1`, reads it as
-  `subanalysis` builds it in its own `v1`.
+- `subanalysis.output1#u1` reads the output as the root builds it in its
+  `u1`, which drives `subanalysis`, and the result
+  [belongs to](#18-results-and-where-they-go) the root.
+- `subanalysis.output1#subanalysis_u1` reads it as `subanalysis` builds it in
+  its own `u1`, through an import, since the root has a `u1` of its own.
+- `subanalysis.output1#v1` reads it as `subanalysis` builds it in its own
+  `v1`, since the root has no `v1`.
 - Those last two results belong to `subanalysis`, whichever file reads them.
-
-In a file with no `v1`, `stage.lib.out#v1` names `lib`'s `v1`, since `out` is
-`lib`'s output. Where `stage`'s universes drive `lib`, the file reads `out`
-as `stage` builds it in its own `v1` by importing that universe,
-`stage_v1: {analysis: stage, universe: v1}`, and pinning
-`stage.lib.out#stage_v1`.
 
 #### What a validator checks
 
@@ -1382,10 +1345,10 @@ analysis's own included. Each universe's selections are held to
 [`EXCLUDED_OPTION_SELECTED`](#12-universes)).
 
 - The declarations driven in a universe are those its analysis's universes
-  drive, as above, a declaration back to the root included; checking a
-  universe builds nothing, so the root stays undriven in its own universes.
-  Where the root drives `subanalysis`, a universe of `subanalysis`'s own
-  that leaves its active `decision1` unset breaks
+  drive, a declaration back to the root included. Checking a universe builds
+  nothing, so the root stays undriven in its own universes. Where the root
+  drives `subanalysis`, a universe of `subanalysis`'s own that leaves its
+  active `decision1` unset breaks
   [`MISSING_DECISION`](#16-driving-and-consuming), though the root's
   universes don't use it.
 - The rules on the universe being built
@@ -1393,9 +1356,7 @@ analysis's own included. Each universe's selections are held to
   [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming),
   [`INPUT_NOT_BUILT`](#13-pins-and-outputs-built-per-universe-or-once)) hold
   only in the universes built, as
-  [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) does, and for an
-  output only where its result is planned or, for its `when`, would be if the
-  `when` held.
+  [`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming) does.
 
 #### The rules
 
