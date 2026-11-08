@@ -174,7 +174,7 @@ bytes from `<commit>` and checks them against its record there.
 bytes under `results/` and a record under `.astra/records/`, all in the
 root's folder ([§18](#18-results-and-where-they-go), [§19](#19-records)).
 `stage`'s two results belong to the root, whose universes built them, and
-are named `stage.output3`: in `u1`, its bytes are at
+are named `stage.output3`: the one in `u1` has its bytes at
 `results/u1/stage.output3.csv` and its record at
 `.astra/records/u1/stage.output3.json`.
 
