@@ -896,9 +896,11 @@ with a result [planned](#18-results-and-where-they-go) in `u1` that reads
 
 ### 14. Insights and evidence
 
-An insight is a claim backed by evidence. An analysis's `prior_insights` are
-what earlier work establishes and the analysis builds on, which options cite
-by id. Its `findings` are what it concludes.
+An [Insight](elements/Insight.md) is a `claim` backed by at least one item
+of `evidence` ([`MISSING_FIELD`](#5-the-astrayaml-file),
+[`EMPTY_COLLECTION`](#5-the-astrayaml-file)). An analysis's
+`prior_insights` are what earlier work establishes and the analysis builds
+on. Its `findings` are what it concludes.
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -915,31 +917,32 @@ findings:
       - artifact: output2
 ```
 
-- An insight's fields are in the [field reference](elements/Insight.md).
-- An insight has a `claim` and at least one item of `evidence`
-  ([`MISSING_FIELD`](#5-the-astrayaml-file),
-  [`EMPTY_COLLECTION`](#5-the-astrayaml-file)). Its `description` gives the
-  reasoning behind the claim, and its `scope` the conditions under which the
-  claim holds.
+- An insight's `description` gives the reasoning behind its claim, and its
+  `scope` the conditions under which the claim holds.
 - An option's `insights` are the ids of the prior insights that support it,
   such as `insights: [insight2]`
   ([`INVALID_INSIGHT_REF`](#14-insights-and-evidence)).
 
 #### Evidence
 
-An [Evidence](elements/Evidence.md) item cites exactly one of
+An [Evidence](elements/Evidence.md) item cites one source
 ([`INVALID_EVIDENCE_SOURCE`](#14-insights-and-evidence)):
 
-- a published work, by its `doi`, such as `10.5555/12345678` (`10.`, digit
-  runs joined by `.`, `/`, then a non-empty suffix:
-  [`INVALID_VALUE`](#5-the-astrayaml-file)), with the work's `version`,
-  counted from 1, when the work has versions, as an arXiv paper does;
-- an output, as an `artifact`: a reference written as in `Output.inputs`,
-  which names an output ([`UNRESOLVED_ADDRESS`](#6-names)).
+- `doi`: a published work, such as `10.5555/12345678` (`10.`, digit runs
+  joined by `.`, `/`, then a non-empty suffix:
+  [`INVALID_VALUE`](#5-the-astrayaml-file)). With it, `version` gives the
+  work's version, counted from 1, when the work has versions, as an arXiv
+  paper does.
+- `artifact`: an output, by a reference written as in `Output.inputs`
+  ([`UNRESOLVED_ADDRESS`](#6-names)). Evidence isn't built in a universe.
+  Citing an output built per universe, it may pin it, as `output1#u2`: the
+  claim is then about that universe's result. The pin names a universe as
+  one in `Output.inputs` does
+  ([§13](#13-pins-and-outputs-built-per-universe-or-once),
+  [§16](#16-driving-and-consuming)).
 
-Evidence has a `version` only with a `doi`
-([`INVALID_EVIDENCE_SOURCE`](#14-insights-and-evidence)). It locates the
-passage the claim rests on with W3C Web Annotation selectors:
+Evidence locates the passage the claim rests on with W3C Web Annotation
+selectors:
 
 - `quote`, a [TextQuoteSelector](elements/TextQuoteSelector.md)
   (`oa:TextQuoteSelector`): its `exact` is the passage as the work or output
@@ -954,7 +957,7 @@ and a `location`, the quote is sought within the location.
 #### Fragment identifiers
 
 A location's `value` is a fragment identifier of the cited work or output,
-without the `#`. An optional `conforms_to` is the IRI of the specification
+without the `#`. Its optional `conforms_to` is the IRI of the specification
 of the fragment syntax `value` follows, as
 [Web Annotation §4.2.1](https://www.w3.org/TR/annotation-model/#fragment-selector)
 gives it:
@@ -971,22 +974,12 @@ Without `conforms_to`, `value` is a PDF fragment identifier as
 [RFC 8118 §3](https://www.rfc-editor.org/rfc/rfc8118#section-3) gives it (it
 defers to ISO 32000-2), such as `page=6`, with pages counted from 1; it can
 point at more than a page. Web Annotation names that syntax
-`http://tools.ietf.org/rfc/rfc3778`, after the RFC that RFC 8118 obsoletes.
-Writing that IRI means the same as writing none, and `value` is then read by
-RFC 8118.
+`http://tools.ietf.org/rfc/rfc3778`, after the RFC that RFC 8118 obsoletes;
+writing that IRI means the same as writing none.
 
-`value` is read by the syntax `conforms_to` names.
 [Annex C](#c-grammars-and-patterns) gives the characters `value` may hold,
 and the form of `conforms_to`, an IRI
 ([`INVALID_VALUE`](#5-the-astrayaml-file)).
-
-#### Evidence and universes
-
-Evidence isn't built in a universe. Citing an output built per universe, it
-may pin it, as `output1#u2`: the claim is then about one universe's result,
-and the pin says which. The pin names a universe as one in `Output.inputs`
-does ([§13](#13-pins-and-outputs-built-per-universe-or-once),
-[§16](#16-driving-and-consuming)).
 
 #### The rules
 
