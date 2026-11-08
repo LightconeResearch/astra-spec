@@ -131,7 +131,7 @@ Four roles conform to this specification:
 
 - A **document**, an `astra.yaml` or a record, conforms, or is **valid**,
   when it breaks no parse or schema rule.
-- A **validator** reports every parse, schema and validator rule that the
+- A **validator** reports the parse, schema and validator rules that the
   analysis, or any analysis of its stack, breaks. An analysis is **valid**
   when no analysis of its stack breaks a `MUST` of these three layers.
 - A **checker** gives each [planned result](#18-results-and-where-they-go)
