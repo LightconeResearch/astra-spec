@@ -2265,8 +2265,8 @@ no `@context`), plus each node's class URI as its `rdf:type`:
 The context is JSON-LD 1.1. It maps a record's terms onto
 [W3C PROV-O](https://www.w3.org/TR/prov-o/), and, where PROV has none, onto
 ASTRA's own, in the `https://w3id.org/astra/` namespace. An `iri` is its
-node's `@id` exactly as written, whatever its scheme (`prov:env:1` too). So a
-record is PROV-O:
+node's `@id` exactly as written, whatever its scheme (`prov:env:1` too). Read
+this way, a record is PROV-O:
 
 - The root node stands for the result, which `prov:wasGeneratedBy` its
   `generated_by`, the run. The run `prov:used` its inputs and its environment,
