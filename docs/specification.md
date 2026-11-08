@@ -2003,6 +2003,7 @@ Each term links to the sections that define it or give its detail.
 - **stale** ([§1](#1-what-astra-is), [§20](#20-checking-results))
 - **stand-in** ([§7](#7-inputs), [Annex B](#b-paths-and-git))
 - **status** ([§20](#20-checking-results))
+- **tidied, tidying** ([Annex B](#b-paths-and-git))
 - **tracked** ([Annex B](#b-paths-and-git)): of a file in a repository: read in
   the working tree, in the repository's index; read at a commit, in that
   commit's tree; either way reached through no gitlink.
