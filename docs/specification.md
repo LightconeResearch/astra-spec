@@ -747,10 +747,9 @@ universes:
 ```
 
 - `decisions` maps decisions to options, as `<decision>: <option>`
-  ([DecisionSelection](elements/DecisionSelection.md)). A key is a decision's
-  id or, for a decision of another analysis, its address ([§6](#6-names)):
-  `subanalysis.decision1` is the decision `decision1` of the
-  [declared](#15-declared-analyses) analysis `subanalysis`, which these
+  ([DecisionSelection](elements/DecisionSelection.md)). A key is the id of a
+  decision of the analysis or, for a decision of another analysis, its
+  address ([§6](#6-names)), such as `subanalysis.decision1`, which these
   universes set. [§16](#16-driving-and-consuming) gives in full the keys that
   set another analysis's decisions. A value is the id of one of the
   decision's options ([`UNKNOWN_OPTION`](#8-decisions-and-options)).
@@ -762,18 +761,19 @@ universes:
 #### The effective selection
 
 A universe's **effective selection** is what it selects once `derived_from`
-is resolved. Conditions ([§9](#9-conditions)) are judged on it.
+is resolved.
 
 1. Without `derived_from`, it is the universe's own `decisions`.
 2. With `derived_from`, it is the effective selection of the universe named
    there, with each of the universe's own selections replacing what it
    inherits for that decision.
-3. An inherited selection of a decision that isn't active in the result is
-   dropped, so a universe that switches a decision off needn't undo what it
-   inherits for it.
+3. An inherited selection of a decision that isn't active in the resulting
+   selection is dropped, so a universe that switches a decision off needn't
+   undo what it inherits for it.
 
 The effective selection is held to everything a universe written in full is,
-so a universe that switches a decision on sets it.
+so a universe that switches a decision on sets it
+([`MISSING_DECISION`](#16-driving-and-consuming)).
 
 In the example, `decision3` has `when: [decision1.b]`. `u3` selects
 `decision1: a`, which switches `decision3` off, so the `decision3: a` it
