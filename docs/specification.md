@@ -2071,8 +2071,9 @@ commit, it names an entry of that commit's tree. An input's or a
 declaration's path names the entry at exactly that path
 ([`MISSING_INPUT_FILE`](#7-inputs),
 [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)): `data/A.csv` and
-`data/a.csv` are two paths, and `Subanalysis` and `subanalysis` declare two
-analyses ([§17](#17-analyses-from-another-commit-or-repository)).
+`data/a.csv` are two paths, which name two files or folders, and `Subanalysis`
+and `subanalysis` declare two analyses
+([§17](#17-analyses-from-another-commit-or-repository)).
 
 **Stand-ins.** A stand-in ([§7](#7-inputs)) is something kept in a file's
 place, such as a large-file tool's pointer, that is recognised as standing in
