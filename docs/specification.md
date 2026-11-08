@@ -1736,11 +1736,9 @@ made it, a [Generation](elements/Generation.md). The run gives:
   [`timestamp`](elements/Timestamp.md) ([Annex C](#c-grammars-and-patterns)).
 
 Every field is required ([`MISSING_FIELD`](#5-the-astrayaml-file)) except
-`started`, `finished` and `inputs`. The schema leaves `inputs` optional, and
-[`MISSING_RECORD_INPUTS`](#20-checking-results) holds it to the entries the
-output lists, so a record of an output that lists no inputs can leave it
-out. Every hash names its algorithm: `sha256:`, then the SHA-256 digest
-([`INVALID_VALUE`](#5-the-astrayaml-file)).
+`started`, `finished` and `inputs`. A record of an output that lists no
+inputs can leave `inputs` out. Every hash names its algorithm: `sha256:`,
+then the SHA-256 digest ([`INVALID_VALUE`](#5-the-astrayaml-file)).
 
 A record holds only the fields its `spec_version` defines, and is read by
 its minor version's record schema ([§5](#5-the-astrayaml-file)). A checker
