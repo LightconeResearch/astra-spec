@@ -1887,21 +1887,16 @@ schema error ([Annex D](#d-the-schema-files-and-rulesjson)).
 
 A runner runs recipes, and writes each result's bytes and its record
 ([`UNRECORDED_RESULT`](#21-runners), [§18](#18-results-and-where-they-go),
-[§19](#19-records)). Letting someone see what an environment it recorded
-holds, as PROV for example, is recommended (below).
+[§19](#19-records)).
 
-- It runs only committed code. It runs each recipe in a checkout of a
-  commit: the repository's own working tree, or one it makes for the run (a
-  git worktree, say). It refuses to run while that checkout has changes
-  other than the records and results of any run, each result's bytes the
-  recorded ones ([`UNCOMMITTED_CHANGES`](#21-runners)). Changes outside that
-  checkout don't stop it.
-- It builds no result that belongs to an analysis from a commit, or to an
-  analysis reached from it through declarations
-  ([§17](#17-analyses-from-another-commit-or-repository),
-  [`REBUILT_FROM_COMMIT`](#21-runners)). It builds no output that reads such
-  a result while it is `missing` or `stale`, or its bytes can't be got or
-  aren't the recorded ones ([`STALE_INPUT`](#21-runners)).
+- It runs only committed code, each recipe in a checkout of a commit: the
+  repository's own working tree, or one it makes for the run (a git
+  worktree, say). Changes outside that checkout don't stop it
+  ([`UNCOMMITTED_CHANGES`](#21-runners)).
+- It uses an analysis from a commit, driven or not, as
+  [§17](#17-analyses-from-another-commit-or-repository) says
+  ([`NOT_AT_COMMIT`](#21-runners), [`REBUILT_FROM_COMMIT`](#21-runners),
+  [`STALE_INPUT`](#21-runners)).
 - A result it reads that [`STALE_INPUT`](#21-runners) doesn't cover may be
   stale or `missing`; what it builds from it is then stale too
   ([§20](#20-checking-results)).
