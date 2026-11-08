@@ -993,25 +993,20 @@ and the form of `conforms_to`, an IRI
 An analysis can use the elements of other analyses. It declares each one by
 a **declaration**, an entry of `analyses` keyed by the id it addresses it by,
 and then addresses the declared analysis's elements through that id, as
-`<declaration>.<element>`.
+`<declaration>.<element>`. A declaration names its analysis by a `path`, or
+by a `url` and a `commit`, and a `path` can have a `commit` too
+([§17](#17-analyses-from-another-commit-or-repository)). Its fields are in
+the [field reference](elements/AnalysisDeclaration.md).
+
 Here the root declares the analysis in the folder `subanalysis`, and the
-root's `output1` reads that analysis's `output1`:
+root's `output1` ([§10](#10-outputs)) reads that analysis's `output1` as
+`subanalysis.output1`:
 
 <!-- fragment: Analysis -->
 ```yaml
 analyses:
   subanalysis:
     path: subanalysis
-outputs:
-  output1:
-    type: metric
-    format: json
-    inputs: [input1, subanalysis.output1]
-    decisions: [decision1]
-    recipe:
-      command: >-
-        python src/output1.py '{inputs.input1}' '{inputs.subanalysis.output1}'
-        '{decisions.decision1}' '{output}'
 ```
 
 The folder `subanalysis` holds an analysis of its own, whose `astra.yaml` is:
@@ -1036,11 +1031,16 @@ outputs:
       command: python src/output1.py '{inputs.input1}' '{decisions.decision1}' '{output}'
 ```
 
-- A declaration's fields are in the
-  [field reference](elements/AnalysisDeclaration.md). A declaration names its
-  analysis by a `path`, as here, or by a `url` and a `commit`, and a `path`
-  can have a `commit` too
-  ([§17](#17-analyses-from-another-commit-or-repository)).
+- `path` is the folder of the declared analysis's `astra.yaml`
+  ([§7](#7-inputs), [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)).
+  A declared analysis can be a git submodule, read as
+  [Annex B](#b-paths-and-git) says. A submodule that declares something
+  outside its own repository, such as its parent with `..`, can be validated
+  and built only from a root whose repository holds what it declares
+  ([`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses)).
+- The **root** is the analysis being validated or built, and any analysis can
+  be the root. Its **analysis stack** is the root and every analysis it
+  declares, directly or through other declared analyses.
 - The declarations an address goes through, in order, form a **chain of
   declarations**. A chain starts in one file, and each of its declarations
   is in the file of the analysis the one before reaches. The analyses **on
@@ -1049,25 +1049,6 @@ outputs:
   reaches, known by its identity
   ([§17](#17-analyses-from-another-commit-or-repository)), is already on the
   chain.
-- The **root** is the analysis being validated or built, and any analysis can
-  be the root. Its **analysis stack** is the root and every analysis it
-  declares, directly or through other declared analyses.
-
-#### A declaration by path
-
-- `path` is the folder of the declared analysis's `astra.yaml`
-  ([§7](#7-inputs)).
-- Tidied as text ([Annex B](#b-paths-and-git)), it doesn't go above the top
-  of the root's working tree or, read at a commit, of the repository that
-  holds that commit
-  ([`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses)).
-- The folder it names holds an `astra.yaml` file, reached through no symlink
-  ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses),
-  [Annex B](#b-paths-and-git)).
-- A declared analysis can be a git submodule, read as
-  [Annex B](#b-paths-and-git) says. A submodule that declares something
-  outside its own repository, such as its parent with `..`, can be validated
-  and built only from a root whose repository holds what it declares.
 
 #### One analysis, however it is declared
 
@@ -1079,7 +1060,7 @@ declarations reach it ([§17](#17-analyses-from-another-commit-or-repository)).
   analysis are two **spellings** of it. Were the root also to declare
   `again: {path: subanalysis}`, `again.output1` and `subanalysis.output1`
   would be one output.
-- A list can name one element under two spellings: they are two entries. In
+- A list can name one element under two spellings, as two entries. In
   `Output.inputs` and `Output.decisions` each has its own placeholder
   ([§11](#11-recipes)), and in `Output.inputs` its own recorded input
   ([§19](#19-records)). Only the same entry written twice is refused
@@ -1088,18 +1069,15 @@ declarations reach it ([§17](#17-analyses-from-another-commit-or-repository)).
   declaring analysis's own folder names the analysis itself:
   `self: {path: .}`, say, or `subanalysis.parent` in the root's file, where
   `subanalysis` declares `parent: {path: ..}`. An address through it is
-  another spelling of one of the analysis's own elements.
-  [Consuming](#16-driving-and-consuming) uses another analysis's elements, so
+  another spelling of one of the analysis's own elements. Since
+  [consuming](#16-driving-and-consuming) uses another analysis's elements,
   such an address consumes nothing, and no key goes through it
   ([§16](#16-driving-and-consuming)).
 - Declarations by `path` alone can form cycles, such as an analysis declared
   by its parent that declares its parent with `..`, but outputs never depend
-  on each other in a cycle ([`OUTPUT_CYCLE`](#10-outputs)). A declaration with
-  a `commit` is never part of a cycle, since a commit can only name earlier
-  ones.
-- An output never shares its id with a declaration of its analysis, since
-  their results' [default places](#18-results-and-where-they-go) could then
-  be the same ([`CLASHING_RESULT_NAME`](#15-declared-analyses)).
+  on each other in a cycle ([`OUTPUT_CYCLE`](#10-outputs)). A declaration
+  with a `commit` is never part of a cycle, since a commit can only name
+  earlier ones.
 
 #### The rules
 
