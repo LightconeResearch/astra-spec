@@ -506,10 +506,11 @@ Data that isn't an input of the analysis comes in another way:
 ### 8. Decisions and options
 
 A [Decision](elements/Decision.md) is a choice the analysis makes, such as
-which method to use, with the `rationale` for making it. Its `options` hold
-at least one [Option](elements/Option.md)
-([`EMPTY_COLLECTION`](#5-the-astrayaml-file)). Each universe chooses which
-of a decision's options is used ([§12](#12-universes)).
+which method to use, with the `rationale` for making it. Its `options` are the
+[Options](elements/Option.md) it chooses between, at least one
+([`EMPTY_COLLECTION`](#5-the-astrayaml-file)); each
+[universe](#12-universes) says which one is used. A decision with a `when` is
+conditional ([§9](#9-conditions)).
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -528,25 +529,19 @@ decisions:
         excluded: It needs data this analysis doesn't have.
 ```
 
-- A **constraint**, an option's `requires` or `incompatible_with`, constrains
-  every selection the option is part of:
-  - `requires` lists options that are also selected whenever it is
+- A **constraint** is an option's `requires` or `incompatible_with`. Both
+  list [option references](#6-names), so they can name an option of a
+  declared analysis's decision.
+  - `requires` lists options that are also selected whenever the option is
     ([`MISSING_REQUIRED_OPTION`](#12-universes)). Here `decision2.b` is
     selected wherever `decision1.b` is.
   - `incompatible_with` lists options that are never selected together with
     it ([`INCOMPATIBLE_OPTIONS`](#12-universes)).
-- Both take option references ([§6](#6-names)), so they can name an option
-  of a declared analysis's decision.
-- An option with an `excluded` reason is excluded: no universe selects it,
-  once what the universe inherits from another is resolved
-  ([§12](#12-universes), [`EXCLUDED_OPTION_SELECTED`](#12-universes)). It
-  stays listed, so the analysis records what it considered and why it ruled
-  it out.
-  `excluded: true` is not a reason ([`WRONG_TYPE`](#5-the-astrayaml-file)).
-- A decision with a `when` is conditional ([§9](#9-conditions)).
-- Every option named by a condition, an option reference or a universe's
-  selection is one of its decision's options
-  ([`UNKNOWN_OPTION`](#8-decisions-and-options)).
+- An option with an `excluded` reason, such as `decision2.c`, is
+  **excluded**: it stays listed, so the analysis records what it considered
+  and why it ruled it out, but no universe selects it
+  ([`EXCLUDED_OPTION_SELECTED`](#12-universes)). `excluded: true` is not a
+  reason ([`WRONG_TYPE`](#5-the-astrayaml-file)).
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
