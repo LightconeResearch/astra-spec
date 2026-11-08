@@ -728,6 +728,13 @@
       "level": "SHOULD",
       "source": "§21 Runners",
       "statement": "A recipe reads the files inputs name, and other outputs' results, only through its output's inputs"
+    },
+    {
+      "code": "CODE_OUTSIDE_ANALYSIS",
+      "layer": "runner",
+      "level": "SHOULD",
+      "source": "§21 Runners",
+      "statement": "Besides its environment (installed software and its container), a recipe runs only code that is tracked in its analysis's folder, outside every folder below it that holds an `astra.yaml` of its own, or that its output's inputs give it"
     }
   ]
 }

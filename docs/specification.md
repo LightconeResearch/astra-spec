@@ -724,9 +724,15 @@ placeholder, and each `{{` and `}}`, before running the command:
 
 A recipe should read the files inputs name, and other outputs' results, only
 through its output's inputs ([`UNDECLARED_READ`](#21-runners)), since a
-checker sees a change to them only through those inputs. Anything else it
-uses, its own scripts among them, is pinned by the commit or is part of the
-environment.
+checker sees a change to them only through those inputs.
+
+The code a recipe runs should live where its data does:
+[tracked](#glossary) in its analysis's folder, and not in an analysis below
+it ([`CODE_OUTSIDE_ANALYSIS`](#21-runners)). The commit pins it, but
+[`STALE_RESULT`](#20-checking-results) doesn't compare it unless it is one of
+the output's inputs. Code kept anywhere else comes in through the output's
+inputs, as another analysis's input or output read by its address. Installed
+software and the container are the recipe's environment.
 
 #### The rules
 
@@ -2057,8 +2063,9 @@ holds, as PROV for example, is recommended (below).
   stale or `missing`; what it builds from it is then stale too
   ([§20](#20-checking-results)).
 
-[`UNDECLARED_READ`](#21-runners) binds the recipe ([§11](#11-recipes)), and
-breaking it leaves the analysis valid.
+[`UNDECLARED_READ`](#21-runners) and
+[`CODE_OUTSIDE_ANALYSIS`](#21-runners) bind the recipe
+([§11](#11-recipes)), and breaking either leaves the analysis valid.
 
 A checker sees much of a breach afterwards: a result with no record is
 `missing`, and bytes that aren't the recorded ones are `absent`
@@ -2075,12 +2082,14 @@ A checker sees much of a breach afterwards: a result with no record is
 | `REBUILT_FROM_COMMIT` | runner | MUST | A runner builds no result that belongs to an analysis from a commit, or to an analysis reached from it through declarations, and reads each of those results through its record at the commit that analysis is read at |
 | `STALE_INPUT` | runner | MUST | A runner builds no output that reads a result belonging to an analysis from a commit, or to an analysis reached from it through declarations, while that result is `missing` or `stale`, or its bytes can't be got or aren't the recorded ones |
 | `UNDECLARED_READ` | runner | SHOULD | A recipe reads the files inputs name, and other outputs' results, only through its output's inputs |
+| `CODE_OUTSIDE_ANALYSIS` | runner | SHOULD | Besides its environment (installed software and its container), a recipe runs only code that is [tracked](#glossary) in its analysis's folder, outside every folder below it that holds an `astra.yaml` of its own, or that its output's inputs give it |
 
 Recommendation: a runner SHOULD let someone see what an environment it
 recorded holds.
 
-Permission: a runner MAY enforce [`UNDECLARED_READ`](#21-runners); one that
-does fails the recipe.
+Permission: a runner MAY enforce [`UNDECLARED_READ`](#21-runners) and
+[`CODE_OUTSIDE_ANALYSIS`](#21-runners); one that does fails a recipe that
+breaks it.
 
 ## Glossary
 
