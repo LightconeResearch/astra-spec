@@ -2023,19 +2023,20 @@ files and `rules.json` ([Annex D](#d-the-schema-files-and-rulesjson)).
 ### A. Reading files
 
 **`astra.yaml`** is a YAML 1.2 document
-([YAML 1.2.2](https://yaml.org/spec/1.2.2/)), read under its core schema,
-whose content is a map ([`INVALID_SYNTAX`](#5-the-astrayaml-file)). The
-schema checks that content.
+([YAML 1.2.2](https://yaml.org/spec/1.2.2/)) whose content is a map
+([`INVALID_SYNTAX`](#5-the-astrayaml-file)). It is read under YAML's core
+schema, and the schema ([Annex D](#d-the-schema-files-and-rulesjson)) checks
+its content.
 
 - Plain scalars are typed by the core schema
-  ([YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)),
-  so `spec_version: 0.1` is a number ([`WRONG_TYPE`](#5-the-astrayaml-file))
+  ([YAML 1.2.2 §10.3.2](https://yaml.org/spec/1.2.2/#1032-tag-resolution)):
+  `spec_version: 0.1` is a number ([`WRONG_TYPE`](#5-the-astrayaml-file)),
   and `spec_version: "0.1.0"` a string.
 - A number is checked as JSON Schema checks it, so `2.0` is an integer.
 
-**Records** are JSON text ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259))
-in UTF-8, in which no object has two equal names
-([`INVALID_SYNTAX`](#5-the-astrayaml-file)).
+**Records** are JSON text
+([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259)) in UTF-8, in which no
+object has two equal names ([`INVALID_SYNTAX`](#5-the-astrayaml-file)).
 
 ### B. Paths and git
 
