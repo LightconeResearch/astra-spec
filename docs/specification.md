@@ -2107,7 +2107,7 @@ is one in a plain data submodule.
 
 ### C. Grammars and patterns
 
-**Grammar.** The five forms of a name ([§6](#6-names)) are written in ABNF:
+**Names.** The five forms of a name ([§6](#6-names)), in ABNF:
 
 ```abnf
 id               = lower *( lower / DIGIT / "_" )
@@ -2118,7 +2118,7 @@ option-reference = address "." id              ; a decision's address, then an o
 condition        = [ "~" ] option-reference     ; "~": the option is not selected
 ```
 
-**Named types.** The other named types' values take these forms:
+**Named types.** The other named types take these forms:
 
 | Type | Form |
 |---|---|
@@ -2126,20 +2126,28 @@ condition        = [ "~" ] option-reference     ; "~": the option is not selecte
 | [`content_hash`](elements/ContentHash.md) | `sha256:`, then 64 lowercase hexadecimal digits |
 | [`spec_version`](elements/SpecVersion.md) | `MAJOR.MINOR.PATCH`, without leading zeros |
 | [`timestamp`](elements/Timestamp.md) | a UTC time to the millisecond, `YYYY-MM-DDThh:mm:ss.sssZ`, with month 01–12, day 01–31, hour 00–23, and minute and second 00–59 |
-| [`iri`](elements/Iri.md) | an IRI, never a CURIE: a scheme (an ASCII letter, then any ASCII letters, digits, `+`, `.` and `-`), `:`, at least one character other than `#`, then optionally `#` and any characters other than `#`; none of these characters is an ASCII space or control, a C1 control, `<`, `>`, `"`, `{`, `}`, the vertical bar, `\`, `^`, the backtick or a bidi formatting character U+200E, U+200F or U+202A–U+202E, and `%` comes only before two hex digits |
+| [`iri`](elements/Iri.md) | an IRI, never a CURIE, as below |
 
-**Other patterns.** The other fields with a pattern state it in their sections:
-`Output.format` ([§10](#10-outputs)), an input's and a declaration's `path`
-([§7](#7-inputs), [§15](#15-declared-analyses)), `AnalysisDeclaration.url`
+An `iri` is a scheme (an ASCII letter, then any ASCII letters, digits, `+`,
+`.` and `-`), `:`, at least one character other than `#`, then optionally `#`
+and any characters other than `#`. None of its characters is an ASCII space or
+control, a C1 control, a bidi formatting character (U+200E, U+200F or
+U+202A–U+202E), or one of `<`, `>`, `"`, `{`, `}`, `|`, `\`, `^` and the
+backtick, and `%` comes only before two hex digits.
+
+**Fragment identifiers.** A location's `value`
+([§14](#14-insights-and-evidence)) is non-empty. None of its characters is an
+ASCII space or control character, or one of `"`, `#`, `<`, `>`, `[`, `\`, `]`,
+`^`, the backtick, `{`, `|` and `}`, and `%` comes only before two hex digits
+([`INVALID_VALUE`](#5-the-astrayaml-file)). Its `conforms_to` is an `iri`
+([`INVALID_VALUE`](#5-the-astrayaml-file)).
+
+**Other patterns.** The other fields with a pattern give it in their
+sections: `Output.format` ([§10](#10-outputs)), the `path` of an input or a
+declaration ([§7](#7-inputs), [§15](#15-declared-analyses)),
+`AnalysisDeclaration.url`
 ([§17](#17-analyses-from-another-commit-or-repository)) and `Evidence.doi`
-([§14](#14-insights-and-evidence)). `FragmentSelector.value`'s is below.
-
-**Fragment identifiers.** A location's `value` is read by the syntax its
-`conforms_to` names ([§14](#14-insights-and-evidence)). It is non-empty, holds
-no ASCII space or control character and none of `"`, `#`, `<`, `>`, `[`, `\`,
-`]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before two hex digits
-([`INVALID_VALUE`](#5-the-astrayaml-file)). `conforms_to` is an
-[`iri`](elements/Iri.md) (above, [`INVALID_VALUE`](#5-the-astrayaml-file)).
+([§14](#14-insights-and-evidence)).
 
 ### D. The schema files and rules.json
 
