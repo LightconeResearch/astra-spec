@@ -340,10 +340,10 @@ In an analysis's folder:
 | `results/` | the [default places](#18-results-and-where-they-go) of those results' bytes |
 
 `results/` and `.astra/` belong to runners, and no input's or
-[declaration](#15-declared-analyses)'s `path` points into them
-([`RESERVED_PATH`](#7-inputs)). So a run never writes over an input or a
-declared analysis, and a result is read by its [address](#6-names), never by
-a path.
+[declaration](#15-declared-analyses)'s `path` is, or
+[lies inside](#glossary), one of them ([`RESERVED_PATH`](#7-inputs)). So a
+run never writes over an input or a declared analysis, and a result is read
+by its [address](#6-names), never by a path.
 
 #### The rules
 
