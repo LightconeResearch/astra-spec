@@ -549,10 +549,9 @@ decisions:
 
 ### 9. Conditions
 
-A decision or an output with a [`when`](elements/when.md) is conditional.
-`when` is a list of conditions ([§6](#6-names)). The element is **active**
-when every one of its conditions holds, and an element without `when` is
-always active.
+A decision or an output with a [`when`](elements/when.md) is conditional:
+`when` lists [conditions](#6-names), and the element is **active** when every
+one of them holds. An element without `when` is always active.
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -576,21 +575,17 @@ outputs:
 ```
 
 - A condition `d.o` holds when the option `o` of the decision `d` is
-  selected, and `~d.o` holds when it isn't.
-- `d` can be a decision of a declared analysis, by its address, as in the
-  condition `subanalysis.decision1.a`.
-- Conditions are evaluated in what the
-  [universe being built](#16-driving-and-consuming) selects, once
-  what it inherits from another universe is resolved
-  ([§12](#12-universes)).
+  selected, and `~d.o` holds when it isn't. `d` is the decision's
+  [address](#6-names), so it can name a decision of a declared analysis, as
+  in the condition `subanalysis.decision1.a`.
+- Conditions are judged on the [effective selection](#12-universes) of the
+  [universe being built](#16-driving-and-consuming).
 
-`decision3` and `output4` are active only where `decision1.b` is selected,
-so a universe selecting `decision1.a` has neither. A universe doesn't set an
-inactive decision such as `decision3` itself
-([`INACTIVE_DECISION`](#12-universes)), and needn't set it at all
-([`MISSING_DECISION`](#16-driving-and-consuming)). An inactive output such as
-`output4` isn't built in that universe
-([§13](#13-pins-and-outputs-built-per-universe-or-once)).
+Here `decision3` and `output4` are active only where `decision1.b` is
+selected, so a universe that selects `decision1.a` has neither. It doesn't
+set `decision3` itself ([`INACTIVE_DECISION`](#12-universes)), and needn't
+set it at all ([`MISSING_DECISION`](#16-driving-and-consuming)); `output4`
+isn't built in it ([§13](#13-pins-and-outputs-built-per-universe-or-once)).
 
 ### 10. Outputs
 
