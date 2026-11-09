@@ -263,7 +263,7 @@ def test_check_accepts_the_second_error_its_also_line_declares(tmp_path):
 
 
 def test_fixture_header_reads_a_code_with_a_digit(tmp_path):
-    """A code is `[A-Z][A-Z0-9_]*`, as the specification's §4 and `tools/rules.py` write it."""
+    """A code is `[A-Z][A-Z0-9_]*`, as the specification's §3 and `tools/rules.py` write it."""
     path = tmp_path / "Analysis-901-digit-code.yaml"
     path.write_text(
         "# rule: SHA256_MISMATCH\n"

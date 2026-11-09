@@ -158,7 +158,7 @@ result's record.
 **Validating.** A validator reads the driving analysis's and `stage`'s
 `astra.yaml` in the working tree, `upstream`'s at `<commit>`, and git. It
 reports any rule that an analysis of the [stack](#15-declared-analyses) breaks
-([§3](#3-conformance)), such as an input that isn't tracked in git or a
+([§4](#4-conformance)), such as an input that isn't tracked in git or a
 universe that selects no option of `decision1` or of `stage.decision2`.
 
 **Building.** The driving analysis's universes drive `stage`, so in each
@@ -188,7 +188,52 @@ directly or through others; edit the finding, and every result stays
 unchanged. `upstream.output4` is checked the same way, between the commit
 its record names and `<commit>`.
 
-### 3. Conformance
+### 3. Conventions
+
+**Keywords.** The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in BCP 14
+([RFC 2119](https://www.rfc-editor.org/rfc/rfc2119),
+[RFC 8174](https://www.rfc-editor.org/rfc/rfc8174)) when, and only when,
+they appear in all capitals, as shown here.
+
+**Notation.** Grammars are written in ABNF
+([RFC 5234](https://www.rfc-editor.org/rfc/rfc5234)) and use its core rules.
+Patterns are regular expressions as JSON Schema reads them (ECMA-262).
+
+**Codes tables.** Each rule that a tool checks or keeps has a code, and is
+stated only in the codes table at the end of a section of Part II, whose text
+explains what its rules are about. A table's columns are:
+
+- **Code:** what is wrong when the rule is broken, and what a tool reports.
+  Each code is unique and matches `[A-Z][A-Z0-9_]*`.
+- **Layer:** the layer whose tool checks or keeps the rule
+  ([§4](#4-conformance)).
+- **Level:** `MUST` or `SHOULD`, applied to the rule's sentence.
+- **Rule:** one sentence saying what holds in a conforming file, record or
+  run.
+- **Status when broken:** in the table of the check rules only, the status a
+  result, or evidence citing it, gets when the rule doesn't hold
+  ([§20](#20-checking-results)).
+
+The recommendations and the permission that have no code are each stated on
+a line of their own, starting "Recommendation:" or "Permission:", at the end
+of their section ([§17](#17-analyses-from-another-commit-or-repository),
+[§19](#19-records), [§21](#21-runners)). The [All rules](rules.md) page lists
+every rule of the codes tables by layer, then the recommendations and the
+permission.
+
+**Examples.** An example shows a whole file, or only the part its section is
+about. Commits, hashes and sizes are placeholders: `<commit>` stands for a
+full commit id, and `sha256:<hash of …>` and `<size of …>` for the hash and
+the size, in bytes, of what they name.
+
+**Fields.** Every class of the format has a page in the
+[field reference](elements/index.md), generated from the schema, whose
+descriptions define its fields. Each section of Part II links to the pages
+of its elements.
+
+### 4. Conformance
 
 Rules are enforced in five layers, set apart by what each one sees:
 
@@ -225,51 +270,6 @@ What breaking a rule leads to depends on its layer:
 | parse, schema, validator | A broken `MUST` is reported as an **error** and makes the analysis invalid (in a record, it breaks [`INVALID_RECORD`](#20-checking-results) instead); a broken `SHOULD` is reported as a **warning**, and the analysis stays valid |
 | check | A broken `MUST` is reported as an **error** and a broken `SHOULD` as a **warning**. Nothing fails: the result gets the status in the rule's *Status when broken* column |
 | runner | A runner that breaks a `MUST` doesn't conform |
-
-### 4. Conventions
-
-**Keywords.** The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
-NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
-"OPTIONAL" in this document are to be interpreted as described in BCP 14
-([RFC 2119](https://www.rfc-editor.org/rfc/rfc2119),
-[RFC 8174](https://www.rfc-editor.org/rfc/rfc8174)) when, and only when,
-they appear in all capitals, as shown here.
-
-**Notation.** Grammars are written in ABNF
-([RFC 5234](https://www.rfc-editor.org/rfc/rfc5234)) and use its core rules.
-Patterns are regular expressions as JSON Schema reads them (ECMA-262).
-
-**Codes tables.** Each rule that a tool checks or keeps has a code, and is
-stated only in the codes table at the end of a section of Part II, whose text
-explains what its rules are about. A table's columns are:
-
-- **Code:** what is wrong when the rule is broken, and what a tool reports.
-  Each code is unique and matches `[A-Z][A-Z0-9_]*`.
-- **Layer:** the layer whose tool checks or keeps the rule
-  ([§3](#3-conformance)).
-- **Level:** `MUST` or `SHOULD`, applied to the rule's sentence.
-- **Rule:** one sentence saying what holds in a conforming file, record or
-  run.
-- **Status when broken:** in the table of the check rules only, the status a
-  result, or evidence citing it, gets when the rule doesn't hold
-  ([§20](#20-checking-results)).
-
-The recommendations and the permission that have no code are each stated on
-a line of their own, starting "Recommendation:" or "Permission:", at the end
-of their section ([§17](#17-analyses-from-another-commit-or-repository),
-[§19](#19-records), [§21](#21-runners)). The [All rules](rules.md) page lists
-every rule of the codes tables by layer, then the recommendations and the
-permission.
-
-**Examples.** An example shows a whole file, or only the part its section is
-about. Commits, hashes and sizes are placeholders: `<commit>` stands for a
-full commit id, and `sha256:<hash of …>` and `<size of …>` for the hash and
-the size, in bytes, of what they name.
-
-**Fields.** Every class of the format has a page in the
-[field reference](elements/index.md), generated from the schema, whose
-descriptions define its fields. Each section of Part II links to the pages
-of its elements.
 
 ## Part II: The specification
 
@@ -1222,8 +1222,9 @@ driving analysis's `decision1` as `parent.decision1`.
 **A second declaration of one folder.** Where the driving analysis also
 declares `subanalysis`'s folder as `undriven: {path: subanalysis}`, which no
 key of its universes goes through, that declaration is judged on its own
-chain, so it isn't driven. A read through it in one of the driving
-analysis's universes, without a pin or pinned to one of them, breaks
+chain, so it isn't driven. A read through it of an output built per
+universe, such as `subanalysis`'s `output1`, in one of the driving analysis's
+universes, without a pin or pinned to one of them, breaks
 [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming):
 
 <!-- fragment: Analysis -->
@@ -1233,11 +1234,15 @@ analyses:
     path: subanalysis
   undriven:
     path: subanalysis
+universes:
+  u1:
+    decisions: {subanalysis.decision1: a}   # drives subanalysis, not undriven
 outputs:
   output6:
     type: metric
     format: json
     inputs:
+      - subanalysis.output1   # read as subanalysis is built in u1
       - undriven.output1      # UNDRIVEN_DECLARATION
       - undriven.output1#u1   # UNDRIVEN_DECLARATION
     recipe:
@@ -1954,9 +1959,9 @@ Each term links to the sections that define it or give its detail.
 - **belongs to** ([§18](#18-results-and-where-they-go))
 - **built per universe, built once** ([§13](#13-pins-and-outputs-built-per-universe-or-once))
 - **chain of declarations** ([§15](#15-declared-analyses))
-- **checker** ([§1](#1-what-astra-is), [§3](#3-conformance),
+- **checker** ([§1](#1-what-astra-is), [§4](#4-conformance),
   [§20](#20-checking-results))
-- **code, codes table** ([§4](#4-conventions))
+- **code, codes table** ([§3](#3-conventions))
 - **condition** ([§6](#6-names), [§9](#9-conditions))
 - **constraint** ([§8](#8-decisions-and-options))
 - **consuming** ([§16](#16-driving-and-consuming))
@@ -1965,13 +1970,13 @@ Each term links to the sections that define it or give its detail.
   [§15](#15-declared-analyses))
 - **default place** ([§18](#18-results-and-where-they-go))
 - **depends on** ([§10](#10-outputs))
-- **document** ([§3](#3-conformance))
+- **document** ([§4](#4-conformance))
 - **drive, driving** ([§16](#16-driving-and-consuming))
 - **driver, driven** ([§16](#16-driving-and-consuming))
 - **driving analysis** ([§1](#1-what-astra-is), [§15](#15-declared-analyses))
 - **effective selection** ([§12](#12-universes))
 - **element** ([§6](#6-names))
-- **error, warning** ([§3](#3-conformance))
+- **error, warning** ([§4](#4-conformance))
 - **excluded option** ([§8](#8-decisions-and-options))
 - **flat key** ([§16](#16-driving-and-consuming))
 - **id** ([§6](#6-names), [Annex C](#c-grammars-and-patterns))
@@ -1981,7 +1986,7 @@ Each term links to the sections that define it or give its detail.
 - **imported universe** ([§16](#16-driving-and-consuming))
 - **input** ([§1](#1-what-astra-is), [§7](#7-inputs))
 - **insight** ([§1](#1-what-astra-is), [§14](#14-insights-and-evidence))
-- **layer** ([§3](#3-conformance))
+- **layer** ([§4](#4-conformance))
 - **leads back** ([§15](#15-declared-analyses))
 - **lies inside** ([Annex B](#b-paths-and-git)): of a path and a folder, both
   tidied: the folder's segments begin the path's, and the path has more.
@@ -2007,7 +2012,7 @@ Each term links to the sections that define it or give its detail.
   git repository the file is in: for a file in a submodule, the submodule's
   own.
 - **result** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go))
-- **runner** ([§1](#1-what-astra-is), [§3](#3-conformance), [§21](#21-runners))
+- **runner** ([§1](#1-what-astra-is), [§4](#4-conformance), [§21](#21-runners))
 - **spelling** ([§15](#15-declared-analyses))
 - **stale** ([§1](#1-what-astra-is), [§20](#20-checking-results))
 - **stand-in** ([§7](#7-inputs), [Annex B](#b-paths-and-git))
@@ -2020,8 +2025,8 @@ Each term links to the sections that define it or give its detail.
 - **universe** ([§1](#1-what-astra-is), [§12](#12-universes))
 - **universe being built** ([§16](#16-driving-and-consuming))
 - **universes built** ([§16](#16-driving-and-consuming))
-- **valid** ([§3](#3-conformance))
-- **validator** ([§3](#3-conformance))
+- **valid** ([§4](#4-conformance))
+- **validator** ([§4](#4-conformance))
 
 ## Part III: For tool builders
 
