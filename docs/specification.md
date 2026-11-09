@@ -44,7 +44,7 @@ analysis as it is then. It says whether the result is **unchanged**,
 
 Here the driving analysis reads a file of its own and an output of each of
 two other analyses: `stage`, in a folder of the same repository, and
-`upstream`, in another repository. It makes one result from them in each of
+`upstream`, in another *remote* repository. It makes one result from them both in each of
 two universes, and compares the two:
 
 ```yaml
@@ -132,9 +132,10 @@ outputs:
         '{output}'
 ```
 
-The repository at `https://example.org/upstream.git` holds, at its top, an
-analysis with an output `output4`, built once. At `<commit>`, it also holds
-`output4`'s result and that result's record.
+The repository at `https://example.org/upstream.git` holds an
+analysis with an output `output4`, built once (it does not depend on any
+decisions). At `<commit>`, it also holds `output4`'s result and that
+result's record.
 
 - `output1` lists `decision1`, so it is
   [built per universe](#13-pins-and-outputs-built-per-universe-or-once): it
@@ -160,8 +161,8 @@ reports any rule that an analysis of the [stack](#15-declared-analyses) breaks
 ([§3](#3-conformance)), such as an input that isn't tracked in git or a
 universe that selects no option of `decision1` or of `stage.decision2`.
 
-**Building.** The driving analysis's universes drive `stage`, so in each of
-them a runner builds `stage`'s `output3`: it runs `stage`'s recipe in
+**Building.** The driving analysis's universes drive `stage`, so in each
+universe a runner builds `stage`'s `output3`: it runs `stage`'s recipe in
 `stage`'s folder, with `{decisions.decision2}` replaced by `a` in `u1` and by
 `b` in `u2`. It runs `output1`'s with `{decisions.decision1}` replaced in the
 same way, then `output2`'s once, with the paths of `output1`'s two results
@@ -235,9 +236,8 @@ NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
 they appear in all capitals, as shown here.
 
 **Notation.** Grammars are written in ABNF
-([RFC 5234](https://www.rfc-editor.org/rfc/rfc5234)) and use its core rules,
-such as `DIGIT`. Patterns are regular expressions as JSON Schema reads them
-(ECMA-262).
+([RFC 5234](https://www.rfc-editor.org/rfc/rfc5234)) and use its core rules.
+Patterns are regular expressions as JSON Schema reads them (ECMA-262).
 
 **Codes tables.** Each rule that a tool checks or keeps has a code, and is
 stated only in the codes table at the end of a section of Part II, whose text
@@ -393,8 +393,9 @@ selected.
 
 #### Ids and maps
 
-- The id is written once, as the key ([`INVALID_ID`](#6-names)): `a: {}`,
-  never `a: {id: a}` ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)).
+- The id is written once, as the key ([`INVALID_ID`](#6-names)):
+  `a: {<allowed entries>}`, never `a: {<non-allowed entries>}`
+  ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)).
 - Ids are unique within their map, since a map's keys are, and the order of
   a map carries no meaning.
 - A map's entries are objects, except those of `Universe.decisions`, each the
@@ -666,15 +667,7 @@ outputs:
       command: >-
         python src/output1.py '{inputs.input1}' '{inputs.subanalysis.output1}'
         '{decisions.decision1}' '{output}'
-      resources: {cpus: 2, memory: 4GB}
 ```
-
-- `resources` ([Resources](elements/Resources.md)) are the CPUs, memory,
-  time, disk and GPUs the recipe asks for. `cpus` is at least 0 and `gpus` at
-  least 1 ([`INVALID_VALUE`](#5-the-astrayaml-file)).
-- `container` is the container the recipe runs in: an image, or a
-  Containerfile it is built from. `Analysis.container` is the default
-  container of the analysis's recipes.
 
 #### The command as a template
 
@@ -732,8 +725,7 @@ of the analysis, and of the analyses its universes
 [drive](#16-driving-and-consuming)
 ([`MISSING_DECISION`](#16-driving-and-consuming)). An analysis's universes
 are the entries of its `universes`, other than imports (below). No universe
-is privileged: there is no default universe or option, and a universe called
-`baseline` is one with that name and nothing more.
+is privileged: there is no default universe or option.
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -804,6 +796,14 @@ universes:
     analysis: subanalysis
     universe: v1
 ```
+
+Most pins need no import: in a file with no universe `v1`,
+`subanalysis.output1#v1` names `subanalysis`'s own `v1`
+([§16](#16-driving-and-consuming)). An import is only for a universe a pin
+can't name that way: one whose id the file's own universes already use, as
+when the driving analysis and `subanalysis` both have a `u1`, or one of
+another analysis than the output's, such as `stage`'s `v1` for an output of
+an analysis `stage` drives.
 
 - An import is written as a [Universe](elements/Universe.md) object. Its
   `label`, `description` and `tags` are its own: they describe the universe
@@ -975,9 +975,7 @@ gives it:
 Without `conforms_to`, `value` is a PDF fragment identifier as
 [RFC 8118 §3](https://www.rfc-editor.org/rfc/rfc8118#section-3) gives it (it
 defers to ISO 32000-2), such as `page=6`, with pages counted from 1; it can
-point at more than a page. Web Annotation names that syntax
-`http://tools.ietf.org/rfc/rfc3778`, after the RFC that RFC 8118 obsoletes;
-writing that IRI means the same as writing none.
+point at more than a page.
 
 [Annex C](#c-grammars-and-patterns) gives the characters `value` may hold,
 and the form of `conforms_to`, an IRI
