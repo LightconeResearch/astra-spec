@@ -368,7 +368,7 @@ def validator(root: str, *, closed: bool = True) -> Validator:
 
 @functools.cache
 def rules_catalogue() -> dict[str, Any]:
-    """The committed `rules.json`: the rules of the specification's codes tables, and the error map of the JSON Schemas."""
+    """The committed `rules.json`: the rules of the specification's codes table, and the error map of the JSON Schemas."""
     return json.loads((GENERATED / "rules.json").read_text(encoding="utf-8"))
 
 

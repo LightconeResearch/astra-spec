@@ -1,25 +1,23 @@
-"""The published page shows every cell of its codes tables as the same text as `rules.json`, every in-page link of the
-specification goes to an element of it, the All rules page shows every rule of `rules.json` under its layer, and the
-field reference shows every pattern as the LinkML sources write it.
+"""The published page shows every cell of its codes table as the same text as `rules.json`, every in-page link of the
+specification goes to an element of it, and the field reference shows every pattern as the LinkML sources write it.
 
-`tools/rules.py` reads the codes tables as CommonMark with GFM tables, but the site renders them with Python-Markdown
-and Zensical's extensions. So a cell could read one way in `rules.json` and another on the page: `~~`, `==`, `^^`,
-emoji, smart symbols (`-->`, `1/2`), `$…$`, footnotes, attribute lists, `\\|` in a code span, or a codes table right
-after a paragraph, which Python-Markdown doesn't read as a table. Pinning the site's extensions can't remove the last
-two.
+`tools/rules.py` reads the codes table as CommonMark with GFM tables, but the site renders it with Python-Markdown and
+Zensical's extensions. So a cell could read one way in `rules.json` and another on the page: `~~`, `==`, `^^`, emoji,
+smart symbols (`-->`, `1/2`), `$…$`, footnotes, attribute lists, `\\|` in a code span, or a codes table right after a
+paragraph, which Python-Markdown doesn't read as a table. Pinning the site's extensions can't remove the last two.
 
-So a test reads the built page and compares the text of each cell of every codes table (a table whose first column is
-Code) with the matching field of `rules.json`, rendered by markdown-it: the same rules, in the same order, word for
-word, each table under the heading of the section its rules name as their source. Another checks that every link of
-the page to a fragment of the page names an element there.
+So a test reads the built page and compares the text of the codes table (the table whose first column is Code) with
+`rules.json`, rendered by markdown-it: the same rules, in the same order, word for word, each under the layer row of
+its layer, the table under the Rules heading. Another checks that every link of the page to a fragment of the page
+names an element there.
 
 The field reference's pages are built from `gen-doc`'s Markdown, where a pattern's backtick, `|`, `[^` or `^` would be
 read as Markdown. So another test reads each element's page and compares its Regex Pattern cell with the pattern the
-LinkML sources write. The All rules page (`tools/rules_page.py`) is written by the docs build, and a last test reads
-it. The tests run in CI after the docs build (`main.yaml`, `test_pages_build.yaml`), and are skipped when there is no
-`site/`.
+LinkML sources write. The tests run in CI after the docs build (`main.yaml`, `test_pages_build.yaml`), and are skipped
+when there is no `site/`.
 """
 
+import itertools
 from collections import defaultdict
 from html.parser import HTMLParser
 from typing import Any
@@ -39,14 +37,11 @@ ELEMENTS = SITE / "elements"
 SOURCES = REPO_ROOT / "src" / "astra" / "schema"
 """The LinkML sources."""
 
-COLUMNS = {
-    "Code": "code",
-    "Layer": "layer",
-    "Level": "level",
-    "Rule": "statement",
-    "Status when broken": "status",
-}
-"""Each column of a codes table, with the field of a rule in `rules.json` it shows."""
+RULES = "Rules"
+"""The heading of the section that holds the codes table."""
+
+STATUS = "→"
+"""The mark in a check row's Rule cell between its part of the statement and its status."""
 
 MARKDOWN = {"statement", "status"}
 """The fields that are inline Markdown, rendered by markdown-it before their text is compared."""
@@ -90,9 +85,9 @@ def expected_text(rule: dict[str, Any], field: str) -> str:
     )
 
 
-def page_rules() -> list[tuple[str, dict[str, str]]]:
-    """Each row of the page's codes tables, in order, with the text of the `<h3>` above its table, and the text of each
-    of its cells keyed by its column."""
+def page_rows() -> list[tuple[str, dict[str, str]]]:
+    """Each row of the page's codes table, in order, with the text of the heading above the table, and the text of
+    each of its cells keyed by its column."""
     parser = _Tables(("h1", "h2", "h3"))
     parser.feed(PAGE.read_text(encoding="utf-8"))
     parser.close()
@@ -104,35 +99,80 @@ def page_rules() -> list[tuple[str, dict[str, str]]]:
     ]
 
 
+def page_rules() -> list[dict[str, Any]]:
+    """The rules the page's codes table shows, in order: for each, the heading above the table, the first word of the
+    layer row above it, its code and level, and the text of its rows' Rule cells, each a check row's split at its `→`
+    into its part of the statement and its status."""
+    rules: list[dict[str, Any]] = []
+    layer = None
+    for heading, row in page_rows():
+        if not row.get("Level") and not row.get("Rule"):
+            layer = "".join(itertools.takewhile(str.isalpha, row.get("Code", "")))
+            continue
+        statement, status = row.get("Rule", ""), None
+        if layer == "check":
+            statement, _, status = statement.partition(STATUS)
+            statement, status = statement.strip(), status.strip()
+        last = rules[-1] if rules else None
+        if last is not None and (last["code"], last["layer"]) == (
+            row.get("Code"),
+            layer,
+        ):
+            last["parts"].append(statement)
+            last["statuses"].append(status)
+            continue
+        rules.append(
+            {
+                "heading": heading,
+                "layer": layer,
+                "code": row.get("Code"),
+                "level": row.get("Level"),
+                "parts": [statement],
+                "statuses": [status],
+                "columns": sorted(row),
+            }
+        )
+    return rules
+
+
 def test_page_shows_every_rule_as_rules_json_words_it():
-    """The page's codes tables hold the rules of `rules.json`, in order, each cell the text of its field, and each table
-    under the heading of its rules' section (`### 7. Inputs` for `§7 Inputs`)."""
+    """The page's codes table holds the rules of `rules.json`, in order, under the Rules heading, each under the layer
+    row of its layer: its code and level, and its rows' Rule cells, joined with `; `, its statement then, for a check
+    rule, its status after each `→`, each the text of its field."""
     assert PAGE.is_file(), f"{PAGE} is missing: build the site with `zensical build`"
     page = page_rules()
     rules = rules_catalogue()["rules"]
-    assert [row.get("Code") for _, row in page] == [rule["code"] for rule in rules], (
-        "the page's codes tables don't hold the rules of rules.json, in order: rebuild the site after `just gen-schema`"
+    assert [shown["code"] for shown in page] == [rule["code"] for rule in rules], (
+        "the page's codes table doesn't hold the rules of rules.json, in order: rebuild the site after `just gen-schema`"
     )
     differences = []
-    for (heading, row), rule in zip(page, rules):
-        number, _, title = rule["source"].removeprefix("§").partition(" ")
-        if heading != f"{number}. {title}":
-            differences.append(
-                f"{rule['code']}: its table is under {heading!r}, not its source, {rule['source']!r}"
-            )
-        fields = sorted(field for field in rule if field != "source")
-        shown = sorted(COLUMNS.get(column, column) for column in row)
-        if shown != fields:
-            differences.append(
-                f"{rule['code']}: the page shows {shown}, rules.json has {fields}"
-            )
+    for shown, rule in zip(page, rules):
+        code = rule["code"]
+        if shown["columns"] != sorted(["Code", "Level", "Rule"]):
+            differences.append(f"{code}: the page shows the columns {shown['columns']}")
             continue
-        for column, text in row.items():
-            expected = expected_text(rule, COLUMNS[column])
-            if text != expected:
-                differences.append(
-                    f"{rule['code']}, {column}: the page shows {text!r}, rules.json {expected!r}"
-                )
+        if shown["heading"] != RULES:
+            differences.append(
+                f"{code}: its table is under {shown['heading']!r}, not {RULES!r}"
+            )
+        if shown["layer"] != rule["layer"]:
+            differences.append(
+                f"{code}: under the layer row of {shown['layer']!r}, not {rule['layer']!r}"
+            )
+        if shown["level"] != rule["level"]:
+            differences.append(
+                f"{code}: the page shows the level {shown['level']!r}, rules.json {rule['level']!r}"
+            )
+        statement = "; ".join(shown["parts"])
+        if statement != expected_text(rule, "statement"):
+            differences.append(
+                f"{code}: the page shows {statement!r}, rules.json {expected_text(rule, 'statement')!r}"
+            )
+        statuses = {expected_text(rule, "status") if "status" in rule else None}
+        if set(shown["statuses"]) != statuses:
+            differences.append(
+                f"{code}: the page shows the statuses {shown['statuses']}, rules.json {statuses}"
+            )
     assert differences == []
 
 
@@ -153,8 +193,8 @@ class _Links(HTMLParser):
 
 
 def test_every_in_page_link_resolves():
-    """Every link of the specification's page to one of its own fragments (`#5-the-astrayaml-file`) names an element
-    of the page: a section's heading, as the site makes its anchor."""
+    """Every link of the specification's page to one of its own fragments (`#rules`) names an element of the page: a
+    section's heading, as the site makes its anchor."""
     assert PAGE.is_file(), f"{PAGE} is missing: build the site with `zensical build`"
     links = _Links()
     links.feed(PAGE.read_text(encoding="utf-8"))
@@ -332,55 +372,3 @@ class _Tables(HTMLParser):
             self._heading.append(data)
         if self._cell is not None:
             self._cell.append(data)
-
-
-RULES_PAGE = SITE / "rules" / "index.html"
-"""The All rules page, generated from the specification (`tools/rules_page.py`)."""
-
-PAGE_COLUMNS = {"Level": "level", "Rule": "statement", "Status when broken": "status"}
-"""The columns of the All rules page that show a field of a rule, with that field."""
-
-
-def test_all_rules_page_lists_every_rule():
-    """The All rules page lists every rule of `rules.json` once, under its layer's heading, showing its level, its rule
-    and, for a check rule, its status as `rules.json` words them, with a link to a heading of the specification's
-    page."""
-    assert RULES_PAGE.is_file(), (
-        f"{RULES_PAGE} is missing: build the site with `just docs`"
-    )
-    parser = _Tables(("h1", "h2"))
-    parser.feed(RULES_PAGE.read_text(encoding="utf-8"))
-    parser.close()
-    ids = _Links()
-    ids.feed(PAGE.read_text(encoding="utf-8"))
-    ids.close()
-    shown = [
-        (layer, dict(zip(header, row)))
-        for layer, header, rows in parser.tables
-        for row in rows
-    ]
-    rules = {rule["code"]: rule for rule in rules_catalogue()["rules"]}
-    assert sorted(row["Code"][0] for _, row in shown) == sorted(rules)
-    differences = []
-    for layer, row in shown:
-        rule = rules[row["Code"][0]]
-        if layer != rule["layer"].capitalize():
-            differences.append(f"{rule['code']}: under {layer!r}, not its layer")
-        for column, field in PAGE_COLUMNS.items():
-            if (column in row) != (field in rule):
-                differences.append(f"{rule['code']}: the page's {column} column")
-            elif column in row and row[column][0] != expected_text(rule, field):
-                differences.append(
-                    f"{rule['code']}, {column}: the page shows {row[column][0]!r}, rules.json"
-                    f" {expected_text(rule, field)!r}"
-                )
-        links = row["Section"][1]
-        page, _, fragment = links[0].partition("#") if len(links) == 1 else ("", "", "")
-        if (
-            page.rstrip("/").rsplit("/", 1)[-1] != "specification"
-            or fragment not in ids.ids
-        ):
-            differences.append(
-                f"{rule['code']}: its section link, {links}, is not to a heading of the specification"
-            )
-    assert differences == []

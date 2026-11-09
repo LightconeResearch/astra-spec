@@ -1,10 +1,10 @@
-"""`rules.json`: the rules extracted from the codes tables of the specification's Part II, and the error map derived from
-the schema (design D13).
+"""`rules.json`: the rules extracted from the codes table of the specification's Rules section, and the error map
+derived from the schema (design D13).
 
-The extractor is strict, so it is tested on small specifications, one per way a codes table or a note can be malformed;
-so is the All rules page, which reads them. The committed `rules.json` holds every rule of the specification in order,
-and a code for every keyword of the three JSON Schemas whose error can make an instance fail (spec Annex D), each a
-schema-layer code. `absolute_keyword_location` is checked where `jsonschema`'s paths need resolving.
+The extractor is strict, so it is tested on small specifications, one per way the codes table can be malformed. The
+committed `rules.json` holds every rule of the specification in order, and a code for every keyword of the three JSON
+Schemas whose error can make an instance fail, each a schema-layer code. `absolute_keyword_location` is checked where
+`jsonschema`'s paths need resolving.
 """
 
 import copy as copy_module
@@ -20,15 +20,12 @@ from jschon import JSON, JSONSchema, create_catalog
 from jsonschema import Draft201909Validator
 from jsonschema_generator import generate
 from linkml_runtime import SchemaView
-from markdown_it import MarkdownIt
 from rules import (
     build_catalogue,
     build_error_map,
-    extract_notes,
     extract_rules,
     json_pointer,
 )
-from rules_page import anchor, read_specification, render_rules_page
 
 from .conftest import (
     GENERATED,
@@ -77,96 +74,76 @@ def quoted(table: str, prefix: str = "> ") -> str:
     return "".join(prefix + line for line in table.splitlines(keepends=True))
 
 
-INPUTS_TABLE = """\
-| Code | Layer | Level | Rule |
-|---|---|---|---|
-| `LOOSE_PIN` | validator | SHOULD | No input has a pin |
+CODES_TABLE = """\
+| Code | Level | Rule |
+|---|---|---|
+| **schema** | | |
+| `BAD_ID` | MUST | Every `id` matches the [*id* grammar](#elements) |
+| `BAD_ID` | MUST | A key is an id |
+| `EMPTY_MAP` | MUST | No map is empty |
+| ***validator, in each universe*** | | |
+| `LOOSE_PIN` | SHOULD | No input has a pin |
+| **check** | | |
+| `NO_RECORD` | MUST | Every planned result has a record → `missing` |
 """
 
-SECTIONS = (
+SPEC = (
     """\
 # A specification
 
-## Part I: How it works
+## Elements
 
-### 1. What it is
-
-| Layer | Who checks it |
+| Edit | Effect |
 |---|---|
-| parse | A loader |
+| A path changes | Its results are stale |
 
-## Part II: The specification
+## Rules
 
-### 5. The astra.yaml file
-
-An `astra.yaml` file is YAML.
-
-| Code | Layer | Level | Rule |
-|---|---|---|---|
-| `BAD_ID` | schema | MUST | Every `id` matches the [*id* grammar](#c-grammars) |
-| `EMPTY_MAP` | schema | MUST | No map is empty |
-
-### 6. Names
-
-Names have no codes.
-
-### 7. Inputs
+Each rule has a code.
 
 """
-    + INPUTS_TABLE
+    + CODES_TABLE
     + """
-### 19. Records
+Recommendations and a permission:
 
-Recommendation: branches that hold records SHOULD be merged, not
-squashed or rebased.
+| Who | Level | Recommendation or permission |
+|---|---|---|
+| A checker | MAY | stop at the first `NO_RECORD` |
 
-### 20. Checking results
+## Schema files
 
-| Code | Layer | Level | Rule | Status when broken |
-|---|---|---|---|---|
-| `NO_RECORD` | check | MUST | Every planned result has a record | `missing` |
-
-Permission: a checker MAY stop at the first [`NO_RECORD`](#20-checking-results).
-
-## Glossary
-
-- **tracked:** in git's index.
-
-## Part III: For tool builders
-
-### A. Reading files
-
-An `astra.yaml` file is read as YAML 1.2.
+| File | What it is |
+|---|---|
+| `rules.json` | every rule |
 """
 )
-"""A small specification: codes tables in §5, §7 and §20 of Part II, none in §6, a table that isn't a
-codes table in Part I, a recommendation in §19 and a permission after §20's table. Its lines are numbered from 1:
-§5's table starts at line 17, §7's at line 28 and §20's at line 39."""
+"""A small specification: a codes table in its Rules section, with four layer rows' worth of rules, one of them in
+two rows, and tables that aren't a codes table before it, after it in its section, and in the next section. Its lines
+are numbered from 1: the codes table starts at line 13, its rows of `BAD_ID` are lines 16 and 17, and `NO_RECORD`'s
+is line 22."""
 
 
-def test_section_tables_are_read_in_document_order():
-    """Every row of Part II's codes tables, in order, with its section as its source; links reduced to their text."""
-    assert extract_rules(SECTIONS) == [
+def test_the_codes_table_is_read_in_document_order():
+    """Every rule of the codes table, in order, with the layer of the layer row above it: the rows of one code joined,
+    links reduced to their text, and a check rule's status after its `→`."""
+    assert extract_rules(SPEC) == [
         {
             "code": "BAD_ID",
             "layer": "schema",
             "level": "MUST",
-            "statement": "Every `id` matches the *id* grammar",
-            "source": "§5 The astra.yaml file",
+            "statement": "Every `id` matches the *id* grammar; A key is an id",
         },
         {
             "code": "EMPTY_MAP",
             "layer": "schema",
             "level": "MUST",
             "statement": "No map is empty",
-            "source": "§5 The astra.yaml file",
         },
         {
             "code": "LOOSE_PIN",
             "layer": "validator",
             "level": "SHOULD",
             "statement": "No input has a pin",
-            "source": "§7 Inputs",
         },
         {
             "code": "NO_RECORD",
@@ -174,181 +151,241 @@ def test_section_tables_are_read_in_document_order():
             "level": "MUST",
             "statement": "Every planned result has a record",
             "status": "`missing`",
-            "source": "§20 Checking results",
         },
     ]
 
 
-def codes_table(code: str, layer: str = "validator") -> str:
-    """A codes table of one rule, `code`, in `layer`."""
+def codes_table(code: str) -> str:
+    """A codes table of one rule, `code`, in the validator layer."""
     return (
-        "| Code | Layer | Level | Rule |\n|---|---|---|---|\n"
-        f"| `{code}` | {layer} | MUST | Nothing is out of place |\n"
+        "| Code | Level | Rule |\n|---|---|---|\n| **validator** | | |\n"
+        f"| `{code}` | MUST | Nothing is out of place |\n"
     )
 
 
-MALFORMED_SECTIONS = {
-    "a table in Part I": (
-        "| Layer | Who checks it |",
-        "| Code | Who checks it |",
-        r"^line 7: a codes table .* must be in a ### section of Part II",
+MALFORMED = {
+    "a codes table before the Rules section": (
+        "| Edit | Effect |",
+        "| Code | Effect |",
+        r"^line 5: a codes table .* must be in the '## Rules' section",
     ),
-    "a table in Part II before its first section": (
-        "## Part II: The specification\n\n",
-        "## Part II: The specification\n\n" + codes_table("EARLY") + "\n",
-        r"^line 13: a codes table .* must be in a ### section of Part II",
+    "a codes table after the Rules section": (
+        "| `rules.json` | every rule |\n",
+        "| `rules.json` | every rule |\n\n" + codes_table("LATE"),
+        r"^line 36: a codes table .* must be in the '## Rules' section",
     ),
-    "a table in the glossary": (
-        "- **tracked:** in git's index.\n",
-        "- **tracked:** in git's index.\n\n" + codes_table("LATE"),
-        r"^line 49: a codes table .* must be in a ### section of Part II",
+    "two codes tables": (
+        "Recommendations and a permission:\n",
+        codes_table("EXTRA_RULE") + "\nRecommendations and a permission:\n",
+        r"^line 24: a second codes table, but the specification has one, at line 13",
     ),
-    "a table in Part III": (
-        "is read as YAML 1.2.\n",
-        "is read as YAML 1.2.\n\n" + codes_table("LATE", "parse"),
-        r"^line 55: a codes table .* must be in a ### section of Part II",
+    "no Rules heading": (
+        "## Rules",
+        "## Rule list",
+        r"^the specification must have one '## Rules' heading, not 0$",
     ),
-    "two tables in one section": (
-        INPUTS_TABLE,
-        INPUTS_TABLE + "\n" + codes_table("EXTRA_RULE"),
-        r"^line 32, ### 7\. Inputs: a second codes table, but a section has at most one",
+    "two Rules headings": (
+        "## Schema files",
+        "## Rules",
+        r"^line 30: a second '## Rules' heading, but the specification has one$",
     ),
-    "a table followed by a paragraph": (
-        INPUTS_TABLE,
-        INPUTS_TABLE + "\nInputs are files.\n",
-        r"^line 32, ### 7\. Inputs: a paragraph follows the codes table of line 28, which must be the section's last"
-        r" block",
+    "no codes table": (
+        "| Code | Level | Rule |",
+        "| Key | Level | Rule |",
+        r"^the '## Rules' section has no codes table$",
     ),
-    "a table followed by a list": (
-        INPUTS_TABLE,
-        INPUTS_TABLE + "\n- Inputs are files.\n",
-        r"^line 32, ### 7\. Inputs: a bullet list follows the codes table of line 28",
-    ),
-    "a table followed by a heading": (
-        INPUTS_TABLE,
-        INPUTS_TABLE + "\n#### More on inputs\n",
-        r"^line 32, ### 7\. Inputs: a heading follows the codes table of line 28",
-    ),
-    "a table with a Source column": (
-        INPUTS_TABLE,
-        INPUTS_TABLE.replace(
-            "| Rule |\n|---|---|---|---|", "| Rule | Source |\n|---|---|---|---|---|"
-        ).replace("a pin |", "a pin | 0003 |"),
-        r"^line 28, ### 7\. Inputs: a codes table's columns are Code, Layer, Level and Rule, and Status when broken"
-        r" after them in a table of check rules, not Code, Layer, Level, Rule, Source",
+    "a Layer column": (
+        "| Code | Level | Rule |\n|---|---|---|",
+        "| Code | Layer | Level | Rule |\n|---|---|---|---|",
+        r"^line 13: the codes table's columns are Code, Level and Rule, not Code, Layer, Level, Rule$",
     ),
     "columns out of order": (
-        INPUTS_TABLE,
-        INPUTS_TABLE.replace("| Layer | Level |", "| Level | Layer |").replace(
-            "| validator | SHOULD |", "| SHOULD | validator |"
-        ),
-        r"^line 28, ### 7\. Inputs: a codes table's columns are .*, not Code, Level, Layer, Rule$",
-    ),
-    "a check row in a four-column table": (
-        "| `LOOSE_PIN` | validator |",
-        "| `LOOSE_PIN` | check |",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its layer is check, but its table has no Status when broken"
-        r" column",
-    ),
-    "a five-column table with a validator row": (
-        "| `NO_RECORD` | check |",
-        "| `NO_RECORD` | validator |",
-        r"^line 41, ### 20\. Checking results, row `NO_RECORD`: its layer is validator, but only check rows are in a"
-        r" table with a Status when broken column",
+        "| Code | Level | Rule |",
+        "| Code | Rule | Level |",
+        r"^line 13: the codes table's columns are Code, Level and Rule, not Code, Rule, Level$",
     ),
     "an unknown layer": (
-        "| `LOOSE_PIN` | validator |",
-        "| `LOOSE_PIN` | semantic |",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: unknown layer 'semantic': a layer is parse, schema, validator,"
-        r" check or runner",
+        "| **check** |",
+        "| **checker** |",
+        r"^line 21, row \*\*checker\*\*: unknown layer 'checker': a layer row's first word is parse, schema,"
+        r" validator, check or runner$",
     ),
-    "a MAY row on a validator": (
-        "| `LOOSE_PIN` | validator | SHOULD |",
-        "| `LOOSE_PIN` | validator | MAY |",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: unknown level 'MAY': a level is MUST or SHOULD",
+    "a layer word with a digit": (
+        "| **check** |",
+        "| **check2** |",
+        r"^line 21, row \*\*check2\*\*: unknown layer 'check2'",
     ),
-    "a MAY row on a runner": (
-        "| `LOOSE_PIN` | validator | SHOULD |",
-        "| `LOOSE_PIN` | runner | MAY |",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: unknown level 'MAY': a level is MUST or SHOULD",
+    "a layer in capitals": (
+        "| **check** |",
+        "| **Check** |",
+        r"^line 21, row \*\*Check\*\*: unknown layer 'Check'",
     ),
-    "a keyword that contradicts the level": (
-        "No input has a pin",
-        "No input MUST have a pin",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its rule says MUST, which contradicts its level, SHOULD",
+    "a layer row not in strong emphasis": (
+        "| **check** |",
+        "| check |",
+        r"^line 21, row check: its Level cell is empty$",
     ),
-    "a duplicate code across sections": (
+    "a layer row in emphasis only": (
+        "| **check** |",
+        "| *check* |",
+        r"^line 21, row \*check\*: its Level cell is empty$",
+    ),
+    "a layer row with text outside its strong emphasis": (
+        "| **check** |",
+        "| **check** rules |",
+        r"^line 21, row \*\*check\*\* rules: its Level cell is empty$",
+    ),
+    "a layer row with a level": (
+        "| **check** | | |",
+        "| **check** | MUST | |",
+        r"^line 21, row \*\*check\*\*: a layer row's Level and Rule cells must be empty$",
+    ),
+    "a rule row before any layer row": (
+        "| **schema** | | |\n",
+        "",
+        r"^line 15, row `BAD_ID`: it comes before any layer row",
+    ),
+    "a MAY row": (
+        "| `LOOSE_PIN` | SHOULD |",
+        "| `LOOSE_PIN` | MAY |",
+        r"^line 20, row `LOOSE_PIN`: unknown level 'MAY': a level is MUST or SHOULD$",
+    ),
+    "an unknown level": (
+        "| `LOOSE_PIN` | SHOULD |",
+        "| `LOOSE_PIN` | Should |",
+        r"^line 20, row `LOOSE_PIN`: unknown level 'Should': a level is MUST or SHOULD$",
+    ),
+    "a code repeated apart": (
         "| `LOOSE_PIN` |",
         "| `BAD_ID` |",
-        r"^line 30, ### 7\. Inputs, row `BAD_ID`: the code BAD_ID is already the code of the row at line 19",
+        r"^line 20, row `BAD_ID`: the code BAD_ID is already the code of the rule at line 16: the rows of a rule are"
+        r" consecutive, under one layer row$",
+    ),
+    "a code repeated under the next layer row": (
+        "| `LOOSE_PIN` | SHOULD |",
+        "| `EMPTY_MAP` | MUST |",
+        r"^line 20, row `EMPTY_MAP`: the code EMPTY_MAP is already the code of the rule at line 18",
+    ),
+    "the rows of a rule at two levels": (
+        "| `BAD_ID` | MUST | A key is an id |",
+        "| `BAD_ID` | SHOULD | A key is an id |",
+        r"^line 17, row `BAD_ID`: its level is SHOULD, but the row of BAD_ID at line 16 is MUST: the rows of a rule"
+        r" share its level$",
+    ),
+    "the rows of a check rule with two statuses": (
+        "| `NO_RECORD` | MUST | Every planned result has a record → `missing` |\n",
+        "| `NO_RECORD` | MUST | Every planned result has a record → `missing` |\n"
+        "| `NO_RECORD` | MUST | Its record is current → `stale` |\n",
+        r"^line 23, row `NO_RECORD`: its status is '`stale`', but the row of NO_RECORD at line 22 gives '`missing`':"
+        r" the rows of a check rule give one status$",
     ),
     "a code not in a code span": (
         "| `LOOSE_PIN` |",
         "| LOOSE_PIN |",
-        r"^line 30, ### 7\. Inputs, row LOOSE_PIN: the Code cell must be one code span",
-    ),
-    "an empty cell": (
-        "| No input has a pin |",
-        "|  |",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its Rule cell is empty",
-    ),
-    "an extra cell": (
-        "| No input has a pin |",
-        "| No input has a pin | x |",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: it has 5 cells, but the table has 4 columns",
-    ),
-    "two sentences in a rule": (
-        "No input has a pin",
-        "No input has a pin. A pin is ignored",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its Rule cell has more than one sentence",
+        r"^line 20, row LOOSE_PIN: the Code cell must be one code span",
     ),
     "a code not in capitals": (
         "| `LOOSE_PIN` |",
         "| `Loose_pin` |",
-        r"^line 30, ### 7\. Inputs, row `Loose_pin`: the Code cell must be one code span",
+        r"^line 20, row `Loose_pin`: the Code cell must be one code span",
+    ),
+    "an empty cell": (
+        "| No input has a pin |",
+        "|  |",
+        r"^line 20, row `LOOSE_PIN`: its Rule cell is empty$",
+    ),
+    "an extra cell": (
+        "| No input has a pin |",
+        "| No input has a pin | x |",
+        r"^line 20, row `LOOSE_PIN`: it has 4 cells, but the table has 3 columns$",
     ),
     "a missing cell": (
         "| SHOULD | No input has a pin |",
         "| No input has a pin |",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: it has 3 cells, but the table has 4 columns",
+        r"^line 20, row `LOOSE_PIN`: it has 2 cells, but the table has 3 columns$",
     ),
     "a quoted row with an extra cell": (
-        INPUTS_TABLE,
+        CODES_TABLE,
         quoted(
-            INPUTS_TABLE.replace("| No input has a pin |", "| No input has a pin | x |")
+            CODES_TABLE.replace("| No input has a pin |", "| No input has a pin | x |")
         ),
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: it has 5 cells, but the table has 4 columns",
+        r"^line 20, row `LOOSE_PIN`: it has 4 cells, but the table has 3 columns$",
     ),
-    "an unknown level": (
-        "| `LOOSE_PIN` | validator | SHOULD |",
-        "| `LOOSE_PIN` | validator | Should |",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: unknown level 'Should': a level is MUST or SHOULD",
+    "a check row without a status": (
+        "a record → `missing` |",
+        "a record |",
+        r"^line 22, row `NO_RECORD`: its Rule cell must have one →, followed by the status a broken check rule gives$",
+    ),
+    "a check row with two →": (
+        "a record → `missing` |",
+        "a record → `missing` → `stale` |",
+        r"^line 22, row `NO_RECORD`: its Rule cell must have one →",
+    ),
+    "a check row whose → is in a code span": (
+        "a record → `missing` |",
+        "a record `→ missing` |",
+        r"^line 22, row `NO_RECORD`: its Rule cell must have one →",
+    ),
+    "a → in emphasis": (
+        "a record → `missing` |",
+        "a *record → `missing`* |",
+        r"^line 22, row `NO_RECORD`: its → is inside emphasis or a link$",
+    ),
+    "a → in a link": (
+        "a record → `missing` |",
+        "a [record → `missing`](#rules) |",
+        r"^line 22, row `NO_RECORD`: its → is inside emphasis or a link$",
+    ),
+    "nothing before the →": (
+        "Every planned result has a record → `missing` |",
+        "→ `missing` |",
+        r"^line 22, row `NO_RECORD`: its Rule cell has nothing before its →$",
+    ),
+    "no status after the →": (
+        "a record → `missing` |",
+        "a record → |",
+        r"^line 22, row `NO_RECORD`: its Rule cell has no status after its →$",
+    ),
+    "a → in a row that isn't a check row": (
+        "No input has a pin",
+        "No input has a pin → `missing`",
+        r"^line 20, row `LOOSE_PIN`: its Rule cell has a →, but only a check row gives a status after one$",
+    ),
+    "a keyword that contradicts the level": (
+        "No input has a pin",
+        "No input MUST have a pin",
+        r"^line 20, row `LOOSE_PIN`: its rule says MUST, which contradicts its level, SHOULD$",
     ),
     "MAY in a rule": (
         "No input has a pin",
         "No input MAY have a pin",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its rule says MAY, which contradicts its level, SHOULD",
+        r"^line 20, row `LOOSE_PIN`: its rule says MAY, which contradicts its level, SHOULD$",
     ),
     "a keyword in a code span that contradicts the level": (
-        "Every planned result has a record |",
-        "Every planned result has a record (`SHOULD`) |",
-        r"^line 41, ### 20\. Checking results, row `NO_RECORD`: its rule says SHOULD, which contradicts its level, MUST",
+        "Every planned result has a record →",
+        "Every planned result has a record (`SHOULD`) →",
+        r"^line 22, row `NO_RECORD`: its rule says SHOULD, which contradicts its level, MUST$",
+    ),
+    "a keyword in the status that contradicts the level": (
+        "→ `missing` |",
+        "→ `missing`, as SHOULD be |",
+        r"^line 22, row `NO_RECORD`: its rule says SHOULD, which contradicts its level, MUST$",
     ),
     "a keyword against a code span": (
-        "Every planned result has a record |",
-        "Every planned result has a record, see`SHOULD` |",
-        r"^line 41, ### 20\. Checking results, row `NO_RECORD`: its rule says SHOULD",
+        "Every planned result has a record →",
+        "Every planned result has a record, see`SHOULD` →",
+        r"^line 22, row `NO_RECORD`: its rule says SHOULD",
     ),
     "a keyword against a link": (
-        "Every planned result has a record |",
-        "Every planned result has a [record](#a)SHOULD |",
-        r"^line 41, ### 20\. Checking results, row `NO_RECORD`: its rule says SHOULD",
+        "Every planned result has a record →",
+        "Every planned result has a [record](#a)SHOULD →",
+        r"^line 22, row `NO_RECORD`: its rule says SHOULD",
     ),
     **{
         f"a keyword split by {split}": (
             "No input has a pin",
             f"No input {written} have a pin",
-            r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its rule says MUST, which contradicts its level, SHOULD",
+            r"^line 20, row `LOOSE_PIN`: its rule says MUST, which contradicts its level, SHOULD$",
         )
         for split, written in {
             "intraword emphasis": "MU*ST*",
@@ -356,60 +393,53 @@ MALFORMED_SECTIONS = {
             "a code span": "`MU`ST",
             "empty inline HTML": "MU<span></span>ST",
             "a soft hyphen": "MU&shy;ST",
-            "a zero-width space": "MU\u200bST",
+            "a zero-width space": "MU​ST",
         }.items()
     },
+    "two sentences in a rule": (
+        "No input has a pin",
+        "No input has a pin. A pin is ignored",
+        r"^line 20, row `LOOSE_PIN`: its Rule cell has more than one sentence",
+    ),
     "two sentences in a rule, after a closing bracket": (
-        "Every planned result has a record |",
-        "Every planned result has a record (see above.) It is valid |",
-        r"^line 41, ### 20\. Checking results, row `NO_RECORD`: its Rule cell has more than one sentence",
+        "Every planned result has a record →",
+        "Every planned result has a record (see above.) It is valid →",
+        r"^line 22, row `NO_RECORD`: its Rule cell has more than one sentence",
     ),
     "two sentences in a rule, the mark in emphasis": (
         "No input has a pin",
         "No input has a *pin.* It may",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its Rule cell has more than one sentence",
+        r"^line 20, row `LOOSE_PIN`: its Rule cell has more than one sentence",
     ),
     "an escape lost when written back": (
         "No input has a pin",
         r"No \*input\* has a pin",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its Rule cell can't be written back",
+        r"^line 20, row `LOOSE_PIN`: its Rule cell can't be written back",
+    ),
+    "an escape lost in the status": (
+        "→ `missing` |",
+        r"→ \*missing\* |",
+        r"^line 22, row `NO_RECORD`: its status can't be written back",
     ),
     "an image in a cell": (
         "No input has a pin",
         "No input has a ![pin](pin.png)",
-        r"^line 30, ### 7\. Inputs, row `LOOSE_PIN`: its Rule cell holds a image",
-    ),
-    "a section heading without its number": (
-        "### 7. Inputs",
-        "### Inputs",
-        r"^line 26, ### Inputs: a section with a codes table or a note is numbered, as in '### 7\. Inputs'",
-    ),
-    "no Part II": (
-        "## Part II: The specification",
-        "## Part II: Rules",
-        r"^the specification must have one '## Part II: The specification' heading, not 0$",
-    ),
-    "two Part IIs": (
-        "## Glossary",
-        "## Part II: The specification",
-        r"^line 45: a second '## Part II: The specification' heading, but the specification has one$",
+        r"^line 20, row `LOOSE_PIN`: its Rule cell holds a image",
     ),
 }
 
 
-@pytest.mark.parametrize(
-    "old, new, message", MALFORMED_SECTIONS.values(), ids=MALFORMED_SECTIONS
-)
-def test_malformed_section_tables_fail(old, new, message):
-    assert old in SECTIONS
+@pytest.mark.parametrize("old, new, message", MALFORMED.values(), ids=MALFORMED)
+def test_a_malformed_codes_table_fails(old, new, message):
+    assert old in SPEC
     with pytest.raises(ValueError, match=message):
-        extract_rules(SECTIONS.replace(old, new, 1))
+        extract_rules(SPEC.replace(old, new, 1))
 
 
 def test_keywords_that_agree_with_the_level_are_allowed():
     """A keyword of the rule's own level is fine, and a code that contains a keyword's letters is not one."""
     rule = "No input SHOULD have a pin, as `MISSING_REQUIRED_OPTION` says"
-    text = SECTIONS.replace("No input has a pin", rule)
+    text = SPEC.replace("No input has a pin", rule)
     (found,) = [r for r in extract_rules(text) if r["code"] == "LOOSE_PIN"]
     assert found["statement"] == rule
 
@@ -417,297 +447,50 @@ def test_keywords_that_agree_with_the_level_are_allowed():
 def test_a_mark_that_ends_no_sentence_is_allowed():
     """A `.` in a code span, against one, inside a number or ending the cell leaves the rule one sentence."""
     rule = "Every `{inputs.<entry>}` names an entry of `a. b`, written in.`x` with 0.5 cores."
-    text = SECTIONS.replace("Every planned result has a record", rule)
-    (found,) = [r for r in extract_rules(text) if r["code"] == "NO_RECORD"]
+    text = SPEC.replace("No input has a pin", rule)
+    (found,) = [r for r in extract_rules(text) if r["code"] == "LOOSE_PIN"]
     assert found["statement"] == rule
 
 
+def test_a_status_keeps_its_markup():
+    """The status is the cell's inline Markdown after the `→`, its links reduced to their text, as a statement is."""
+    text = SPEC.replace(
+        "→ `missing` |", "→ the [cited](#rules) result's *record* status |"
+    )
+    (found,) = [r for r in extract_rules(text) if r["code"] == "NO_RECORD"]
+    assert (found["statement"], found["status"]) == (
+        "Every planned result has a record",
+        "the cited result's *record* status",
+    )
+
+
+def test_the_rows_of_a_check_rule_are_joined():
+    """Each row of a check rule gives its part of the statement before its `→`, and the same status after it."""
+    text = SPEC.replace(
+        "| `NO_RECORD` | MUST | Every planned result has a record → `missing` |\n",
+        "| `NO_RECORD` | MUST | Every planned result has a record → `missing` |\n"
+        "| `NO_RECORD` | MUST | its record parses →  `missing` |\n",
+    )
+    (found,) = [r for r in extract_rules(text) if r["code"] == "NO_RECORD"]
+    assert (found["statement"], found["status"]) == (
+        "Every planned result has a record; its record parses",
+        "`missing`",
+    )
+
+
 QUOTED = {
-    "quoted": quoted(INPUTS_TABLE),
-    "quoted without a space": quoted(INPUTS_TABLE, ">"),
-    "indented and quoted": quoted(INPUTS_TABLE, "   > "),
-    "quoted twice": quoted(INPUTS_TABLE, "> > "),
-    "quoted in a list item": "1.  A list item\n\n" + quoted(INPUTS_TABLE, "    > "),
+    "quoted": quoted(CODES_TABLE),
+    "quoted without a space": quoted(CODES_TABLE, ">"),
+    "indented and quoted": quoted(CODES_TABLE, "   > "),
+    "quoted twice": quoted(CODES_TABLE, "> > "),
+    "quoted in a list item": "1.  A list item\n\n" + quoted(CODES_TABLE, "    > "),
 }
 
 
 @pytest.mark.parametrize("table", QUOTED.values(), ids=QUOTED)
 def test_a_quoted_codes_table_reads_as_the_same_rules(table):
-    """A codes table in a blockquote is the same rules: its rows' cells are counted without the `>` markers, and the
-    block that holds it is the section's last block."""
-    assert extract_rules(SECTIONS.replace(INPUTS_TABLE, table)) == extract_rules(
-        SECTIONS
-    )
-
-
-def test_notes_are_read():
-    """A `Recommendation:` and a `Permission:`, each with its level and section: the text after the label, its links
-    reduced to their text and its lines joined."""
-    assert extract_notes(SECTIONS) == [
-        {
-            "kind": "recommendation",
-            "level": "SHOULD",
-            "text": "branches that hold records SHOULD be merged, not squashed or rebased.",
-            "source": "§19 Records",
-        },
-        {
-            "kind": "permission",
-            "level": "MAY",
-            "text": "a checker MAY stop at the first `NO_RECORD`.",
-            "source": "§20 Checking results",
-        },
-    ]
-
-
-WRONG_NOTES = {
-    "a recommendation that says MAY": (
-        "records SHOULD be merged",
-        "records MAY be merged",
-        r"^line 34, ### 19\. Records, Recommendation: it says MAY, but a Recommendation: says SHOULD once and no other"
-        r" keyword",
-    ),
-    "a recommendation that says SHOULD twice": (
-        "records SHOULD be merged, not\nsquashed",
-        "records SHOULD be merged, and SHOULD NOT be\nsquashed",
-        r"^line 34, ### 19\. Records, Recommendation: it says SHOULD, SHOULD, but a Recommendation: says SHOULD once",
-    ),
-    "a recommendation with no keyword": (
-        "records SHOULD be merged",
-        "records are merged",
-        r"^line 34, ### 19\. Records, Recommendation: it says no keyword, but a Recommendation: says SHOULD once",
-    ),
-    "a permission that says SHOULD": (
-        "a checker MAY stop",
-        "a checker SHOULD stop",
-        r"^line 43, ### 20\. Checking results, Permission: it says SHOULD, but a Permission: says MAY once",
-    ),
-    "a permission whose rendered text says MUST": (
-        "a checker MAY stop",
-        "a checker MAY stop, and MU*ST* go on,",
-        r"^line 43, ### 20\. Checking results, Permission: it says MUST, but a Permission: says MAY once",
-    ),
-}
-
-
-@pytest.mark.parametrize("old, new, message", WRONG_NOTES.values(), ids=WRONG_NOTES)
-def test_a_note_with_the_wrong_keyword_fails(old, new, message):
-    """Both readers fail on it, so no `rules.json` is made from such a specification."""
-    assert old in SECTIONS
-    text = SECTIONS.replace(old, new, 1)
-    for extract in (extract_notes, extract_rules):
-        with pytest.raises(ValueError, match=message):
-            extract(text)
-
-
-MISPLACED_NOTES = {
-    "in Part I": (
-        "| parse | A loader |\n",
-        "| parse | A loader |\n\nPermission: a loader MAY stop.\n",
-        11,
-    ),
-    "in the glossary": (
-        "- **tracked:** in git's index.\n",
-        "- **tracked:** in git's index.\n\nRecommendation: a reader SHOULD read it.\n",
-        49,
-    ),
-}
-
-
-@pytest.mark.parametrize(
-    "old, new, line", MISPLACED_NOTES.values(), ids=MISPLACED_NOTES
-)
-def test_a_note_outside_part_ii_fails(old, new, line):
-    """A note belongs to a section of Part II, where its rules are: elsewhere, both readers fail on it."""
-    assert old in SECTIONS
-    text = SECTIONS.replace(old, new, 1)
-    message = rf"^line {line}: a (Recommendation|Permission): note must be in a ### section of Part II"
-    for extract in (extract_notes, extract_rules):
-        with pytest.raises(ValueError, match=message):
-            extract(text)
-
-
-# --- The All rules page ---
-
-PAGE_RULES = [
-    {
-        "code": "LOOSE_PIN",
-        "layer": "validator",
-        "level": "SHOULD",
-        "statement": "No input has a pin",
-        "source": "§7 Inputs",
-    },
-    {
-        "code": "BAD_ID",
-        "layer": "schema",
-        "level": "MUST",
-        "statement": "Every `id` matches the *id* grammar",
-        "source": "§5 The astra.yaml file",
-    },
-    {
-        "code": "NO_RECORD",
-        "layer": "check",
-        "level": "MUST",
-        "statement": "Every planned result has a record",
-        "status": "`missing`",
-        "source": "§20 Checking results",
-    },
-    {
-        "code": "EMPTY_MAP",
-        "layer": "schema",
-        "level": "MUST",
-        "statement": "No map is empty",
-        "source": "§5 The astra.yaml file",
-    },
-]
-"""Rules of three layers, out of the layers' order."""
-
-PAGE_NOTES = [
-    {
-        "kind": "recommendation",
-        "level": "SHOULD",
-        "text": "branches that hold records SHOULD be merged, not squashed or rebased.",
-        "source": "§19 Records",
-    },
-    {
-        "kind": "permission",
-        "level": "MAY",
-        "text": "a runner MAY enforce `UNDECLARED_READ`.",
-        "source": "§21 Runners",
-    },
-]
-
-
-def page_blocks(page: str) -> list[tuple[str, Any]]:
-    """The headings, tables and list items of a page, in order: `(h1 or h2, its text)`, `("table", (header, rows))`
-    with each cell's inline Markdown, and `("li", its inline Markdown)`."""
-    tokens = MarkdownIt("commonmark").enable("table").parse(page)
-    blocks: list[tuple[str, Any]] = []
-    for i, t in enumerate(tokens):
-        if t.type == "heading_open":
-            blocks.append((t.tag, tokens[i + 1].content))
-        elif t.type == "table_open":
-            blocks.append(("table", ([], [])))
-        elif t.type == "tr_open":
-            blocks[-1][1][1].append([])
-        elif t.type == "inline" and tokens[i - 1].type in ("th_open", "td_open"):
-            header, rows = blocks[-1][1]
-            (header if tokens[i - 1].type == "th_open" else rows[-1]).append(t.content)
-        elif t.type == "inline" and tokens[i - 2].type == "list_item_open":
-            blocks.append(("li", t.content))
-    for kind, value in blocks:
-        if kind == "table":
-            value[1].pop(0)  # The header's row.
-    return blocks
-
-
-def test_rules_page_groups_by_layer_in_order():
-    """One table per layer that has rules, in the layers' order, each rule linked to its section's anchor."""
-    blocks = page_blocks(render_rules_page(PAGE_RULES, []))
-    assert blocks[0] == ("h1", "All rules")
-    assert blocks[1:] == [
-        ("h2", "Schema"),
-        (
-            "table",
-            (
-                ["Code", "Level", "Rule", "Section"],
-                [
-                    [
-                        "`BAD_ID`",
-                        "MUST",
-                        "Every `id` matches the *id* grammar",
-                        "[§5 The astra.yaml file](specification.md#5-the-astrayaml-file)",
-                    ],
-                    [
-                        "`EMPTY_MAP`",
-                        "MUST",
-                        "No map is empty",
-                        "[§5 The astra.yaml file](specification.md#5-the-astrayaml-file)",
-                    ],
-                ],
-            ),
-        ),
-        ("h2", "Validator"),
-        (
-            "table",
-            (
-                ["Code", "Level", "Rule", "Section"],
-                [
-                    [
-                        "`LOOSE_PIN`",
-                        "SHOULD",
-                        "No input has a pin",
-                        "[§7 Inputs](specification.md#7-inputs)",
-                    ]
-                ],
-            ),
-        ),
-        ("h2", "Check"),
-        (
-            "table",
-            (
-                ["Code", "Level", "Rule", "Status when broken", "Section"],
-                [
-                    [
-                        "`NO_RECORD`",
-                        "MUST",
-                        "Every planned result has a record",
-                        "`missing`",
-                        "[§20 Checking results](specification.md#20-checking-results)",
-                    ]
-                ],
-            ),
-        ),
-    ]
-
-
-def test_rules_page_lists_notes():
-    """After the rules, one item per recommendation or permission, linked to its section."""
-    blocks = page_blocks(render_rules_page(PAGE_RULES, PAGE_NOTES))
-    assert blocks[-3:] == [
-        ("h2", "Recommendations and permissions"),
-        (
-            "li",
-            "**Recommendation** ([§19 Records](specification.md#19-records)): branches that hold records SHOULD be"
-            " merged, not squashed or rebased.",
-        ),
-        (
-            "li",
-            "**Permission** ([§21 Runners](specification.md#21-runners)): a runner MAY enforce `UNDECLARED_READ`.",
-        ),
-    ]
-
-
-ANCHORS = {
-    "§5 The astra.yaml file": "5-the-astrayaml-file",
-    "§9 Conditions": "9-conditions",
-    "§13 Pins, and outputs built per universe or once": "13-pins-and-outputs-built-per-universe-or-once",
-    "§17 Analyses from another commit or repository": "17-analyses-from-another-commit-or-repository",
-}
-"""Sources, with the anchor the site gives their section's heading (`### 5. The astra.yaml file`)."""
-
-
-@pytest.mark.parametrize("source, expected", ANCHORS.items(), ids=ANCHORS)
-def test_section_links_use_the_sites_anchors(source, expected):
-    assert anchor(source) == expected
-
-
-def test_rules_page_reads_part_ii():
-    assert read_specification(SECTIONS) == (
-        extract_rules(SECTIONS),
-        extract_notes(SECTIONS),
-    )
-
-
-def test_rules_page_reads_the_specification():
-    """The page lists the rules of `rules.json`, and the specification's recommendations and permission."""
-    rules, notes = read_specification(specification())
-    assert rules == rules_catalogue()["rules"]
-    assert [(note["kind"], note["source"]) for note in notes] == [
-        ("recommendation", "§17 Analyses from another commit or repository"),
-        ("recommendation", "§19 Records"),
-        ("recommendation", "§21 Runners"),
-        ("permission", "§21 Runners"),
-    ]
+    """A codes table in a blockquote is the same rules: its rows' cells are counted without the `>` markers."""
+    assert extract_rules(SPEC.replace(CODES_TABLE, table)) == extract_rules(SPEC)
 
 
 # --- rules.json: the rules ---
@@ -724,8 +507,8 @@ def test_rules_json_has_every_rule_of_the_specification_in_order():
 
 
 def test_every_rule_has_its_fields():
-    """`code`, `layer`, `level`, `statement` and `source`, and `status` exactly for the check layer."""
-    common = {"code", "layer", "level", "statement", "source"}
+    """`code`, `layer`, `level` and `statement`, and `status` exactly for the check layer."""
+    common = {"code", "layer", "level", "statement"}
     wrong = [
         rule["code"]
         for rule in rules_catalogue()["rules"]
@@ -1201,6 +984,22 @@ def test_a_rule_annotation_that_gives_no_code_fails(tmp_path, old, new, message)
     schema_and_view = scratch_schema(tmp_path, SCRATCH.replace(old, new, 1))
     with pytest.raises(ValueError, match=message):
         build_catalogue(specification(), [schema_and_view])
+
+
+def test_a_default_code_that_is_not_a_schema_code_fails(tmp_path):
+    """Every code a keyword takes by default is a schema-layer rule of the specification, even one no keyword of the
+    schemas takes: here, `INVALID_VALUE`, which the scratch schema's keywords don't."""
+    text = "".join(
+        line
+        for line in specification().splitlines(keepends=True)
+        if not line.startswith("| `INVALID_VALUE` |")
+    )
+    assert text != specification()
+    with pytest.raises(
+        ValueError,
+        match=r"^the default codes INVALID_VALUE are not schema-layer codes of the specification$",
+    ):
+        build_catalogue(text, [scratch_schema(tmp_path, SCRATCH)])
 
 
 def test_a_code_that_is_not_a_schema_code_fails(tmp_path):

@@ -81,7 +81,7 @@ findings:
 ## Docs
 
 - [Specification](https://astra-spec.org/latest/specification/): how ASTRA works, and every rule, each with its code.
-- [All rules](https://astra-spec.org/latest/rules/): every rule, by layer.
+- [Rules](https://astra-spec.org/latest/specification/#rules): every rule, by layer, each with its code.
 - [Field reference](https://astra-spec.org/latest/elements/): every field of `astra.yaml` and of a record.
 
 ## Examples

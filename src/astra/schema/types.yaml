@@ -24,7 +24,7 @@ imports:
 # The id grammar, written once: the structured patterns below are built from it.
 #
 # Each pattern names the rule it enforces, a code of the specification's codes
-# tables, in a `rule` annotation: `rules.json` maps its errors to that code.
+# table, in a `rule` annotation: `rules.json` maps its errors to that code.
 settings:
   id: "[a-z][a-z0-9_]*"
 

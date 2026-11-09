@@ -2,34 +2,34 @@
 
 `rules.json` holds:
 
-- ``rules``: one entry per rule of the specification, in document order, extracted from the codes tables of its Part II
-  with a Markdown parser (markdown-it-py), which reads the specification as CommonMark with GFM tables. The codes tables
-  are a format this extractor parses, and it is strict:
+- ``rules``: one entry per rule of the specification, in document order, extracted from its codes table with a Markdown
+  parser (markdown-it-py), which reads the specification as CommonMark with GFM tables. The codes table is a format
+  this extractor parses, and it is strict:
 
-  - **Part II.** The specification has one ``## Part II: The specification`` heading. Its sections are the ``###``
-    headings from there to the next ``#`` or ``##`` heading.
-  - **Codes tables.** A codes table is a table whose header's first cell is ``Code``. Each is in a section of Part II,
-    at most one per section, and is the section's last block, apart from notes (below). A codes table inside another
-    block, such as a blockquote, makes that block the one that comes last. A section with a codes table or a note is
-    numbered, ``### <n>. <title>``, and ``§<n> <title>`` is the source of its rules and notes (``§7 Inputs``). Other
-    tables, such as the check layer's statuses, are not read.
-  - **Columns** are Code, Layer, Level and Rule, in that order, and in a table of check rules Status when broken after
-    them. Every check row is in a table with that column, and only check rows are.
-  - **Rows.** Each row is one rule, with one cell per column (counted on its source line, blockquote markers aside)
-    and none empty. Its Code is one code span holding a capital letter, then capitals, digits and underscores
-    (``[A-Z][A-Z0-9_]*``), and no other row of the document has it. Its Layer is ``parse``, ``schema``,
-    ``validator``, ``check`` or ``runner``, and its Level ``MUST`` or ``SHOULD``. Its Rule is one sentence: as the cell
-    reads once rendered, outside its code spans, no ``.``, ``?`` or ``!`` is followed by white space, even after a
-    closing bracket or quote. Its Rule uses no RFC 2119 keyword in capitals of another level, in its text, in a code
-    span, or as the cell reads once rendered (``MU*ST*`` reads as ``MUST``).
+  - **The table.** The specification has one ``## Rules`` heading, and the codes table is the one table, in the section
+    from that heading to the next ``#`` or ``##`` heading, whose header's first cell is ``Code``. No table elsewhere has
+    that first cell. Its columns are Code, Level and Rule, in that order. Other tables, such as the recommendations,
+    are not read.
+  - **Layer rows.** A row whose Code cell is text in strong emphasis (``**parse**``, ``***validator, in each universe
+    where results are built***``), and whose Level and Rule cells are empty, sets the layer of the rows below it, up to
+    the next layer row: its first word, ``parse``, ``schema``, ``validator``, ``check`` or ``runner``. The table starts
+    with one.
+  - **Rule rows.** Every other row is a case of a rule, with one cell per column (counted on its source line,
+    blockquote markers aside) and none empty. Its Code is one code span holding a capital letter, then capitals, digits
+    and underscores (``[A-Z][A-Z0-9_]*``), and its Level ``MUST`` or ``SHOULD``. The rows of one code are one rule: they
+    are consecutive, under one layer row, with one level, and no other row of the document has their code. The rule's
+    statement is their Rule cells, in order, joined with ``; ``.
+  - **Status.** A check row's Rule cell has one ``→``, in its text, outside emphasis and links: the text before it is
+    the row's part of the statement, and the text after it the status a broken rule gives, the same in each row of the
+    rule. No other row's text has a ``→``.
+  - **Rule cells.** Each is one sentence: as the cell reads once rendered, outside its code spans, no ``.``, ``?`` or
+    ``!`` is followed by white space, even after a closing bracket or quote. It uses no RFC 2119 keyword in capitals of
+    another level than its row's, in its text, in a code span, or as the cell reads once rendered (``MU*ST*`` reads as
+    ``MUST``).
   - **Cells** are inline Markdown, and the published page shows each cell as the same text. They hold only text, code
-    spans, emphasis, links and inline HTML. ``rules.json`` records a cell as Markdown rebuilt from what it parses to,
-    with each link reduced to its text, so the rebuilt Markdown must parse the same way: an escape whose loss would
-    change the cell, such as ``\\*`` before text that would then become emphasis, is not allowed.
-  - **Notes.** A paragraph of a Part II section whose text starts ``Recommendation:`` states ``SHOULD`` once, and one
-    that starts ``Permission:`` states ``MAY`` once, with no other RFC 2119 keyword. A note outside a section of Part II
-    is an error. ``extract_notes`` reads them for the All rules page (``tools/rules_page.py``); they have no code, and
-    ``rules.json`` doesn't hold them.
+    spans, emphasis, links and inline HTML. ``rules.json`` records a statement and a status as Markdown rebuilt from
+    what they parse to, with each link reduced to its text, so the rebuilt Markdown must parse the same way: an escape
+    whose loss would change the cell, such as ``\\*`` before text that would then become emphasis, is not allowed.
 
   A specification that breaks any of this is an error, and no ``rules.json`` is made from it.
 - ``errors``: for each keyword of the generated JSON Schemas whose error can make the instance fail, its absolute
@@ -39,12 +39,13 @@
   code never varies, from a default. A map's keys take their key's code for their ``pattern``. A class's checks (its
   exactly-one-of and its class rules) are guarded members of ``allOf``: each member's ``if`` and the keywords of its
   ``then`` take the check's code, and nothing inside an ``if`` or a ``not`` does, since no error there makes the
-  instance fail (spec Annex D, "From an error to its code"). Every such keyword has exactly one code, every code is a
-  schema-layer rule of the specification, and every ``rule`` annotation gives some keyword its code.
+  instance fail. Every such keyword has exactly one code, every code is a schema-layer rule of the specification, as
+  is every default code, and every ``rule`` annotation gives some keyword its code.
 """
 
 import argparse
 import dataclasses
+import itertools
 import json
 import sys
 import unicodedata
@@ -57,40 +58,20 @@ from markdown_it import MarkdownIt
 from markdown_it.rules_block.table import escapedSplit
 from markdown_it.token import Token
 
-PART_II = "Part II: The specification"
-"""The `##` heading whose `###` sections hold the codes tables and the notes."""
+RULES = "Rules"
+"""The `##` heading whose section holds the codes table."""
 
-SECTION_COLUMNS = ["Code", "Layer", "Level", "Rule"]
-"""The columns of a codes table, in order."""
+COLUMNS = ["Code", "Level", "Rule"]
+"""The columns of the codes table, in order."""
 
-CHECK_COLUMN = "Status when broken"
-"""The column a codes table of check rules has after the others, and only such a table."""
+LAYERS = ["parse", "schema", "validator", "check", "runner"]
+"""The layers a layer row of the codes table names, in order."""
 
-SECTION_LAYERS = ["parse", "schema", "validator", "check", "runner"]
-"""The layers a codes table's Layer column names, in order."""
-
-NOTES = {
-    "Recommendation:": ("recommendation", "SHOULD"),
-    "Permission:": ("permission", "MAY"),
-}
-"""The label a note's paragraph starts with, with the note's kind and the one keyword it states."""
-
-BLOCKS = {
-    "paragraph_open": "paragraph",
-    "bullet_list_open": "bullet list",
-    "ordered_list_open": "numbered list",
-    "heading_open": "heading",
-    "fence": "code block",
-    "code_block": "code block",
-    "blockquote_open": "blockquote",
-    "table_open": "table",
-    "hr": "thematic break",
-    "html_block": "block of HTML",
-}
-"""The name of each kind of block, for error messages."""
+STATUS = "→"
+"""The mark in a check row's Rule cell between its part of the statement and its status."""
 
 LEVELS = {"MUST", "SHOULD"}
-"""The levels a rule can have. A permission (`MAY`) is no rule: the specification states it outside the tables."""
+"""The levels a rule can have. A permission (`MAY`) is no rule: the specification states it outside the codes table."""
 
 KEYWORDS = {
     "MUST": "MUST",
@@ -106,7 +87,7 @@ KEYWORDS = {
 SENTENCE_ENDS = {".", "?", "!"}
 """The marks that end a sentence: a Rule cell has none followed by white space, since a rule is one sentence."""
 
-CLOSERS = {")", "]", '"', "'", "\u2019", "\u201d"}
+CLOSERS = {")", "]", '"', "'", "’", "”"}
 """The closing brackets and quotes that may stand between the end of a sentence and the white space after it."""
 
 ANNOTATION = "rule"
@@ -126,6 +107,9 @@ DEFAULTS = {
 `minProperties` and `minItems` take their default, `EMPTY_COLLECTION` ("at least one entry"), only where it is what they
 check, with a value of 1 (see `ONE_ENTRY`): any other minimum has no code, as `maxItems` has none."""
 
+DEFAULT_CODES = {*DEFAULTS.values(), "MISSING_FIELD", "UNKNOWN_FIELD"}
+"""Every code a keyword takes by default: each must be a schema-layer code of the specification."""
+
 ONE_ENTRY = {"minProperties", "minItems"}
 """The keywords whose default, `EMPTY_COLLECTION`, holds only when their value is 1."""
 
@@ -143,19 +127,17 @@ def json_pointer(tokens: Iterable[Any]) -> str:
     )
 
 
-# --- The codes tables and notes of Part II ---
+# --- The codes table ---
 
 
 class _Row:
-    """A row of a codes table, for error messages that name it."""
+    """A row of the codes table, for error messages that name it."""
 
-    def __init__(self, line: int, heading: str, label: str):
-        self.line, self.heading, self.label = line, heading, label
+    def __init__(self, line: int, label: str):
+        self.line, self.label = line, label
 
     def error(self, problem: str) -> ValueError:
-        return ValueError(
-            f"line {self.line}, ### {self.heading}, row {self.label}: {problem}"
-        )
+        return ValueError(f"line {self.line}, row {self.label}: {problem}")
 
 
 def _markdown() -> MarkdownIt:
@@ -191,11 +173,9 @@ def _shape(tokens: list[Token]) -> list[tuple[str, str, str]]:
     return shape
 
 
-def _inline_markdown(inline: Token, row: _Row, column: str) -> str:
-    """A cell's inline Markdown, with each link reduced to its text."""
-    kept = [
-        t for t in inline.children or [] if t.type not in ("link_open", "link_close")
-    ]
+def _inline_markdown(tokens: list[Token], row: _Row, what: str) -> str:
+    """The inline Markdown of `tokens`, with each link reduced to its text; `what` names them in an error."""
+    kept = [t for t in tokens if t.type not in ("link_open", "link_close")]
     parts = []
     for t in kept:
         if t.type == "text":
@@ -212,13 +192,11 @@ def _inline_markdown(inline: Token, row: _Row, column: str) -> str:
         elif t.type == "html_inline":
             parts.append(t.content)
         else:
-            raise row.error(
-                f"its {column} cell holds a {t.type}, which a rule's cell can't"
-            )
+            raise row.error(f"its {what} holds a {t.type}, which a rule's cell can't")
     markdown = "".join(parts)
     if _shape(_markdown().parseInline(markdown)[0].children or []) != _shape(kept):
         raise row.error(
-            f"its {column} cell can't be written back as Markdown without its links"
+            f"its {what} can't be written back as Markdown without its links"
         )
     return markdown
 
@@ -240,11 +218,6 @@ def _code(inline: Token, row: _Row) -> str:
             "the Code cell must be one code span holding a code, such as `INVALID_ID`"
         )
     return code
-
-
-def _number(text: str) -> bool:
-    """Whether `text` is one or more ASCII digits."""
-    return text != "" and text.isascii() and text.isdigit()
 
 
 def _keywords(text: str) -> list[str]:
@@ -331,266 +304,232 @@ def _source_cell_count(lines: list[str], line: int) -> int:
     return len(cells)
 
 
-class _Note(_Row):
-    """A note's paragraph, for error messages that name it."""
-
-    def error(self, problem: str) -> ValueError:
-        return ValueError(
-            f"line {self.line}, ### {self.heading}, {self.label} {problem}"
-        )
-
-
-class _Section:
-    """A `###` section of Part II."""
-
-    def __init__(self, heading: str, line: int):
-        self.heading, self.line = heading, line
-        """Its heading's text, as it reads (`7. Inputs`), and its line."""
-        self.blocks: list[tuple[int, str, bool]] = []
-        """`(line, kind, note)` for each of its top-level blocks, `note` true for a note's paragraph."""
-        self.table: tuple[int, list[Token]] | None = None
-        """Its codes table, if it has one: the index in `blocks` of the block that holds it, and its tokens."""
-        self.notes: list[tuple[int, Token]] = []
-        """`(line, inline)` for each of its notes."""
-
-    def source(self) -> str:
-        """`§<n> <title>`, from the heading `<n>. <title>`."""
-        number, separator, title = self.heading.partition(". ")
-        if not (separator and _number(number) and title):
-            raise ValueError(
-                f"line {self.line}, ### {self.heading}: a section with a codes table or a note is numbered,"
-                " as in '### 7. Inputs'"
-            )
-        return f"§{number} {title}"
-
-
 def _line(token: Token) -> int:
     """The line a block token starts on, from 1."""
     return (token.map or [0])[0] + 1
 
 
-def _label(inline: Token) -> str | None:
-    """The label of `NOTES` a paragraph's text starts with, or None."""
-    return next((label for label in NOTES if inline.content.startswith(label)), None)
+def _codes_table(markdown: str) -> list[Token]:
+    """The tokens of `markdown`'s codes table, the table whose header's first cell is `Code`.
 
-
-def _part_ii(markdown: str) -> list[_Section]:
-    """The `###` sections of `markdown`'s Part II, from `## Part II: The specification` to the next `#` or `##`.
-
-    A codes table is a table whose header's first cell is `Code`, and a note a paragraph whose text starts with a label
-    of `NOTES`. Raises `ValueError`, naming the line, unless there is exactly one Part II, every codes table and every
-    note is in one of its sections, a section has at most one codes table, and nothing but notes comes after it in its
-    section. A codes table may be inside another block, such as a blockquote, which is then the block that must come
-    last.
+    Raises `ValueError`, naming the line, unless there is exactly one `## Rules` heading and exactly one such table,
+    in the section from that heading to the next `#` or `##` heading.
     """
     tokens = _markdown().parse(markdown)
-    parts = [
+    headings = [
         i
         for i, t in enumerate(tokens)
         if t.type == "heading_open"
         and t.tag == "h2"
         and t.level == 0
-        and _rendered(tokens[i + 1].children or []) == PART_II
+        and _rendered(tokens[i + 1].children or []) == RULES
     ]
-    if not parts:
+    if not headings:
+        raise ValueError(f"the specification must have one '## {RULES}' heading, not 0")
+    if len(headings) > 1:
         raise ValueError(
-            f"the specification must have one '## {PART_II}' heading, not 0"
+            f"line {_line(tokens[headings[1]])}: a second '## {RULES}' heading, but the specification has one"
         )
-    if len(parts) > 1:
-        raise ValueError(
-            f"line {_line(tokens[parts[1]])}: a second '## {PART_II}' heading, but the specification has one"
-        )
-    sections: list[_Section] = []
-    section: _Section | None = None
+    found: list[Token] | None = None
     inside = False
     for i, t in enumerate(tokens):
         if t.type == "heading_open" and t.level == 0 and t.tag in ("h1", "h2"):
-            inside, section = i == parts[0], None
-        elif t.type == "heading_open" and t.level == 0 and t.tag == "h3":
-            section = None
-            if inside:
-                section = _Section(_rendered(tokens[i + 1].children or []), _line(t))
-                sections.append(section)
-        elif t.level == 0 and t.nesting != -1 and section is not None:
-            note = t.type == "paragraph_open" and _label(tokens[i + 1]) is not None
-            section.blocks.append((_line(t), BLOCKS.get(t.type, t.type), note))
-        if t.type == "table_open":
-            end = next(
-                j for j in range(i, len(tokens)) if tokens[j].type == "table_close"
-            )
-            table = tokens[i : end + 1]
-            if _rows(table)[0][:1] == ["Code"]:
-                if section is None:
-                    raise ValueError(
-                        f"line {_line(t)}: a codes table (a table whose first column is Code) must be in a ###"
-                        " section of Part II"
-                    )
-                if section.table is not None:
-                    raise ValueError(
-                        f"line {_line(t)}, ### {section.heading}: a second codes table, but a section has at most"
-                        " one"
-                    )
-                section.table = (len(section.blocks) - 1, table)
-        elif t.type == "paragraph_open":
-            label = _label(tokens[i + 1])
-            if label is not None:
-                if section is None:
-                    raise ValueError(
-                        f"line {_line(t)}: a {label} note must be in a ### section of Part II"
-                    )
-                section.notes.append((_line(t), tokens[i + 1]))
-    for section in sections:
-        if section.table is None:
+            inside = i == headings[0]
+        if t.type != "table_open":
             continue
-        index, table = section.table
-        for line, kind, note in section.blocks[index + 1 :]:
-            if not note:
-                raise ValueError(
-                    f"line {line}, ### {section.heading}: a {kind} follows the codes table of line"
-                    f" {_line(table[0])}, which must be the section's last block, apart from Recommendation: and"
-                    " Permission: paragraphs"
-                )
-    return sections
+        end = next(j for j in range(i, len(tokens)) if tokens[j].type == "table_close")
+        table = tokens[i : end + 1]
+        if _rows(table)[0][:1] != ["Code"]:
+            continue
+        if not inside:
+            raise ValueError(
+                f"line {_line(t)}: a codes table (a table whose first column is Code) must be in the"
+                f" '## {RULES}' section"
+            )
+        if found is not None:
+            raise ValueError(
+                f"line {_line(t)}: a second codes table, but the specification has one, at line {_line(found[0])}"
+            )
+        found = table
+    if found is None:
+        raise ValueError(f"the '## {RULES}' section has no codes table")
+    return found
 
 
-def _notes(sections: list[_Section]) -> list[dict]:
-    """The notes of `sections`, in order: each states its label's keyword once, and no other keyword."""
-    notes = []
-    for section in sections:
-        for line, inline in section.notes:
-            label = _label(inline)
-            assert label is not None
-            kind, level = NOTES[label]
-            where = _Note(line, section.heading, label)
-            source = section.source()
-            # A note's lines are joined: each soft line break reads as the space it renders as.
-            children = [
-                Token("text", "", 0, content=" ") if t.type == "softbreak" else t
-                for t in inline.children or []
-            ]
-            said = _keywords(_text(children))
-            wrong = (
-                said
-                if [KEYWORDS[keyword] for keyword in said] != [level]
-                else [k for k in _keywords(_rendered(children)) if KEYWORDS[k] != level]
+def _layer_text(inline: Token) -> str | None:
+    """The text of a Code cell that is text in strong emphasis, perhaps in emphasis too (`**parse**`); else None."""
+    strong, texts = 0, []
+    for t in inline.children or []:
+        if t.type in ("strong_open", "strong_close"):
+            strong += 1 if t.type == "strong_open" else -1
+        elif t.type == "text" and strong > 0:
+            texts.append(t.content)
+        elif t.type == "text" and not t.content:
+            continue
+        elif t.type not in ("em_open", "em_close"):
+            return None
+    return "".join(texts) or None
+
+
+def _split_status(
+    tokens: list[Token], row: _Row, check: bool
+) -> tuple[list[Token], list[Token]]:
+    """A Rule cell's tokens as `(statement, status)`, split at its one `→` if its row is a check row, else `(tokens,
+    [])`. The `→` is in a text token, outside emphasis and links, with something on each side."""
+    marks = [
+        i for i, t in enumerate(tokens) if t.type == "text" and STATUS in t.content
+    ]
+    if not check:
+        if marks:
+            raise row.error(
+                f"its Rule cell has a {STATUS}, but only a check row gives a status after one"
             )
-            if wrong or not said:
-                raise where.error(
-                    f"it says {', '.join(wrong) or 'no keyword'}, but a {label} says {level} once and no other"
-                    " keyword"
-                )
-            text = _inline_markdown(
-                dataclasses.replace(inline, children=children), where, "text"
-            )
-            notes.append(
-                {
-                    "kind": kind,
-                    "level": level,
-                    "text": text.removeprefix(label).strip(),
-                    "source": source,
-                }
-            )
-    return notes
+        return tokens, []
+    if len(marks) != 1 or tokens[marks[0]].content.count(STATUS) != 1:
+        raise row.error(
+            f"its Rule cell must have one {STATUS}, followed by the status a broken check rule gives"
+        )
+    (i,) = marks
+    if sum(t.nesting for t in tokens[:i]):
+        raise row.error(f"its {STATUS} is inside emphasis or a link")
+    before, _, after = tokens[i].content.partition(STATUS)
+    statement = tokens[:i] + (
+        [dataclasses.replace(tokens[i], content=before.rstrip())]
+        if before.strip()
+        else []
+    )
+    status = (
+        [dataclasses.replace(tokens[i], content=after.lstrip())]
+        if after.strip()
+        else []
+    ) + tokens[i + 1 :]
+    if not _rendered(statement).strip():
+        raise row.error(f"its Rule cell has nothing before its {STATUS}")
+    if not _rendered(status).strip():
+        raise row.error(f"its Rule cell has no status after its {STATUS}")
+    return statement, status
+
+
+class _Rule:
+    """A rule being read: its first row, and each of its rows' part of its statement."""
+
+    def __init__(self, row: _Row, code: str, layer: str, level: str):
+        self.row, self.code, self.layer, self.level = row, code, layer, level
+        self.parts: list[list[Token]] = []
+        """The tokens of each row's part of the statement, in order."""
+        self.status: str | None = None
+        """The status, for a check rule."""
+
+    def entry(self) -> dict:
+        """The rule's entry in `rules.json`: its statement is its rows' parts, joined with `; `."""
+        joined: list[Token] = []
+        for part in self.parts:
+            if joined:
+                joined.append(Token("text", "", 0, content="; "))
+            joined.extend(part)
+        entry = {
+            "code": self.code,
+            "layer": self.layer,
+            "level": self.level,
+            "statement": _inline_markdown(
+                joined, self.row, "statement, its rows joined"
+            ),
+        }
+        if self.status is not None:
+            entry["status"] = self.status
+        return entry
 
 
 def extract_rules(markdown: str) -> list[dict]:
-    """The rules of `markdown`'s Part II, one entry per row of its codes tables, in document order.
+    """The rules of `markdown`'s codes table, in document order.
 
-    A codes table is the last block of a `###` section of Part II, but for the notes after it. Its columns are Code,
-    Layer, Level and Rule, and a table of check rules has Status when broken after them; only check rows are in such a
-    table. Each entry has the row's `code`, `layer`, `level` and `statement` (its Rule cell), its `source`, the
-    section's heading as `§<n> <title>` (`§7 Inputs` for `### 7. Inputs`), and, for a check rule, `status` (its Status
-    when broken cell). The statement and the status are the cells' inline Markdown, with each link reduced to its text.
-    The notes are checked too (`extract_notes`). Raises `ValueError`, naming the line, on anything malformed: the module
-    docstring gives the format.
+    The codes table is in the `## Rules` section, with columns Code, Level and Rule. A layer row (`| **parse** | | |`)
+    sets the layer of the rows below it, and the rows of one code are one rule. Each entry has the rule's `code`,
+    `layer`, `level` and `statement` (its rows' Rule cells, joined with `; `), and, for a check rule, `status` (the text
+    after `→` in its Rule cells, which the statement leaves out). The statement and the status are inline Markdown, with
+    each link reduced to its text. Raises `ValueError`, naming the line, on anything malformed: the module docstring
+    gives the format.
     """
     lines = markdown.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    sections = _part_ii(markdown)
-    _notes(sections)
-    rules: list[dict] = []
+    table = _codes_table(markdown)
+    header, rows = _rows(table)
+    if header != COLUMNS:
+        raise ValueError(
+            f"line {_line(table[0])}: the codes table's columns are {', '.join(COLUMNS[:-1])} and {COLUMNS[-1]},"
+            f" not {', '.join(header)}"
+        )
+    rules: list[_Rule] = []
     seen: dict[str, int] = {}
-    for section in sections:
-        if section.table is None:
-            continue
-        source = section.source()
-        header, rows = _rows(section.table[1])
-        if header not in (SECTION_COLUMNS, [*SECTION_COLUMNS, CHECK_COLUMN]):
-            raise ValueError(
-                f"line {_line(section.table[1][0])}, ### {section.heading}: a codes table's columns are"
-                f" {', '.join(SECTION_COLUMNS[:-1])} and {SECTION_COLUMNS[-1]}, and {CHECK_COLUMN} after them in a"
-                f" table of check rules, not {', '.join(header)}"
+    layer: str | None = None
+    current: _Rule | None = None
+    for row_line, cells in rows:
+        row = _Row(row_line, cells[0].content or "(no code)")
+        written = _source_cell_count(lines, row_line)
+        if written != len(header):
+            raise row.error(
+                f"it has {written} cells, but the table has {len(header)} columns"
             )
-        for row_line, cells in rows:
-            row = _Row(row_line, section.heading, cells[0].content or "(no code)")
-            written = _source_cell_count(lines, row_line)
-            if written != len(header):
+        cell = dict(zip(header, cells))
+        heading = _layer_text(cell["Code"])
+        if heading is not None:
+            if cell["Level"].content or cell["Rule"].content:
+                raise row.error("a layer row's Level and Rule cells must be empty")
+            word = "".join(
+                itertools.takewhile(lambda c: c.isalnum() or c == "_", heading)
+            )
+            if word not in LAYERS:
                 raise row.error(
-                    f"it has {written} cells, but the table has {len(header)} columns"
+                    f"unknown layer {word!r}: a layer row's first word is {', '.join(LAYERS[:-1])} or {LAYERS[-1]}"
                 )
-            cell = dict(zip(header, cells))
-            for column, inline in cell.items():
-                if not inline.content:
-                    raise row.error(f"its {column} cell is empty")
-            code = _code(cell["Code"], row)
-            layer = cell["Layer"].content
-            if layer not in SECTION_LAYERS:
+            layer, current = word, None
+            continue
+        for column, inline in cell.items():
+            if not inline.content:
+                raise row.error(f"its {column} cell is empty")
+        code = _code(cell["Code"], row)
+        if layer is None:
+            raise row.error("it comes before any layer row, such as | **parse** | | |")
+        level = cell["Level"].content
+        if level not in LEVELS:
+            raise row.error(f"unknown level {level!r}: a level is MUST or SHOULD")
+        tokens = cell["Rule"].children or []
+        if _sentence_break(tokens):
+            raise row.error(
+                "its Rule cell has more than one sentence, but a rule is one sentence"
+            )
+        for keyword in _keywords(_text(tokens)) + _keywords(_rendered(tokens)):
+            if KEYWORDS[keyword] != level:
                 raise row.error(
-                    f"unknown layer {layer!r}: a layer is {', '.join(SECTION_LAYERS[:-1])} or {SECTION_LAYERS[-1]}"
+                    f"its rule says {keyword}, which contradicts its level, {level}"
                 )
-            if layer == "check" and CHECK_COLUMN not in cell:
+        statement, status_tokens = _split_status(tokens, row, layer == "check")
+        _inline_markdown(statement, row, "Rule cell")
+        status = (
+            _inline_markdown(status_tokens, row, "status") if layer == "check" else None
+        )
+        if current is not None and current.code == code:
+            if level != current.level:
                 raise row.error(
-                    f"its layer is check, but its table has no {CHECK_COLUMN} column"
+                    f"its level is {level}, but the row of {code} at line {current.row.line} is {current.level}:"
+                    " the rows of a rule share its level"
                 )
-            if layer != "check" and CHECK_COLUMN in cell:
+            if status != current.status:
                 raise row.error(
-                    f"its layer is {layer}, but only check rows are in a table with a {CHECK_COLUMN} column"
+                    f"its status is {status!r}, but the row of {code} at line {current.row.line} gives"
+                    f" {current.status!r}: the rows of a check rule give one status"
                 )
-            level = cell["Level"].content
-            if level not in LEVELS:
-                raise row.error(f"unknown level {level!r}: a level is MUST or SHOULD")
-            statement = cell["Rule"].children or []
-            if _sentence_break(statement):
-                raise row.error(
-                    "its Rule cell has more than one sentence, but a rule is one sentence"
-                )
-            for keyword in _keywords(_text(statement)) + _keywords(
-                _rendered(statement)
-            ):
-                if KEYWORDS[keyword] != level:
-                    raise row.error(
-                        f"its rule says {keyword}, which contradicts its level, {level}"
-                    )
+        else:
             if code in seen:
                 raise row.error(
-                    f"the code {code} is already the code of the row at line {seen[code]}"
+                    f"the code {code} is already the code of the rule at line {seen[code]}: the rows of a rule are"
+                    " consecutive, under one layer row"
                 )
             seen[code] = row_line
-            entry = {
-                "code": code,
-                "layer": layer,
-                "level": level,
-                "statement": _inline_markdown(cell["Rule"], row, "Rule"),
-                "source": source,
-            }
-            if CHECK_COLUMN in cell:
-                entry["status"] = _inline_markdown(
-                    cell[CHECK_COLUMN], row, CHECK_COLUMN
-                )
-            rules.append(entry)
-    return rules
-
-
-def extract_notes(markdown: str) -> list[dict]:
-    """The notes of `markdown`'s Part II, in document order: its recommendations and permissions, the rules without a
-    code.
-
-    A note is a paragraph of a `###` section of Part II whose text starts `Recommendation:`, stating `SHOULD` once, or
-    `Permission:`, stating `MAY` once, with no other RFC 2119 keyword, in its text, in a code span, or as it reads once
-    rendered. Each entry has its `kind` (`recommendation` or `permission`), its `level`, its `text`, the paragraph's
-    inline Markdown after the label, with its lines joined and each link reduced to its text, and its `source`, as a
-    rule's. Where each codes table sits is checked too. Raises `ValueError`, naming the line, on anything malformed.
-    """
-    return _notes(_part_ii(markdown))
+            current = _Rule(row, code, layer, level)
+            current.status = status
+            rules.append(current)
+        current.parts.append(statement)
+    return [rule.entry() for rule in rules]
 
 
 # --- The error map, from the schema ---
@@ -663,8 +602,8 @@ class _ErrorMap:
         has one, then its class rules, in order.
 
         Each member is `{if, then}`. Its `if` takes the check's code, since Ajv reports it when the `then` fails, but
-        nothing inside it does: it only guards the check, and a tool drops any error inside an `if` (spec Annex D). The
-        keywords of its `then` that can fail take the code too.
+        nothing inside it does: it only guards the check, and a tool drops any error inside an `if`, which can't make the
+        instance fail. The keywords of its `then` that can fail take the code too.
         """
         codes = (
             [self.exactly_one_of_code(cls, pointer)]
@@ -751,7 +690,7 @@ class _ErrorMap:
                 for field, sub in value.items():
                     self.condition(sub, [*here, field], code)
             elif keyword == "not":
-                # Only the `not` is reported: a tool drops any error inside a `not` (spec Annex D).
+                # Only the `not` is reported: a tool drops any error inside a `not`, which can't make the instance fail.
                 self.add(here, code)
             elif keyword in DEFAULTS or keyword in ("required", "pattern"):
                 self.add(here, code)
@@ -924,7 +863,7 @@ def _tree_root(view: SchemaView) -> str:
 def build_error_map(schema: dict, schema_view: SchemaView) -> dict[str, str]:
     """For the generated JSON Schema `schema` of the LinkML schema `schema_view`: absolute keyword location → code.
 
-    It holds every keyword of `schema` whose error can make the instance fail (spec Annex D), and raises `ValueError` for
+    It holds every keyword of `schema` whose error can make the instance fail, and raises `ValueError` for
     any it can't give a code.
     """
     return dict(sorted(_walk(schema, schema_view).codes.items()))
@@ -953,14 +892,21 @@ def _walk(schema: dict, schema_view: SchemaView) -> _ErrorMap:
 def build_catalogue(
     markdown: str, schemas: list[tuple[dict, SchemaView]]
 ) -> dict[str, Any]:
-    """`rules.json` without its `$comment`: the rules of `markdown`'s codes tables, and the error map of each `(schema,
+    """`rules.json` without its `$comment`: the rules of `markdown`'s codes table, and the error map of each `(schema,
     view)`.
 
-    Every code in the error map is a schema-layer code of the specification, and every `rule` annotation in the views
-    gives a code to some keyword of the schemas: one that gives none (on a class, say) is an error.
+    Every code in the error map is a schema-layer code of the specification, as is every default code
+    (`DEFAULT_CODES`), and every `rule` annotation in the views gives a code to some keyword of the schemas: one that
+    gives none (on a class, say) is an error.
     """
     rules = extract_rules(markdown)
     schema_codes = {rule["code"] for rule in rules if rule["layer"] == "schema"}
+    if DEFAULT_CODES - schema_codes:
+        raise ValueError(
+            "the default codes "
+            + ", ".join(sorted(DEFAULT_CODES - schema_codes))
+            + " are not schema-layer codes of the specification"
+        )
     errors: dict[str, str] = {}
     annotated: set[tuple[str, ...]] = set()
     used: set[tuple[str, ...]] = set()
@@ -991,7 +937,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "specification",
         type=Path,
-        help="the specification (Markdown), whose codes tables are the catalogue",
+        help="the specification (Markdown), whose codes table is the catalogue",
     )
     parser.add_argument(
         "sources",

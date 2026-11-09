@@ -118,10 +118,8 @@ docs-serve: _docs-prep
 docs-clean:
   rm -rf site
 
-# Prepare the docs: the field reference, the published schema files, and the
-# All rules page, written from the specification (`tools/rules_page.py`)
+# Prepare the docs: the field reference and the published schema files
 _docs-prep: gen-doc docs-install
-  uv run python tools/rules_page.py docs/specification.md docs/rules.md
 
 # Run all tests: the generated files are current, pytest, and the schema lints clean
 [group('model development')]
@@ -135,7 +133,7 @@ test: check-generated _pytest lint
 # filled in by the generator: `0.1` for every 0.1.x, a pre-release's whole
 # version, or `dev`), so the closed and open record schemas are distinct, and
 # so are two minor versions. `rules.json` holds the rules extracted from the
-# codes tables of the specification's Part II, and the code of each JSON
+# codes table of the specification's Rules section, and the code of each JSON
 # Schema keyword that can fail
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned

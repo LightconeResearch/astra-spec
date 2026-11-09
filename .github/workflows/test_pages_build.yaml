@@ -64,12 +64,11 @@ jobs:
       - name: Build documentation
         run: just docs-strict
 
-      # The extractor reads the codes tables as CommonMark, the site renders
-      # them with Python-Markdown: the built page must show each rule's cells
-      # as the same text as rules.json, and every in-page link of the
-      # specification must resolve, the All rules page must show every rule
-      # of rules.json, and each element's page its pattern as the schema
-      # writes it (skipped wherever there is no site/).
+      # The extractor reads the codes table as CommonMark, the site renders
+      # it with Python-Markdown: the built page must show each rule's cells
+      # as the same text as rules.json, every in-page link of the
+      # specification must resolve, and each element's page must show its
+      # pattern as the schema writes it (skipped wherever there is no site/).
       - name: Check the built pages against rules.json and the schema
         run: uv run python -m pytest tests/test_site.py
 

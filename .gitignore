@@ -6,9 +6,6 @@
 /docs/schema/*.yaml
 /docs/schema/*.json
 /docs/schema/*.jsonld
-# the All rules page, written from the specification on every docs build
-# (tools/rules_page.py)
-/docs/rules.md
 # The justfile's scratch space: the staged, versioned schema (tmp/schema/) and
 # the drift check's fresh generation (tmp/generated-check/)
 tmp/
