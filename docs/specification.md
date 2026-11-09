@@ -1364,10 +1364,6 @@ analyses:
     commit: <commit>
 ```
 
-`upstream`'s `output4` is built once, so an output of the driving analysis
-reads it as `upstream.output4`, without a pin. Its result is read through its
-[record](#19-records) at `<commit>`, and none of `upstream`'s recipes runs.
-
 A declaration, whose fields are in the
 [field reference](elements/AnalysisDeclaration.md), takes one of three forms
 ([`INVALID_DECLARATION_SOURCE`](#17-analyses-from-another-commit-or-repository),
@@ -1381,20 +1377,11 @@ A declaration, whose fields are in the
 
 - In each form, the folder holds an `astra.yaml` file
   ([`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)).
-- `url` is a remote that git fetches another repository from. It holds no
-  ASCII space or control character, and takes one of two forms
-  ([`INVALID_VALUE`](#5-the-astrayaml-file)):
-  - `scheme://` and at least one character, where the scheme is an ASCII
-    letter followed by any ASCII letters, digits, `+`, `.` and `-`:
-    `https://example.org/upstream.git`, `ssh://git@example.org/upstream.git`,
-    `file:///srv/upstream.git`;
-  - scp-like, `[user@]host:path`, where `host`, `path` and any `user` are
-    non-empty, `user` and `host` hold no `/`, `@` or `:`, and the value
-    doesn't start with a scheme and `://`: `git@example.org:upstream.git`.
-- A bare word or a local path, such as `a`, `owner/repo` or `../repo`, is
-  not a `url` ([`INVALID_VALUE`](#5-the-astrayaml-file)): an analysis in the
-  declaring analysis's repository is declared by `path`, and another
-  repository on this machine by a `file://` URL.
+- `url` is a remote that git fetches another repository from, in one of the
+  forms [Annex C](#c-grammars-and-patterns) gives
+  ([`INVALID_VALUE`](#5-the-astrayaml-file)). An analysis in the declaring
+  analysis's repository is declared by `path`, and one in another repository
+  on this machine by a `file://` URL.
 - `commit` is a full commit id, never a branch, a tag or a shortened id, each
   of which can come to name another commit
   ([`INVALID_COMMIT`](#17-analyses-from-another-commit-or-repository)).
@@ -1429,9 +1416,6 @@ Every rule of this specification applies to an analysis from a commit as it
 is, its files read at its commit, each as the blob git stores
 ([Annex B](#b-paths-and-git),
 [`DECLARED_ANALYSIS_INVALID`](#17-analyses-from-another-commit-or-repository)).
-Its results are those that [belong to](#18-results-and-where-they-go) it or
-to an analysis reached from it through declarations, each read at the commit
-its analysis is read at ([§20](#20-checking-results)).
 
 A commit is got from a remote when it is:
 
@@ -1452,9 +1436,14 @@ doesn't count.
 
 #### Using one
 
-Unless an analysis from a commit is [driven](#16-driving-and-consuming),
-none of its recipes runs ([`REBUILT_FROM_COMMIT`](#21-runners)), so the rules
-on the [universe being built](#16-driving-and-consuming) let it give only:
+The results of an analysis from a commit are those that
+[belong to](#18-results-and-where-they-go) it or to an analysis reached from
+it through declarations. Driven or not, none of them is built: each is read
+through its [record](#19-records) at the commit its analysis is read at
+([`REBUILT_FROM_COMMIT`](#21-runners), [§20](#20-checking-results)). So,
+unless an analysis from a commit is [driven](#16-driving-and-consuming),
+none of its recipes runs, and the rules on the
+[universe being built](#16-driving-and-consuming) let it give only:
 
 - its outputs in its own universes, pinned, in a file with no entry with the
   pin's id or through an import;
@@ -1464,16 +1453,12 @@ on the [universe being built](#16-driving-and-consuming) let it give only:
 Evidence cites its results in the same way.
 
 A driver's universes can drive an analysis from a commit as any declared
-analysis, and one with no decisions is driven wherever the chain before its
-declaration is ([§16](#16-driving-and-consuming)). A driven one's recipes run
-on exactly its files at its commit ([`NOT_AT_COMMIT`](#21-runners)). Only
-what the driver's universes build is built: it
-[belongs to](#18-results-and-where-they-go) the driver, and its records name
-the driver's commit, where the declaration says which commit the driven
+analysis ([§16](#16-driving-and-consuming)). Its recipes then run on exactly
+its files at its commit ([`NOT_AT_COMMIT`](#21-runners)), and only for what
+the driver's universes build: those results
+[belong to](#18-results-and-where-they-go) the driver, and their records
+name the driver's commit, where the declaration says which commit the driven
 analysis is from and, for a remote, where to get it.
-Driven or not, its outputs built once and its results in its own universes
-belong to it, so no recipe makes them: they are read through their records
-([`REBUILT_FROM_COMMIT`](#21-runners)).
 
 When a recipe reads a result of an analysis from a commit, the runner gets
 the bytes from what the declared commit holds at the result's
@@ -1487,7 +1472,9 @@ stand-in.
 **Earlier results.** An earlier commit's results are read the same way,
 through a pin or an import. Here `previous` declares the analysis's own
 folder at a commit that holds the records, later than the commit they name
-([§20](#20-checking-results)):
+([§20](#20-checking-results)). Its universes often share their ids with the
+analysis's own, so its `u1` is named through an import
+([§12](#12-universes)):
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -1501,17 +1488,7 @@ universes:
     universe: u1
 ```
 
-`previous`'s universes often have the ids of the analysis's own. Where both
-have a `u1`, `previous.output1#u1` names the analysis's own `u1`
-([§13](#13-pins-and-outputs-built-per-universe-or-once)). Where `previous`
-has decisions and no key of the analysis's universes goes through it, the
-analysis doesn't build `previous` in its `u1`: a
-[planned result](#18-results-and-where-they-go)'s output that reads
-`output1`, built per universe, through that pin breaks
-[`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) and
-[`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming). Through the import,
-`previous.output1#previous_u1` reads `output1` in `previous`'s own `u1`,
-through its record at `<commit>`, and no recipe runs.
+`previous.output1#previous_u1` reads `output1` in `previous`'s own `u1`.
 
 #### The rules
 
@@ -2119,12 +2096,21 @@ ASCII space or control character, or one of `"`, `#`, `<`, `>`, `[`, `\`, `]`,
 ([`INVALID_VALUE`](#5-the-astrayaml-file)). Its `conforms_to` is an `iri`
 ([`INVALID_VALUE`](#5-the-astrayaml-file)).
 
+**Repository URLs.** A declaration's `url`
+([§17](#17-analyses-from-another-commit-or-repository)) holds no ASCII space
+or control character, and takes one of two forms
+([`INVALID_VALUE`](#5-the-astrayaml-file)). One is a scheme, as in an `iri`,
+then `://` and at least one character: `https://example.org/upstream.git`,
+`ssh://git@example.org/upstream.git` or `file:///srv/upstream.git`. The other
+is scp-like, `[user@]host:path`, where `host`, `path` and any `user` are
+non-empty, `user` and `host` hold no `/`, `@` or `:`, and the value doesn't
+start with a scheme and `://`: `git@example.org:upstream.git`. So a bare word
+or a local path, such as `a`, `owner/repo` or `../repo`, is not a `url`.
+
 **Other patterns.** The other fields with a pattern give it in their
 sections: `Output.format` ([§10](#10-outputs)), the `path` of an input or a
-declaration ([§7](#7-inputs), [§15](#15-declared-analyses)),
-`AnalysisDeclaration.url`
-([§17](#17-analyses-from-another-commit-or-repository)) and `Evidence.doi`
-([§14](#14-insights-and-evidence)).
+declaration ([§7](#7-inputs), [§15](#15-declared-analyses)) and
+`Evidence.doi` ([§14](#14-insights-and-evidence)).
 
 ### D. The schema files and rules.json
 
