@@ -1,0 +1,8 @@
+{
+  "about": "A declared analysis's file gives an output a type that isn't one of OutputType.",
+  "valid": false,
+  "must_report": [
+    {"code": "INVALID_VALUE", "file": "stage/astra.yaml", "pointer": "/outputs/output3/type"}
+  ],
+  "must_not_report": ["DECLARED_ANALYSIS_INVALID"]
+}

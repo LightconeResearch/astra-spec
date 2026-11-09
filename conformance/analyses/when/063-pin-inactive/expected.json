@@ -1,0 +1,7 @@
+{
+  "about": "An output is pinned to a universe where it is inactive.",
+  "valid": false,
+  "must_report": [
+    {"code": "PIN_INACTIVE", "file": "astra.yaml"}
+  ]
+}

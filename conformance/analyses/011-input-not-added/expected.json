@@ -1,0 +1,8 @@
+{
+  "about": "An input whose file is in the working tree, but not tracked by git.",
+  "valid": false,
+  "must_report": [
+    {"code": "INPUT_NOT_TRACKED", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_INPUT_FILE"]
+}

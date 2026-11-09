@@ -1,0 +1,11 @@
+spec_version: "0.1.0"
+analyses:
+  stage:
+    path: stage
+outputs:
+  result:
+    type: metric
+    format: json
+    inputs: [stage.output3]
+    recipe:
+      command: python make.py '{inputs.stage.output3}' '{output}'

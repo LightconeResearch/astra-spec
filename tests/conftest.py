@@ -21,7 +21,10 @@ from rules import json_pointer
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GENERATED = REPO_ROOT / "src" / "astra" / "schema" / "generated"
-DATA = REPO_ROOT / "tests" / "data"
+DATA = REPO_ROOT / "conformance" / "documents"
+WHEN = DATA / "when"
+"""The fixtures whose point is a `when` (§9), each in `WHEN / kind` as the others are in `DATA / kind`: kept apart,
+since `when` may leave the specification (issue #93)."""
 
 _SCHEMA_NAMES = {"Analysis": "analysis", "ProvenanceRecord": "provenance"}
 """Each fixture root, with the name of its generated schema."""
@@ -481,5 +484,12 @@ def fixture_header(path: Path) -> tuple[str, str, tuple[str, str] | None]:
 
 
 def fixtures(kind: str) -> list[Path]:
-    """The fixtures of `kind` (`valid` or `invalid`), sorted: each `astra.yaml` (`.yaml`) and record (`.json`)."""
-    return sorted([*(DATA / kind).glob("*.yaml"), *(DATA / kind).glob("*.json")])
+    """The fixtures of `kind` (`valid` or `invalid`), in `DATA` and `WHEN`, sorted by name: each `astra.yaml`
+    (`.yaml`) and record (`.json`)."""
+    folders = (DATA / kind, WHEN / kind)
+    paths = [
+        path
+        for folder in folders
+        for path in [*folder.glob("*.yaml"), *folder.glob("*.json")]
+    ]
+    return sorted(paths, key=lambda path: path.name)

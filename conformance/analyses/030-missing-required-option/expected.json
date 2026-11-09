@@ -1,0 +1,7 @@
+{
+  "about": "A universe selects an option without the option it requires.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_REQUIRED_OPTION", "file": "astra.yaml"}
+  ]
+}

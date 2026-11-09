@@ -1,0 +1,7 @@
+{
+  "about": "An input whose path differs from its file's only in case.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_INPUT_FILE", "file": "astra.yaml"}
+  ]
+}

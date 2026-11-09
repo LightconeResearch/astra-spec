@@ -6,7 +6,7 @@ extends: default
 # parse (malformed YAML). Keep in step with check-yaml's exclude in
 # .pre-commit-config.yaml.
 ignore: |
-  tests/data/invalid/Analysis-182-malformed-yaml.yaml
+  conformance/documents/invalid/Analysis-182-malformed-yaml.yaml
 
 rules:
   document-start: disable  # Don't check if document has a start marker (---).

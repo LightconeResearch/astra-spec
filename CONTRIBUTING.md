@@ -12,7 +12,6 @@ in a pull request.
 * [Code of Conduct](#code-of-conduct)
 * [Guidelines for Contributions and Requests](#contributions)
   * [Reporting issues and making requests](#reporting-issues)
-  * [Questions and Discussion](#questions-and-discussion)
   * [Proposing significant changes (RFCs)](#rfcs)
   * [Adding new elements yourself](#adding-elements)
 * [Best Practices](#best-practices)
@@ -34,7 +33,7 @@ Please carefully read our organization-wide
 
 <a id="reporting-issues"></a>
 
-### Reporting problems and suggesting changes to with the data model
+### Reporting problems and suggesting changes to the data model
 
 Please use our [Issue Tracker][issues] for any of the following:
 
@@ -47,7 +46,7 @@ Please use our [Issue Tracker][issues] for any of the following:
 
 Significant or contested changes — new schema concepts, breaking changes,
 versioning and compatibility rules, or changes to the process itself — go through the
-[RFC process](https://astra-spec.org/rfc-process/). Start by opening an issue
+[RFC process](https://astra-spec.org/latest/rfc-process/). Start by opening an issue
 with the *RFC proposal* template, then add a draft under
 [`rfcs/`](rfcs/) using [`rfcs/0000-template.md`](rfcs/0000-template.md). Small,
 low-risk changes do not need an RFC; open an issue or pull request directly.
@@ -67,7 +66,7 @@ Please submit a [Pull Request][pulls] to submit a new term for consideration.
 ### GitHub Best Practice
 
 - Creating and curating issues
-    - Read ["About Issues"][[about-issues]]
+    - Read ["About Issues"][about-issues]
     - Issues should be focused and actionable
     - Complex issues should be broken down into simpler issues where possible
 - Pull Requests
@@ -109,7 +108,7 @@ Core developers should read the material on the [LinkML site](https://linkml.io/
 - Include examples and counter-examples (intentionally invalid examples)
     - Rationale: these serve as documentation and unit tests
     - These will be used by the automated test suite
-    - All elements of the schema must be illustrated with valid and invalid data examples in src/data. New schema elements will not be merged into the main branch until examples are provided
+    - All elements of the schema must be illustrated with valid and invalid data examples in conformance/documents/. New schema elements will not be merged into the main branch until examples are provided
     - Invalid example data files should be invalid for one single reason, which should be reflected in the filename. It should be possible to render the invalid example files valid by addressing that single fault.
 - Use enums for categorical values
     - Rationale: Open-ended string ranges encourage multiple values to represent the same entity, like “water”, “H2O” and “HOH”
@@ -122,7 +121,7 @@ Core developers should read the material on the [LinkML site](https://linkml.io/
 [about-branches]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-branches
 [about-issues]: https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues
 [about-pulls]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
-[issues]: https://github.com/LightconeReserach/ASTRA/issues/
-[pulls]: https://github.com/LightconeReserach/ASTRA/pulls/
+[issues]: https://github.com/LightconeResearch/astra-spec/issues/
+[pulls]: https://github.com/LightconeResearch/astra-spec/pulls/
 
 We recommend also reading [GitHub Pull Requests: 10 Tips to Know](https://blog.mergify.com/github-pull-requests-10-tips-to-know/)

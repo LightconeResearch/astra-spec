@@ -1,0 +1,7 @@
+{
+  "about": "A declaration of the analysis's own folder at a commit its repository doesn't have.",
+  "valid": false,
+  "must_report": [
+    {"code": "COMMIT_NOT_FOUND", "file": "astra.yaml"}
+  ]
+}

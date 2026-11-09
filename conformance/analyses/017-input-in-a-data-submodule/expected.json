@@ -1,0 +1,8 @@
+{
+  "about": "An input whose file is in a checked-out submodule that holds data only.",
+  "valid": false,
+  "must_report": [
+    {"code": "INPUT_NOT_TRACKED", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_INPUT_FILE"]
+}

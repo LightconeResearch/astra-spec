@@ -1,0 +1,7 @@
+{
+  "about": "A universe derives from a universe that doesn't exist.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNKNOWN_DERIVED_FROM", "file": "astra.yaml"}
+  ]
+}

@@ -1,12 +1,12 @@
 # Getting started
 
-A self-contained tour of the ASTRA format: scaffold a project, edit the analysis, validate it, inspect it, define universes, and attach evidence. It assumes the `astra` CLI is already installed — see [installation](https://astra-spec.org/latest/installation/).
+A self-contained tour of the ASTRA format: scaffold a project, edit the analysis, validate it, inspect it, define universes, and attach evidence. It assumes the `astra` CLI is already installed — see [installation](installation.md).
 
-If you'd rather see the schema first, jump to the [specification](https://astra-spec.org/latest/specification/).
+If you'd rather see the schema first, jump to the [specification](specification.md).
 
 ## Scaffold a project
 
-Use [`astra init`](https://astra-spec.org/latest/cli/#astra-init) to create a minimal project layout:
+Use [`astra init`](cli.md#astra-init) to create a minimal project layout:
 
 ```bash
 astra init my-analysis
@@ -17,38 +17,34 @@ This produces:
 
 ```
 my-analysis/
-├── astra.yaml              # Analysis specification (source of truth)
-├── .gitignore
-├── src/                    # Your analysis code
-└── universes/
-    └── baseline.yaml       # Default decision selection
+└── astra.yaml              # Analysis specification (source of truth)
 ```
 
-The scaffolded `astra.yaml` is a complete, valid analysis with `TODO:` markers in the prose. It includes a `description`, a `container:` default (`python:3.12-slim`), one example decision (`example_method` with options `option_a` and `option_b`), and two outputs (`main_result` chained into a `conclusion` report). It compiles as-is — you can edit incrementally rather than rewriting from scratch.
+The scaffolded `astra.yaml` is a complete, valid analysis: a `spec_version` and one output, `result`, a JSON metric made by `python src/result.py '{output}'`. It validates as-is — you can edit incrementally rather than rewriting from scratch.
 
-> **Tip:** By default `astra init` runs `git init` in the new directory and makes an initial commit. Pass `--no-git` to skip both.
+> **Tip:** Where no git repository holds the new directory, `astra init` runs `git init` in it. It makes no commit.
 
-`astra init` is idempotent: re-running it creates whatever is missing and never overwrites existing files, so it is safe to run in a directory that already has content — including an existing `astra.yaml`, which is left untouched. Use `astra init --check` to see whether a directory is fully scaffolded without writing anything.
+`astra init` never overwrites existing files, so it is safe to run in a directory that already has content; where the directory already has an `astra.yaml`, it stops with an error and leaves it untouched.
 
 ## Edit the analysis
 
-The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis declares three top-level sections — **`inputs:`**, **`outputs:`**, **`decisions:`** — plus optional metadata (`name`, `version`, `description`, `tags`, `container`).
+The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis states its **`spec_version`** and declares its **`outputs:`**, usually with **`inputs:`** and **`decisions:`** — plus optional metadata (`label`, `description`, `tags`, `container`).
 
 ```yaml
-version: "1.0"
-name: My Analysis
+spec_version: "0.1.0"
+label: My Analysis
 container: python:3.12-slim       # default for all recipes; per-output override allowed
 
 description: |                    # short free-prose orientation
   One paragraph describing the analysis.
 
 inputs:
-  - id: primary_data
-    type: data                    # "data" or "analysis"
+  primary_data:
+    path: data/primary.csv        # a file tracked in git with the analysis
     description: "Source dataset"
 
 outputs:
-  - id: main_result
+  main_result:
     type: metric                  # metric | figure | table | data | report
     format: json                  # file extension, no dot; required from 0.1.0
     description: "Primary output"
@@ -59,7 +55,6 @@ outputs:
 decisions:
   example_method:
     label: "Example Method"
-    default: option_a             # used when generating a baseline universe
     options:
       option_a: { label: "Option A" }
       option_b: { label: "Option B" }
@@ -70,119 +65,100 @@ A few things worth noting:
 - **Decisions parameterize outputs.** `Output.decisions` declares the contract — only the listed decisions resolve inside `recipe.command`. The validator rejects `{decisions.foo}` if `foo` isn't in the list.
 - **Recipe placeholders.** Four forms are legal: `{inputs}` (all declared inputs, space-separated), `{inputs.<id>}` (one declared input), `{decisions.<id>}` (one declared decision), and `{output}` (where to write). `{{` and `}}` are literal braces.
 - **Rich reports live alongside `astra.yaml`.** The spec keeps a single optional `description`; a fuller write-up — figures, citations, multi-page structure — is built next to the analysis and references its elements rather than restating them. [MySTRA](https://github.com/LightconeResearch/MySTRA) is one framework that does this.
-- **Constraints between options.** `requires:` and `incompatible_with:` (format: `decision.option`) gate which option combinations are valid. They are checked when you validate a universe.
+- **Constraints between options.** `requires:` and `incompatible_with:` (format: `decision.option`) gate which option combinations are valid. They are checked against each universe when you validate the analysis.
 
 ## Validate
 
-Run [`astra validate`](https://astra-spec.org/latest/cli/#astra-validate) to check the file:
+Run [`astra validate`](cli.md#astra-validate) on the analysis's folder:
 
 ```bash
-astra validate astra.yaml
+astra validate .
 ```
 
 Validation runs in three stages, each gating the next:
 
-1. **Schema validation** — Pydantic models (generated from the LinkML schema) check types, required fields, and format patterns (ID pattern, version pattern, DOI pattern, …).
-2. **Semantic validation** — duplicate IDs, default options exist, `from:` paths and tree-path references resolve and respect direction rules, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve.
-3. **Evidence verification** (opt-in, `--verify-evidence`) — quoted text in `prior_insights` and `findings` actually appears in the cached source PDFs.
+1. **Parsing** — the file is YAML 1.2 whose content is a map, with no key twice.
+2. **Schema validation** — the JSON Schema (generated from the LinkML schema) checks types, required fields, and format patterns (ID pattern, version pattern, DOI pattern, …).
+3. **Semantic validation** — duplicate IDs, input files exist and are tracked in git, declared analyses and addresses resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve, universes are complete and consistent.
 
 A clean run prints:
 
 ```text
-Validating astra.yaml...
-✓ Schema validation passed
-✓ Semantic validation passed
-
-Validation successful!
+astra.yaml: valid, 0 error(s), 0 warning(s)
 ```
 
-When something is wrong, errors print as `[ERROR_CODE] path: message`:
+When something is wrong, errors print by file, as `line:col level CODE message`:
 
 ```text
-Semantic validation errors:
-  • [UNDECLARED_TEMPLATE_REF] outputs.accuracy.recipe.command:
-    Command placeholder '{decisions.foo}' references undeclared decision
-    'foo' (add it to Output.decisions)
-  • [DUPLICATE_OUTPUT] outputs.main_result:
-    Duplicate output ID: main_result
+astra.yaml
+  20:16 error UNDECLARED_TEMPLATE_REF `{decisions.foo}` isn't a placeholder of this output: it takes `{inputs}`, `{output}`, and `{inputs.<entry>}` and `{decisions.<entry>}` for an entry of its `inputs` or `decisions` as written; `{{` and `}}` are literal braces
+astra.yaml: invalid, 1 error(s), 0 warning(s)
 ```
 
 Non-blocking warnings print in yellow: the validator still returns success but surfaces them so authors can clean the record up.
 
 ## Inspect
 
-[`astra info`](https://astra-spec.org/latest/cli/#astra-info) prints a Rich-rendered summary: the analysis name, version, description, and tables for inputs, outputs, and decisions. By default everything renders; pass `--decisions`, `--inputs`, or `--outputs` to focus.
+[`astra info`](cli.md#astra-info) prints a Rich-rendered summary: the analysis label, and its declarations, inputs, outputs, decisions and universes, followed by the same for each analysis it declares, if any.
 
 ```bash
 astra info
-astra info --decisions
 ```
-
-[`astra viz`](https://astra-spec.org/latest/cli/#astra-viz) draws the decision space. The default ASCII tree groups options under each decision, marks the default with `[default]`, and renders `incompatible_with` / `requires` constraints as glyphs (`✗` and `→`):
 
 ```text
-└── My Analysis
-    └── example_method
-        ├── option_a: Option A [default]
-        └── option_b: Option B
+astra.yaml  My Analysis
+  inputs    primary_data: data/primary.csv
+  outputs   main_result: metric, json
+  decisions example_method: option_a, option_b
 ```
 
-Sub-analyses, if any, nest under their parent. Pass `--format mermaid` to emit a Mermaid graph that can be pasted directly into a Markdown document:
-
-```bash
-astra viz --format mermaid
-```
+Once the analysis has universes (next section), [`astra universe list`](cli.md#astra-universe) and `astra universe show` name them and give each one's selection, and [`astra plan`](cli.md#astra-plan) lists the results they plan, with where each goes and its command.
 
 ## Define universes
 
-A *universe* is one complete set of decision selections — one option per decision in the analysis tree. Each universe yields one set of results; the same analysis can carry many of them.
+A *universe* is one complete set of decision selections — one option per decision of the analysis and of the analyses it drives. Each universe yields one set of results; the same analysis can carry many of them.
 
-Generate the baseline from your `default:` values:
+Universes are written in `astra.yaml`, under `universes:`: there is no default universe or option ([Elements](specification.md#elements)).
+
+```yaml
+universes:
+  baseline:
+    description: Baseline configuration using standard practices
+    decisions:
+      example_method: option_a
+```
+
+Add a second universe by hand, next to `baseline`, to flex an alternative path:
+
+```yaml
+universes:
+  alt:
+    description: Alternative method choice
+    decisions:
+      example_method: option_b
+```
+
+Validate, and inspect the universes:
 
 ```bash
-astra universe generate --name baseline
+astra validate .              # full validation, universes included
+astra universe show alt       # the selection alt makes
+astra plan                    # the planned results and their commands
 ```
 
-This writes `universes/baseline.yaml`:
+Universe validation enforces three rules, among others: every active decision of the analysis and of the analyses it drives has a selection; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
+
+For declared analyses, the universe sets their decisions by address ([Elements](specification.md#elements)):
 
 ```yaml
-id: baseline
-description: Default configuration using standard practices
-
-decisions:
-  example_method: option_a
-```
-
-Add a second universe by hand to flex an alternative path:
-
-```yaml
-# universes/alt.yaml
-id: alt
-description: Alternative method choice
-
-decisions:
-  example_method: option_b
-```
-
-Validate either way:
-
-```bash
-astra validate universes/alt.yaml          # full validation against the analysis
-astra universe check universes/alt.yaml    # universe-only checks (faster on iteration)
-```
-
-Universe validation enforces three rules: every decision in the analysis tree has a selection; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
-
-For nested analyses, the universe mirrors the tree:
-
-```yaml
-id: baseline
-decisions:
-  random_seed: seed_42       # root decision
 analyses:
   feature_extraction:
+    path: feature_extraction
+universes:
+  baseline:
     decisions:
-      method: pca            # selection inside a sub-analysis
+      random_seed: seed_42              # root decision
+      feature_extraction.method: pca    # selection inside a sub-analysis
 ```
 
 ## Add evidence (optional)
@@ -193,18 +169,15 @@ ASTRA decisions can cite literature. You author the citation in `astra.yaml` —
 prior_insights:
   attention_scales:
     claim: "Self-attention scales better than recurrence."
-    created_at: "2026-04-15T10:00:00Z"
     evidence:
-      - id: ev_paper
-        doi: "10.48550/arXiv.1706.03762"
+      - doi: "10.48550/arXiv.1706.03762"
         version: 7
         quote:
-          exact: "Attention is all you need"
+          exact: "Attention Is All You Need"
 
 decisions:
   architecture:
     label: "Architecture"
-    default: transformer
     options:
       transformer:
         label: "Transformer"
@@ -215,18 +188,18 @@ decisions:
 
 The chain *option → insight → evidence → DOI* is what gives a decision an auditable trail back to the literature.
 
-When you re-validate with verification turned on, the validator reads each `prior_insights[].evidence[]` entry, looks up the cached PDF for that DOI, and fuzzy-matches the `quote.exact` against the extracted text:
+[`astra paper verify`](cli.md#astra-paper) reads each evidence entry that cites a DOI, looks up the cached PDF for that DOI, and fuzzy-matches the `quote.exact` against the extracted text:
 
 ```bash
-astra validate astra.yaml --verify-evidence
+astra paper verify .
 ```
 
-Papers are kept in a content-addressed cache under `~/.cache/astra/papers/`. The cache is populated by the agent or pipeline that authored the citation — they have the paper in hand at write time, so nothing extra is asked of the reader. The CLI exposes lower-level commands ([`astra paper add`](https://astra-spec.org/latest/cli/#astra-paper), `list`, `verify-quote`, …) for manual cache management, troubleshooting, and CI integration, but the day-to-day flow doesn't require them.
+Papers are kept in a cache under `~/.cache/astra/papers/`. `astra paper add` puts one there, and `astra paper list` shows which cited papers the cache holds. A paper missing from the cache, or a quote not found, is a warning, never an error.
 
-Artifact-backed evidence (typical for `findings:` whose output artifacts haven't been materialised yet) is reported as `SKIPPED` rather than failing the validation.
+Artifact-backed evidence (typical for `findings:`) cites an output's results rather than a paper: `astra paper verify` leaves it alone, and [`astra check`](cli.md#astra-check) gives it the status of the results it cites.
 
 ## What ASTRA doesn't run
 
-The CLI validates and inspects analyses; it does **not** execute recipes. Each `recipe.command` is a POSIX shell command that an executor — an agent, a workflow runner, a notebook, or you on the command line — reads and invokes. The executor materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the `{inputs.<id>}` / `{inputs}` / `{decisions.<id>}` / `{output}` placeholders against the active universe, and runs the resulting command.
+The CLI validates and inspects analyses, and checks results against their records; it does **not** execute recipes. Each `recipe.command` is a POSIX shell command that a runner, such as lightcone-cli, reads and invokes ([Results](specification.md#results)). The runner materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the `{inputs.<id>}` / `{inputs}` / `{decisions.<id>}` / `{output}` placeholders against the universe being built, runs the resulting command, and writes the result with a record of the run, which [`astra check`](cli.md#astra-check) later compares with the analysis.
 
 This separation is intentional: the spec stays stable as the agent and execution layer evolves. ASTRA's job is to make every analytical choice explicit, traceable, and verifiable; the choice of *runner* is yours.

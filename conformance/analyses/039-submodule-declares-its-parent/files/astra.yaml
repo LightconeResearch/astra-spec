@@ -1,0 +1,14 @@
+spec_version: "0.1.0"
+inputs:
+  input1:
+    path: data/input1.csv
+analyses:
+  lib:
+    path: lib
+outputs:
+  summary:
+    type: metric
+    format: json
+    inputs: [lib.result]
+    recipe:
+      command: python make.py '{inputs.lib.result}' '{output}'

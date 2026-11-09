@@ -1,0 +1,51 @@
+spec_version: "0.1.0"
+label: Example analysis
+
+analyses:
+  stage:
+    path: stage
+  upstream:
+    url: "@url:upstream@"
+    commit: "@commit:U@"
+
+inputs:
+  input1:
+    path: data/input1.csv
+
+decisions:
+  decision1:
+    rationale: Both are reasonable, and they may give different results.
+    options:
+      a: {}
+      b: {}
+
+outputs:
+  output1:
+    type: metric
+    format: json
+    inputs: [input1, stage.output3, upstream.output4]
+    decisions: [decision1]
+    recipe:
+      command: >-
+        python src/output1.py '{inputs.input1}' '{inputs.stage.output3}'
+        '{inputs.upstream.output4}' '{decisions.decision1}' '{output}'
+  output2:
+    type: table
+    format: csv
+    inputs: [output1#u1, output1#u2]
+    recipe:
+      command: >-
+        python src/output2.py '{inputs.output1#u1}' '{inputs.output1#u2}'
+        '{output}'
+
+universes:
+  u1:
+    decisions: {decision1: a, stage.decision2: a}
+  u2:
+    decisions: {decision1: b, stage.decision2: b}
+
+findings:
+  insight1:
+    claim: The two universes give different results.
+    evidence:
+      - artifact: output2

@@ -1,0 +1,4 @@
+{
+  "about": "An output reads a declared analysis's output in three universes: the driving analysis's u1, the declared analysis's own u1 through an import, and its own v1.",
+  "valid": true
+}

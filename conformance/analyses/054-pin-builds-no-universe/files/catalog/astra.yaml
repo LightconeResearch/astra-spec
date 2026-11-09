@@ -1,0 +1,23 @@
+spec_version: "0.1.0"
+analyses:
+  other:
+    path: ../other
+inputs:
+  input1:
+    path: data/input1.csv
+decisions:
+  mode:
+    options:
+      fast: {}
+      slow:
+        requires: [other.decision1.a]
+outputs:
+  output3:
+    type: data
+    format: csv
+    inputs: [input1]
+    recipe:
+      command: python make.py '{inputs.input1}' '{output}'
+universes:
+  main:
+    decisions: {mode: fast}

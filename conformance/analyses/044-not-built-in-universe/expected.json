@@ -1,0 +1,8 @@
+{
+  "about": "A driven analysis reads, without a pin, an output built per universe of an analysis that nothing drives.",
+  "valid": false,
+  "must_report": [
+    {"code": "NOT_BUILT_IN_UNIVERSE", "file": "stage/astra.yaml"}
+  ],
+  "must_not_report": ["UNDRIVEN_DECLARATION"]
+}

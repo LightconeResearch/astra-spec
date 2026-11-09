@@ -1,0 +1,7 @@
+{
+  "about": "A universe sets one decision under two keys, through two declarations of one folder whose paths are written differently.",
+  "valid": false,
+  "must_report": [
+    {"code": "DUPLICATE_ELEMENT", "file": "astra.yaml"}
+  ]
+}

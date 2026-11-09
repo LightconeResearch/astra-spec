@@ -1,0 +1,7 @@
+{
+  "about": "An analysis in a folder that no git repository holds.",
+  "valid": false,
+  "must_report": [
+    {"code": "NOT_IN_REPOSITORY"}
+  ]
+}

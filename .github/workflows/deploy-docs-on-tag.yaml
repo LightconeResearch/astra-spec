@@ -9,12 +9,22 @@ on:  # yamllint disable-line rule:truthy
       version:
         description: "Version to deploy (without leading v), e.g. 0.1.0 or 0.1.0rc1"
         required: true
+      tools_ref:
+        description: "astra-tools tag or branch whose CLI reference and installation page to show (default: the justfile's tools_ref at the version's tag)"
+        required: false
 
 permissions: {}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    # After an astra-tools release, a dispatch with the current version and
+    # the new tools_ref deploys that version again with astra-tools' new pages,
+    # and the specification needs no new tag. Empty on a tag push, where the
+    # justfile's tools_ref holds.
+    env:
+      ASTRA_TOOLS_REF: ${{ inputs.tools_ref }}
 
     strategy:
       matrix:

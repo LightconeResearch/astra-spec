@@ -1,0 +1,7 @@
+{
+  "about": "A universe selects two options that are incompatible with each other.",
+  "valid": false,
+  "must_report": [
+    {"code": "INCOMPATIBLE_OPTIONS", "file": "astra.yaml"}
+  ]
+}

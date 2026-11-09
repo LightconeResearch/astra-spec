@@ -37,6 +37,13 @@ docdir := "docs/elements"  # Directory for generated documentation
 # then its file name
 schema_namespace := "https://w3id.org/astra/"
 distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
+# The site shows astra-tools' CLI reference and installation page, which live
+# in astra-tools beside the code they describe (`_docs-tools`): taken from its
+# branch or tag `tools_ref` (v0.1-rebuild, astra-tools' v0.1 work, until it
+# reaches main), which ASTRA_TOOLS_REF overrides, or from the local folder
+# ASTRA_TOOLS_DOCS names, such as ../astra-tools/docs
+tools_ref := if env_var_or_default("ASTRA_TOOLS_REF", "") == "" { "v0.1-rebuild" } else { env_var("ASTRA_TOOLS_REF") }
+tools_docs := env_var_or_default("ASTRA_TOOLS_DOCS", "")
 
 # ============== Project recipes ==============
 
@@ -118,8 +125,22 @@ docs-serve: _docs-prep
 docs-clean:
   rm -rf site
 
-# Prepare the docs: the field reference and the published schema files
-_docs-prep: gen-doc docs-install
+# Prepare the docs: the field reference, the published schema files, and
+# astra-tools' CLI reference and installation page (`_docs-tools`)
+_docs-prep: gen-doc docs-install _docs-tools
+
+# Copy astra-tools' docs/cli.md and docs/installation.md into docs/: from
+# astra-tools at `tools_ref`, or from the folder ASTRA_TOOLS_DOCS names
+_docs-tools:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  from="{{tools_docs}}"
+  if [[ -z "${from}" ]]; then
+    rm -rf tmp/astra-tools
+    git clone --quiet --depth 1 --branch "{{tools_ref}}" https://github.com/LightconeResearch/astra-tools.git tmp/astra-tools
+    from=tmp/astra-tools/docs
+  fi
+  cp "${from}/cli.md" "${from}/installation.md" docs/
 
 # Run all tests: the generated files are current, pytest, and the schema lints clean
 [group('model development')]
@@ -222,13 +243,20 @@ release version:
 # Generate md documentation for the schema and add artifacts: both roots, the
 # analysis document and the provenance record, in one run (`--include`), so
 # that the slots the two share get one page each, rather than one run
-# overwriting the other's. The type and slot pages use the templates in
-# linkml-templates/. Each Regex Pattern cell is then written as HTML, every
-# character but an ASCII letter or digit as a character reference, so that the
-# site shows the pattern exactly (`tools/pattern_cells.py`)
+# overwriting the other's. The index, type and slot pages use the templates in
+# linkml-templates/. `tools/docgen.py` is `gen-doc` with each description in a
+# table cut at the end of its first sentence, or of its last word before 80
+# characters, each range linked to its type, each `<` and `&` of a
+# description shown as written, and a `-slot` suffix on a slot's page whose
+# name differs from another page's only in case. The pages of an
+# earlier build are removed first, so that none is left under an old name. Each
+# Regex Pattern cell is then written as HTML, every character but an ASCII
+# letter or digit as a character reference, so that the site shows the pattern
+# exactly (`tools/pattern_cells.py`)
 [group('model development')]
 gen-doc: _stage-versioned _gen-yaml && _add-artifacts
-  uv run gen-doc {{gen_doc_args}} --template-directory linkml-templates --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
+  rm -f {{docdir}}/*.md
+  uv run python tools/docgen.py {{gen_doc_args}} --template-directory linkml-templates --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
   uv run python tools/pattern_cells.py {{docdir}}
 
 # ============== Migrations recipes for Copier ==============
@@ -332,10 +360,14 @@ _at-tag version:
     exit 1
   fi
 
-# Add the merged model to docs/schema.
+# Add the merged models to docs/schema, one for each tree root: the analysis
+# document's (`astra.yaml`) and the provenance record's (`provenance.yaml`).
+# A LinkML schema should have at most one tree root (the metamodel's note on
+# `tree_root`), so one model can't hold both.
 _gen-yaml:
   -mkdir -p {{distrib_schema_path}}
   uv run gen-yaml {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
+  uv run gen-yaml {{staged_schema_dir}}/provenance.yaml > {{distrib_schema_path}}/provenance.yaml
 
 # Publish the committed contract, the JSON Schemas, the record's JSON-LD
 # context and `rules.json` of `gen-schema`, beside the merged model. Copied,

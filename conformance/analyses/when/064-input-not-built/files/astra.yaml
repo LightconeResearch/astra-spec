@@ -1,0 +1,22 @@
+spec_version: "0.1.0"
+decisions:
+  decision1:
+    options:
+      a: {}
+      b: {}
+outputs:
+  output4:
+    type: figure
+    format: png
+    when: [decision1.b]
+    recipe:
+      command: python make.py '{output}'
+  output8:
+    type: table
+    format: csv
+    inputs: [output4]
+    recipe:
+      command: python make.py '{inputs.output4}' '{output}'
+universes:
+  u1:
+    decisions: {decision1: a}

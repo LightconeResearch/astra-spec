@@ -1,8 +1,10 @@
 {#-
   LinkML 1.12.1's slot.md.jinja2 (Apache License 2.0), changed so that each
   heading of Properties is a heading of its own, a slot that several classes
-  define with the same pattern shows it, and the Markdown in a <details>
-  block is rendered.
+  define with the same pattern shows it, the Markdown in a <details> block is
+  rendered, the description shows each `<` and `&` as written, and Usages
+  links each slot by its definition, never to a type of the same name
+  (tools/docgen.py).
 -#}
 ---
 search:
@@ -39,7 +41,7 @@ search:
 {%- endif -%}
 
 {% if element.description %}
-{% set element_description_lines = element.description.split('\n') %}
+{% set element_description_lines = (element.description|escape_html).split('\n') %}
 {% for element_description_line in element_description_lines %}
 _{{ element_description_line }}_
 {% endfor %}
@@ -494,7 +496,7 @@ Value must not satisfy any of:
 | used by | used in | type | used |
 | ---  | --- | --- | --- |
 {% for usage in schemaview.usage_index().get(element.name) -%}
-| {{ gen.link(usage.used_by) }} | {{ gen.link(usage.slot) }} | {{ usage.metaslot }} | {{ gen.link(usage.used) }} |
+| {{ gen.link(usage.used_by) }} | {{ gen.link(schemaview.get_slot(usage.slot)) }} | {{ usage.metaslot }} | {{ gen.link(usage.used) }} |
 {% endfor %}
 {% endif %}
 

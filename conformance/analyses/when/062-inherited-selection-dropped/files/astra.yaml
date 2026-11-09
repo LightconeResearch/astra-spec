@@ -1,0 +1,33 @@
+spec_version: "0.1.0"
+decisions:
+  decision1:
+    options:
+      a: {}
+      b: {}
+  decision2:
+    options:
+      a: {}
+      b: {}
+  decision3:
+    when: [decision1.b]
+    options:
+      a: {}
+      b: {}
+outputs:
+  output1:
+    type: metric
+    format: json
+    decisions: [decision1, decision2]
+    recipe:
+      command: >-
+        python make.py '{decisions.decision1}' '{decisions.decision2}'
+        '{output}'
+universes:
+  u1:
+    decisions: {decision1: a, decision2: a}
+  u2:
+    derived_from: u1
+    decisions: {decision1: b, decision2: b, decision3: a}
+  u3:
+    derived_from: u2
+    decisions: {decision1: a}   # the inherited decision3 is dropped

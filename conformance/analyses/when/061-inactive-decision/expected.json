@@ -1,0 +1,7 @@
+{
+  "about": "A universe sets a decision that its own selection switches off.",
+  "valid": false,
+  "must_report": [
+    {"code": "INACTIVE_DECISION", "file": "astra.yaml"}
+  ]
+}

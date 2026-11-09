@@ -1,0 +1,7 @@
+{
+  "about": "An output reads an output that its analysis doesn't have, as after a rename.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNRESOLVED_ADDRESS", "file": "astra.yaml"}
+  ]
+}

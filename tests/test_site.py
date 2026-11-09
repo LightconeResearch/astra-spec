@@ -13,11 +13,17 @@ names an element there.
 
 The field reference's pages are built from `gen-doc`'s Markdown, where a pattern's backtick, `|`, `[^` or `^` would be
 read as Markdown. So another test reads each element's page and compares its Regex Pattern cell with the pattern the
-LinkML sources write. The tests run in CI after the docs build (`main.yaml`, `test_pages_build.yaml`), and are skipped
-when there is no `site/`.
+LinkML sources write. Others check what `tools/docgen.py` and the index template change: each description on the
+index is cut at the end of a sentence or of a word, in at most 80 characters, no two pages' names differ only in case,
+each range links to a class, an enumeration or a type, never a slot of the same name, a description's `<` shows as
+written, and the record's classes are listed apart from the analysis document's; and that the published merged models,
+one for each tree root, hold every class.
+The tests run in CI after the docs build (`main.yaml`, `test_pages_build.yaml`), and are skipped when there is no
+`site/`.
 """
 
 import itertools
+import re
 from collections import defaultdict
 from html.parser import HTMLParser
 from typing import Any
@@ -305,6 +311,178 @@ def test_element_pages_show_their_patterns():
     assert html_text(MarkdownIt("commonmark").renderInline(description)) in html_text(
         page
     )
+
+
+def sources() -> dict[str, dict[str, Any]]:
+    """Each LinkML module, keyed by its file's stem: `analysis`, `insight`, `provenance`, `types`."""
+    yaml = YAML(typ="safe", pure=True)
+    return {
+        module.stem: yaml.load(module.read_text(encoding="utf-8"))
+        for module in sorted(SOURCES.glob("*.yaml"))
+    }
+
+
+def classes_of(*stems: str) -> set[str]:
+    """The names of the classes the modules `stems` define."""
+    modules = sources()
+    return {name for stem in stems for name in modules[stem].get("classes") or {}}
+
+
+INDEX = ELEMENTS / "index.html"
+"""The field reference's index."""
+
+
+def index_tables() -> list[tuple[str, list[str], list[list[tuple[str, list[str]]]]]]:
+    parser = _Tables(("h1", "h2"))
+    parser.feed(INDEX.read_text(encoding="utf-8"))
+    parser.close()
+    return parser.tables
+
+
+def test_index_cuts_descriptions_short():
+    """Each description on the field reference's index is cut at the end of a sentence (`gen-doc` cuts it at its first
+    `.`, which can fall inside `astra.yaml` or a version), or of a word: the start of the element's description, in at
+    most 80 characters, ending with a `.`, `?` or `!` that ends it or is followed by white space, or with a word
+    followed by white space, or by a `,`, `;` or `:` the cut leaves out and white space, then `…`. A slot shared by
+    several classes shows one of theirs."""
+    descriptions = defaultdict(list)
+    for module in sources().values():
+        for name, definition in (module.get("classes") or {}).items():
+            descriptions[name].append(definition.get("description"))
+            for slot, attribute in (definition.get("attributes") or {}).items():
+                descriptions[slot].append((attribute or {}).get("description"))
+        for name, definition in (module.get("enums") or {}).items():
+            descriptions[name].append(definition.get("description"))
+        for name, definition in (module.get("types") or {}).items():
+            descriptions[camelcase(name)].append(definition.get("description"))
+    rows = [row for _, _, rows in index_tables() for row in rows]
+    shown = {row[0][0]: row[1][0] for row in rows if row[0][0] in descriptions}
+    assert set(shown) == set(descriptions)
+    cut = []
+    for name, text in shown.items():
+        whole = [
+            html_text(MarkdownIt("commonmark").renderInline(description))
+            for description in descriptions[name]
+            if description
+        ]
+        start = text.removesuffix("…")
+        word = start != text
+        if len(text) > 80 or not any(
+            full.startswith(start)
+            and (
+                re.match(r"[,;:]* ", full[len(start) :])
+                if word
+                else start.endswith((".", "?", "!"))
+                and full[len(start) : len(start) + 1] in ("", " ")
+            )
+            for full in whole
+        ):
+            cut.append((name, text))
+    assert cut == []
+
+
+RANGE = {"Class", "Enum", "Type"}
+"""The kinds of element a range names."""
+
+LINKED = {
+    "Cardinality and Range": RANGE,
+    "Range": RANGE,
+    "used": RANGE,
+    "used in": {"Slot"},
+}
+"""Each column of a table of the field reference (or row, of a Property and Value table) that links to an element by
+name, with the kinds of element it links to: a class's slots' ranges, a slot's range, and the range a Usages table's
+slot is used with, then that slot."""
+
+
+def test_ranges_link_to_types():
+    """Each range in the field reference links to a class's, an enumeration's or a type's page, and each slot of a
+    Usages table to a slot's: `gen-doc` would link a range of the type `id` to the slot `id`, whose page is `id-slot`
+    (`tools/docgen.py`). A page's kind is the start of its title (`Type: Id`)."""
+    kinds = {}
+    for page in ELEMENTS.glob("*/index.html"):
+        title = re.search(r"<h1[^>]*>(\w+):", page.read_text(encoding="utf-8"))
+        kinds[page.parent.name] = title[1] if title else None
+    seen, wrong = set(), []
+    for page in sorted(ELEMENTS.glob("*/index.html")):
+        parser = _Tables(())
+        parser.feed(page.read_text(encoding="utf-8"))
+        parser.close()
+        for _, header, rows in parser.tables:
+            for row in rows:
+                for column, (_, links) in zip(header, row):
+                    if header == ["Property", "Value"] and column == "Value":
+                        column = row[0][0]
+                    for href in links if column in LINKED else []:
+                        seen.add(column)
+                        if kinds.get(href.split("/")[1]) not in LINKED[column]:
+                            wrong.append((page.parent.name, column, href))
+    assert (seen, wrong) == (set(LINKED), [])
+
+
+def test_descriptions_show_angle_brackets():
+    """A description is Markdown, which reads a `<` outside a code span as HTML: `command`'s writes `<entry>`, which its
+    page would hide. Its page shows the description, between its title and its first block, with each `<entry>` the
+    LinkML sources write (`tools/docgen.py`)."""
+    recipe = sources()["analysis"]["classes"]["Recipe"]
+    count = recipe["attributes"]["command"]["description"].count("<entry>")
+    page = (ELEMENTS / "command" / "index.html").read_text(encoding="utf-8")
+    shown = page.split("</h1>", 1)[1].split("<div", 1)[0]
+    assert count and html_text(shown).count("<entry>") == count
+
+
+def test_page_names_differ_by_more_than_case():
+    """No two pages of the field reference have names that differ only in case, which a case-insensitive file system
+    would keep one of (a slot's page takes `-slot` instead), and each link from one page to another reaches it."""
+    names = sorted(page.name for page in ELEMENTS.iterdir() if page.is_dir())
+    assert len({name.casefold() for name in names}) == len(names)
+    broken = set()
+    for page in ELEMENTS.glob("*/index.html"):
+        links = _Links()
+        links.feed(page.read_text(encoding="utf-8"))
+        links.close()
+        for href in links.hrefs:
+            target = href.split("#")[0]
+            if (
+                target.startswith("../")
+                and target.count("/") == 2
+                and not (ELEMENTS / target[3:-1]).is_dir()
+            ):
+                broken.add((page.parent.name, href))
+    assert broken == set()
+
+
+def test_index_lists_the_record_classes_apart():
+    """The field reference's index lists the classes of the analysis document under Classes, and those of the
+    provenance record under the record schema's own heading."""
+    record = sources()["provenance"]
+    tables = {
+        heading: {row[0][0] for row in rows}
+        for heading, header, rows in index_tables()
+        if header[:1] == ["Class"]
+    }
+    assert tables == {
+        "Classes": classes_of("analysis", "insight"),
+        record.get("title") or record["name"]: classes_of("provenance"),
+    }
+
+
+SCHEMA = SITE / "schema"
+"""The published schema files."""
+
+
+def test_merged_models_hold_every_class():
+    """The site publishes a merged LinkML model for each tree root: `astra.yaml` for the analysis document, with its
+    imports, and `provenance.yaml` for the record, each with its classes and one tree root."""
+    yaml = YAML(typ="safe", pure=True)
+    models = {
+        "astra.yaml": (classes_of("analysis", "insight"), "Analysis"),
+        "provenance.yaml": (classes_of("provenance"), "ProvenanceRecord"),
+    }
+    for file, (classes, root) in models.items():
+        model = yaml.load((SCHEMA / file).read_text(encoding="utf-8"))
+        roots = [name for name, c in model["classes"].items() if c.get("tree_root")]
+        assert (set(model["classes"]), roots) == (classes, [root]), file
 
 
 class _Tables(HTMLParser):

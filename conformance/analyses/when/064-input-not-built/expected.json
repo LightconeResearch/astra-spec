@@ -1,0 +1,7 @@
+{
+  "about": "An output is read without a pin in a universe where it is inactive.",
+  "valid": false,
+  "must_report": [
+    {"code": "INPUT_NOT_BUILT", "file": "astra.yaml"}
+  ]
+}

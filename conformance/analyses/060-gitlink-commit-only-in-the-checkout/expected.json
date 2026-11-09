@@ -1,0 +1,4 @@
+{
+  "about": "A declaration at a commit whose gitlink pins a submodule commit that the submodule's checkout holds and its remote doesn't.",
+  "valid": true
+}

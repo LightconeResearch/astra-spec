@@ -1,0 +1,8 @@
+{
+  "about": "An analysis declares a folder at an earlier commit, which lacks that folder's input's file.",
+  "valid": false,
+  "must_report": [
+    {"code": "DECLARED_ANALYSIS_INVALID", "file": "astra.yaml"},
+    {"code": "MISSING_INPUT_FILE", "file": "stage/astra.yaml"}
+  ]
+}

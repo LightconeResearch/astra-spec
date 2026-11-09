@@ -1,0 +1,8 @@
+{
+  "about": "An output reads, without a pin, an output built per universe through a second declaration of a driven folder, which no key goes through.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNDRIVEN_DECLARATION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["NOT_BUILT_IN_UNIVERSE"]
+}

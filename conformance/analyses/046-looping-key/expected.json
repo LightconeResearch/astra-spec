@@ -1,0 +1,7 @@
+{
+  "about": "A universe's key goes through a declaration of the analysis's own folder.",
+  "valid": false,
+  "must_report": [
+    {"code": "LOOPING_KEY", "file": "astra.yaml"}
+  ]
+}

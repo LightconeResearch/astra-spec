@@ -1,0 +1,7 @@
+{
+  "about": "A result reached through two chains of driven declarations, so it has two names.",
+  "valid": true,
+  "must_report": [
+    {"code": "RESULT_IN_TWO_PLACES", "file": "astra.yaml"}
+  ]
+}

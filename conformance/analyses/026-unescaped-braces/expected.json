@@ -1,0 +1,7 @@
+{
+  "about": "A command holds an awk program whose braces are written as they are, so they open a placeholder.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNDECLARED_TEMPLATE_REF", "file": "astra.yaml"}
+  ]
+}

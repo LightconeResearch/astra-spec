@@ -1,0 +1,31 @@
+spec_version: "0.1.0"
+analyses:
+  previous:
+    path: .
+    commit: "@commit:C1@"
+decisions:
+  decision1:
+    options:
+      a: {}
+      b: {}
+outputs:
+  output1:
+    type: metric
+    format: json
+    decisions: [decision1]
+    recipe:
+      command: python make.py '{decisions.decision1}' '{output}'
+  change:
+    type: metric
+    format: json
+    inputs: [output1#u1, previous.output1#previous_u1]
+    recipe:
+      command: >-
+        python make.py '{inputs.output1#u1}'
+        '{inputs.previous.output1#previous_u1}' '{output}'
+universes:
+  u1:
+    decisions: {decision1: a}
+  previous_u1:
+    analysis: previous
+    universe: u1

@@ -11,6 +11,7 @@ import pytest
 from .conftest import (
     DATA,
     PARSE_ERRORS,
+    WHEN,
     errors,
     fixture_header,
     fixtures,
@@ -141,7 +142,7 @@ def test_every_fixture_is_written_as_its_kind_of_file():
     sidecar (`.header`) beside its record, and every invalid record has one."""
     problems = []
     for kind in ("valid", "invalid"):
-        for path in sorted((DATA / kind).iterdir()):
+        for path in sorted([*(DATA / kind).glob("*"), *(WHEN / kind).glob("*")]):
             if path.suffix == ".header":
                 if not path.with_suffix(".json").is_file():
                     problems.append(f"{kind}/{path.name}: no record beside it")

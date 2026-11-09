@@ -1,0 +1,19 @@
+spec_version: "0.1.0"
+analyses:
+  other:
+    path: ../other
+decisions:
+  decision2:
+    options:
+      a: {}
+      b: {}
+outputs:
+  output3:
+    type: data
+    format: csv
+    inputs: [other.output1]
+    decisions: [decision2]
+    recipe:
+      command: >-
+        python make.py '{inputs.other.output1}' '{decisions.decision2}'
+        '{output}'

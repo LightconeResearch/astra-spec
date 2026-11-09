@@ -1,0 +1,7 @@
+{
+  "about": "An option's insights name a finding rather than a prior insight.",
+  "valid": false,
+  "must_report": [
+    {"code": "INVALID_INSIGHT_REF", "file": "astra.yaml"}
+  ]
+}

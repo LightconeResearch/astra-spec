@@ -22,38 +22,45 @@ For the longer argument that motivates the project — per-result trust in the a
 
 ```yaml
 # astra.yaml
-version: "1.0"
-name: Iris Classification
-
-inputs:
-  - id: iris_data
-    type: data
-    source: sklearn.datasets.load_iris
+spec_version: "0.1.0"
+label: Iris Classification
 
 outputs:
-  - id: accuracy
+  iris_data:
+    type: data
+    format: csv
+    description: Loaded from sklearn.datasets.load_iris
+    recipe:
+      command: python src/load.py --out {output}
+
+  accuracy:
     type: metric
     format: json
+    inputs: [iris_data]
     decisions: [scaling, model]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --data {inputs.iris_data}
+        --scaling {decisions.scaling} --model {decisions.model} --out {output}
 
 decisions:
   scaling:
     label: Feature Scaling
-    default: standard
     options:
       none:     { label: No Scaling }
       standard: { label: StandardScaler }
 
   model:
     label: Classification Model
-    default: random_forest
     options:
       random_forest: { label: Random Forest }
       svm:
         label: SVM
         requires: [scaling.standard]
+
+universes:
+  baseline:
+    decisions: { scaling: standard, model: random_forest }
 ```
 
 A *universe* picks one option per decision (e.g. `{ scaling: standard, model: svm }`). The same analysis can carry many universes; each one yields one set of results.
@@ -63,9 +70,9 @@ A *universe* picks one option per decision (e.g. `{ scaling: standard, model: sv
 ```bash
 uv tool install astra-tools           # installs the `astra` CLI on your PATH
 astra init my-analysis && cd my-analysis
-astra validate astra.yaml
+astra validate
 astra info
-astra viz
+astra plan
 ```
 
 Full walk-through: **[Getting started →](https://astra-spec.org/latest/getting-started/)**
@@ -79,7 +86,7 @@ src/astra/schema/   # LinkML schema sources (edit these)
   generated/        # JSON Schemas, JSON-LD context and rules.json (generated, do not edit)
 docs/               # Documentation source, the specification included (Zensical → astra-spec.org)
 examples/           # Example analyses
-tests/data/         # Valid/invalid fixtures: astra.yaml files and records
+conformance/        # Conformance suite: astra.yaml files, records and analyses, with their verdicts
 tools/              # Generators and checks of the schema files and the docs
 linkml-templates/   # Templates for the generated field reference
 design/             # Design records
@@ -96,18 +103,18 @@ cd astra-spec
 uv sync --dev
 ```
 
-Requires Python 3.9+, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just/).
+Requires Python 3.10+, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just/).
 
 ```bash
-just test         # Schema generation, Python datamodel, examples
+just test         # Schema generation, examples
 just lint         # LinkML schema lint
-just gen-python   # Regenerate Python datamodels
+just gen-schema   # Regenerate the JSON Schemas, JSON-LD context and rules.json
 just gen-doc      # Regenerate the field reference docs
 just docs-serve   # Live-reload local preview of the docs site
 just --list       # Everything else
 ```
 
-The release recipe (`just release X.Y.Z`) updates `CITATION.cff` and creates an annotated tag; the version is injected into generated artifacts from the tag at build time. Pushing the tag triggers the `Deploy versioned docs on tag` workflow, which publishes the versioned docs to `gh-pages` via mike.
+The release recipe (`just release X.Y.Z`) regenerates the generated files with the version, updates `CITATION.cff`, commits both and creates an annotated tag. Pushing the tag triggers the `Deploy versioned docs on tag` workflow, which publishes the versioned docs to `gh-pages` via mike.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Community page](https://astra-spec.org/latest/community/) for the full contribution workflow.
 
@@ -120,7 +127,7 @@ Both are permissive; commercial and academic use are unrestricted. Schema reuse 
 
 ## Citing
 
-If you use ASTRA, please cite the repository — the easiest way is the **"Cite this repository"** button on this page (it generates APA and BibTeX from [`CITATION.cff`](CITATION.cff)). Include the schema version you targeted; it is recorded at the top of each LinkML source file and in every generated artefact.
+If you use ASTRA, please cite the repository — the easiest way is the **"Cite this repository"** button on this page (it generates APA and BibTeX from [`CITATION.cff`](CITATION.cff)). Include the schema version you targeted; it is recorded in the `$id` and `$comment` of each generated JSON Schema.
 
 For the broader context, the [Lightcone Research position paper](https://github.com/LightconeResearch/astra-paper) is a separate citation, not a replacement.
 

@@ -1,0 +1,7 @@
+{
+  "about": "An input whose path lies inside the analysis's results folder, as an earlier result read by its path.",
+  "valid": false,
+  "must_report": [
+    {"code": "RESERVED_PATH", "file": "astra.yaml"}
+  ]
+}

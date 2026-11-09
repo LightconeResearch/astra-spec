@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "expected.json",
+  "description": "What validating an analysis case of the ASTRA conformance suite gives (conformance/README.md).",
+  "type": "object",
+  "properties": {
+    "about": {
+      "description": "What the case is, in one sentence.",
+      "type": "string",
+      "minLength": 1
+    },
+    "root": {
+      "description": "The folder of the analysis to validate, from the top of the working folder.",
+      "type": "string",
+      "pattern": "^[^/](.*[^/])?$",
+      "default": "."
+    },
+    "valid": {
+      "description": "Whether the analysis is valid: no analysis of its stack breaks a MUST of the parse, schema or validator layer.",
+      "type": "boolean"
+    },
+    "must_report": {
+      "description": "The diagnostics the validator reports, each matched by a diagnostic with its code and, where given, its file and pointer.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "The code of a parse, schema or validator rule of rules.json.",
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "file": {
+            "description": "The file the diagnostic is in, from the top of the repository that holds it.",
+            "type": "string",
+            "pattern": "^[^/](.*[^/])?$"
+          },
+          "pointer": {
+            "description": "The JSON Pointer of the place in the file, \"\" for the whole file: given only for a parse or schema code, which the specification places (Schema files).",
+            "type": "string",
+            "pattern": "^(/|$)"
+          }
+        },
+        "required": ["code"],
+        "dependentRequired": {"pointer": ["file"]},
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "must_not_report": {
+      "description": "The codes the validator reports nowhere.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": ["about", "valid"],
+  "additionalProperties": false
+}

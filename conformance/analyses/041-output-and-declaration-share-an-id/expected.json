@@ -1,0 +1,7 @@
+{
+  "about": "An output and a declaration of one analysis are both called result.",
+  "valid": false,
+  "must_report": [
+    {"code": "CLASHING_RESULT_NAME", "file": "astra.yaml"}
+  ]
+}
