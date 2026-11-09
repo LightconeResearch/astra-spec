@@ -1136,17 +1136,16 @@ declaration they drive is driven in every one of them.
   itself.
 - No key goes through a declaration that
   [leads back](#15-declared-analyses)
-  ([`LOOPING_KEY`](#16-driving-and-consuming)), and one that does drives
-  none. So the analysis's own decisions are keyed by their ids alone, and
-  where `stage` declares `again: {path: .}`, `stage.d` is never written
-  `stage.again.d`.
-- An analysis with no decisions has no key to set, and is driven by being
-  built in its driver's universes. A declaration of it is driven when the
-  chain before it is, and so whenever the driver's file declares it, unless
-  the declaration leads back (`self: {path: .}`). Its outputs built per
-  universe are then built in each of the driver's universes where they are
-  [planned](#18-results-and-where-they-go), and those results belong to the
-  driver.
+  ([`LOOPING_KEY`](#16-driving-and-consuming)), and a key that does drives
+  no declaration. So the analysis's own decisions are keyed by their ids
+  alone, and where `stage` declares `again: {path: .}`, `stage.d` is never
+  written `stage.again.d`.
+- An analysis with no decisions has no key to set: a declaration of it is
+  driven when the chain before it is, and so whenever the driver's file
+  declares it, unless the declaration leads back (`self: {path: .}`). Its
+  outputs built per universe are then built in each of the driver's
+  universes where they are [planned](#18-results-and-where-they-go), and
+  those results belong to the driver.
 
 **What a universe sets.**
 
@@ -1186,13 +1185,12 @@ one driver, the analysis whose universe it is, which is never driven in it,
 even when a declaration in its stack leads back to it. A driven analysis's
 own universes don't set its decisions there, nor change what it builds there.
 
-The **universes built** are the driving analysis's and those named by a pin
-on an output built per universe, in the `inputs` of a
+The **universes built** are the driving analysis's and those named by a pin,
+in any file, on an output built per universe, in the `inputs` of a
 [planned result](#18-results-and-where-they-go)'s output or in the driving
-analysis's evidence. Another analysis's universe is built only where such a
-pin names it, in that analysis's file or in another. So a pin to that
-universe reads the result made there with that analysis driving, as when it
-is itself the driving analysis.
+analysis's evidence. So a pin to another analysis's universe reads the result
+made there with that analysis driving, as when it is itself the driving
+analysis.
 
 In another analysis's universe, the driving analysis, and an analysis whose
 file imports the universe, are built only where the driver's universes drive
@@ -1258,13 +1256,13 @@ A pin `#u` resolves in the file it is written in
 that file's analysis, so it names the same universe whichever analysis is the
 driving analysis. Where the file's `universes` has no entry `u`, the pin
 names the universe `u` of the analysis whose element the reference names:
-one of that analysis's universes, never an import in its file. In a file
-with no `v1`, `stage.lib.out#v1` names `lib`'s `v1`, since `out` is `lib`'s
-output. Where that analysis has no universe `u` either, as for an element of
-the file's own analysis, the pin names nothing
-([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)). So adding or removing
-an entry `u` in a file's `universes` can change what a pin `#u` in that file
-names.
+one of that analysis's universes, never an import in its file. Where that
+analysis has no universe `u` either, as for an element of the file's own
+analysis, the pin names nothing
+([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)). In a file with no
+`v1`, `stage.lib.out#v1` names `lib`'s `v1`, since `out` is `lib`'s output.
+So adding or removing an entry `u` in a file's `universes` can change what a
+pin `#u` in that file names.
 
 The universe an import ([§12](#12-universes)) names is an **imported
 universe** of the importing file, which a pin there names by the import's
@@ -1322,10 +1320,8 @@ universes:
 
 A validator checks every universe of every analysis of the stack, a driven
 analysis's own included, against [§12](#12-universes) and the rules of
-driving. The declarations driven in a universe are those its analysis's
-universes drive, a declaration back to the driving analysis included. Where
-the driving analysis drives `subanalysis`, a universe of `subanalysis`'s own
-that leaves its active `decision1` unset breaks
+driving. Where the driving analysis drives `subanalysis`, a universe of
+`subanalysis`'s own that leaves its active `decision1` unset breaks
 [`MISSING_DECISION`](#16-driving-and-consuming), though the driving
 analysis's universes don't use it. The rules on the universe being built
 ([`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
@@ -1380,8 +1376,8 @@ A declaration, whose fields are in the
 - `url` is a remote that git fetches another repository from, in one of the
   forms [Annex C](#c-grammars-and-patterns) gives
   ([`INVALID_VALUE`](#5-the-astrayaml-file)). An analysis in the declaring
-  analysis's repository is declared by `path`, and one in another repository
-  on this machine by a `file://` URL.
+  analysis's repository is declared by `path`, and another repository on
+  this machine by a `file://` URL.
 - `commit` is a full commit id, never a branch, a tag or a shortened id, each
   of which can come to name another commit
   ([`INVALID_COMMIT`](#17-analyses-from-another-commit-or-repository)).
@@ -1453,9 +1449,9 @@ none of its recipes runs, and the rules on the
 Evidence cites its results in the same way.
 
 A driver's universes can drive an analysis from a commit as any declared
-analysis ([§16](#16-driving-and-consuming)). Its recipes then run on exactly
-its files at its commit ([`NOT_AT_COMMIT`](#21-runners)), and only for what
-the driver's universes build: those results
+analysis ([§16](#16-driving-and-consuming)). A driven one's recipes run on
+exactly its files at its commit ([`NOT_AT_COMMIT`](#21-runners)), and only
+for what the driver's universes build: those results
 [belong to](#18-results-and-where-they-go) the driver, and their records
 name the driver's commit, where the declaration says which commit the driven
 analysis is from and, for a remote, where to get it.
@@ -1473,7 +1469,7 @@ stand-in.
 through a pin or an import. Here `previous` declares the analysis's own
 folder at a commit that holds the records, later than the commit they name
 ([§20](#20-checking-results)). Its universes often share their ids with the
-analysis's own, so its `u1` is named through an import
+analysis's own, so where both have a `u1`, its `u1` is named through an import
 ([§12](#12-universes)):
 
 <!-- fragment: Analysis -->
