@@ -510,7 +510,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "§15 Declared analyses",
-      "statement": "A declaration's `path`, tidied (Annex B), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit"
+      "statement": "A declaration's `path`, tidied (Annex B), doesn't go above the top of the driving analysis's working tree or, read at a commit, of the repository that holds that commit"
     },
     {
       "code": "MISSING_DECLARED_ANALYSIS",
@@ -531,7 +531,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "§16 Driving and consuming",
-      "statement": "Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the root's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe"
+      "statement": "Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the driving analysis's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe"
     },
     {
       "code": "DUPLICATE_ELEMENT",
@@ -559,7 +559,7 @@
       "layer": "validator",
       "level": "MUST",
       "source": "§16 Driving and consuming",
-      "statement": "In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, by which the output of a planned result or the root's evidence pins another analysis's output built per universe to that universe, or by which the output of a result planned there, an output's `when` where the output's result would be planned if the `when` held, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain)"
+      "statement": "In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, by which the output of a planned result or the driving analysis's evidence pins another analysis's output built per universe to that universe, or by which the output of a result planned there, an output's `when` where the output's result would be planned if the `when` held, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain)"
     },
     {
       "code": "UNKNOWN_PIN_UNIVERSE",

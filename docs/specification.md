@@ -26,11 +26,11 @@ repository with an `astra.yaml` at its top. That file lists:
   ([§15](#15-declared-analyses)–[§17](#17-analyses-from-another-commit-or-repository)).
 
 Each entry of `analyses` is a **declaration**. The analysis being validated
-or built is the **root**, and its **stack** is the root and every analysis it
-declares, directly or through others ([§15](#15-declared-analyses)). An
-analysis's **identity** is its folder at a commit, or its folder in the
-working tree, and **another analysis** is one with a different identity
-([§17](#17-analyses-from-another-commit-or-repository)).
+or built is the **driving analysis**, and its **stack** is the driving
+analysis and every analysis it declares, directly or through others
+([§15](#15-declared-analyses)). An analysis's **identity** is its folder at a
+commit, or its folder in the working tree, and **another analysis** is one with
+a different identity ([§17](#17-analyses-from-another-commit-or-repository)).
 
 A **runner** builds the outputs in each universe and writes each **result**
 with a **record** of the run that made it
@@ -42,7 +42,7 @@ analysis as it is then. It says whether the result is **unchanged**,
 
 ### 2. A worked example
 
-This analysis, the root, reads a file of its own and an output of each of
+Here the driving analysis reads a file of its own and an output of each of
 two other analyses: `stage`, in a folder of the same repository, and
 `upstream`, in another repository. It makes one result from them in each of
 two universes, and compares the two:
@@ -102,9 +102,9 @@ findings:
       - artifact: output2
 ```
 
-The folder `stage`, in the root's folder, holds the analysis declared as
-`stage`. The paths in its `astra.yaml` are relative to that folder, and its
-recipe runs there:
+The folder `stage`, in the driving analysis's folder, holds the analysis
+declared as `stage`. The paths in its `astra.yaml` are relative to that folder,
+and its recipe runs there:
 
 ```yaml
 # stage/astra.yaml
@@ -140,8 +140,8 @@ analysis with an output `output4`, built once. At `<commit>`, it also holds
   [built per universe](#13-pins-and-outputs-built-per-universe-or-once): it
   has one result in `u1` and one in `u2`.
 - `stage` is declared by `path` ([§15](#15-declared-analyses)), and is read
-  in the working tree, as the root is. The root's universes set its
-  `decision2`, under the key `stage.decision2`: they
+  in the working tree, as the driving analysis is. The driving analysis's
+  universes set its `decision2`, under the key `stage.decision2`: they
   [drive](#16-driving-and-consuming) `stage`. In `u1`, `output1` reads
   `stage.output3` as `stage` builds it with `decision2` set to `a`, and in
   `u2` with it set to `b`.
@@ -154,9 +154,9 @@ analysis with an output `output4`, built once. At `<commit>`, it also holds
   [pinned](#13-pins-and-outputs-built-per-universe-or-once) to each universe,
   as `output1#u1` and `output1#u2`, so it is built once, from both.
 
-**Validating.** A validator reads the root's and `stage`'s `astra.yaml` in
-the working tree, `upstream`'s at `<commit>`, and git. It reports any rule
-that an analysis of the [stack](#15-declared-analyses) breaks
+**Validating.** A validator reads the driving analysis's and `stage`'s
+`astra.yaml` in the working tree, `upstream`'s at `<commit>`, and git. It
+reports any rule that an analysis of the [stack](#15-declared-analyses) breaks
 ([§3](#3-conformance)), such as an input that isn't tracked in git or a
 universe that selects no option of `decision1` or of `stage.decision2`.
 
@@ -172,10 +172,10 @@ bytes from `<commit>` and checks them against its record there.
 
 **Recording.** For each of the five results it builds, the runner writes the
 bytes under `results/` and a record under `.astra/records/`, all in the
-root's folder ([§18](#18-results-and-where-they-go), [§19](#19-records)).
-`stage`'s two results belong to the root, whose universes built them, and
-are named `stage.output3`: the one in `u1` has its bytes at
-`results/u1/stage.output3.csv` and its record at
+driving analysis's folder ([§18](#18-results-and-where-they-go),
+[§19](#19-records)). `stage`'s two results belong to the driving analysis,
+whose universes built them, and are named `stage.output3`: the one in `u1` has
+its bytes at `results/u1/stage.output3.csv` and its record at
 `.astra/records/u1/stage.output3.json`.
 
 **Checking.** A checker later compares each record with the analysis as it
@@ -998,9 +998,9 @@ by a `url` and a `commit`, and a `path` can have a `commit` too
 ([§17](#17-analyses-from-another-commit-or-repository)). Its fields are in
 the [field reference](elements/AnalysisDeclaration.md).
 
-Here the root declares the analysis in the folder `subanalysis`, and the
-root's `output1` ([§10](#10-outputs)) reads that analysis's `output1` as
-`subanalysis.output1`:
+Here the driving analysis declares the analysis in the folder
+`subanalysis`, and its own `output1` ([§10](#10-outputs)) reads that
+analysis's `output1` as `subanalysis.output1`:
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -1036,11 +1036,12 @@ outputs:
   A declared analysis can be a git submodule, read as
   [Annex B](#b-paths-and-git) says. A submodule that declares something
   outside its own repository, such as its parent with `..`, can be validated
-  and built only from a root whose repository holds what it declares
-  ([`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses)).
-- The **root** is the analysis being validated or built, and any analysis can
-  be the root. Its **analysis stack** is the root and every analysis it
-  declares, directly or through other declared analyses.
+  and built only from a driving analysis whose repository holds what it
+  declares ([`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses)).
+- The **driving analysis** is the analysis being validated or built, and any
+  analysis can be the driving analysis. Its **analysis stack** is the
+  driving analysis and every analysis it declares, directly or through other
+  declared analyses.
 - The declarations an address goes through, in order, form a **chain of
   declarations**. A chain starts in one file, and each of its declarations
   is in the file of the analysis the one before reaches. The analyses **on
@@ -1057,9 +1058,9 @@ analysis: each of its results is made at most once, however many
 declarations reach it ([§17](#17-analyses-from-another-commit-or-repository)).
 
 - Two addresses written differently that resolve to one element of one
-  analysis are two **spellings** of it. Were the root also to declare
-  `again: {path: subanalysis}`, `again.output1` and `subanalysis.output1`
-  would be one output.
+  analysis are two **spellings** of it. Were the driving analysis also to
+  declare `again: {path: subanalysis}`, `again.output1` and
+  `subanalysis.output1` would be one output.
 - A list can name one element under two spellings, as two entries. In
   `Output.inputs` and `Output.decisions` each has its own placeholder
   ([§11](#11-recipes)), and in `Output.inputs` its own recorded input
@@ -1067,11 +1068,11 @@ declarations reach it ([§17](#17-analyses-from-another-commit-or-repository)).
   ([`DUPLICATE_ENTRY`](#5-the-astrayaml-file)).
 - A declaration by `path` alone, or a chain of them, that leads back to the
   declaring analysis's own folder names the analysis itself:
-  `self: {path: .}`, say, or `subanalysis.parent` in the root's file, where
-  `subanalysis` declares `parent: {path: ..}`. An address through it is
-  another spelling of one of the analysis's own elements. Since
-  [consuming](#16-driving-and-consuming) uses another analysis's elements,
-  such an address consumes nothing, and no key goes through it
+  `self: {path: .}`, say, or `subanalysis.parent` in the driving analysis's
+  file, where `subanalysis` declares `parent: {path: ..}`. An address through
+  it is another spelling of one of the analysis's own elements. Since
+  [consuming](#16-driving-and-consuming) uses another analysis's elements, such
+  an address consumes nothing, and no key goes through it
   ([§16](#16-driving-and-consuming)).
 - Declarations by `path` alone can form cycles, such as an analysis declared
   by its parent that declares its parent with `..`, but outputs never depend
@@ -1083,15 +1084,15 @@ declarations reach it ([§17](#17-analyses-from-another-commit-or-repository)).
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
-| `DECLARATION_OUTSIDE_REPOSITORY` | validator | MUST | A declaration's `path`, tidied ([Annex B](#b-paths-and-git)), doesn't go above the top of the root's working tree or, read at a commit, of the repository that holds that commit |
+| `DECLARATION_OUTSIDE_REPOSITORY` | validator | MUST | A declaration's `path`, tidied ([Annex B](#b-paths-and-git)), doesn't go above the top of the driving analysis's working tree or, read at a commit, of the repository that holds that commit |
 | `MISSING_DECLARED_ANALYSIS` | validator | MUST | The folder a declaration names holds an `astra.yaml` file, reached through no symlink ([Annex B](#b-paths-and-git)) |
 | `CLASHING_RESULT_NAME` | validator | MUST | No output shares its id with a declaration of the same analysis |
 
 ### 16. Driving and consuming
 
 An analysis uses the elements of another in two ways: it consumes them, and
-its universes can drive the other analysis. Here the root's universes drive
-`subanalysis` by setting its `decision1`:
+its universes can drive the other analysis. Here the driving analysis's
+universes drive `subanalysis` by setting its `decision1`:
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -1104,10 +1105,10 @@ universes:
 ```
 
 `u2` and `u3` inherit the key `subanalysis.decision1` from `u1`
-([§12](#12-universes)). So in each of the root's universes, the root's
+([§12](#12-universes)). So in each of the driving analysis's universes, its
 `output1` reads `subanalysis.output1` as `subanalysis` builds it with its
 `decision1` set to `a`, and those results
-[belong to](#18-results-and-where-they-go) the root.
+[belong to](#18-results-and-where-they-go) the driving analysis.
 
 #### Consuming
 
@@ -1159,8 +1160,8 @@ declaration that leads back drives none.
   per universe are then built in each of the driver's universes where they
   are [planned](#18-results-and-where-they-go), and those results belong to
   the driver. Universes of its own don't change this: they are built only
-  where it is the driver, when it is the root or where one of them is among
-  the universes built (below).
+  where it is the driver, when it is the driving analysis or where one of
+  them is among the universes built (below).
 
 **What a universe sets.**
 
@@ -1189,22 +1190,24 @@ one driver, the analysis whose universe it is. A driven analysis's own
 universes don't set its decisions there, though a pin naming one of them
 still reads it (below).
 
-The **universes built** are the root's and those named by a pin on an output
-built per universe, in the `inputs` of a
-[planned result](#18-results-and-where-they-go)'s output or in the root's
-evidence. Such a pin names one of the universes of the analysis whose file
-it is in or, through an import or where that file has no entry with the
-pin's id, another analysis's universe (below).
+The **universes built** are the driving analysis's and those named by a pin
+on an output built per universe, in the `inputs` of a
+[planned result](#18-results-and-where-they-go)'s output or in the driving
+analysis's evidence. Such a pin names one of the universes of the analysis
+whose file it is in or, through an import or where that file has no entry with
+the pin's id, another analysis's universe (below).
 
-- In the root's universes the root is the driver and is never driven, even
-  when a declaration in its stack leads back to it.
+- In its own universes the driving analysis is the driver and is never
+  driven, even when a declaration in its stack leads back to it.
 - Another analysis's universe is used only where such a pin names it, in
   that analysis's file or in another. That analysis is then its only driver:
-  like the root, it is never driven in that universe.
-- Neither the root nor the analysis whose file imports the universe is the
-  driver there. A declaration of either in the driver's file, such as
-  `parent: {path: ..}`, leads back to no analysis already on the chain, and
-  is an ordinary declaration: where the driver's universes drive it, as the
+  like the driving analysis, it is never driven in that universe. So a pin to
+  that universe reads the result made there with that analysis driving, as
+  when it is itself the driving analysis.
+- Neither the driving analysis nor the analysis whose file imports the
+  universe is the driver there. A declaration of either in the driver's file,
+  such as `parent: {path: ..}`, leads back to no analysis already on the chain,
+  and is an ordinary declaration: where the driver's universes drive it, as the
   key `parent.decision1` drives a parent, it is driven and built in that
   universe like any other analysis.
 
@@ -1213,14 +1216,14 @@ Two rules of this section hold in the universe being built:
 [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) only in the driver's
 file. The driver is always built in its own universe, so an analysis it
 drives can consume its decisions and read its outputs back through `..`:
-where `subanalysis` declares `parent: {path: ..}`, it can consume the root's
-`decision1` as `parent.decision1`.
+where `subanalysis` declares `parent: {path: ..}`, it can consume the
+driving analysis's `decision1` as `parent.decision1`.
 
-**A second declaration of one folder.** Where the root also declares
-`subanalysis`'s folder as `undriven: {path: subanalysis}`, which no key of
-the root's universes goes through, that declaration is judged on its own
-chain, so it isn't driven. A read through it in one of the root's universes,
-without a pin or pinned to one of them, breaks
+**A second declaration of one folder.** Where the driving analysis also
+declares `subanalysis`'s folder as `undriven: {path: subanalysis}`, which no
+key of its universes goes through, that declaration is judged on its own
+chain, so it isn't driven. A read through it in one of the driving
+analysis's universes, without a pin or pinned to one of them, breaks
 [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming):
 
 <!-- fragment: Analysis -->
@@ -1242,25 +1245,27 @@ outputs:
 ```
 
 The address's whole chain decides, up to its last declaration. Read in the
-root's file, without a pin or pinned to one of the root's universes, each of
-these breaks [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) too:
+driving analysis's file, without a pin or pinned to one of its universes,
+each of these breaks [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) too:
 
-- `stage.inner_undriven.out`, where the root's universes drive `stage.inner`
-  but not `inner_undriven`, `stage`'s second declaration of `inner`'s folder,
-  though the root drives `stage`;
-- `stage_undriven.inner.out`, where the root's `stage_undriven` declares
-  `stage`'s folder a second time, though the root drives `stage.inner`.
+- `stage.inner_undriven.out`, where the driving analysis's universes drive
+  `stage.inner` but not `inner_undriven`, `stage`'s second declaration of
+  `inner`'s folder, though they drive `stage`;
+- `stage_undriven.inner.out`, where the driving analysis's `stage_undriven`
+  declares `stage`'s folder a second time, though the driving analysis
+  drives `stage.inner`.
 
 #### Pins and imported universes
 
 A pin `#u` resolves in the file it is written in
 ([§13](#13-pins-and-outputs-built-per-universe-or-once)), whatever drives
-that file's analysis, so it names the same universe under every root. Where
-the file's `universes` has no entry `u`, the pin names, as an import would,
-the universe `u` of the analysis whose element the reference names: one of
-that analysis's universes, never an import in its file. Where that analysis
-has no universe `u` either, as for an element of the file's own analysis,
-the pin names nothing ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
+that file's analysis, so it names the same universe whichever analysis is
+driving. Where the file's `universes` has no entry `u`, the pin names, as an
+import would, the universe `u` of the analysis whose element the reference
+names: one of that analysis's universes, never an import in its file. Where
+that analysis has no universe `u` either, as for an element of the file's own
+analysis, the pin names nothing
+([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
 
 - Adding or removing an entry `u` in a file's `universes` can change what a
   pin `#u` in that file names.
@@ -1271,9 +1276,9 @@ the pin names nothing ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
 The universe an import ([§12](#12-universes)) names is an **imported
 universe** of the importing file, which a pin there names by the import's
 id. An import resolves in its file by identity, so it names one universe
-under every root. Its `analysis` can lead to any analysis the file's
-declarations reach: one below, its parent through `..`, a sibling through
-the parent, or an
+whichever analysis is driving. Its `analysis` can lead to any analysis the
+file's declarations reach: one below, its parent through `..`, a sibling
+through the parent, or an
 [analysis from a commit](#17-analyses-from-another-commit-or-repository).
 
 - An import selects nothing and drives nothing. No selection rule
@@ -1294,8 +1299,8 @@ reads `out` as `stage` builds it in its own `v1` by importing that universe,
 `stage_v1: {analysis: stage, universe: v1}`, and pinning
 `stage.lib.out#stage_v1`.
 
-Where `subanalysis` has universes of its own, `u1` and `v1`, this root reads
-its `output1` in three universes:
+Where `subanalysis` has universes of its own, `u1` and `v1`, the driving
+analysis reads its `output1` in three universes:
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -1307,26 +1312,27 @@ outputs:
     type: table
     format: csv
     inputs:
-      - subanalysis.output1#u1               # the root's u1
+      - subanalysis.output1#u1               # the driving analysis's u1
       - subanalysis.output1#subanalysis_u1   # subanalysis's own u1, imported
       - subanalysis.output1#v1               # subanalysis's own v1
     recipe:
       command: python make.py '{output}'
 universes:
-  u1:                                        # the root's u1 drives subanalysis
+  u1:                                        # the driving analysis's u1 drives subanalysis
     decisions: {decision1: a, decision2: a, subanalysis.decision1: a}
   subanalysis_u1:                            # an import of subanalysis's u1
     analysis: subanalysis
     universe: u1
 ```
 
-- `subanalysis.output1#u1` reads the output as the root builds it in its
-  `u1`, which drives `subanalysis`, and the result
-  [belongs to](#18-results-and-where-they-go) the root.
+- `subanalysis.output1#u1` reads the output as the driving analysis builds
+  it in its `u1`, which drives `subanalysis`, and the result
+  [belongs to](#18-results-and-where-they-go) the driving analysis.
 - `subanalysis.output1#subanalysis_u1` reads it as `subanalysis` builds it in
-  its own `u1`, through an import, since the root has a `u1` of its own.
+  its own `u1`, through an import, since the driving analysis has a `u1` of
+  its own.
 - `subanalysis.output1#v1` reads it as `subanalysis` builds it in its own
-  `v1`, since the root has no `v1`.
+  `v1`, since the driving analysis has no `v1`.
 - Those last two results belong to `subanalysis`, whichever file reads them.
 
 #### What a validator checks
@@ -1346,12 +1352,12 @@ analysis's own included. Each universe's selections are held to
 [`EXCLUDED_OPTION_SELECTED`](#12-universes)).
 
 - The declarations driven in a universe are those its analysis's universes
-  drive, a declaration back to the root included. Checking a universe builds
-  nothing, so the root stays undriven in its own universes. Where the root
-  drives `subanalysis`, a universe of `subanalysis`'s own that leaves its
-  active `decision1` unset breaks
-  [`MISSING_DECISION`](#16-driving-and-consuming), though the root's
-  universes don't use it.
+  drive, a declaration back to the driving analysis included. Checking a
+  universe builds nothing, so the driving analysis stays undriven in its own
+  universes. Where it drives `subanalysis`, a universe of `subanalysis`'s own
+  that leaves its active `decision1` unset breaks
+  [`MISSING_DECISION`](#16-driving-and-consuming), though the driving
+  analysis's universes don't use it.
 - The rules on the universe being built
   ([`NOT_BUILT_IN_UNIVERSE`](#16-driving-and-consuming),
   [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming),
@@ -1363,11 +1369,11 @@ analysis's own included. Each universe's selections are held to
 
 | Code | Layer | Level | Rule |
 |---|---|---|---|
-| `NOT_BUILT_IN_UNIVERSE` | validator | MUST | Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the root's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe |
+| `NOT_BUILT_IN_UNIVERSE` | validator | MUST | Every output built per universe of another analysis read without a pin by the output of a result planned in the universe being built, every output built per universe that the output of a planned result, or the driving analysis's evidence, pins to that universe, and every decision of another analysis that the output of a result planned there consumes, that an output's `when` consumes where the output's result would be planned if the `when` held, or that a decision's `when` or a constraint consumes in an analysis built there, belongs to an analysis built in that universe |
 | `DUPLICATE_ELEMENT` | validator | MUST | No universe has two keys in its own `decisions` that spell one decision, or sets a decision it inherits under a key it doesn't inherit |
 | `LOOPING_KEY` | validator | MUST | No key in a universe's own `decisions` goes through a declaration that leads back to an analysis already on its chain, the universe's analysis included |
 | `MISSING_DECISION` | validator | MUST | Every universe's effective selection sets every active decision of its analysis and of every analysis reached through a declaration that its analysis's universes drive |
-| `UNDRIVEN_DECLARATION` | validator | MUST | In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, by which the output of a planned result or the root's evidence pins another analysis's output built per universe to that universe, or by which the output of a result planned there, an output's `when` where the output's result would be planned if the `when` held, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain) |
+| `UNDRIVEN_DECLARATION` | validator | MUST | In the file of the analysis whose universe is being built, every address by which the output of a result planned in that universe reads another analysis's output built per universe without a pin, by which the output of a planned result or the driving analysis's evidence pins another analysis's output built per universe to that universe, or by which the output of a result planned there, an output's `when` where the output's result would be planned if the `when` held, a decision's `when` or a constraint consumes another analysis's decision, has its chain of declarations driven by the file's universes (a key in their effective selections goes through every declaration of the address, or the last declaration's analysis has no decisions, the chain before it is driven, and that declaration leads back to no analysis already on the chain) |
 | `UNKNOWN_PIN_UNIVERSE` | validator | MUST | Every pin in an `astra.yaml` names an entry of that file's `universes` or, where the file has no entry with its id, a universe of the analysis whose element its reference names |
 | `RESULT_IN_TWO_PLACES` | validator | SHOULD | No planned result has two names: its output's analysis is reached through at most one chain of driven declarations from the analysis the result belongs to ([§18](#18-results-and-where-they-go)) |
 
@@ -1375,9 +1381,9 @@ analysis's own included. Each universe's selections are held to
 
 A declaration with a `commit` names an **analysis from a commit**: the
 declared analysis as it was at that commit. With a `url` in place of a
-`path`, it comes from another repository. The worked example's root
-([§2](#2-a-worked-example)) declares `stage` by `path`, and `upstream` by
-`url` and `commit`:
+`path`, it comes from another repository. The worked example's driving analysis
+([§2](#2-a-worked-example)) declares `stage` by `path`, and `upstream` by `url`
+and `commit`:
 
 <!-- fragment: Analysis -->
 ```yaml
@@ -1389,8 +1395,8 @@ analyses:
     commit: <commit>
 ```
 
-`upstream`'s `output4` is built once, so an output of the root reads it as
-`upstream.output4`, without a pin. Its result is read through its
+`upstream`'s `output4` is built once, so an output of the driving analysis
+reads it as `upstream.output4`, without a pin. Its result is read through its
 [record](#19-records) at `<commit>`, and none of `upstream`'s recipes runs.
 
 A declaration, whose fields are in the
@@ -1433,11 +1439,11 @@ the same path, read at the same commit or both in the working tree.
 different identity.
 
 - The folder is a path from the top of the repository it is read in or, read
-  in the working tree, from the top of the root's working tree. A
+  in the working tree, from the top of the driving analysis's working tree. A
   declaration's `path` is joined to the folder of the declaring `astra.yaml`
   and tidied as text ([Annex B](#b-paths-and-git)).
-- The root, and every analysis reached from it by `path` alone, is read in
-  the working tree.
+- The driving analysis, and every analysis reached from it by `path` alone,
+  is read in the working tree.
 - A URL says only where to get the commit, so a fork or a mirror with the
   same commit gives the same analysis.
 - At a commit, a path that crosses a gitlink is read in the submodule's
@@ -1559,19 +1565,19 @@ for an output built once
 which the recipe writes at `{output}` ([§11](#11-recipes)). An artefact of
 many files is written as an archive, or as several outputs.
 
-The root's **planned** results are:
+The driving analysis's **planned** results are:
 
-- the result of each output of the root built once, and, in each of the
-  root's universes, the result of every output of the root active there;
+- the result of each of its outputs built once, and, in each of its
+  universes, the result of each of its outputs active there;
 - every result a planned result reads through its output's `inputs`,
   through any declaration, pinned or not;
-- every result the root's evidence cites
+- every result the driving analysis's evidence cites
   ([§14](#14-insights-and-evidence)).
 
 An output plans no result in a universe where it is inactive
 ([§9](#9-conditions)). An output of a declared analysis that no planned
-result reads and no evidence of the root cites isn't planned, and building
-the root doesn't build it.
+result reads and no evidence of the driving analysis cites isn't planned,
+and building the driving analysis doesn't build it.
 
 #### Which analysis a result belongs to, and its name
 
@@ -1585,24 +1591,26 @@ whether it names the universe through an import or not
 
 A result's **name** is its output's id after the ids of the driven
 declarations from the analysis it belongs to. In the worked example
-([§2](#2-a-worked-example)), the root's universes drive `stage`, so the
-result of `stage`'s `output3` in `u1` is the root's, named `stage.output3`.
+([§2](#2-a-worked-example)), the driving analysis's universes drive
+`stage`, so the result of `stage`'s `output3` in `u1` is the driving
+analysis's, named `stage.output3`.
 
 - A declaration that leads back to an analysis already on the chain from
   the driver is never driven ([§16](#16-driving-and-consuming)): where
   `stage` declares `parent: {path: ..}`, that declaration isn't driven in
-  the root's universes, and adds nothing to a name there. So the result of
-  an output of the analysis it belongs to is named by the output's id
+  the driving analysis's universes, and adds nothing to a name there. So the
+  result of an output of the analysis it belongs to is named by the output's id
   alone, as the result of an output built once always is.
 - A sub-analysis's declaration of its parent doesn't lead back where the
-  sub-analysis is the driver. The root's `output1`, built in `stage`'s
-  universe `v1` through a driven `parent: {path: ..}`, belongs to `stage`
-  and is named `parent.output1`. It is named so also where the root's own
-  file imports `v1` as `stage_v1` and reads `output1#stage_v1`.
+  sub-analysis is the driver. The driving analysis's `output1`, built in
+  `stage`'s universe `v1` through a driven `parent: {path: ..}`, belongs to
+  `stage` and is named `parent.output1`. It is named so also where the
+  driving analysis's own file imports `v1` as `stage_v1` and reads
+  `output1#stage_v1`.
 - A result reached through two chains of driven declarations is made once,
-  and has a name for each. Where the root declares `inner` and `stage`,
-  `stage` declares the same folder as `inner`, and keys go through both, the
-  result of `inner`'s `output1` is named `inner.output1` and
+  and has a name for each. Where the driving analysis declares `inner` and
+  `stage`, `stage` declares the same folder as `inner`, and keys go through
+  both, the result of `inner`'s `output1` is named `inner.output1` and
   `stage.inner.output1`, though a planned result should have one name
   ([`RESULT_IN_TWO_PLACES`](#16-driving-and-consuming)).
 
@@ -1621,7 +1629,7 @@ folder of the analysis it belongs to:
 | Its record | `.astra/records/{universe}/{name}.json` | `.astra/records/{name}.json` |
 | Its bytes, at their default place | `results/{universe}/{name}.{format}` | `results/{name}.{format}` |
 
-Once built, the root's folder in the worked example holds:
+Once built, the driving analysis's folder in the worked example holds:
 
 ```text
 .astra/records/
@@ -1822,7 +1830,7 @@ make it again. In the worked example ([§2](#2-a-worked-example)):
 
 A check covers the evidence of the analysis it is run on. Of each analysis
 that analysis declares, directly or through others, it covers only the items
-of evidence that cite a result the root plans.
+of evidence that cite a result the driving analysis plans.
 
 An item of [evidence](#14-insights-and-evidence) whose `artifact` names an
 output gets its status by [`STALE_EVIDENCE`](#20-checking-results):
@@ -1830,8 +1838,9 @@ output gets its status by [`STALE_EVIDENCE`](#20-checking-results):
 - An `artifact` that is pinned, or that names an output built once, names
   exactly one result.
 - An `artifact` that names an output built per universe without a pin cites
-  that output's results in each of the root's universes where it is active
-  and its analysis is built. If it cites none, the evidence is `missing`.
+  that output's results in each of the driving analysis's universes where it is
+  active and its analysis is built. If it cites none, the evidence is
+  `missing`.
 - The record read is the one at the place of the result's name along the
   `artifact`'s declarations, from the analysis the result belongs to. So
   evidence citing `stage.inner.output1#u1` reads the record of
@@ -1959,6 +1968,7 @@ Each term links to the sections that define it or give its detail.
 - **document** ([§3](#3-conformance))
 - **drive, driving** ([§16](#16-driving-and-consuming))
 - **driver, driven** ([§16](#16-driving-and-consuming))
+- **driving analysis** ([§1](#1-what-astra-is), [§15](#15-declared-analyses))
 - **effective selection** ([§12](#12-universes))
 - **element** ([§6](#6-names))
 - **error, warning** ([§3](#3-conformance))
@@ -1997,7 +2007,6 @@ Each term links to the sections that define it or give its detail.
   git repository the file is in: for a file in a submodule, the submodule's
   own.
 - **result** ([§1](#1-what-astra-is), [§18](#18-results-and-where-they-go))
-- **root** ([§1](#1-what-astra-is), [§15](#15-declared-analyses))
 - **runner** ([§1](#1-what-astra-is), [§3](#3-conformance), [§21](#21-runners))
 - **spelling** ([§15](#15-declared-analyses))
 - **stale** ([§1](#1-what-astra-is), [§20](#20-checking-results))
@@ -2047,8 +2056,8 @@ the working tree or at a commit
 
 **The repository that holds a file** is the innermost git repository it is
 in: for a file in a submodule, the submodule's own. The repository that holds
-an analysis is the one that holds its `astra.yaml`, and the root's working
-tree is that of the repository that holds the root's `astra.yaml`.
+an analysis is the one that holds its `astra.yaml`, and the driving analysis's
+working tree is that of the repository that holds its `astra.yaml`.
 
 **Tidying.** A path is joined to the folder of the `astra.yaml` that writes it
 and tidied as text, never through the file system: empty and `.` segments are
@@ -2058,8 +2067,8 @@ before it takes the path above the top. So `./data.csv` is `data.csv`,
 `subanalysis` is on disk.
 
 **The top.** A path read in the working tree is measured from the top of the
-root's working tree, and one read at a commit from the top of the repository
-it is read in. A declaration's path that goes above the top breaks
+driving analysis's working tree, and one read at a commit from the top of the
+repository it is read in. A declaration's path that goes above the top breaks
 [`DECLARATION_OUTSIDE_REPOSITORY`](#15-declared-analyses).
 
 **Lies inside.** A path lies inside a folder, or is inside it, when, both
@@ -2067,8 +2076,8 @@ tidied, the folder's segments begin the path's and the path has more. So
 `results/u1/output1.csv` lies inside `results`, and `results2/x.csv` doesn't.
 
 **What a path names.** In the working tree, a path names an entry on disk
-below the top of the root's working tree, tracked, untracked or ignored. At a
-commit, it names an entry of that commit's tree. An input's or a
+below the top of the driving analysis's working tree, tracked, untracked or
+ignored. At a commit, it names an entry of that commit's tree. An input's or a
 declaration's path names the entry at exactly that path
 ([`MISSING_INPUT_FILE`](#7-inputs),
 [`MISSING_DECLARED_ANALYSIS`](#15-declared-analyses)): `data/A.csv` and
@@ -2258,8 +2267,8 @@ instance location and a code.
 it, with `provenance.context.jsonld` supplied as its context (a record carries
 no `@context`), plus each node's class URI as its `rdf:type`:
 
-- the root node (the record's top-level object), each item of `inputs` and
-  the `environment` are `prov:Entity`;
+- the record's top-level object, each item of `inputs` and the `environment`
+  are `prov:Entity`;
 - `generated_by` is a `prov:Activity`;
 - the `runner` is a `prov:SoftwareAgent`.
 
@@ -2269,11 +2278,11 @@ ASTRA's own, in the `https://w3id.org/astra/` namespace. An `iri` is its
 node's `@id` exactly as written, whatever its scheme (`prov:env:1` too). Read
 this way, a record is PROV-O:
 
-- The root node stands for the result, which `prov:wasGeneratedBy` its
+- The top-level object stands for the result, which `prov:wasGeneratedBy` its
   `generated_by`, the run. The run `prov:used` its inputs and its environment,
   and `prov:wasAssociatedWith` its runner.
-- The root node's `address`, `content_hash` and `size` describe the result,
-  and its `spec_version` the record.
+- The top-level object's `address`, `content_hash` and `size` describe the
+  result, and its `spec_version` the record.
 - The run's `started` and `finished` are `prov:startedAtTime` and
   `prov:endedAtTime`, typed `xsd:dateTime`, and the runner's `version` is
   `schema:softwareVersion`.
