@@ -393,8 +393,8 @@ selected.
 
 #### Ids and maps
 
-- The id is written once, as the key ([`INVALID_ID`](#6-names)):
-  `a: {<allowed entries>}`, never `a: {<non-allowed entries>}`
+- The id is written once, as the key ([`INVALID_ID`](#6-names)): `a: {}` or
+  `a: {label: A}`, never `a: {id: a}`, since an entry has no `id` field
   ([`UNKNOWN_FIELD`](#5-the-astrayaml-file)).
 - Ids are unique within their map, since a map's keys are, and the order of
   a map carries no meaning.
