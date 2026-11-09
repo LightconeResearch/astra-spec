@@ -1259,12 +1259,12 @@ each of these breaks [`UNDRIVEN_DECLARATION`](#16-driving-and-consuming) too:
 
 A pin `#u` resolves in the file it is written in
 ([§13](#13-pins-and-outputs-built-per-universe-or-once)), whatever drives
-that file's analysis, so it names the same universe whichever analysis is
-driving. Where the file's `universes` has no entry `u`, the pin names, as an
-import would, the universe `u` of the analysis whose element the reference
-names: one of that analysis's universes, never an import in its file. Where
-that analysis has no universe `u` either, as for an element of the file's own
-analysis, the pin names nothing
+that file's analysis, so it names the same universe whichever analysis is the
+driving analysis. Where the file's `universes` has no entry `u`, the pin names,
+as an import would, the universe `u` of the analysis whose element the
+reference names: one of that analysis's universes, never an import in its file.
+Where that analysis has no universe `u` either, as for an element of the file's
+own analysis, the pin names nothing
 ([`UNKNOWN_PIN_UNIVERSE`](#16-driving-and-consuming)).
 
 - Adding or removing an entry `u` in a file's `universes` can change what a
@@ -1276,9 +1276,9 @@ analysis, the pin names nothing
 The universe an import ([§12](#12-universes)) names is an **imported
 universe** of the importing file, which a pin there names by the import's
 id. An import resolves in its file by identity, so it names one universe
-whichever analysis is driving. Its `analysis` can lead to any analysis the
-file's declarations reach: one below, its parent through `..`, a sibling
-through the parent, or an
+whichever analysis is the driving analysis. Its `analysis` can lead to any
+analysis the file's declarations reach: one below, its parent through `..`, a
+sibling through the parent, or an
 [analysis from a commit](#17-analyses-from-another-commit-or-repository).
 
 - An import selects nothing and drives nothing. No selection rule
@@ -2168,8 +2168,8 @@ generated from them, and `rules.json` also from the codes tables of Part II.
 
 | File | What it is |
 |---|---|
-| `analysis.schema.json` | the JSON Schema of `astra.yaml`, rooted at `Analysis` |
-| `provenance.schema.json` | the JSON Schema of a record, rooted at `ProvenanceRecord` |
+| `analysis.schema.json` | the JSON Schema of `astra.yaml`, whose top-level object is an `Analysis` |
+| `provenance.schema.json` | the JSON Schema of a record, whose top-level object is a `ProvenanceRecord` |
 | `provenance.open.schema.json` | the **open variant** of the record schema: `provenance.schema.json`, except that it allows fields it doesn't define |
 | `provenance.context.jsonld` | the JSON-LD context of a record |
 | `rules.json` | the rule catalogue |
