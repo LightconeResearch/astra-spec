@@ -160,15 +160,17 @@ reports any rule that an analysis of the [stack](#15-declared-analyses) breaks
 ([§3](#3-conformance)), such as an input that isn't tracked in git or a
 universe that selects no option of `decision1` or of `stage.decision2`.
 
-**Building.** A runner runs `stage`'s recipe in `stage`'s folder, with
-`{decisions.decision2}` replaced by `a` in `u1` and by `b` in `u2`. It runs
-`output1`'s with `{decisions.decision1}` replaced in the same way, then
-`output2`'s once, with the paths of `output1`'s two results
-([§11](#11-recipes), [§16](#16-driving-and-consuming)). `output4` belongs to
-`upstream`, an
-[analysis from a commit](#17-analyses-from-another-commit-or-repository), so
-its recipe doesn't run: for `output1`'s recipe, the runner gets `output4`'s
-bytes from `<commit>` and checks them against its record there.
+**Building.** The driving analysis's universes drive `stage`, so in each of
+them a runner builds `stage`'s `output3`: it runs `stage`'s recipe in
+`stage`'s folder, with `{decisions.decision2}` replaced by `a` in `u1` and by
+`b` in `u2`. It runs `output1`'s with `{decisions.decision1}` replaced in the
+same way, then `output2`'s once, with the paths of `output1`'s two results
+([§11](#11-recipes), [§16](#16-driving-and-consuming)). `output4` is built
+once, so it is `upstream`'s own result, which `output1` only reads
+([§18](#18-results-and-where-they-go)). Since `upstream` is fixed at
+`<commit>`, that result is never rebuilt: the runner gets its bytes from
+`<commit>` and checks them against its record there
+([§17](#17-analyses-from-another-commit-or-repository)).
 
 **Recording.** For each of the five results it builds, the runner writes the
 bytes under `results/` and a record under `.astra/records/`, all in the
