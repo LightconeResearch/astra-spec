@@ -55,9 +55,9 @@ discoverability. Each RFC's `status:` frontmatter field is the durable record.
 | [0001](0001-establish-the-rfc-process.md) | Establish the ASTRA RFC process and interim governance | Accepted |
 | [0002](0002-decouple-reports.md) | Decouple analysis reports from astra.yaml | Accepted |
 | [0003](0003-cross-universe-artifact-references.md) | In-file universes and cross-universe artifact references | Accepted |
-| [0004](0004-composition.md) | Declared analyses and cross-analysis references | Draft |
-| [0006](0006-data-inputs.md) | Data inputs | Active |
-| [0007](0007-analyses-in-other-repositories.md) | Analyses in other repositories | Active |
+| [0004](0004-composition.md) | Declared analyses and cross-analysis references | Accepted |
+| [0005](0005-result-provenance-and-layout.md) | Result provenance and layout | Accepted |
+| [0006](0006-data-inputs.md) | Data inputs | Accepted |
+| [0007](0007-analyses-in-other-repositories.md) | Analyses in other repositories | Accepted |
 | [NNNN](NNNN-attribution.md) | Attribution | Draft |
-
 

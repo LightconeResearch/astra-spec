@@ -1,7 +1,7 @@
 ---
 rfc: 0003
 title: In-file universes and cross-universe artifact references
-status: Active # Draft | Active | Accepted | Rejected | Superseded
+status: Accepted # Draft | Active | Accepted | Rejected | Superseded
 authors:
   - Francois Lanusse (@eiffl)
   - Anthony Ozerov (@anthonyozerov)

@@ -1,7 +1,7 @@
 ---
 rfc: 0004
 title: Declared analyses and cross-analysis references
-status: Approved
+status: Accepted
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-10-20
