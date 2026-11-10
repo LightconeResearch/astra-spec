@@ -89,7 +89,6 @@ examples/           # Example analyses
 conformance/        # Conformance suite: astra.yaml files, records and analyses, with their verdicts
 tools/              # Generators and checks of the schema files and the docs
 linkml-templates/   # Templates for the generated field reference
-design/             # Design records
 rfcs/               # RFCs
 ```
 

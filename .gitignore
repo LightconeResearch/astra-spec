@@ -14,8 +14,6 @@
 # drift check's fresh generation (tmp/generated-check/) and astra-tools'
 # checkout for its docs (tmp/astra-tools/)
 tmp/
-# The pinned Ajv's install, for `just check-ajv` (tools/ajv/)
-tools/ajv/node_modules/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

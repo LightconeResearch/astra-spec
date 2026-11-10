@@ -118,7 +118,6 @@ skip = [
   "LICENSE",
   "pyproject.toml",
   "uv.lock",
-  "tools/ajv/package-lock.json",
   "project/*",
 ]
 

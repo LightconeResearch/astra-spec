@@ -70,9 +70,9 @@ install:
 docs-install:
   uv sync --group docs
 
-# Updates project template and LinkML package
+# Update the LinkML package
 [group('project management')]
-update: _update-template _update-linkml
+update: _update-linkml
 
 # Clean all generated files
 [group('project management')]
@@ -172,13 +172,6 @@ check-generated:
   just gen-schema tmp/generated-check
   diff -r tmp/generated-check src/astra/schema/generated
 
-# Check that Ajv compiles the three committed JSON Schemas under `strict: true`,
-# with the Ajv pinned in tools/ajv/ (needs node and npm; CI runs it)
-[group('model development')]
-check-ajv:
-  npm ci --prefix tools/ajv --no-audit --no-fund
-  node tools/ajv/check.mjs src/astra/schema/generated/analysis.schema.json src/astra/schema/generated/provenance.schema.json src/astra/schema/generated/provenance.open.schema.json
-
 # Run linting
 [group('model development')]
 lint:
@@ -259,37 +252,6 @@ gen-doc: _stage-versioned _gen-yaml && _add-artifacts
   uv run python tools/docgen.py {{gen_doc_args}} --template-directory linkml-templates --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
   uv run python tools/pattern_cells.py {{docdir}}
 
-# ============== Migrations recipes for Copier ==============
-
-# Hidden command to adjust the directory layout on upgrading a project
-# created with linkml-project-copier v0.1.x to v0.2.0 or newer.
-# Use with care! - It may not work for customized projects.
-_post_upgrade_v020: && _post_upgrade_v020py
-  mv docs/*.md docs/elements
-
-_post_upgrade_v020py:
-    #!{{shebang}}
-    import subprocess
-    from pathlib import Path
-    # Git move files from folder src to folder dest
-    tasks = [
-        (Path("src/docs/files"), Path("docs")),
-        (Path("src/docs/templates"), Path("docs/templates-linkml")),
-        (Path("src/data/examples"), Path("tests/data/")),
-    ]
-    for src, dest in tasks:
-        for path_obj in src.rglob("*"):
-            if not path_obj.is_file():
-                continue
-            file_dest = dest / path_obj.relative_to(src)
-            if not file_dest.parent.exists():
-                file_dest.parent.mkdir(parents=True)
-            print(f"Moving {path_obj} --> {file_dest}")
-            subprocess.run(["git", "mv", str(path_obj), str(file_dest)])
-    print(
-        "Migration to v0.2.x completed! Check the changes carefully before committing."
-    )
-
 # ============== Hidden internal recipes ==============
 
 # Show current project status
@@ -306,10 +268,6 @@ _check-config:
         print('**Project not configured**:\n - See \'.env.public\'')
         exit(1)
     print('Project-status: Ok')
-
-# Update project template
-_update-template:
-  copier update --trust --skip-answered
 
 # Update LinkML to latest version
 _update-linkml:
@@ -393,16 +351,3 @@ _git-commit:
 # Show git status
 _git-status:
   git status
-
-# ============== Include project-specific recipes ==============
-
-import "project.justfile"
-
-# ====== Override recipes from above with custom versions =======
-
-# Uncomment the following line to allow duplicate recipe names
-#set allow-duplicate-recipes
-
-# Overriding recipes from the root justfile by adding a recipe with the same
-# name in an imported file is not possible until a known issue in just is fixed,
-# https://github.com/casey/just/issues/2540 - So we need to override them here.
