@@ -116,7 +116,7 @@ Once the analysis has universes (next section), [`astra universe list`](cli.md#a
 
 ## Define universes
 
-A *universe* is one complete set of decision selections — one option per decision of the analysis and of the analyses it drives. Each universe yields one set of results; the same analysis can carry many of them.
+A *universe* is one complete set of decision selections — one option per decision it uses, of the analysis and of the analyses it drives. Each universe yields one set of results; the same analysis can carry many of them.
 
 Universes are written in `astra.yaml`, under `universes:`: there is no default universe or option ([Elements](specification.md#elements)).
 
@@ -146,7 +146,7 @@ astra universe show alt       # the selection alt makes
 astra plan                    # the planned results and their commands
 ```
 
-Universe validation enforces three rules, among others: every decision of the analysis and of the analyses it drives has a selection; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
+Universe validation enforces three rules, among others: every decision the universe uses, of the analysis and of the analyses it drives, has a selection; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint among the decisions it uses is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
 
 For declared analyses, the universe sets their decisions by address ([Elements](specification.md#elements)):
 

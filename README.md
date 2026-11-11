@@ -63,7 +63,7 @@ universes:
     decisions: { scaling: standard, model: random_forest }
 ```
 
-A *universe* picks one option per decision (e.g. `{ scaling: standard, model: svm }`). The same analysis can carry many universes; each one yields one set of results.
+A *universe* picks one option per decision it uses (e.g. `{ scaling: standard, model: svm }`). The same analysis can carry many universes; each one yields one set of results.
 
 ## Install and try it
 

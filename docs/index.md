@@ -25,7 +25,7 @@ ASTRA gives every methodological choice an explicit place in the spec. In ASTRA,
 
 ## At a glance
 
-In ASTRA, an analysis declares the design space, a universe picks one option per decision, and the CLI allows for validation and inspection. Below is an example of an `astra.yaml`. For a detailed walkthrough of the spec, see our [specification explained](specification.md).
+In ASTRA, an analysis declares the design space, a universe picks one option per decision it uses, and the CLI allows for validation and inspection. Below is an example of an `astra.yaml`. For a detailed walkthrough of the spec, see our [specification explained](specification.md).
 
 === "Analysis (`astra.yaml`)"
 
