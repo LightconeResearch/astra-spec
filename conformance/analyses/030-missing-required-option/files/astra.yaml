@@ -13,8 +13,11 @@ outputs:
   result:
     type: metric
     format: json
+    decisions: [decision1, decision2]
     recipe:
-      command: python make.py '{output}'
+      command: >-
+        python make.py '{decisions.decision1}' '{decisions.decision2}'
+        '{output}'
 universes:
   u1:
     decisions: {decision1: b, decision2: a}

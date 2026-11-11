@@ -18,6 +18,12 @@ outputs:
     inputs: [input1]
     recipe:
       command: python make.py '{inputs.input1}' '{output}'
+  output4:
+    type: metric
+    format: json
+    decisions: [mode]
+    recipe:
+      command: python make.py '{decisions.mode}' '{output}'
 universes:
   main:
     decisions: {mode: fast}

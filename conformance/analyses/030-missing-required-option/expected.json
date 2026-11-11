@@ -3,5 +3,6 @@
   "valid": false,
   "must_report": [
     {"code": "MISSING_REQUIRED_OPTION", "file": "astra.yaml"}
-  ]
+  ],
+  "must_not_report": ["UNUSED_DECISION"]
 }

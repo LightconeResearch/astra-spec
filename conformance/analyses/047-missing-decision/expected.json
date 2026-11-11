@@ -1,5 +1,5 @@
 {
-  "about": "A universe leaves one of its analysis's decisions unset.",
+  "about": "A universe leaves unset a decision that an output planned there lists.",
   "valid": false,
   "must_report": [
     {"code": "MISSING_DECISION", "file": "astra.yaml"}

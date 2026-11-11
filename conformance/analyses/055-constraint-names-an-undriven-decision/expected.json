@@ -1,0 +1,5 @@
+{
+  "about": "A pin on a declared analysis's output built per universe builds that analysis's universe main, where an option's constraint names a decision of an analysis main doesn't drive: a constraint uses no decision.",
+  "valid": true,
+  "must_not_report": ["NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION"]
+}

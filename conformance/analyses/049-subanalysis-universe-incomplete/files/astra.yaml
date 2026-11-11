@@ -11,4 +11,4 @@ outputs:
       command: python make.py '{inputs.subanalysis.output1}' '{output}'
 universes:
   u1:
-    decisions: {subanalysis.decision0: x, subanalysis.decision1: a}
+    decisions: {subanalysis.decision1: a}

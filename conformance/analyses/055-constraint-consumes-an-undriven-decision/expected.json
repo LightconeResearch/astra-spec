@@ -1,8 +1,0 @@
-{
-  "about": "A pin on a declared analysis's output built per universe builds that analysis's universe main, where a constraint consumes a decision of an analysis that main doesn't drive.",
-  "valid": false,
-  "must_report": [
-    {"code": "NOT_BUILT_IN_UNIVERSE", "file": "catalog/astra.yaml"},
-    {"code": "UNDRIVEN_DECLARATION", "file": "catalog/astra.yaml"}
-  ]
-}

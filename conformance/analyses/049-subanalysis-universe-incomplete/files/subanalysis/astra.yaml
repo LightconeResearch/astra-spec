@@ -16,5 +16,4 @@ outputs:
     recipe:
       command: python make.py '{decisions.decision1}' '{output}'
 universes:
-  v1:
-    decisions: {decision0: x}
+  v1: {}

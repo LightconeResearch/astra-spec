@@ -1,4 +1,5 @@
 {
-  "about": "Pins on a declared analysis's input and on its output built once build none of its universes, so a constraint there that consumes an undriven decision isn't judged.",
-  "valid": true
+  "about": "Pins on a declared analysis's input and on its output built once build none of its universes.",
+  "valid": true,
+  "must_not_report": ["NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION", "UNUSED_DECISION"]
 }

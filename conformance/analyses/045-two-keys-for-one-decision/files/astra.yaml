@@ -8,8 +8,9 @@ outputs:
   result:
     type: metric
     format: json
+    decisions: [stage.decision1]
     recipe:
-      command: python make.py '{output}'
+      command: python make.py '{decisions.stage.decision1}' '{output}'
 universes:
   u1:
     decisions: {stage.decision1: a, again.decision1: a}
