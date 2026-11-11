@@ -1,0 +1,2060 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="ASTRA — Agentic Schema for Transparent Research Analysis.">
+      
+      
+        <meta name="author" content="Lightcone Research">
+      
+      
+        <link rel="canonical" href="https://astra-spec.org/specification/">
+      
+      
+        <link rel="prev" href="../about/">
+      
+      
+        <link rel="next" href="../elements/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/favicon.svg">
+      <meta name="generator" content="zensical-0.0.40">
+    
+    
+      
+        <title>The ASTRA specification - ASTRA</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.fba56155.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-astra-specification" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="ASTRA" class="md-header__button md-logo" aria-label="ASTRA" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594zM20 2v4M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ASTRA
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              The ASTRA specification
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/LightconeResearch/astra-spec" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    LightconeResearch/astra-spec
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="./.." class="md-tabs__link">
+          
+  
+  Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="././" class="md-tabs__link">
+          
+  
+  Specification
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../community/" class="md-tabs__link">
+          
+  
+  Community
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="ASTRA" class="md-nav__button md-logo" aria-label="ASTRA" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594zM20 2v4M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
+
+    </a>
+    ASTRA
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/LightconeResearch/astra-spec" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    LightconeResearch/astra-spec
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Documentation
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Documentation
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Installation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  CLI reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  About
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Specification
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Specification
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Format reference
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Format reference
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Elements
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Results
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Rules
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Schema files
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Field reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Community
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Community
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Overview
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rfc-process/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  RFC process
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Governance
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#elements" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Elements
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Results
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Rules
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Schema files
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="the-astra-specification">The ASTRA specification<a class="headerlink" href="#the-astra-specification" title="Permanent link">&para;</a></h1>
+<p>ASTRA records a research <strong>analysis</strong>, a folder in a git repository with an
+<code>astra.yaml</code> at its top, so that every choice in it is explicit and every
+result can be checked against how it was made. Analyses communicate
+natively, sharing inputs, outputs and decisions by address. A <strong>validator</strong>
+checks the files against git, a <strong>runner</strong> builds the results from committed
+files and writes a <strong>record</strong> of how each was made, and a <strong>checker</strong> later
+compares each record with the analysis as it then is.</p>
+<h2 id="elements">Elements<a class="headerlink" href="#elements" title="Permanent link">&para;</a></h2>
+<p>An <code>astra.yaml</code> (YAML 1.2) gives its <code>spec_version</code> (<code>"0.1.0"</code>) and maps of
+<strong>elements</strong>, each keyed by its <strong>id</strong> (<code>[a-z][a-z0-9_]*</code>). The snippets
+below are parts of <code>analysis/astra.yaml</code>, the file of the analysis in the
+folder <code>analysis/</code>, and its paths are relative.</p>
+<ul>
+<li>An analysis can <strong>declare</strong> other analyses:</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># analysis/astra.yaml</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">analyses</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">stage</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">previous</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">.</span><span class="p p-Indicator">,</span><span class="nt"> commit</span><span class="p">:</span><span class="w"> </span><span class="nv">&lt;commit id&gt;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="nt">module</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">module</span><span class="p p-Indicator">,</span><span class="nt"> commit</span><span class="p">:</span><span class="w"> </span><span class="nv">&lt;commit id&gt;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">upstream</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="nv">&lt;url of a git repository&gt;</span><span class="p p-Indicator">,</span><span class="nt"> commit</span><span class="p">:</span><span class="w"> </span><span class="nv">&lt;commit id&gt;</span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<ul>
+<li><code>stage</code>: the folder <code>analysis/stage/</code>, read from the working tree, which,
+    once committed, lets it be built</li>
+<li><code>previous</code>: <code>analysis/</code> itself at a commit</li>
+<li><code>module</code>: a git submodule at <code>analysis/module/</code>, as <code>analysis</code>'s
+    repository holds it at that commit</li>
+<li><code>upstream</code>: a remote repository at a commit</li>
+</ul>
+<p>Elements of a declared analysis are obtained by <strong>address</strong> (declarations
+  followed by an element, joined by dots): <code>stage.output3</code> points to
+  <code>output3</code> defined in <code>stage</code>.</p>
+<p>The folder at its commit, or in the working tree, is the analysis's
+  <strong>identity</strong>: one folder at one commit is one analysis however it is
+  declared, and <strong>another analysis</strong> is one with another identity.</p>
+<ul>
+<li>An <strong>input</strong> is one file, tracked in git with its analysis, at a <code>path</code>
+  from the analysis's folder; a <strong>stand-in</strong>, such as a large-file pointer,
+  may take its place where a tool recognises it.</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">input1</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">data/input1.csv</span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<p>The <code>path</code> stays inside the analysis's folder, outside <code>results/</code>,
+  <code>.astra/</code> and any folder contained within the analysis's folder with its
+  own <code>astra.yaml</code>. Another analysis's input is read by address in an output
+  (<code>stage.input2</code>); other data, such as a download, comes in as an output
+  whose recipe gets it.</p>
+<ul>
+<li>A <strong>decision</strong> lists the <strong>options</strong> of a scientific choice. An option may
+  be <strong>excluded</strong> with a reason, cite prior <code>insights</code>, and carry
+  <strong>constraints</strong>: options it <code>requires</code> or is <code>incompatible_with</code>, by
+  <strong>option reference</strong>, a decision's address then an option's id
+  (<code>decision1.b</code>, <code>stage.decision2.b</code>).</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">decision1</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">rationale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Both are reasonable, and they may give different results.</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">      </span><span class="nt">a</span><span class="p">:</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">        </span><span class="nt">insights</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">insight2</span><span class="p p-Indicator">]</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="nt">b</span><span class="p">:</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="nt">requires</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">stage.decision2.b</span><span class="p p-Indicator">]</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">      </span><span class="nt">c</span><span class="p">:</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="nt">excluded</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">It needs data this analysis doesn&#39;t have.</span>
+</span></code></pre></div>
+<ul>
+<li><code>insight2</code> supports option <code>a</code></li>
+<li><code>b</code> requires <code>stage</code>'s <code>decision2</code> to be <code>b</code></li>
+<li>
+<p><code>c</code> is excluded and never selected</p>
+</li>
+<li>
+<p>An <strong>output</strong> has a <code>type</code>, a <code>format</code> (its file extension), the
+  <code>decisions</code> it is made with, what it reads (<code>inputs</code>, ordered), and a
+  <strong>recipe</strong>: a POSIX shell <code>command</code>, run in its analysis's folder, whose
+  <strong>placeholders</strong> <code>{inputs}</code>, <code>{inputs.&lt;entry&gt;}</code>, <code>{decisions.&lt;entry&gt;}</code> and
+  <code>{output}</code> become paths and selected options, verbatim. Its <strong>result</strong> is
+  the one file the recipe writes.</p>
+</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">output1</span><span class="p">:</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metric</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">input1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">stage.output3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">upstream.output4</span><span class="p p-Indicator">]</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">stage.decision2</span><span class="p p-Indicator">]</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output1.py {inputs} {decisions.decision1} {decisions.stage.decision2} {output}</span>
+</span></code></pre></div>
+<p>Another analysis's elements are read by address in an output's <code>inputs</code>
+  and <code>decisions</code>, a condition, a constraint or evidence, just as if they
+  were the analysis's own: <code>output1</code> reads <code>stage</code>'s <code>output3</code> and is made
+  with <code>stage</code>'s <code>decision2</code>, whatever option is selected where it is built.</p>
+<ul>
+<li>A <code>when</code> lists <strong>conditions</strong>, <code>d.o</code> (decision <code>d</code> selects option <code>o</code>) or
+  <code>~d.o</code> (decision <code>d</code> doesn't select option <code>o</code>).</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">decision3</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision1.b</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">stage.decision2.b</span><span class="p p-Indicator">]</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{},</span><span class="nt"> b</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}}</span>
+</span></code></pre></div>
+<ul>
+<li>
+<p><code>decision3</code> is only active when <code>decision1</code> selects <code>b</code> and <code>stage</code>'s
+    <code>decision2</code> selects <code>b</code>; an output can have a <code>when</code> too</p>
+</li>
+<li>
+<p>A <strong>universe</strong> selects an option for each active decision: its own
+  analysis's by id, another's by address. With <code>derived_from</code> it inherits
+  another universe's selection, replacing what it sets and dropping what
+  turns inactive: its <strong>effective selection</strong>.</p>
+</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">u1</span><span class="p">:</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">      </span><span class="nt">decision1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">b</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">      </span><span class="nt">decision3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">a</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">      </span><span class="nt">stage.decision2</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">b</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="nt">u2</span><span class="p">:</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nt">derived_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">u1</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">decision1</span><span class="p">:</span><span class="w"> </span><span class="nv">a</span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<ul>
+<li><code>u1</code> sets <code>stage</code>'s <code>decision2</code>: it <strong>drives</strong> <code>stage</code> (below)</li>
+<li>
+<p><code>u2</code> changes <code>decision1</code> from <code>u1</code>'s <code>b</code> to <code>a</code>, keeps <code>stage.decision2</code>
+    as <code>b</code>, and drops <code>decision3</code>, whose <code>when</code> no longer holds</p>
+</li>
+<li>
+<p>An entry of an output's <code>inputs</code> is a <strong>reference</strong>: an address that may
+  end in a <strong>pin</strong>, <code>#</code> and a universe's id, fixing the universe it reads.
+  <code>#u</code> names, in order:</p>
+</li>
+<li>the <code>universes</code> entry <code>u</code> in the same <code>astra.yaml</code> as the pin;</li>
+<li>else the universe <code>u</code> of the declared analysis whose output is read;</li>
+<li>else nothing, which breaks <code>UNKNOWN_PIN_UNIVERSE</code>.</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">output2</span><span class="p">:</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">table</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">output1#u1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">output1#u2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">stage.output3#v1</span><span class="p p-Indicator">]</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output2.py {inputs} {output}</span>
+</span></code></pre></div>
+<ul>
+<li><code>output2</code> reads <code>output1</code> as built in <code>u1</code> and in <code>u2</code></li>
+<li>
+<p><code>analysis</code> has no <code>v1</code>, so <code>stage.output3#v1</code> reads <code>stage</code>'s own
+    result in its <code>v1</code></p>
+</li>
+<li>
+<p>An output is <strong>built per universe</strong> if it lists <code>decisions</code>, has a <code>when</code>,
+  or reads an output that is built per universe without a pin; it has a
+  result in each universe where it is active. Any other output is <strong>built
+  once</strong> with one result:</p>
+</li>
+</ul>
+<p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">output1</span><span class="p">:</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">stage.decision2</span><span class="p p-Indicator">]</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nt">output2</span><span class="p">:</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">output1#u1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">output1#u2</span><span class="p p-Indicator">]</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span></code></pre></div>
+  - <code>output1</code> is built per universe because it lists decisions
+  - <code>output2</code> is built once because it only reads <code>output1</code> pinned to specific universes</p>
+<p>Were it also to have:</p>
+<p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">output6</span><span class="p">:</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision1.b</span><span class="p p-Indicator">]</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">output7</span><span class="p">:</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">output1</span><span class="p p-Indicator">]</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span></code></pre></div>
+  - <code>output6</code> is built per universe because it depends on a decision via <code>when</code>
+  - <code>output7</code> is built per universe because it reads <code>output1</code>, which is
+    built per universe, without a pin</p>
+<ul>
+<li>The analysis being validated or built, here <code>analysis</code>, is the <strong>driving
+  analysis</strong>. Its universes can set the decisions of the analyses it declares, and of those
+  they declare in turn; where they do, it <strong>drives</strong> them:</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">u1</span><span class="p">:</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">stage.decision2</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">b</span>
+</span></code></pre></div>
+<p>In <code>u1</code>, <code>stage</code> is built with <code>decision2: b</code>, whatever its own universes
+  say. The <code>stage.output3</code> that <code>output1</code> reads is built with <code>b</code> selected
+  for <code>stage.decision2</code>, and its result belongs to <code>analysis</code>.</p>
+<p>A universe sets a decision further down by its full address. Were <code>stage</code>
+  to declare <code>inner</code>, which has a <code>decision4</code>:</p>
+<p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">u1</span><span class="p">:</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">stage.decision2</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">b</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">      </span><span class="nt">stage.inner.decision4</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">a</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="nt">u2</span><span class="p">:</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="nt">derived_from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">u1</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">decision1</span><span class="p">:</span><span class="w"> </span><span class="nv">a</span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+  - <code>stage.inner.decision4</code> drives <code>stage</code> and drives <code>inner</code> through <code>stage</code></p>
+<p>The analyses an address goes through, here <code>stage</code> then <code>inner</code>, form a
+  <strong>chain</strong>. Once any universe drives a chain, every universe must set all
+  the active decisions of the analyses on it: had <code>u2</code> not derived from
+  <code>u1</code>, it would have to set <code>stage.decision2</code> and <code>stage.inner.decision4</code>
+  itself.</p>
+<ul>
+<li>
+<p>Each chain is driven on its own. Were <code>analysis/astra.yaml</code> also to declare
+    <code>inner</code> directly, and set none of its decisions:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">analyses</span><span class="p">:</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">inner</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">stage/inner</span><span class="p p-Indicator">}</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="nt">output11</span><span class="p">:</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">inner.output8</span><span class="p p-Indicator">]</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span></code></pre></div>
+<p>this chain isn't driven, even though <code>stage.inner</code> is. Through it,
+<code>output11</code> can read <code>inner</code>'s outputs built once, or pinned to <code>inner</code>'s
+own universes, but not one built per universe in <code>u1</code> or <code>u2</code>.</p>
+</li>
+<li>
+<p>An analysis with no decisions of its own has nothing to set. Were
+    <code>analysis/astra.yaml</code> also to declare <code>tools</code>, which has none:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># analysis/tools/astra.yaml</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nt">analyses</span><span class="p">:</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">..</span><span class="p p-Indicator">}</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="nt">input3</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">data/input3.csv</span><span class="p p-Indicator">}</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span><span class="nt">output9</span><span class="p">:</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">input3</span><span class="p p-Indicator">]</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">  </span><span class="nt">output10</span><span class="p">:</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">parent.decision1</span><span class="p p-Indicator">]</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</span></code></pre></div>
+<ul>
+<li><code>tools.output9</code> just exists as <code>tools</code>'s result</li>
+<li><code>tools.output10</code> varies, so it is built in <code>u1</code> and <code>u2</code>, and those
+  results belong to <code>analysis</code></li>
+</ul>
+</li>
+<li>
+<p>An analysis never drives itself. A universe can't set a decision through
+    a declaration that leads back, such as <code>self: {path: .}</code>, or <code>stage</code>'s
+    <code>parent: {path: ..}</code>. Writing <code>self.decision1: b</code> instead of
+    <code>decision1: b</code> would break <code>LOOPING_KEY</code>:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">u1</span><span class="p">:</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">      </span><span class="nt">decision1</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">b</span><span class="w">       </span><span class="c1"># self.decision1: b would break LOOPING_KEY</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>stage</code>'s own universes, such as <code>v1</code>, don't set its decisions in <code>u1</code>
+    and <code>u2</code>, but must still be valid: a <code>v1</code> that left <code>decision2</code> unset
+    would break <code>MISSING_DECISION</code>.</p>
+</li>
+<li>
+<p>An output that reads another analysis's output built per universe,
+    without a pin or pinned to one of its own analysis's universes
+    (<code>stage.output3#u1</code>), or uses one of its decisions, needs that analysis
+    driven.
+    <code>output1</code> reads <code>stage.output3</code> and uses <code>stage.decision2</code>, so were no
+    universe of <code>analysis</code> to set a decision of <code>stage</code>:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">u1</span><span class="p">:</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">decision1</span><span class="p">:</span><span class="w"> </span><span class="nv">b</span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># nothing of stage&#39;s: stage isn&#39;t driven</span>
+</span></code></pre></div>
+<p><code>output1</code> would break <code>NOT_BUILT_IN_UNIVERSE</code>: nothing would say which
+<code>decision2</code> to build <code>stage.output3</code> with. It could still read what
+doesn't vary: <code>stage.input2</code>, <code>stage.output3#v1</code>, or <code>upstream.output4</code>,
+which is built once.</p>
+</li>
+</ul>
+<p>By convention, a decision that matters to one analysis is driven, and one
+  shared by several, such as a seed, is read by address from the analysis
+  that holds it.</p>
+<ul>
+<li>Were <code>stage</code> to have a <code>u1</code> of its own, <code>#u1</code> in <code>analysis/astra.yaml</code>
+  would still name <code>analysis</code>'s. To read <code>stage</code>'s own <code>u1</code> too it must be <strong>imported</strong> under
+  another id and pinned to that. An import
+  selects and drives nothing.</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">stage_u1</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">analysis</span><span class="p">:</span><span class="w"> </span><span class="nv">stage</span><span class="p p-Indicator">,</span><span class="nt"> universe</span><span class="p">:</span><span class="w"> </span><span class="nv">u1</span><span class="p p-Indicator">}</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="nt">output5</span><span class="p">:</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">table</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage.output3#u1</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage.output3#stage_u1</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output5.py {inputs} {output}</span>
+</span></code></pre></div>
+<ul>
+<li><code>stage.output3#u1</code> is built in, and belongs to, <code>analysis</code>'s <code>u1</code></li>
+<li>
+<p><code>stage.output3#stage_u1</code> is built in <code>stage</code>'s own <code>u1</code> and belongs to
+    <code>stage</code></p>
+</li>
+<li>
+<p>An <strong>insight</strong> is a <code>claim</code> whose <code>evidence</code> cites a <code>doi</code> or an output
+  (<code>artifact</code>): <code>prior_insights</code> are what the analysis builds on, <code>findings</code>
+  what it concludes. An <code>artifact</code> is a reference, like an output's <code>inputs</code>
+  entry: it may be pinned, and by address it reads another analysis's
+  output.</p>
+</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nt">prior_insights</span><span class="p">:</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">insight2</span><span class="p">:</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">An earlier study found that decision1 changes the result.</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">doi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.5555/12345678</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">        </span><span class="nt">location</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="nv">page=6</span><span class="p p-Indicator">}</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="nt">findings</span><span class="p">:</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">  </span><span class="nt">insight1</span><span class="p">:</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The two universes give different results.</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">artifact</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output2</span>
+</span></code></pre></div>
+<h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A <strong>result</strong> is the one file an output's recipe writes: an output built
+  once has one, and an output built per universe has one in each universe
+  where it is active. The driving analysis <strong>plans</strong> the results of its own
+  outputs, and every result a planned result reads or its evidence cites,
+  through any declaration; nothing else is built. A result belongs to the
+  analysis whose universe built it or, for an output built once, the
+  analysis whose output it is. With <code>stage</code>'s own file:</li>
+</ul>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># analysis/stage/astra.yaml</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nt">spec_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">input2</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">data/input2.csv</span><span class="p p-Indicator">}</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="nt">decision2</span><span class="p">:</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{},</span><span class="nt"> b</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}}</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span><span class="nt">output3</span><span class="p">:</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">input2</span><span class="p p-Indicator">]</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision2</span><span class="p p-Indicator">]</span>
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output3.py {inputs.input2} {decisions.decision2} {output}</span>
+</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">  </span><span class="nt">v1</span><span class="p">:</span>
+</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">decision2</span><span class="p">:</span><span class="w"> </span><span class="nv">a</span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<p>the build is:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>┌─ u1 · analysis&#39;s own ────────────────────────────────┐
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>│  input1 ────────────────────────┐                    │
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>│  stage.output3 (decision2 = b) ─┼─► output1          │── #u1 ──┐
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>│  upstream.output4 ──────────────┘   (decision1 = b)  │         │
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>└──────────────────────────────────────────────────────┘         │
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>┌─ u2 · analysis&#39;s own ────────────────────────────────┐         │
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>│  input1 ────────────────────────┐                    │         ▼
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>│  stage.output3 (decision2 = b) ─┼─► output1          │── #u2 ──► output2 ◄── insight1
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>│  upstream.output4 ──────────────┘   (decision1 = a)  │         ▲
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>└──────────────────────────────────────────────────────┘         │
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>┌─ v1 · stage&#39;s own ───────────────────────────────────┐         │
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>│  output3 (decision2 = a)                             │── #v1 ──┘
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>└──────────────────────────────────────────────────────┘
+</span></code></pre></div>
+<ul>
+<li>
+<p>the planned results are <code>output2</code>, <code>output1</code> in <code>u1</code> and <code>u2</code>,
+    <code>stage.output3</code> in <code>u1</code>, <code>u2</code> and <code>v1</code>, and <code>upstream.output4</code></p>
+</li>
+<li>
+<p>A <strong>runner</strong> builds each planned result by running its output's recipe in
+  a checkout of a commit, with no changes but records and results, and
+  writes the result's bytes and a <strong>record</strong> of how it was made. Results of
+  an analysis declared with a <code>commit</code>, and of those it reaches, are
+  <strong>results from a commit</strong>: never rebuilt, but read through their records,
+  and their bytes (or a stand-in), at their analysis's commit. Driven, such
+  an analysis runs its recipes on exactly its files at its commit.</p>
+</li>
+<li>at its commit, <code>upstream</code> has an output <code>output4</code>, built once, with its
+    result and record committed: the runner reads them and runs no recipe
+    of <code>upstream</code>'s</li>
+<li>
+<p><code>previous</code> reads the analysis's own earlier results the same way</p>
+</li>
+<li>
+<p>A <strong>record</strong> holds what its commit can't give: the result's address,
+  content hash and size and, under <code>generated_by</code>, the commit it was made
+  from, the hash and size of each input by its entry, the environment it ran
+  in and the runner. The record of <code>output1</code> in <code>u1</code>:</p>
+</li>
+</ul>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="p">{</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="nt">&quot;spec_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span><span class="p">,</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;output1#u1&quot;</span><span class="p">,</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">  </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">  </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">,</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">  </span><span class="nt">&quot;generated_by&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">    </span><span class="nt">&quot;commit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;commit id&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">    </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;input1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">},</span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;stage.output3&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">},</span>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;upstream.output4&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">}</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="w">    </span><span class="p">],</span>
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;iri&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;urn:example:environment1&quot;</span><span class="p">},</span>
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="w">    </span><span class="nt">&quot;runner&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example-runner&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">}</span>
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="p">}</span>
+</span></code></pre></div>
+<ul>
+<li>A <strong>checker</strong> later compares each record with the analysis as it then is,
+  and gives each planned result a record status:</li>
+<li><strong>missing</strong> if there is no record, or one that doesn't parse or meet its
+    schema, names another address, or doesn't list exactly the inputs its
+    output had at the record's commit;</li>
+<li>else <strong>stale</strong> if anything it is <strong>made from</strong> has changed since the
+    record's commit;</li>
+<li>
+<p>else <strong>unchanged</strong>.</p>
+</li>
+<li>
+<p>A result is <strong>made from</strong> its output's command, inputs in order, decisions
+  and format; the options those decisions select in its universe; its
+  inputs' content, never a stand-in's; and the results it reads. Code (fixed
+  by the commit) and the environment (installed software, container) are
+  recorded, not compared: an edited script shows only once a rerun makes
+  other bytes. A result made from a stale or missing one is stale until that
+  one is rebuilt with the hash it recorded. A record otherwise in order
+  leaves its result stale if its commit can't be read (squashed or rebased
+  away) or its output is gone at that commit, where <code>MISSING_RECORD_INPUTS</code>
+  isn't judged, or if an input is behind a stand-in that gives no hash. In
+  the example:</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Edit</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>analysis/stage/data/input2.csv</code> changes</td>
+<td>The six results built are stale; <code>upstream.output4</code> stays unchanged</td>
+</tr>
+<tr>
+<td><code>u2</code> selects <code>a</code> for <code>stage.decision2</code></td>
+<td><code>stage.output3</code> and <code>output1</code> in <code>u2</code> are stale, and so is <code>output2</code>, which reads <code>output1#u2</code></td>
+</tr>
+<tr>
+<td><code>insight1</code>'s claim is reworded</td>
+<td>Every result stays unchanged</td>
+</tr>
+<tr>
+<td><code>analysis/src/output1.py</code> is edited</td>
+<td>Every result stays unchanged; once <code>output1</code> is rebuilt with other bytes, <code>output2</code> is stale</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>
+<p>A result's bytes are <strong>present</strong> if its default place (below) holds the
+  recorded ones, else <strong>absent</strong>. The record of a result from a commit, at
+  the declared commit B, names an earlier commit A; the result is unchanged
+  if nothing compared changed between A and B and the results it was made
+  from are unchanged, and gets a bytes status, from what B holds, only if a
+  recipe reads it.</p>
+</li>
+<li>
+<p><strong>Evidence</strong> takes the status of the result it cites. Citing an output
+  built per universe without a pin, it cites its results in each of the
+  driving analysis's universes where it is active and its analysis built:
+  none means <code>missing</code>, several the worst status. A check covers a declared
+  analysis's evidence only where it cites a planned result.</p>
+</li>
+<li>
+<p>A result's <strong>name</strong> is its output's id after the driven declarations
+  leading there from the analysis it belongs to (<code>stage.output3</code>); two
+  driven chains give two names. Its <strong>address</strong> adds <code>#</code> and its universe's
+  own id (<code>stage.output3#u1</code>). Each name gives the result, in the folder of
+  the analysis it belongs to, a <strong>place</strong> for its record,
+  <code>.astra/records/{universe}/{name}.json</code>, and a <strong>default place</strong> for its
+  bytes, <code>results/{universe}/{name}.{format}</code>; built once, neither has
+  <code>{universe}/</code>. The build above leaves:</p>
+</li>
+</ul>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>analysis/.astra/records/output2.json             analysis/results/output2.csv
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>analysis/.astra/records/u1/output1.json          analysis/results/u1/output1.json
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>analysis/.astra/records/u1/stage.output3.json    analysis/results/u1/stage.output3.csv
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>analysis/.astra/records/u2/output1.json          analysis/results/u2/output1.json
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>analysis/.astra/records/u2/stage.output3.json    analysis/results/u2/stage.output3.csv
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>analysis/stage/.astra/records/v1/output3.json    analysis/stage/results/v1/output3.csv
+</span></code></pre></div>
+<h2 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">&para;</a></h2>
+<p>Each rule has a code, a level (MUST or SHOULD, as in BCP 14) and a layer, set
+by what its tool sees: one file (parse, schema), the stack's files and git
+(validator), also records and results (check), or its own runs (runner). The
+driving analysis's <strong>stack</strong> is it and every analysis it declares, directly or
+not. In the first four layers a broken MUST is an error and a broken SHOULD a warning;
+a runner that breaks a MUST doesn't conform. A file is <strong>valid</strong> if it breaks
+no parse or schema rule, read by the schema of its <code>spec_version</code>'s minor
+version (<code>0.1</code> for <code>0.1.2</code>); an analysis is valid if no analysis of its stack
+breaks a MUST of the first three layers. A broken check rule gives the status
+after the arrow. Rows that share a code are cases of one rule.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Level</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>parse</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>INVALID_SYNTAX</code></td>
+<td>MUST</td>
+<td>An <code>astra.yaml</code> is a YAML 1.2 document holding a map</td>
+</tr>
+<tr>
+<td><code>INVALID_SYNTAX</code></td>
+<td>MUST</td>
+<td>A record is UTF-8 JSON text, no object repeating a name</td>
+</tr>
+<tr>
+<td><strong>schema</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>MISSING_FIELD</code></td>
+<td>MUST</td>
+<td><code>astra.yaml</code> has <code>spec_version</code> and <code>outputs</code>; an output, <code>type</code>, <code>format</code> and <code>recipe.command</code></td>
+</tr>
+<tr>
+<td><code>MISSING_FIELD</code></td>
+<td>MUST</td>
+<td>An input has <code>path</code>; a decision, <code>options</code>; an insight, <code>claim</code>, <code>evidence</code>; <code>quote</code>, <code>exact</code>; <code>location</code>, <code>value</code></td>
+</tr>
+<tr>
+<td><code>MISSING_FIELD</code></td>
+<td>MUST</td>
+<td>A record has every field but <code>started</code>, <code>finished</code> and <code>inputs</code></td>
+</tr>
+<tr>
+<td><code>UNKNOWN_FIELD</code></td>
+<td>MUST</td>
+<td>Every field is one the schema defines</td>
+</tr>
+<tr>
+<td><code>WRONG_TYPE</code></td>
+<td>MUST</td>
+<td>Every value has its field's JSON type, never null (leave an optional field out)</td>
+</tr>
+<tr>
+<td><code>EMPTY_COLLECTION</code></td>
+<td>MUST</td>
+<td><code>outputs</code>, <code>options</code>, <code>evidence</code> and every list of strings in <code>astra.yaml</code> are non-empty</td>
+</tr>
+<tr>
+<td><code>DUPLICATE_ENTRY</code></td>
+<td>MUST</td>
+<td>No list of strings holds one entry twice</td>
+</tr>
+<tr>
+<td><code>INVALID_VALUE</code></td>
+<td>MUST</td>
+<td><code>type</code> is <code>metric</code>, <code>figure</code>, <code>table</code>, <code>data</code> or <code>report</code>; <code>format</code> matches <code>^[a-z0-9][a-z0-9_.+-]*$</code></td>
+</tr>
+<tr>
+<td><code>INVALID_VALUE</code></td>
+<td>MUST</td>
+<td>Every <code>spec_version</code>, hash, IRI, time, <code>doi</code>, <code>url</code> and location <code>value</code> has its form</td>
+</tr>
+<tr>
+<td><code>INVALID_VALUE</code></td>
+<td>MUST</td>
+<td><code>size</code> ≥ 0, evidence <code>version</code> ≥ 1, <code>resources.cpus</code> ≥ 0, <code>resources.gpus</code> ≥ 1</td>
+</tr>
+<tr>
+<td><code>INVALID_ID</code></td>
+<td>MUST</td>
+<td>Map keys and id-typed values are ids; a universe's <code>decisions</code> keys are addresses</td>
+</tr>
+<tr>
+<td><code>INVALID_REFERENCE</code></td>
+<td>MUST</td>
+<td>Every address, reference, option reference and condition, bar universe keys, matches its grammar</td>
+</tr>
+<tr>
+<td><code>INVALID_PATH</code></td>
+<td>MUST</td>
+<td>Every input's and declaration's <code>path</code> is non-empty and doesn't start with <code>/</code></td>
+</tr>
+<tr>
+<td><code>INVALID_IMPORT</code></td>
+<td>MUST</td>
+<td>A <code>universes</code> entry with <code>analysis</code> or <code>universe</code> has both, and no <code>decisions</code> or <code>derived_from</code></td>
+</tr>
+<tr>
+<td><code>INVALID_EVIDENCE_SOURCE</code></td>
+<td>MUST</td>
+<td>Evidence has exactly one of <code>doi</code> and <code>artifact</code>, and <code>version</code> only with <code>doi</code></td>
+</tr>
+<tr>
+<td><code>INVALID_DECLARATION_SOURCE</code></td>
+<td>MUST</td>
+<td>A declaration has exactly one of <code>path</code> and <code>url</code></td>
+</tr>
+<tr>
+<td><code>URL_WITHOUT_COMMIT</code></td>
+<td>MUST</td>
+<td>A declaration with a <code>url</code> has a <code>commit</code></td>
+</tr>
+<tr>
+<td><code>INVALID_COMMIT</code></td>
+<td>MUST</td>
+<td>Every <code>commit</code> is a full commit id: 40 or 64 lowercase hex digits</td>
+</tr>
+<tr>
+<td><strong>validator</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>NOT_IN_REPOSITORY</code></td>
+<td>MUST</td>
+<td>The driving analysis is in a git repository's working tree</td>
+</tr>
+<tr>
+<td><code>MISSING_INPUT_FILE</code></td>
+<td>MUST</td>
+<td>An input's <code>path</code> names a file (no symlink, folder or gitlink) or a stand-in</td>
+</tr>
+<tr>
+<td><code>INPUT_NOT_TRACKED</code></td>
+<td>MUST</td>
+<td>An input's file or stand-in is tracked in its analysis's repository</td>
+</tr>
+<tr>
+<td><code>INPUT_IN_ANOTHER_ANALYSIS</code></td>
+<td>MUST</td>
+<td>An input's file is in its analysis's folder, in no <strong>nested analysis</strong> (a folder below with an <code>astra.yaml</code>)</td>
+</tr>
+<tr>
+<td><code>RESERVED_PATH</code></td>
+<td>MUST</td>
+<td>No input or declaration <code>path</code> is, or lies inside, a stack analysis's <code>results/</code> or <code>.astra/</code> in its tree</td>
+</tr>
+<tr>
+<td><code>MISSING_DECLARED_ANALYSIS</code></td>
+<td>MUST</td>
+<td>A declared folder holds an <code>astra.yaml</code>, reached through no symlink</td>
+</tr>
+<tr>
+<td><code>DECLARATION_OUTSIDE_REPOSITORY</code></td>
+<td>MUST</td>
+<td>A tidied declaration <code>path</code> doesn't go above the top of the driving analysis's working tree or, at a commit, of its repository</td>
+</tr>
+<tr>
+<td><code>COMMIT_NOT_FOUND</code></td>
+<td>MUST</td>
+<td>In a file not read from a remote, a <code>path</code> and <code>commit</code> name a commit of the file's repository</td>
+</tr>
+<tr>
+<td><code>DECLARED_ANALYSIS_INVALID</code></td>
+<td>MUST</td>
+<td>An analysis from a commit, with all it declares, is valid at that commit</td>
+</tr>
+<tr>
+<td><code>UNRESOLVED_ADDRESS</code></td>
+<td>MUST</td>
+<td>An address in <code>inputs</code> reaches an input or output; in <code>artifact</code>, an output</td>
+</tr>
+<tr>
+<td><code>UNRESOLVED_ADDRESS</code></td>
+<td>MUST</td>
+<td>In <code>decisions</code>, universe keys, conditions and option references, a decision; in an import, another analysis's universe</td>
+</tr>
+<tr>
+<td><code>AMBIGUOUS_ID</code></td>
+<td>MUST</td>
+<td>No input and output of one analysis share an id</td>
+</tr>
+<tr>
+<td><code>CLASHING_RESULT_NAME</code></td>
+<td>MUST</td>
+<td>No output shares its id with a declaration of its analysis</td>
+</tr>
+<tr>
+<td><code>UNKNOWN_OPTION</code></td>
+<td>MUST</td>
+<td>Each option a condition, option reference or selection names is one of its decision's</td>
+</tr>
+<tr>
+<td><code>INVALID_INSIGHT_REF</code></td>
+<td>MUST</td>
+<td>An option's <code>insights</code> name prior insights of its analysis</td>
+</tr>
+<tr>
+<td><code>OUTPUT_CYCLE</code></td>
+<td>MUST</td>
+<td>No output reads itself through <code>inputs</code>, directly or not, pinned or not</td>
+</tr>
+<tr>
+<td><code>UNDECLARED_TEMPLATE_REF</code></td>
+<td>MUST</td>
+<td>Every brace of a <code>command</code>, read from the left, is in <code>{{</code>, <code>}}</code> or a placeholder</td>
+</tr>
+<tr>
+<td><code>UNDECLARED_TEMPLATE_REF</code></td>
+<td>MUST</td>
+<td>Placeholders are <code>{inputs}</code>, <code>{output}</code>, and <code>{inputs.&lt;entry&gt;}</code> or <code>{decisions.&lt;entry&gt;}</code> for entries as listed</td>
+</tr>
+<tr>
+<td><code>UNKNOWN_DERIVED_FROM</code></td>
+<td>MUST</td>
+<td><code>derived_from</code> names a universe of its analysis, never an import</td>
+</tr>
+<tr>
+<td><code>DERIVED_FROM_CYCLE</code></td>
+<td>MUST</td>
+<td>No chain of <code>derived_from</code> loops back to its universe</td>
+</tr>
+<tr>
+<td><code>INACTIVE_DECISION</code></td>
+<td>MUST</td>
+<td>A universe's own <code>decisions</code> set only decisions active in its effective selection</td>
+</tr>
+<tr>
+<td><code>MISSING_DECISION</code></td>
+<td>MUST</td>
+<td>An effective selection sets every active decision of its analysis and of those its universes drive</td>
+</tr>
+<tr>
+<td><code>MISSING_REQUIRED_OPTION</code></td>
+<td>MUST</td>
+<td>An effective selection meets the <code>requires</code> of each option it selects</td>
+</tr>
+<tr>
+<td><code>INCOMPATIBLE_OPTIONS</code></td>
+<td>MUST</td>
+<td>An effective selection meets the <code>incompatible_with</code> of each option it selects</td>
+</tr>
+<tr>
+<td><code>EXCLUDED_OPTION_SELECTED</code></td>
+<td>MUST</td>
+<td>No effective selection selects an excluded option</td>
+</tr>
+<tr>
+<td><code>DUPLICATE_ELEMENT</code></td>
+<td>MUST</td>
+<td>No two keys of a universe's own <code>decisions</code> name one decision</td>
+</tr>
+<tr>
+<td><code>DUPLICATE_ELEMENT</code></td>
+<td>MUST</td>
+<td>A universe sets an inherited decision only under the key it inherits</td>
+</tr>
+<tr>
+<td><code>LOOPING_KEY</code></td>
+<td>MUST</td>
+<td>No universe key goes through a declaration that leads back</td>
+</tr>
+<tr>
+<td><code>UNKNOWN_PIN_UNIVERSE</code></td>
+<td>MUST</td>
+<td>Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose output it reads</td>
+</tr>
+<tr>
+<td><code>PIN_INACTIVE</code></td>
+<td>MUST</td>
+<td>Every pinned output is active in the universe it is pinned to</td>
+</tr>
+<tr>
+<td><strong><em>validator, in each universe where results are built</em></strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>INPUT_NOT_BUILT</code></td>
+<td>MUST</td>
+<td>Every output a result planned in a universe reads without a pin is active there</td>
+</tr>
+<tr>
+<td><code>NOT_BUILT_IN_UNIVERSE</code></td>
+<td>MUST</td>
+<td>An output reading another analysis's output built per universe, unpinned or pinned to a universe it is built in, or one of its decisions, reads it from an analysis built in that universe</td>
+</tr>
+<tr>
+<td><code>UNDRIVEN_DECLARATION</code></td>
+<td>MUST</td>
+<td>In the file of a universe's analysis, every address using another analysis's element there has a driven chain</td>
+</tr>
+<tr>
+<td><code>RESULT_IN_TWO_PLACES</code></td>
+<td>SHOULD</td>
+<td>No planned result has two names</td>
+</tr>
+<tr>
+<td><strong>check</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>MISSING_RECORD</code></td>
+<td>MUST</td>
+<td>Every planned result has a record at each of its places → <code>missing</code></td>
+</tr>
+<tr>
+<td><code>INVALID_RECORD</code></td>
+<td>MUST</td>
+<td>The record at each place parses; its minor version has a record schema or exceeds the checker's → <code>missing</code></td>
+</tr>
+<tr>
+<td><code>INVALID_RECORD</code></td>
+<td>MUST</td>
+<td>It meets that record schema or, if newer, the checker's open variant → <code>missing</code></td>
+</tr>
+<tr>
+<td><code>MISPLACED_RECORD</code></td>
+<td>MUST</td>
+<td>Its <code>address</code> is the one its place is worked out from → <code>missing</code></td>
+</tr>
+<tr>
+<td><code>MISSING_RECORD_INPUTS</code></td>
+<td>MUST</td>
+<td>Its <code>inputs</code> hold one item per entry its output lists at its commit, by <code>entry</code>, no more → <code>missing</code></td>
+</tr>
+<tr>
+<td><code>STALE_RESULT</code></td>
+<td>MUST</td>
+<td>Nothing the result is made from has changed since its record's commit → <code>stale</code></td>
+</tr>
+<tr>
+<td><code>ABSENT_RESULT</code></td>
+<td>SHOULD</td>
+<td>Its recorded bytes are at its default place, bar an unread result from a commit → <code>absent</code></td>
+</tr>
+<tr>
+<td><code>STALE_EVIDENCE</code></td>
+<td>MUST</td>
+<td>Evidence citing a result cites an unchanged one → the result's record status</td>
+</tr>
+<tr>
+<td><strong>runner</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>UNRECORDED_RESULT</code></td>
+<td>MUST</td>
+<td>A runner writes each result it makes: a record at each place, bytes at each default place</td>
+</tr>
+<tr>
+<td><code>FALSE_RECORD</code></td>
+<td>MUST</td>
+<td>Every field of a record a runner writes is true of its run</td>
+</tr>
+<tr>
+<td><code>UNRECREATABLE_ENVIRONMENT</code></td>
+<td>MUST</td>
+<td>A runner records each recipe's environment as an IRI it can recreate at its version</td>
+</tr>
+<tr>
+<td><code>UNCOMMITTED_CHANGES</code></td>
+<td>MUST</td>
+<td>Each recipe runs in a commit's checkout changed only by records and recorded results</td>
+</tr>
+<tr>
+<td><code>UNCOMMITTED_CHANGES</code></td>
+<td>MUST</td>
+<td>There, untracked files and submodules count as changes; ignored files don't</td>
+</tr>
+<tr>
+<td><code>WRONG_WORKING_DIRECTORY</code></td>
+<td>MUST</td>
+<td>Each recipe runs in its own analysis's folder, even when driven</td>
+</tr>
+<tr>
+<td><code>NOT_AT_COMMIT</code></td>
+<td>MUST</td>
+<td>A runner drives an analysis from a commit on exactly its files at that commit</td>
+</tr>
+<tr>
+<td><code>REBUILT_FROM_COMMIT</code></td>
+<td>MUST</td>
+<td>A runner builds no result from a commit, and reads each through its record at its analysis's commit</td>
+</tr>
+<tr>
+<td><code>STALE_INPUT</code></td>
+<td>MUST</td>
+<td>A runner builds nothing from a result from a commit that is missing, stale or lacks its recorded bytes</td>
+</tr>
+<tr>
+<td><code>UNDECLARED_READ</code></td>
+<td>SHOULD</td>
+<td>A recipe reads input files and other results only through its output's <code>inputs</code></td>
+</tr>
+<tr>
+<td><code>CODE_OUTSIDE_ANALYSIS</code></td>
+<td>SHOULD</td>
+<td>Beyond its environment, a recipe runs only code its inputs give, or tracked in its analysis's folder outside nested analyses</td>
+</tr>
+</tbody>
+</table>
+<p>Recommendations and a permission that no tool checks:</p>
+<table>
+<thead>
+<tr>
+<th>Who</th>
+<th>Level</th>
+<th>Recommendation or permission</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A published analysis</td>
+<td>SHOULD</td>
+<td>declare only remotes its readers can fetch</td>
+</tr>
+<tr>
+<td>Branches that hold records</td>
+<td>SHOULD</td>
+<td>be merged, not squashed or rebased</td>
+</tr>
+<tr>
+<td>A runner</td>
+<td>SHOULD</td>
+<td>let someone see what an environment it recorded holds</td>
+</tr>
+<tr>
+<td>A runner</td>
+<td>MAY</td>
+<td>enforce <code>UNDECLARED_READ</code> and <code>CODE_OUTSIDE_ANALYSIS</code>, failing a recipe that breaks one</td>
+</tr>
+</tbody>
+</table>
+<h2 id="schema-files">Schema files<a class="headerlink" href="#schema-files" title="Permanent link">&para;</a></h2>
+<p>The schema is written in <a href="https://linkml.io/">LinkML</a>; its descriptions of
+the fields are published as the field reference. These files are generated
+from it, each at <code>https://w3id.org/astra/&lt;minor version&gt;/&lt;file&gt;</code>, shared by
+every patch of that minor version:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>analysis.schema.json</code></td>
+<td>the JSON Schema (2019-09) of <code>astra.yaml</code></td>
+</tr>
+<tr>
+<td><code>provenance.schema.json</code></td>
+<td>the JSON Schema of a record</td>
+</tr>
+<tr>
+<td><code>provenance.open.schema.json</code></td>
+<td>the same, but allowing fields it doesn't define, for records of a newer minor version</td>
+</tr>
+<tr>
+<td><code>provenance.context.jsonld</code></td>
+<td>the JSON-LD context that reads a record as W3C PROV-O</td>
+</tr>
+<tr>
+<td><code>rules.json</code></td>
+<td>every rule's code, layer, level and statement, and the code of each schema keyword whose error can fail a file</td>
+</tr>
+</tbody>
+</table>
+<p>A file breaks no schema rule exactly when a JSON Schema 2019-09 validator
+reports no error for it against its schema.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../about/" class="md-footer__link md-footer__link--prev" aria-label="Previous: About">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                About
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../elements/" class="md-footer__link md-footer__link--next" aria-label="Next: Field reference">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Field reference
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2026 ASTRA Contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.code.select","content.tabs.link","content.tooltips","navigation.footer","navigation.instant","navigation.instant.prefetch","navigation.instant.progress","navigation.path","navigation.sections","navigation.tabs","navigation.tabs.sticky","navigation.top","navigation.tracking","search.highlight","search.suggest"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.dbc0afdc.min.js"></script>
+      
+    
+  </body>
+</html>
