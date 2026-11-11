@@ -1,0 +1,26 @@
+spec_version: "0.1.0"
+decisions:
+  decision0:
+    options: {x: {}, y: {}}
+  decision5:
+    options: {p: {}, q: {}}
+outputs:
+  fit:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py fit '{output}'
+  other:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py other '{output}'
+  switch2:
+    switch: decision5
+    cases: {p: fit, q: fit}
+  switch1:
+    switch: decision0
+    cases: {x: switch2, y: other}
+universes:
+  w1:
+    decisions: {decision0: y}

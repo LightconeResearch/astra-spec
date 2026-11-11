@@ -1,0 +1,7 @@
+{
+  "about": "A finding cites a switch pinned to a universe where it has no case.",
+  "valid": false,
+  "must_report": [
+    {"code": "PIN_NOT_BUILT", "file": "astra.yaml"}
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "about": "An output is pinned to a universe where the switch it reads has no case, so it isn't built there.",
+  "valid": false,
+  "must_report": [
+    {"code": "PIN_NOT_BUILT", "file": "astra.yaml"}
+  ]
+}

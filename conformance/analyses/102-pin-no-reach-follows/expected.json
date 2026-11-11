@@ -1,0 +1,5 @@
+{
+  "about": "A declared analysis pins a switch of another analysis in a universe that leaves the switch's decision unset, but nothing the driving analysis reaches follows that pin, so nothing is reported.",
+  "valid": true,
+  "must_not_report": ["PIN_NOT_BUILT", "MISSING_DECISION"]
+}

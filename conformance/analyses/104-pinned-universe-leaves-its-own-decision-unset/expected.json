@@ -1,0 +1,8 @@
+{
+  "about": "A pin reads a declared analysis's output in its universe v1, which leaves unset a decision it uses itself: that is v1's own missing decision, not the pin's.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECISION", "file": "subanalysis/astra.yaml"}
+  ],
+  "must_not_report": ["PIN_NOT_BUILT"]
+}

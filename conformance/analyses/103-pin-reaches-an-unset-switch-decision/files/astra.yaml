@@ -1,0 +1,13 @@
+spec_version: "0.1.0"
+analyses:
+  sub:
+    path: sub
+outputs:
+  result:
+    type: metric
+    format: json
+    inputs: [sub.report#v1]
+    recipe:
+      command: python make.py '{inputs.sub.report#v1}' '{output}'
+universes:
+  u1: {}

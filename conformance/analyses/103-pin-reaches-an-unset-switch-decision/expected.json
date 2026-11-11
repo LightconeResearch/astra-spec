@@ -1,0 +1,8 @@
+{
+  "about": "The driving analysis pins a declared analysis's output in that analysis's universe v1, where the output reads a switch on a decision v1 doesn't set, as its own analysis never reaches the switch there.",
+  "valid": false,
+  "must_report": [
+    {"code": "PIN_NOT_BUILT", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_DECISION"]
+}
