@@ -1,0 +1,7 @@
+{
+  "about": "A finding cites a switch whose case names a switch with a case on an input.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNRESOLVED_ADDRESS", "file": "astra.yaml"}
+  ]
+}

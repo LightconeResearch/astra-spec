@@ -1,0 +1,29 @@
+spec_version: "0.1.0"
+inputs:
+  input1:
+    path: data/input1.csv
+decisions:
+  decision1:
+    options: {a: {}, b: {}}
+  decision2:
+    options: {x: {}, y: {}}
+outputs:
+  output1:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py output1 '{output}'
+  switch2:
+    switch: decision2
+    cases: {x: input1, y: output1}
+  switch1:
+    switch: decision1
+    cases: {a: output1, b: switch2}
+universes:
+  u1:
+    decisions: {decision1: a}
+findings:
+  finding1:
+    claim: The output is reproducible.
+    evidence:
+      - artifact: switch1

@@ -1,0 +1,7 @@
+{
+  "about": "A finding cites, without a pin, a switch that nothing else reads without one, so every universe uses its decision, and one leaves it unset.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECISION", "file": "astra.yaml"}
+  ]
+}

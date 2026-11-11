@@ -1,0 +1,9 @@
+{
+  "about": "A finding cites, without a pin, a switch of a declared analysis that no key drives.",
+  "valid": false,
+  "must_report": [
+    {"code": "NOT_BUILT_IN_UNIVERSE", "file": "astra.yaml"},
+    {"code": "UNDRIVEN_DECLARATION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_DECISION", "UNRESOLVED_ADDRESS"]
+}
