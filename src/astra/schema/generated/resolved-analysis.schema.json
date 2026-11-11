@@ -1,5 +1,5 @@
 {
-  "$comment": "view schema version dev",
+  "$comment": "resolved schema version dev",
   "$defs": {
     "Analysis": {
       "additionalProperties": false,
@@ -192,9 +192,9 @@
       "title": "AnalysisDeclaration",
       "type": "object"
     },
-    "AnalysisView": {
+    "AnalysisEntry": {
       "additionalProperties": false,
-      "description": "One analysis of the stack: its file as written, and its addresses resolved.",
+      "description": "One analysis, the driving analysis or one it declares, directly or not: its file as written, and its addresses resolved.",
       "properties": {
         "address": {
           "description": "The ids of the declarations by which the driving analysis first reaches the analysis, joined by `.`, such as `stage.inner`. The driving analysis's is the empty string.",
@@ -220,7 +220,7 @@
         "refs": {
           "description": "Every address the file writes, in the order of their places.",
           "items": {
-            "$ref": "#/$defs/Reference"
+            "$ref": "#/$defs/ResolvedAddress"
           },
           "type": "array"
         },
@@ -236,7 +236,52 @@
         "refs",
         "folder"
       ],
-      "title": "AnalysisView",
+      "title": "AnalysisEntry",
+      "type": "object"
+    },
+    "BuiltUniverse": {
+      "additionalProperties": false,
+      "description": "A universe in which results are built, and the analyses built in it as they are there.",
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis whose universe it is."
+        },
+        "built": {
+          "description": "The analyses built in the universe: its own, then each that its analysis's universes drive.",
+          "items": {
+            "$ref": "#/$defs/Identity"
+          },
+          "type": "array"
+        },
+        "decisions": {
+          "description": "Each decision of the analyses built in the universe.",
+          "items": {
+            "$ref": "#/$defs/DecisionState"
+          },
+          "type": "array"
+        },
+        "id": {
+          "description": "The universe's id in its analysis.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "outputs": {
+          "description": "Each output of the analyses built in the universe.",
+          "items": {
+            "$ref": "#/$defs/OutputState"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "analysis",
+        "id",
+        "built",
+        "decisions",
+        "outputs"
+      ],
+      "title": "BuiltUniverse",
       "type": "object"
     },
     "DecisionState": {
@@ -826,7 +871,7 @@
       "title": "Recipe",
       "type": "object"
     },
-    "Reference": {
+    "ResolvedAddress": {
       "additionalProperties": false,
       "description": "One address written in an `astra.yaml`, and what it resolves to.",
       "properties": {
@@ -856,7 +901,7 @@
         "pointer",
         "element"
       ],
-      "title": "Reference",
+      "title": "ResolvedAddress",
       "type": "object"
     },
     "Resources": {
@@ -992,51 +1037,6 @@
         "exact"
       ],
       "title": "TextQuoteSelector",
-      "type": "object"
-    },
-    "UniverseView": {
-      "additionalProperties": false,
-      "description": "A universe in which results are built, and the stack as it is there.",
-      "properties": {
-        "analysis": {
-          "$ref": "#/$defs/Identity",
-          "description": "The analysis whose universe it is."
-        },
-        "built": {
-          "description": "The analyses built in the universe: its own, then each that its analysis's universes drive.",
-          "items": {
-            "$ref": "#/$defs/Identity"
-          },
-          "type": "array"
-        },
-        "decisions": {
-          "description": "Each decision of the analyses built in the universe.",
-          "items": {
-            "$ref": "#/$defs/DecisionState"
-          },
-          "type": "array"
-        },
-        "id": {
-          "description": "The universe's id in its analysis.",
-          "pattern": "^[a-z][a-z0-9_]*$",
-          "type": "string"
-        },
-        "outputs": {
-          "description": "Each output of the analyses built in the universe.",
-          "items": {
-            "$ref": "#/$defs/OutputState"
-          },
-          "type": "array"
-        }
-      },
-      "required": [
-        "analysis",
-        "id",
-        "built",
-        "decisions",
-        "outputs"
-      ],
-      "title": "UniverseView",
       "type": "object"
     },
     "Universe__identifier_optional": {
@@ -1194,15 +1194,15 @@
       "type": "object"
     }
   },
-  "$id": "https://w3id.org/astra/dev/view.schema.json",
+  "$id": "https://w3id.org/astra/dev/resolved-analysis.schema.json",
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "additionalProperties": false,
-  "description": "An analysis and its stack, as tools read them.",
+  "description": "The driving analysis and every analysis it declares, directly or not, resolved.",
   "properties": {
     "analyses": {
-      "description": "The analyses of the stack, the driving analysis first.",
+      "description": "The driving analysis, then every analysis it declares, directly or not, in the order they are reached.",
       "items": {
-        "$ref": "#/$defs/AnalysisView"
+        "$ref": "#/$defs/AnalysisEntry"
       },
       "minItems": 1,
       "type": "array"
@@ -1219,14 +1219,14 @@
       "type": "string"
     },
     "shape": {
-      "const": "astra-view/1",
+      "const": "astra-resolved-analysis/1",
       "description": "The name and version of this shape.",
       "type": "string"
     },
     "universes": {
       "description": "The universes in which results are built, the driving analysis's first.",
       "items": {
-        "$ref": "#/$defs/UniverseView"
+        "$ref": "#/$defs/BuiltUniverse"
       },
       "type": "array"
     }
@@ -1238,6 +1238,6 @@
     "universes",
     "results"
   ],
-  "title": "view",
+  "title": "resolved",
   "type": "object"
 }

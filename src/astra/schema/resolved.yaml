@@ -1,10 +1,10 @@
 ---
-id: https://w3id.org/astra/view
-name: view
+id: https://w3id.org/astra/resolved
+name: resolved
 description: |-
-  The view: an analysis and every analysis of its stack as written, with
-  every address resolved, the universes in which results are built, and the
-  planned results.
+  The resolved analysis: an analysis and every analysis it declares, directly
+  or not, each as written, with every address resolved, the universes in
+  which results are built, and the planned results.
 # Placeholder version. The real version is injected at build time from the
 # latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0
@@ -24,7 +24,7 @@ imports:
 
 classes:
 
-  Reference:
+  ResolvedAddress:
     description: >-
       One address written in an `astra.yaml`, and what it resolves to.
     attributes:
@@ -52,11 +52,11 @@ classes:
         description: >-
           Whether a condition starts with `~`. Left out where it doesn't.
 
-  AnalysisView:
+  AnalysisEntry:
     is_a: Identity
     description: >-
-      One analysis of the stack: its file as written, and its addresses
-      resolved.
+      One analysis, the driving analysis or one it declares, directly or
+      not: its file as written, and its addresses resolved.
     attributes:
       url:
         description: The URL of the remote the analysis is read from, if any.
@@ -77,7 +77,7 @@ classes:
         required: true
         description: The content of the analysis's `astra.yaml`, as written.
       refs:
-        range: Reference
+        range: ResolvedAddress
         multivalued: true
         inlined_as_list: true
         required: true
@@ -125,9 +125,10 @@ classes:
           Whether the output is active in the universe. Left out where its
           `when` tests a decision the universe doesn't set.
 
-  UniverseView:
+  BuiltUniverse:
     description: >-
-      A universe in which results are built, and the stack as it is there.
+      A universe in which results are built, and the analyses built in it
+      as they are there.
     attributes:
       analysis:
         range: Identity
@@ -159,13 +160,15 @@ classes:
         required: true
         description: Each output of the analyses built in the universe.
 
-  View:
+  ResolvedAnalysis:
     tree_root: true
-    description: An analysis and its stack, as tools read them.
+    description: >-
+      The driving analysis and every analysis it declares, directly or not,
+      resolved.
     attributes:
       shape:
         required: true
-        equals_string: astra-view/1
+        equals_string: astra-resolved-analysis/1
         description: The name and version of this shape.
       root:
         required: true
@@ -173,14 +176,16 @@ classes:
           The driving analysis's `astra.yaml`, as a path from the top of the
           repository that holds it.
       analyses:
-        range: AnalysisView
+        range: AnalysisEntry
         multivalued: true
         inlined_as_list: true
         required: true
         minimum_cardinality: 1
-        description: The analyses of the stack, the driving analysis first.
+        description: >-
+          The driving analysis, then every analysis it declares, directly or
+          not, in the order they are reached.
       universes:
-        range: UniverseView
+        range: BuiltUniverse
         multivalued: true
         inlined_as_list: true
         required: true

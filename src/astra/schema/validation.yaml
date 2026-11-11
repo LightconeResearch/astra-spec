@@ -3,7 +3,7 @@ id: https://w3id.org/astra/validation
 name: validation
 description: |-
   The validation report: what a validator found in an analysis and every
-  analysis of its stack.
+  analysis it declares, directly or not.
 # Placeholder version. The real version is injected at build time from the
 # latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0

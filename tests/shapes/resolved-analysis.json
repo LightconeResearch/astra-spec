@@ -1,5 +1,5 @@
 {
-  "shape": "astra-view/1",
+  "shape": "astra-resolved-analysis/1",
   "root": "astra.yaml",
   "analyses": [
     {

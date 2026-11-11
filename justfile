@@ -154,9 +154,9 @@ test: check-generated _pytest lint
 # filled in by the generator: `0.1` for every 0.1.x, a pre-release's whole
 # version, or `dev`), so the closed and open record schemas are distinct, and
 # so are two minor versions. The four shapes tools give each other, the
-# validation report, the view, the plan and the check report, each get a
+# validation report, the resolved analysis, the plan and the check report, each get a
 # JSON Schema the same way, rooted at the class named (`--root`), since the
-# view and the plan import the analysis document. `rules.json` holds the rules extracted from the
+# resolved analysis and the plan import the analysis document. `rules.json` holds the rules extracted from the
 # codes table of the specification's Rules section, and the code of each JSON
 # Schema keyword that can fail
 [group('model development')]
@@ -167,7 +167,7 @@ gen-schema out="src/astra/schema/generated": _stage-versioned
   uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}{series}/provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
   uv run python tools/jsonld_context.py {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
   uv run python tools/jsonschema_generator.py --root ValidationReport --id {{schema_namespace}}{series}/validation-report.schema.json {{staged_schema_dir}}/validation.yaml > {{out}}/validation-report.schema.json
-  uv run python tools/jsonschema_generator.py --root View --id {{schema_namespace}}{series}/view.schema.json {{staged_schema_dir}}/view.yaml > {{out}}/view.schema.json
+  uv run python tools/jsonschema_generator.py --root ResolvedAnalysis --id {{schema_namespace}}{series}/resolved-analysis.schema.json {{staged_schema_dir}}/resolved.yaml > {{out}}/resolved-analysis.schema.json
   uv run python tools/jsonschema_generator.py --root Plan --id {{schema_namespace}}{series}/plan.schema.json {{staged_schema_dir}}/plan.yaml > {{out}}/plan.schema.json
   uv run python tools/jsonschema_generator.py --root CheckReport --id {{schema_namespace}}{series}/check-report.schema.json {{staged_schema_dir}}/check.yaml > {{out}}/check-report.schema.json
   uv run python tools/rules.py docs/specification.md {{staged_schema_dir}}/analysis.yaml {{staged_schema_dir}}/provenance.yaml --schemas {{out}}/analysis.schema.json {{out}}/provenance.schema.json {{out}}/provenance.open.schema.json > {{out}}/rules.json

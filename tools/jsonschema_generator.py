@@ -339,7 +339,7 @@ def generate(
     """The JSON Schema for the LinkML `schema`: closed unless `closed` is false; optional fields reject null.
 
     It is rooted at the class `root` if given, otherwise at the schema's tree root: a schema that imports another
-    with a tree root of its own, as the view imports the analysis document, names its root.
+    with a tree root of its own, as the resolved analysis imports the analysis document, names its root.
 
     Its `$id` is `schema_id` if given, with `{series}` replaced by the series of the LinkML schema's version, otherwise
     the LinkML schema's own id, as LinkML sets it.
