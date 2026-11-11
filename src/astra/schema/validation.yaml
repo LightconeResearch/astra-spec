@@ -1,0 +1,54 @@
+---
+id: https://w3id.org/astra/validation
+name: validation
+description: |-
+  The validation report: what a validator found in an analysis and every
+  analysis of its stack.
+# Placeholder version. The real version is injected at build time from the
+# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
+license: https://creativecommons.org/licenses/by/4.0/
+
+prefixes:
+  astra: https://w3id.org/astra/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+  - results
+
+classes:
+
+  ValidationReport:
+    tree_root: true
+    description: What validating an analysis found.
+    attributes:
+      shape:
+        required: true
+        equals_string: astra-validation-report/1
+        description: The name and version of this shape.
+      root:
+        required: true
+        description: >-
+          The driving analysis's `astra.yaml`, as a path from the top of the
+          repository that holds it.
+      valid:
+        range: boolean
+        required: true
+        description: >-
+          Whether the analysis is valid: no diagnostic is an error.
+      diagnostics:
+        range: Diagnostic
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The rules broken, in the order of their places.
+      unchecked:
+        multivalued: true
+        required: true
+        description: >-
+          The codes of the validator rules the tool didn't check, so that a
+          report with no diagnostic for them says nothing of them.

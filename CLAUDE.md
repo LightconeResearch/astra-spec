@@ -8,6 +8,7 @@ The ASTRA schema is written in LinkML, in four modules under `src/astra/schema/`
 - **`analysis.yaml`** — the analysis document, `astra.yaml` (`tree_root: Analysis`): inputs, outputs, recipes, decisions and options, universes and imports of other analyses' universes, declarations of other analyses.
 - **`insight.yaml`** — insights and evidence, with the W3C Web Annotation selectors.
 - **`provenance.yaml`** — the provenance record of a result (`tree_root: ProvenanceRecord`), mapped onto PROV-O.
+- **`results.yaml`**, **`validation.yaml`**, **`view.yaml`**, **`plan.yaml`**, **`check.yaml`** — the shapes tools give each other, as JSON: the validation report (`ValidationReport`), the view (`View`), the plan (`Plan`) and the check report (`CheckReport`), each its module's tree root. `results.yaml` holds what they share: an analysis's `Identity`, an `Element`, a planned `Result` with its `Place`s, what it reads and the options it is made with, and a `Diagnostic` with its `Location`. The view and the plan import `analysis.yaml` (the view holds each analysis's document as written), so `gen-schema` names each shape's root (`--root`). A shape's `shape` field states its name and version (`astra-view/1`), and an absent value is a field left out, never null, as everywhere. These modules aren't part of the specification: no rule of the codes table is about them, their constraints carry no `rule` annotation, and `rules.json`, the field reference and the patch guard don't read them.
 
 The LinkML descriptions are the normative definitions of the fields: the field reference (`docs/elements/`) is generated from them, and the specification doesn't restate them. Write each description in one or two sentences, in the present tense, saying what the field is and what it takes. Descriptions carry no history: no "no longer", "was" or "replaces".
 
@@ -30,6 +31,7 @@ The JSON Schemas generated from the LinkML sources are the contract: what valida
 - `provenance.schema.json` — a record, closed
 - `provenance.open.schema.json` — a record, open (for checkers reading records of a greater minor version than their own)
 - `provenance.context.jsonld` — the record's JSON-LD context, mapping its terms onto PROV-O, with every IRI written in full and no term a prefix, so that a record's RDF (JSON-LD 1.1 toRdf with this context, plus each node's class URI) reads an environment's `iri` exactly as written. There is no context for `astra.yaml`: LinkML's flat context would give its id-keyed maps a wrong RDF reading
+- `validation-report.schema.json`, `view.schema.json`, `plan.schema.json`, `check-report.schema.json` — the shapes tools give each other, closed. `tests/test_shapes.py` checks each against its example in `tests/shapes/`, the shapes of the specification's worked example with `output2` also reading `stage.output3#v1`, and that the three shapes that hold planned results define them alike
 - `rules.json` — the rule catalogue (design D13): `rules`, every rule of the specification's codes table in document order (`code`, `layer`, `level`, `statement`, its rows' Rule cells joined with `; `, and `status` in the check layer), and `errors`, the code of every keyword of the three JSON Schemas whose error can make an instance fail, keyed by its absolute keyword location (`<$id>#<JSON Pointer>`). The tests check fixtures through it, as astra-tools and astra-typescript do
 
 Each JSON Schema's `$id` is `https://w3id.org/astra/`, the series of the version it was generated with, `/` and its file name. The series is `X.Y` for a release `X.Y.Z` (every patch of a minor version shares its ids: a patch release never changes what is valid), a pre-release's whole version (`0.1.0rc1`), or `dev` between releases. The generator fills in the `{series}` placeholder of `--id`, and `rules.json`'s keys take the series through `$id`.
@@ -112,7 +114,7 @@ just release X.Y.Z    # Regenerate the contract with the version (patch guard), 
 
 ## Repository Layout
 
-- `src/astra/schema/` — LinkML schema sources: `types.yaml`, `analysis.yaml`, `insight.yaml`, `provenance.yaml` (edit these)
+- `src/astra/schema/` — LinkML schema sources: `types.yaml`, `analysis.yaml`, `insight.yaml`, `provenance.yaml`, and the shapes tools give each other, `results.yaml`, `validation.yaml`, `view.yaml`, `plan.yaml`, `check.yaml` (edit these)
 - `src/astra/schema/generated/` — The generated contract: the JSON Schemas, the record's JSON-LD context and `rules.json` (regenerate with `just gen-schema`, commit, never edit)
 - `tools/jsonschema_generator.py` — The JSON Schema generator extension
 - `tools/rules.py` — Builds `rules.json`: the codes table's extractor and the error map

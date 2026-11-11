@@ -1,0 +1,7 @@
+{
+  "shape": "astra-validation-report/1",
+  "root": "astra.yaml",
+  "valid": true,
+  "diagnostics": [],
+  "unchecked": []
+}

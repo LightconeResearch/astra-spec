@@ -1,0 +1,137 @@
+{
+  "$comment": "validation schema version dev",
+  "$defs": {
+    "Diagnostic": {
+      "additionalProperties": false,
+      "description": "A rule broken: its code, how it counts, and where.",
+      "properties": {
+        "code": {
+          "description": "The rule's code, one of the specification's codes table or one of the tool's own, such as `UNRESOLVED_ADDRESS`.",
+          "type": "string"
+        },
+        "level": {
+          "$ref": "#/$defs/Level",
+          "description": "How the broken rule counts."
+        },
+        "location": {
+          "$ref": "#/$defs/Location",
+          "description": "Where the rule is broken."
+        },
+        "message": {
+          "description": "What is wrong and what to do about it, in a sentence.",
+          "type": "string"
+        },
+        "related": {
+          "description": "Other places the diagnostic is about.",
+          "items": {
+            "$ref": "#/$defs/Location"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "level",
+        "message",
+        "location"
+      ],
+      "title": "Diagnostic",
+      "type": "object"
+    },
+    "Level": {
+      "description": "How a broken rule counts.",
+      "enum": [
+        "error",
+        "warning"
+      ],
+      "title": "Level",
+      "type": "string"
+    },
+    "Location": {
+      "additionalProperties": false,
+      "description": "Where a diagnostic is: a file, and a place in it.",
+      "properties": {
+        "column": {
+          "description": "The column of the place in its line, counted from 1.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "commit": {
+          "description": "The full id of the commit the file is read at. Left out for the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "file": {
+          "description": "The file's path from the top of the repository that holds it.",
+          "type": "string"
+        },
+        "key": {
+          "description": "The map key or field the diagnostic names at the place.",
+          "type": "string"
+        },
+        "line": {
+          "description": "The line of the place in the file, counted from 1.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "pointer": {
+          "description": "A JSON Pointer to the place in the file. The whole file is the empty string.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL of the remote the file is read from, if any.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "pointer"
+      ],
+      "title": "Location",
+      "type": "object"
+    }
+  },
+  "$id": "https://w3id.org/astra/dev/validation-report.schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": false,
+  "description": "What validating an analysis found.",
+  "properties": {
+    "diagnostics": {
+      "description": "The rules broken, in the order of their places.",
+      "items": {
+        "$ref": "#/$defs/Diagnostic"
+      },
+      "type": "array"
+    },
+    "root": {
+      "description": "The driving analysis's `astra.yaml`, as a path from the top of the repository that holds it.",
+      "type": "string"
+    },
+    "shape": {
+      "const": "astra-validation-report/1",
+      "description": "The name and version of this shape.",
+      "type": "string"
+    },
+    "unchecked": {
+      "description": "The codes of the validator rules the tool didn't check, so that a report with no diagnostic for them says nothing of them.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "valid": {
+      "description": "Whether the analysis is valid: no diagnostic is an error.",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "shape",
+    "root",
+    "valid",
+    "diagnostics",
+    "unchecked"
+  ],
+  "title": "validation",
+  "type": "object"
+}

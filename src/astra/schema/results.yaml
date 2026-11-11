@@ -1,0 +1,265 @@
+---
+id: https://w3id.org/astra/results
+name: results
+description: |-
+  What tools say of an analysis, in terms every shape shares: an analysis by
+  its identity, an element by its analysis, kind and id, a planned result by
+  the analysis it belongs to and its places, and a diagnostic by its code and
+  location. An absent value is a field left out, never null.
+# Placeholder version. The real version is injected at build time from the
+# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
+license: https://creativecommons.org/licenses/by/4.0/
+
+prefixes:
+  astra: https://w3id.org/astra/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+  - types
+
+enums:
+
+  ElementKind:
+    description: The kind of element an address resolves to.
+    permissible_values:
+      input:
+        description: An input.
+      output:
+        description: An output.
+      decision:
+        description: A decision.
+      universe:
+        description: A universe.
+
+  Level:
+    description: How a broken rule counts.
+    permissible_values:
+      error:
+        description: A broken `MUST`.
+      warning:
+        description: A broken `SHOULD`.
+
+classes:
+
+  Identity:
+    description: >-
+      What an analysis is known by: its folder and the commit it is read at.
+      One folder at one commit is one analysis however it is declared.
+    attributes:
+      folder:
+        required: true
+        description: >-
+          The analysis's folder, as a path from the top of the repository it
+          is read in or, read in the working tree, from the top of the driving
+          analysis's working tree. The top itself is the empty string.
+      commit:
+        range: commit_id
+        description: >-
+          The full id of the commit the analysis is read at. Left out for an
+          analysis read in the working tree.
+
+  Element:
+    description: >-
+      An element of an analysis: what an address resolves to. Two addresses
+      that resolve to one element are two spellings of it.
+    attributes:
+      analysis:
+        range: Identity
+        inlined: true
+        required: true
+        description: The analysis the element is in.
+      kind:
+        range: ElementKind
+        required: true
+        description: The kind of element.
+      id:
+        range: id
+        required: true
+        description: The element's id in its analysis.
+
+  Place:
+    description: >-
+      Where one name of a planned result puts it, in the folder of the
+      analysis the result belongs to.
+    attributes:
+      name:
+        range: address
+        required: true
+        description: >-
+          The result's name: its output's id after the ids of the driven
+          declarations that lead to it from the analysis it belongs to, such
+          as `subanalysis.output1`.
+      address:
+        range: reference
+        required: true
+        description: >-
+          The name, then, for a result built in a universe, `#` and that
+          universe's own id, such as `subanalysis.output1#u1`.
+      record:
+        required: true
+        description: >-
+          The place of the result's record, as a path from the top of the
+          tree its analysis is read in.
+      bytes:
+        required: true
+        description: >-
+          The default place of the result's bytes, as a path from the top of
+          the tree its analysis is read in.
+
+  Read:
+    description: >-
+      One entry of an output's `inputs`, and what a planned result reads
+      through it: an input's file, or another planned result's bytes.
+    attributes:
+      entry:
+        range: reference
+        required: true
+        description: The entry exactly as the output's `inputs` lists it.
+      path:
+        required: true
+        description: >-
+          The input's file, or the default place of the bytes of the result
+          read, as a path from the top of the tree it is read in.
+      commit:
+        range: commit_id
+        description: >-
+          The full id of the commit `path` is read at. Left out for the
+          working tree.
+      result:
+        range: integer
+        minimum_value: 0
+        description: >-
+          The planned result read, as its index in the `results` that hold
+          this one. Left out for an input.
+
+  Selected:
+    description: >-
+      One entry of an output's `decisions`, and the option a planned result
+      is made with for it.
+    attributes:
+      entry:
+        range: address
+        required: true
+        description: The entry exactly as the output's `decisions` lists it.
+      option:
+        range: id
+        description: >-
+          The id of the option selected where the result is built. Left out
+          where none is.
+
+  Result:
+    description: >-
+      A planned result: one output's, in the universe it is built in or, for
+      an output built once, once.
+    attributes:
+      names:
+        range: address
+        multivalued: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          The result's names, one for each driven chain that reaches it.
+      owner:
+        range: Identity
+        inlined: true
+        required: true
+        description: >-
+          The analysis the result belongs to: the one whose universe builds
+          it or, for an output built once, the one whose output it is.
+      output:
+        range: Element
+        inlined: true
+        required: true
+        description: The output the result is of.
+      universe:
+        range: id
+        description: >-
+          The id of the universe the result is built in, one of its owner's.
+          Left out for an output built once.
+      places:
+        range: Place
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          The result's places, one for each of its names, in their order.
+      inputs:
+        range: Read
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          What the result reads: one item for each entry of its output's
+          `inputs`, in their order.
+      decisions:
+        range: Selected
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          What the result is made with: one item for each entry of its
+          output's `decisions`, in their order.
+
+  Location:
+    description: >-
+      Where a diagnostic is: a file, and a place in it.
+    attributes:
+      file:
+        required: true
+        description: >-
+          The file's path from the top of the repository that holds it.
+      pointer:
+        required: true
+        description: >-
+          A JSON Pointer to the place in the file. The whole file is the
+          empty string.
+      line:
+        range: integer
+        minimum_value: 1
+        description: The line of the place in the file, counted from 1.
+      column:
+        range: integer
+        minimum_value: 1
+        description: The column of the place in its line, counted from 1.
+      key:
+        description: The map key or field the diagnostic names at the place.
+      commit:
+        range: commit_id
+        description: >-
+          The full id of the commit the file is read at. Left out for the
+          working tree.
+      url:
+        description: The URL of the remote the file is read from, if any.
+
+  Diagnostic:
+    description: >-
+      A rule broken: its code, how it counts, and where.
+    attributes:
+      code:
+        required: true
+        description: >-
+          The rule's code, one of the specification's codes table or one of
+          the tool's own, such as `UNRESOLVED_ADDRESS`.
+      level:
+        range: Level
+        required: true
+        description: How the broken rule counts.
+      message:
+        required: true
+        description: What is wrong and what to do about it, in a sentence.
+      location:
+        range: Location
+        inlined: true
+        required: true
+        description: Where the rule is broken.
+      related:
+        range: Location
+        multivalued: true
+        inlined_as_list: true
+        description: Other places the diagnostic is about.

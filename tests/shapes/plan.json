@@ -1,0 +1,320 @@
+{
+  "shape": "astra-plan/1",
+  "root": "astra.yaml",
+  "results": [
+    {
+      "names": [
+        "stage.output3"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "u1",
+      "places": [
+        {
+          "name": "stage.output3",
+          "address": "stage.output3#u1",
+          "record": ".astra/records/u1/stage.output3.json",
+          "bytes": "results/u1/stage.output3.csv"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "a"
+        }
+      ],
+      "command": "python src/output3.py '{inputs.input2}' '{decisions.decision2}' '{output}'",
+      "workdir": "stage",
+      "read_only": false
+    },
+    {
+      "names": [
+        "output4"
+      ],
+      "owner": {
+        "folder": "",
+        "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+      },
+      "output": {
+        "analysis": {
+          "folder": "",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+        },
+        "kind": "output",
+        "id": "output4"
+      },
+      "places": [
+        {
+          "name": "output4",
+          "address": "output4",
+          "record": ".astra/records/output4.json",
+          "bytes": "results/output4.json"
+        }
+      ],
+      "inputs": [],
+      "decisions": [],
+      "command": "python src/output4.py '{output}'",
+      "workdir": "",
+      "read_only": true
+    },
+    {
+      "names": [
+        "output1"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output1"
+      },
+      "universe": "u1",
+      "places": [
+        {
+          "name": "output1",
+          "address": "output1#u1",
+          "record": ".astra/records/u1/output1.json",
+          "bytes": "results/u1/output1.json"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input1",
+          "path": "data/input1.csv"
+        },
+        {
+          "entry": "stage.output3",
+          "path": "results/u1/stage.output3.csv",
+          "result": 0
+        },
+        {
+          "entry": "upstream.output4",
+          "path": "results/output4.json",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+          "result": 1
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision1",
+          "option": "a"
+        }
+      ],
+      "command": "python src/output1.py '{inputs.input1}' '{inputs.stage.output3}' '{inputs.upstream.output4}' '{decisions.decision1}' '{output}'",
+      "workdir": "",
+      "read_only": false
+    },
+    {
+      "names": [
+        "stage.output3"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "stage.output3",
+          "address": "stage.output3#u2",
+          "record": ".astra/records/u2/stage.output3.json",
+          "bytes": "results/u2/stage.output3.csv"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "b"
+        }
+      ],
+      "command": "python src/output3.py '{inputs.input2}' '{decisions.decision2}' '{output}'",
+      "workdir": "stage",
+      "read_only": false
+    },
+    {
+      "names": [
+        "output1"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output1"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "output1",
+          "address": "output1#u2",
+          "record": ".astra/records/u2/output1.json",
+          "bytes": "results/u2/output1.json"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input1",
+          "path": "data/input1.csv"
+        },
+        {
+          "entry": "stage.output3",
+          "path": "results/u2/stage.output3.csv",
+          "result": 3
+        },
+        {
+          "entry": "upstream.output4",
+          "path": "results/output4.json",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+          "result": 1
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision1",
+          "option": "b"
+        }
+      ],
+      "command": "python src/output1.py '{inputs.input1}' '{inputs.stage.output3}' '{inputs.upstream.output4}' '{decisions.decision1}' '{output}'",
+      "workdir": "",
+      "read_only": false
+    },
+    {
+      "names": [
+        "output3"
+      ],
+      "owner": {
+        "folder": "stage"
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "v1",
+      "places": [
+        {
+          "name": "output3",
+          "address": "output3#v1",
+          "record": "stage/.astra/records/v1/output3.json",
+          "bytes": "stage/results/v1/output3.csv"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "b"
+        }
+      ],
+      "command": "python src/output3.py '{inputs.input2}' '{decisions.decision2}' '{output}'",
+      "workdir": "stage",
+      "read_only": false
+    },
+    {
+      "names": [
+        "output2"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output2"
+      },
+      "places": [
+        {
+          "name": "output2",
+          "address": "output2",
+          "record": ".astra/records/output2.json",
+          "bytes": "results/output2.csv"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "output1#u1",
+          "path": "results/u1/output1.json",
+          "result": 2
+        },
+        {
+          "entry": "output1#u2",
+          "path": "results/u2/output1.json",
+          "result": 4
+        },
+        {
+          "entry": "stage.output3#v1",
+          "path": "stage/results/v1/output3.csv",
+          "result": 5
+        }
+      ],
+      "decisions": [],
+      "command": "python src/output2.py '{inputs.output1#u1}' '{inputs.output1#u2}' '{inputs.stage.output3#v1}' '{output}'",
+      "workdir": "",
+      "read_only": false
+    }
+  ],
+  "notes": [
+    {
+      "kind": "fallback_pin",
+      "message": "`stage.output3#v1` names `v1` of `stage` only because this file has no universe `v1`: adding one, or an import of that id, would change what it names",
+      "location": {
+        "file": "astra.yaml",
+        "pointer": "/outputs/output2/inputs/2",
+        "line": 35,
+        "column": 38
+      },
+      "results": [],
+      "built": true
+    },
+    {
+      "kind": "same_computation",
+      "message": "`stage.output3#u2`, `output3#v1` of `stage` are one computation, with the same command, inputs and selected options: a runner can build one and place its bytes at each",
+      "results": [
+        3,
+        5
+      ],
+      "built": true
+    }
+  ]
+}

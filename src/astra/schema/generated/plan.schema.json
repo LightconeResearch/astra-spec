@@ -1,0 +1,396 @@
+{
+  "$comment": "plan schema version dev",
+  "$defs": {
+    "Element": {
+      "additionalProperties": false,
+      "description": "An element of an analysis: what an address resolves to. Two addresses that resolve to one element are two spellings of it.",
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis the element is in."
+        },
+        "id": {
+          "description": "The element's id in its analysis.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ElementKind",
+          "description": "The kind of element."
+        }
+      },
+      "required": [
+        "analysis",
+        "kind",
+        "id"
+      ],
+      "title": "Element",
+      "type": "object"
+    },
+    "ElementKind": {
+      "description": "The kind of element an address resolves to.",
+      "enum": [
+        "input",
+        "output",
+        "decision",
+        "universe"
+      ],
+      "title": "ElementKind",
+      "type": "string"
+    },
+    "Identity": {
+      "additionalProperties": false,
+      "description": "What an analysis is known by: its folder and the commit it is read at. One folder at one commit is one analysis however it is declared.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit the analysis is read at. Left out for an analysis read in the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "folder": {
+          "description": "The analysis's folder, as a path from the top of the repository it is read in or, read in the working tree, from the top of the driving analysis's working tree. The top itself is the empty string.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "folder"
+      ],
+      "title": "Identity",
+      "type": "object"
+    },
+    "Location": {
+      "additionalProperties": false,
+      "description": "Where a diagnostic is: a file, and a place in it.",
+      "properties": {
+        "column": {
+          "description": "The column of the place in its line, counted from 1.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "commit": {
+          "description": "The full id of the commit the file is read at. Left out for the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "file": {
+          "description": "The file's path from the top of the repository that holds it.",
+          "type": "string"
+        },
+        "key": {
+          "description": "The map key or field the diagnostic names at the place.",
+          "type": "string"
+        },
+        "line": {
+          "description": "The line of the place in the file, counted from 1.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "pointer": {
+          "description": "A JSON Pointer to the place in the file. The whole file is the empty string.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL of the remote the file is read from, if any.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "pointer"
+      ],
+      "title": "Location",
+      "type": "object"
+    },
+    "Note": {
+      "additionalProperties": false,
+      "description": "Something an author may want to tidy, which breaks no rule.",
+      "properties": {
+        "built": {
+          "description": "Whether the note concerns what the driving analysis builds.",
+          "type": "boolean"
+        },
+        "kind": {
+          "$ref": "#/$defs/NoteKind",
+          "description": "What the note is about."
+        },
+        "location": {
+          "$ref": "#/$defs/Location",
+          "description": "The pin, the output or the command the note is about."
+        },
+        "message": {
+          "description": "The note, in a sentence.",
+          "type": "string"
+        },
+        "results": {
+          "description": "The planned results the note is about, as their indices in the plan's `results`.",
+          "items": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind",
+        "message",
+        "results",
+        "built"
+      ],
+      "title": "Note",
+      "type": "object"
+    },
+    "NoteKind": {
+      "description": "What a note of the plan is about.",
+      "enum": [
+        "fallback_pin",
+        "two_names",
+        "unplanned",
+        "same_computation",
+        "outside_folder"
+      ],
+      "title": "NoteKind",
+      "type": "string"
+    },
+    "Place": {
+      "additionalProperties": false,
+      "description": "Where one name of a planned result puts it, in the folder of the analysis the result belongs to.",
+      "properties": {
+        "address": {
+          "description": "The name, then, for a result built in a universe, `#` and that universe's own id, such as `subanalysis.output1#u1`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "bytes": {
+          "description": "The default place of the result's bytes, as a path from the top of the tree its analysis is read in.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The result's name: its output's id after the ids of the driven declarations that lead to it from the analysis it belongs to, such as `subanalysis.output1`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "record": {
+          "description": "The place of the result's record, as a path from the top of the tree its analysis is read in.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "address",
+        "record",
+        "bytes"
+      ],
+      "title": "Place",
+      "type": "object"
+    },
+    "PlannedResult": {
+      "additionalProperties": false,
+      "description": "A planned result, as a runner builds it.",
+      "properties": {
+        "command": {
+          "description": "The recipe's `command`, with its placeholders as written.",
+          "type": "string"
+        },
+        "container": {
+          "description": "The recipe's container or, without one, its analysis's, as written.",
+          "type": "string"
+        },
+        "decisions": {
+          "description": "What the result is made with: one item for each entry of its output's `decisions`, in their order.",
+          "items": {
+            "$ref": "#/$defs/Selected"
+          },
+          "type": "array"
+        },
+        "inputs": {
+          "description": "What the result reads: one item for each entry of its output's `inputs`, in their order.",
+          "items": {
+            "$ref": "#/$defs/Read"
+          },
+          "type": "array"
+        },
+        "names": {
+          "description": "The result's names, one for each driven chain that reaches it.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "output": {
+          "$ref": "#/$defs/Element",
+          "description": "The output the result is of."
+        },
+        "owner": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis the result belongs to: the one whose universe builds it or, for an output built once, the one whose output it is."
+        },
+        "places": {
+          "description": "The result's places, one for each of its names, in their order.",
+          "items": {
+            "$ref": "#/$defs/Place"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "read_only": {
+          "description": "Whether the result is one from a commit: never built, and read through its record.",
+          "type": "boolean"
+        },
+        "resources": {
+          "$ref": "#/$defs/Resources",
+          "description": "What the recipe asks for."
+        },
+        "run_at": {
+          "description": "For a result of a driven analysis from a commit, the full id of the commit its recipe runs on.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "universe": {
+          "description": "The id of the universe the result is built in, one of its owner's. Left out for an output built once.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "workdir": {
+          "description": "The folder the recipe runs in, its output's analysis's, as a path from the top of the tree that analysis is read in.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "command",
+        "workdir",
+        "read_only",
+        "names",
+        "owner",
+        "output",
+        "places",
+        "inputs",
+        "decisions"
+      ],
+      "title": "PlannedResult",
+      "type": "object"
+    },
+    "Read": {
+      "additionalProperties": false,
+      "description": "One entry of an output's `inputs`, and what a planned result reads through it: an input's file, or another planned result's bytes.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit `path` is read at. Left out for the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "entry": {
+          "description": "The entry exactly as the output's `inputs` lists it.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "path": {
+          "description": "The input's file, or the default place of the bytes of the result read, as a path from the top of the tree it is read in.",
+          "type": "string"
+        },
+        "result": {
+          "description": "The planned result read, as its index in the `results` that hold this one. Left out for an input.",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "entry",
+        "path"
+      ],
+      "title": "Read",
+      "type": "object"
+    },
+    "Resources": {
+      "additionalProperties": false,
+      "description": "The compute resources a recipe asks for.",
+      "properties": {
+        "cpus": {
+          "description": "The number of CPU cores the recipe asks for, which may be fractional, such as 0.5.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "disk": {
+          "description": "The disk space the recipe asks for, as free text, such as `10GB`.",
+          "type": "string"
+        },
+        "gpus": {
+          "description": "The number of GPUs the recipe asks for.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "memory": {
+          "description": "The memory the recipe asks for, as free text, such as `4GB`.",
+          "type": "string"
+        },
+        "time_limit": {
+          "description": "The longest the recipe may run, as free text, such as `2h`.",
+          "type": "string"
+        }
+      },
+      "title": "Resources",
+      "type": "object"
+    },
+    "Selected": {
+      "additionalProperties": false,
+      "description": "One entry of an output's `decisions`, and the option a planned result is made with for it.",
+      "properties": {
+        "entry": {
+          "description": "The entry exactly as the output's `decisions` lists it.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "option": {
+          "description": "The id of the option selected where the result is built. Left out where none is.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "entry"
+      ],
+      "title": "Selected",
+      "type": "object"
+    }
+  },
+  "$id": "https://w3id.org/astra/dev/plan.schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": false,
+  "description": "The planned results of an analysis, and the notes on them.",
+  "properties": {
+    "notes": {
+      "description": "What an author may want to tidy.",
+      "items": {
+        "$ref": "#/$defs/Note"
+      },
+      "type": "array"
+    },
+    "results": {
+      "description": "The planned results, each after every result it reads.",
+      "items": {
+        "$ref": "#/$defs/PlannedResult"
+      },
+      "type": "array"
+    },
+    "root": {
+      "description": "The driving analysis's `astra.yaml`, as a path from the top of the repository that holds it.",
+      "type": "string"
+    },
+    "shape": {
+      "const": "astra-plan/1",
+      "description": "The name and version of this shape.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "shape",
+    "root",
+    "results",
+    "notes"
+  ],
+  "title": "plan",
+  "type": "object"
+}
