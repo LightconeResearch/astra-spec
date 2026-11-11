@@ -3,7 +3,9 @@ id: https://example.org/checks
 name: checks
 description: |-
   A scratch schema, not ASTRA, for testing the JSON Schema generator
-  extension on class-level checks: an exactly_one_of and two class rules.
+  extension on class-level checks: an exactly_one_of and three class rules,
+  one of which reads fields written as a `$ref`, to an enum and to an
+  inlined class.
 version: 0.0.0
 
 prefixes:
@@ -30,7 +32,7 @@ classes:
   Source:
     description: >-
       A source with exactly one of `path` and `url`, a `commit` with a `url`,
-      and a `version` only with a `doi`.
+      a `version` only with a `doi`, and `details` with a `kind`.
     attributes:
       path:
         description: A path.
@@ -43,6 +45,13 @@ classes:
       version:
         description: A version.
         range: integer
+      kind:
+        description: A kind.
+        range: Kind
+      details:
+        description: Details.
+        range: Details
+        inlined: true
     exactly_one_of:
       - slot_conditions:
           path:
@@ -69,3 +78,27 @@ classes:
           slot_conditions:
             version:
               value_presence: ABSENT
+      - description: A source with a `kind` has `details`.
+        preconditions:
+          slot_conditions:
+            kind:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            details:
+              value_presence: PRESENT
+
+  Details:
+    description: Details of a source.
+    attributes:
+      note:
+        description: A note.
+
+enums:
+  Kind:
+    description: A kind of source.
+    permissible_values:
+      a:
+        description: The kind a.
+      b:
+        description: The kind b.

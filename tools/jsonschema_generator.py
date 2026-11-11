@@ -26,8 +26,9 @@ It also:
    order, guarded by the JSON types of what it reads: ``{if: G, then: {oneOf:
    …}}``, and ``{if: G + the rule's if, then: the rule's then}``, where ``G`` is
    ``{type: object, properties: {f: {type: <f's JSON type>}}}`` over the fields
-   ``f`` the check reads. Stock LinkML's checks only test whether a key is
-   there, so a value that isn't an object, or a field that is null or of
+   ``f`` the check reads (for a field written as a ``$ref``, the JSON type of
+   its range: ``string`` for an enum, ``object`` for an inlined class). Stock
+   LinkML's checks only test whether a key is there, so a value that isn't an object, or a field that is null or of
    another type, breaks them too; guarded, a check is skipped exactly when a
    ``type`` keyword already fails, so no verdict changes and a value of the
    wrong type is reported once, by its ``type``. Each ``required`` in a check
@@ -102,7 +103,18 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
     def after_generate_class(self, cls, sv):
         """LinkML's subschema for the class `cls`, with its class-level checks guarded in `allOf` (step 5)."""
         cls = super().after_generate_class(cls, sv)
-        _guard_checks(cls.schema_, cls.source.name)
+        name = cls.source.name
+        properties = cls.schema_.get("properties", {})
+        ref_types = {}
+        for slot in sv.class_induced_slots(name):
+            prop = self.aliased_slot_name(slot)
+            if slot.multivalued or "$ref" not in properties.get(prop, {}):
+                continue
+            if slot.range in sv.all_enums():
+                ref_types[prop] = "string"
+            elif slot.range in sv.all_classes() and sv.is_inlined(slot):
+                ref_types[prop] = "object"
+        _guard_checks(cls.schema_, name, ref_types)
         return cls
 
     def after_generate_schema(self, schema, sv):
@@ -175,11 +187,13 @@ JSON_TYPES = {"object", "array", "string", "integer", "number", "boolean"}
 """The JSON types a field a check reads may have, for its guard: one each, never `null` (no field takes it)."""
 
 
-def _guard_checks(node: dict, name: str) -> None:
+def _guard_checks(node: dict, name: str, ref_types: dict[str, str]) -> None:
     """Step 5 on `node`, the subschema of the class `name`: each class-level check moved into a guarded `allOf` member.
 
     The checks are the `oneOf` of the class's `exactly_one_of`, then each class rule, which LinkML writes as the
-    class's `if`/`then` when there is one and as members of `allOf` when there are several.
+    class's `if`/`then` when there is one and as members of `allOf` when there are several. `ref_types` gives the JSON
+    type of each single-valued field written as a `$ref`, which has no `type` of its own: `string` for an enum, `object`
+    for an inlined class.
     """
     for keyword in UNGUARDED:
         if keyword in node:
@@ -211,13 +225,17 @@ def _guard_checks(node: dict, name: str) -> None:
         checks.append((rule.get("if", {}), rule["then"]))
     if checks:
         node["allOf"] = [
-            _guarded(node, name, condition, then) for condition, then in checks
+            _guarded(node, name, condition, then, ref_types)
+            for condition, then in checks
         ]
 
 
-def _guarded(node: dict, name: str, condition: dict, then: dict) -> dict:
+def _guarded(
+    node: dict, name: str, condition: dict, then: dict, ref_types: dict[str, str]
+) -> dict:
     """The `allOf` member for one check of the class `name` (subschema `node`): `then` applies where `condition` holds,
-    the value is an object, and each field the check reads, if present, has its JSON type.
+    the value is an object, and each field the check reads, if present, has its JSON type (from `ref_types` for a field
+    written as a `$ref`).
 
     So the member's `if` fails, and the check is skipped, only where a `type` keyword of the class already fails.
     """
@@ -225,7 +243,13 @@ def _guarded(node: dict, name: str, condition: dict, then: dict) -> dict:
     properties = node.get("properties", {})
     guard: dict[str, Any] = {"type": "object", "properties": {}}
     for prop in sorted(_fields_read(condition) | _fields_read(then)):
-        json_type = properties.get(prop, {}).get("type")
+        sub = properties.get(prop, {})
+        if "type" in sub:
+            json_type = sub["type"]
+        elif "$ref" in sub:
+            json_type = ref_types.get(prop)
+        else:
+            json_type = None
         if json_type not in JSON_TYPES:
             raise ValueError(
                 f"{name}.{prop}: a class-level check reads it, but it has no JSON type to guard on"

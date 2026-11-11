@@ -168,7 +168,7 @@ def test_cli_writes_the_same_schema():
         assert result.stdout == json.dumps(generate(SCHEMA, **options), indent=2) + "\n"
 
 
-# --- Class-level checks (step 5), on a scratch schema with an exactly_one_of and two class rules ---
+# --- Class-level checks (step 5), on a scratch schema with an exactly_one_of and three class rules ---
 
 CHECKS = REPO_ROOT / "tests" / "generator" / "checks.yaml"
 
@@ -178,6 +178,8 @@ SOURCE_FIELDS = {
     "commit": ("c", 5),
     "doi": ("10.1/a", 5),
     "version": (2, "2"),
+    "kind": ("a", 5),
+    "details": ({"note": "n"}, "x"),
 }
 """Each field of the scratch `Source`, with a value of its type and one of another type."""
 
@@ -233,6 +235,11 @@ def test_each_check_is_a_guarded_member_of_all_of(checks_schema):
             "properties": {"doi": {"type": "string"}, "version": {"type": "integer"}},
             "not": {"properties": {"doi": {}}, "required": ["doi"]},
         },
+        {
+            "type": "object",
+            "properties": {"details": {"type": "object"}, "kind": {"type": "string"}},
+            "required": ["kind"],
+        },
     ]
     assert [member["then"] for member in source["allOf"]] == [
         {
@@ -243,6 +250,7 @@ def test_each_check_is_a_guarded_member_of_all_of(checks_schema):
         },
         {"properties": {"commit": {}}, "required": ["commit"]},
         {"not": {"properties": {"version": {}}, "required": ["version"]}},
+        {"properties": {"details": {}}, "required": ["details"]},
     ]
 
 
@@ -257,10 +265,19 @@ def test_each_check_is_a_guarded_member_of_all_of(checks_schema):
         ({"url": "u", "commit": 5}, "/sources/0/commit"),
         ({"path": "a", "version": None}, "/sources/0/version"),
         ({"path": "a", "doi": 5, "version": 2}, "/sources/0/doi"),
+        ({"path": "a", "kind": "a", "details": "x"}, "/sources/0/details"),
     ],
 )
 def test_a_value_of_the_wrong_type_fails_by_its_type_alone(checks, source, pointer):
     assert source_errors(checks, source) == {(pointer, "type")}
+
+
+def test_an_enum_value_of_the_wrong_type_fails_by_its_type_and_its_enum_alone(checks):
+    """A field written as a `$ref` to an enum is guarded as a string, so the rule that reads it adds nothing."""
+    assert source_errors(checks, {"path": "a", "kind": 5}) == {
+        ("/sources/0/kind", "type"),
+        ("/sources/0/kind", "enum"),
+    }
 
 
 @pytest.mark.parametrize(
@@ -270,6 +287,7 @@ def test_a_value_of_the_wrong_type_fails_by_its_type_alone(checks, source, point
         ({"path": "a", "url": "u", "commit": "c"}, {"oneOf"}),
         ({"url": "u"}, {"required"}),
         ({"path": "a", "version": 2}, {"not"}),
+        ({"path": "a", "kind": "a"}, {"required"}),
     ],
 )
 def test_the_checks_hold_for_values_of_their_type(checks, source, keywords):

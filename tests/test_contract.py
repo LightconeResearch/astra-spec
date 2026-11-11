@@ -576,6 +576,14 @@ def fields_read(node: Any) -> set[str]:
     return found
 
 
+def json_type(schema: dict, sub: dict) -> Any:
+    """The JSON type of a field whose subschema in `schema` is `sub`: its `type`, or, for a field written as a `$ref`,
+    the `type` of the `$defs` entry it points to (`string` for an enum, `object` for a class)."""
+    if "type" not in sub and "$ref" in sub:
+        return schema["$defs"][sub["$ref"].removeprefix(DEF_PREFIX)].get("type")
+    return sub.get("type")
+
+
 @pytest.mark.parametrize("name", ROOTS)
 def test_every_class_check_is_guarded_by_the_types_it_reads(name):
     """Each class-level check is an `allOf` member whose `if` requires an object and the type of each field it reads.
@@ -595,7 +603,7 @@ def test_every_class_check_is_guarded_by_the_types_it_reads(name):
         for index, member in enumerate(definition.get("allOf", [])):
             guard = member.get("if", {})
             expected = {
-                field: {"type": definition["properties"][field]["type"]}
+                field: {"type": json_type(schema, definition["properties"][field])}
                 for field in fields_read(member)
             }
             typed = {
