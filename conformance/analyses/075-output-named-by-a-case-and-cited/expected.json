@@ -1,0 +1,7 @@
+{
+  "about": "An output that a switch's case names is also cited by a finding, so it is planned in every universe, and each must set its decision.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECISION", "file": "astra.yaml"}
+  ]
+}

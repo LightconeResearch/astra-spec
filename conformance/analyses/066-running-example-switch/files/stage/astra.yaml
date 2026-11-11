@@ -1,0 +1,20 @@
+spec_version: "0.1.0"
+inputs:
+  input2:
+    path: data/input2.csv
+decisions:
+  decision2:
+    options: {a: {}, b: {}}
+outputs:
+  output3:
+    type: data
+    format: csv
+    inputs: [input2]
+    decisions: [decision2]
+    recipe:
+      command: >-
+        python src/output3.py '{inputs.input2}' '{decisions.decision2}'
+        '{output}'
+universes:
+  v1:
+    decisions: {decision2: a}

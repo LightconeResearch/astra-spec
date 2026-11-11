@@ -1,0 +1,5 @@
+{
+  "about": "A switch picks one of two outputs built once by a decision, and an output reads it in two universes.",
+  "valid": true,
+  "must_not_report": ["MISSING_DECISION", "UNUSED_DECISION", "INACTIVE_DECISION", "UNDECLARED_TEMPLATE_REF"]
+}

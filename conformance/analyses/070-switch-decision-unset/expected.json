@@ -1,0 +1,7 @@
+{
+  "about": "A universe leaves unset the decision of a switch that an output of the analysis reads, though the switch has no case for one option.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECISION", "file": "astra.yaml"}
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "about": "The only universe selects an option a switch has no case for, so neither the output that reads the switch nor the one that reads that output is built anywhere, and nothing is reported.",
+  "valid": true,
+  "must_not_report": ["PIN_NOT_BUILT", "MISSING_DECISION", "UNUSED_DECISION"]
+}
