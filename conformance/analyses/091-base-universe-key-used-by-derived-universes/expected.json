@@ -1,0 +1,8 @@
+{
+  "about": "A base universe sets a decision that only the universes derived from it use, through pins, which is a warning, not an error; two options share a case.",
+  "valid": true,
+  "must_report": [
+    {"code": "INACTIVE_DECISION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["UNUSED_DECISION", "MISSING_DECISION", "PIN_NOT_BUILT"]
+}
