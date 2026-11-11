@@ -1027,12 +1027,13 @@ folder <code>analysis/</code>, and its paths are relative.</p>
 <p><code>c</code> is excluded and never selected</p>
 </li>
 <li>
-<p>An <strong>output</strong> has a <code>type</code>, a <code>format</code> (its file extension), the
-  <code>decisions</code> it is made with, what it reads (<code>inputs</code>, ordered), and a
-  <strong>recipe</strong>: a POSIX shell <code>command</code>, run in its analysis's folder, whose
-  <strong>placeholders</strong> <code>{inputs}</code>, <code>{inputs.&lt;entry&gt;}</code>, <code>{decisions.&lt;entry&gt;}</code> and
-  <code>{output}</code> become paths and selected options, verbatim. Its <strong>result</strong> is
-  the one file the recipe writes.</p>
+<p>An <strong>output</strong>, unless it is a switch (below), has a <code>type</code>, a <code>format</code>
+  (its file extension), the <code>decisions</code> it is made with, what it reads
+  (<code>inputs</code>, ordered), and a <strong>recipe</strong>: a POSIX shell <code>command</code>, run in
+  its analysis's folder, whose <strong>placeholders</strong> <code>{inputs}</code>,
+  <code>{inputs.&lt;entry&gt;}</code>, <code>{decisions.&lt;entry&gt;}</code> and <code>{output}</code> become paths and
+  selected options, verbatim. Its <strong>result</strong> is the one file the recipe
+  writes.</p>
 </li>
 </ul>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">outputs</span><span class="p">:</span>
@@ -1044,29 +1045,53 @@ folder <code>analysis/</code>, and its paths are relative.</p>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output1.py {inputs} {decisions.decision1} {decisions.stage.decision2} {output}</span>
 </span></code></pre></div>
-<p>Another analysis's elements are read by address in an output's <code>inputs</code>
-  and <code>decisions</code>, a condition, a constraint or evidence, just as if they
-  were the analysis's own: <code>output1</code> reads <code>stage</code>'s <code>output3</code> and is made
-  with <code>stage</code>'s <code>decision2</code>, whatever option is selected where it is built.</p>
+<p>Another analysis's elements are read by address in an output's <code>inputs</code>,
+  <code>decisions</code>, <code>switch</code> and <code>cases</code>, a constraint or evidence, just as if
+  they were the analysis's own: <code>output1</code> reads <code>stage</code>'s <code>output3</code> and is
+  made with <code>stage</code>'s <code>decision2</code>, whatever option is selected where it is
+  built.</p>
 <ul>
-<li>A <code>when</code> lists <strong>conditions</strong>, <code>d.o</code> (decision <code>d</code> selects option <code>o</code>) or
-  <code>~d.o</code> (decision <code>d</code> doesn't select option <code>o</code>).</li>
+<li>A <strong>switch</strong> is an output with a <code>switch</code>, a decision's address, and
+  <code>cases</code>, from options of that decision to references; it has no <code>type</code>,
+  <code>format</code>, <code>inputs</code>, <code>decisions</code> or recipe, and no result, record, name or
+  place of its own. In each universe it <strong>takes</strong> the case of the option
+  its decision selects there, and reading it reads what that case names.</li>
 </ul>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">decisions</span><span class="p">:</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">decision3</span><span class="p">:</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision1.b</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">stage.decision2.b</span><span class="p p-Indicator">]</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{},</span><span class="nt"> b</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}}</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">switch1</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">switch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">decision1</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">cases</span><span class="p">:</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">      </span><span class="nt">b</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage.output3</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">output6</span><span class="p">:</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">figure</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">png</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">switch1</span><span class="p p-Indicator">]</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision3</span><span class="p p-Indicator">]</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output6.py {inputs.switch1} {decisions.decision3} {output}</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="nt">decision3</span><span class="p">:</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{},</span><span class="nt"> b</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}}</span>
 </span></code></pre></div>
 <ul>
+<li>where <code>decision1</code> selects <code>b</code>, <code>switch1</code> takes <code>stage.output3</code>, and
+    <code>{inputs.switch1}</code> is the path of its result there</li>
+<li><code>a</code> has no case: where <code>decision1</code> selects <code>a</code>, <code>switch1</code> isn't built
+    (below), nor is <code>output6</code>, which reads it without a pin, and nothing
+    there uses <code>decision3</code></li>
+<li>a case names an input, an output or a switch, of the analysis or by
+    address; options may share a case; and a case may name an excluded
+    option, such as <code>decision1</code>'s <code>c</code>, and is then never taken</li>
 <li>
-<p><code>decision3</code> is only active when <code>decision1</code> selects <code>b</code> and <code>stage</code>'s
-    <code>decision2</code> selects <code>b</code>; an output can have a <code>when</code> too</p>
+<p>a case that names a switch nests the two; by convention, the switch on
+    the decision that decides whether the other matters is the outer one</p>
 </li>
 <li>
-<p>A <strong>universe</strong> selects an option for each active decision: its own
-  analysis's by id, another's by address. With <code>derived_from</code> it inherits
-  another universe's selection, replacing what it sets and dropping what
-  turns inactive: its <strong>effective selection</strong>.</p>
+<p>A <strong>universe</strong> selects an option for each decision it uses (below): its
+  own analysis's by id, another's by address. With <code>derived_from</code> it
+  inherits another universe's selection, replacing what it sets: its
+  <strong>effective selection</strong>. Its own <code>decisions</code> set only decisions it uses
+  on some branch, and should set only those it uses.</p>
 </li>
 </ul>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">universes</span><span class="p">:</span>
@@ -1082,16 +1107,18 @@ folder <code>analysis/</code>, and its paths are relative.</p>
 <ul>
 <li><code>u1</code> sets <code>stage</code>'s <code>decision2</code>: it <strong>drives</strong> <code>stage</code> (below)</li>
 <li>
-<p><code>u2</code> changes <code>decision1</code> from <code>u1</code>'s <code>b</code> to <code>a</code>, keeps <code>stage.decision2</code>
-    as <code>b</code>, and drops <code>decision3</code>, whose <code>when</code> no longer holds</p>
+<p><code>u2</code> changes <code>decision1</code> from <code>u1</code>'s <code>b</code> to <code>a</code>, and keeps
+    <code>stage.decision2</code> as <code>b</code> and <code>decision3</code> as <code>a</code>, which it doesn't use:
+    <code>output6</code> isn't built there</p>
 </li>
 <li>
-<p>An entry of an output's <code>inputs</code> is a <strong>reference</strong>: an address that may
-  end in a <strong>pin</strong>, <code>#</code> and a universe's id, fixing the universe it reads.
-  <code>#u</code> names, in order:</p>
+<p>An entry of an output's <code>inputs</code>, or a switch's case, is a <strong>reference</strong>:
+  an address that may end in a <strong>pin</strong>, <code>#</code> and a universe's id, fixing the
+  universe it reads. <code>#u</code> names, in order:</p>
 </li>
 <li>the <code>universes</code> entry <code>u</code> in the same <code>astra.yaml</code> as the pin;</li>
-<li>else the universe <code>u</code> of the declared analysis whose output is read;</li>
+<li>else the universe <code>u</code> of the declared analysis whose element the
+     reference names;</li>
 <li>else nothing, which breaks <code>UNKNOWN_PIN_UNIVERSE</code>.</li>
 </ul>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">outputs</span><span class="p">:</span>
@@ -1104,15 +1131,17 @@ folder <code>analysis/</code>, and its paths are relative.</p>
 </span></code></pre></div>
 <ul>
 <li><code>output2</code> reads <code>output1</code> as built in <code>u1</code> and in <code>u2</code></li>
+<li><code>analysis</code> has no <code>v1</code>, so <code>stage.output3#v1</code> reads <code>stage</code>'s own
+    result in its <code>v1</code></li>
 <li>
-<p><code>analysis</code> has no <code>v1</code>, so <code>stage.output3#v1</code> reads <code>stage</code>'s own
-    result in its <code>v1</code></p>
+<p>a pinned switch reads as it is in its pin's universe: <code>switch1#u1</code>
+    reads <code>stage.output3</code> as built in <code>u1</code></p>
 </li>
 <li>
-<p>An output is <strong>built per universe</strong> if it lists <code>decisions</code>, has a <code>when</code>,
-  or reads an output that is built per universe without a pin; it has a
-  result in each universe where it is active. Any other output is <strong>built
-  once</strong> with one result:</p>
+<p>An output other than a switch is <strong>built per universe</strong> if it lists
+  <code>decisions</code>, or reads without a pin a switch or an output built per
+  universe; it has a result in each universe where it and its analysis are
+  built (below). Otherwise it is <strong>built once</strong>, with one result:</p>
 </li>
 </ul>
 <p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">outputs</span><span class="p">:</span>
@@ -1124,17 +1153,15 @@ folder <code>analysis/</code>, and its paths are relative.</p>
 </span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 </span></code></pre></div>
   - <code>output1</code> is built per universe because it lists decisions
-  - <code>output2</code> is built once because it only reads <code>output1</code> pinned to specific universes</p>
+  - <code>output2</code> is built once because it only reads <code>output1</code> pinned to specific universes
+  - <code>output6</code> is built per universe because it lists <code>decision3</code>; reading
+    <code>switch1</code> without a pin would be reason enough</p>
 <p>Were it also to have:</p>
 <p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">outputs</span><span class="p">:</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">output6</span><span class="p">:</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision1.b</span><span class="p p-Indicator">]</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">output7</span><span class="p">:</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">output1</span><span class="p p-Indicator">]</span>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="nt">output7</span><span class="p">:</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">output1</span><span class="p p-Indicator">]</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 </span></code></pre></div>
-  - <code>output6</code> is built per universe because it depends on a decision via <code>when</code>
   - <code>output7</code> is built per universe because it reads <code>output1</code>, which is
     built per universe, without a pin</p>
 <ul>
@@ -1152,7 +1179,8 @@ folder <code>analysis/</code>, and its paths are relative.</p>
   say. The <code>stage.output3</code> that <code>output1</code> reads is built with <code>b</code> selected
   for <code>stage.decision2</code>, and its result belongs to <code>analysis</code>.</p>
 <p>A universe sets a decision further down by its full address. Were <code>stage</code>
-  to declare <code>inner</code>, which has a <code>decision4</code>:</p>
+  to declare <code>inner</code>, which has a <code>decision4</code>, and <code>output1</code> to list it as
+  <code>stage.inner.decision4</code>:</p>
 <p><div class="language-yaml highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">universes</span><span class="p">:</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="nt">u1</span><span class="p">:</span>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
@@ -1165,10 +1193,10 @@ folder <code>analysis/</code>, and its paths are relative.</p>
 </span></code></pre></div>
   - <code>stage.inner.decision4</code> drives <code>stage</code> and drives <code>inner</code> through <code>stage</code></p>
 <p>The analyses an address goes through, here <code>stage</code> then <code>inner</code>, form a
-  <strong>chain</strong>. Once any universe drives a chain, every universe must set all
-  the active decisions of the analyses on it: had <code>u2</code> not derived from
+  <strong>chain</strong>. Once any universe drives a chain, every universe must set the
+  decisions of the analyses on it that it uses: had <code>u2</code> not derived from
   <code>u1</code>, it would have to set <code>stage.decision2</code> and <code>stage.inner.decision4</code>
-  itself.</p>
+  itself, as <code>output1</code> lists both.</p>
 <ul>
 <li>
 <p>Each chain is driven on its own. Were <code>analysis/astra.yaml</code> also to declare
@@ -1185,7 +1213,8 @@ folder <code>analysis/</code>, and its paths are relative.</p>
 own universes, but not one built per universe in <code>u1</code> or <code>u2</code>.</p>
 </li>
 <li>
-<p>An analysis with no decisions of its own has nothing to set. Were
+<p>An analysis with no decisions of its own, or none that a universe of
+    the driving analysis uses, has nothing to set. Were
     <code>analysis/astra.yaml</code> also to declare <code>tools</code>, which has none:</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># analysis/tools/astra.yaml</span>
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nt">analyses</span><span class="p">:</span>
@@ -1204,6 +1233,8 @@ own universes, but not one built per universe in <code>u1</code> or <code>u2</co
 <li><code>tools.output9</code> just exists as <code>tools</code>'s result</li>
 <li><code>tools.output10</code> varies, so it is built in <code>u1</code> and <code>u2</code>, and those
   results belong to <code>analysis</code></li>
+<li>were <code>tools</code> to have a decision that only <code>output9</code> lists, it would
+  still have nothing to set, as <code>analysis</code> reads nothing of <code>output9</code></li>
 </ul>
 </li>
 <li>
@@ -1219,14 +1250,18 @@ own universes, but not one built per universe in <code>u1</code> or <code>u2</co
 </li>
 <li>
 <p><code>stage</code>'s own universes, such as <code>v1</code>, don't set its decisions in <code>u1</code>
-    and <code>u2</code>, but must still be valid: a <code>v1</code> that left <code>decision2</code> unset
-    would break <code>MISSING_DECISION</code>.</p>
+    and <code>u2</code>, but must still be valid, with <code>stage</code> as the driving
+    analysis: a <code>v1</code> that left <code>decision2</code> unset would break
+    <code>MISSING_DECISION</code>, as <code>stage</code> plans <code>output3</code>, which lists it. A pin
+    into <code>v1</code> can then read only what uses decisions that <code>v1</code> uses on some
+    branch, as <code>v1</code> may set no other.</p>
 </li>
 <li>
-<p>An output that reads another analysis's output built per universe,
-    without a pin or pinned to one of its own analysis's universes
-    (<code>stage.output3#u1</code>), or uses one of its decisions, needs that analysis
-    driven.
+<p>An output that reads another analysis's output built per universe, or
+    its switch, without a pin or pinned to one of its own analysis's
+    universes (<code>stage.output3#u1</code>), or uses one of its decisions, needs that
+    analysis driven: an output uses the decisions it lists, and a switch the
+    decision it switches on; a switch reads only the case it takes.
     <code>output1</code> reads <code>stage.output3</code> and uses <code>stage.decision2</code>, so were no
     universe of <code>analysis</code> to set a decision of <code>stage</code>:</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">universes</span><span class="p">:</span>
@@ -1238,6 +1273,19 @@ own universes, but not one built per universe in <code>u1</code> or <code>u2</co
 doesn't vary: <code>stage.input2</code>, <code>stage.output3#v1</code>, or <code>upstream.output4</code>,
 which is built once.</p>
 </li>
+<li>
+<p>A switch can choose between analyses. Were <code>analysis/astra.yaml</code> also
+    to declare <code>fast</code> and <code>slow</code>, each with an output <code>fit</code> that lists a
+    <code>decision5</code> of its own:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">switch2</span><span class="p">:</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nt">switch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">decision1</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="nt">cases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="nv">fast.fit</span><span class="p p-Indicator">,</span><span class="nt"> b</span><span class="p">:</span><span class="w"> </span><span class="nv">slow.fit</span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<p>a universe where <code>decision1</code> selects <code>a</code> would use, and set,
+<code>fast.decision5</code> and nothing of <code>slow</code>'s, and one where it selects <code>b</code>
+the reverse.</p>
+</li>
 </ul>
 <p>By convention, a decision that matters to one analysis is driven, and one
   shared by several, such as a seed, is read by address from the analysis
@@ -1248,17 +1296,17 @@ which is built once.</p>
   another id and pinned to that. An import
   selects and drives nothing.</li>
 </ul>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">universes</span><span class="p">:</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">stage_u1</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">analysis</span><span class="p">:</span><span class="w"> </span><span class="nv">stage</span><span class="p p-Indicator">,</span><span class="nt"> universe</span><span class="p">:</span><span class="w"> </span><span class="nv">u1</span><span class="p p-Indicator">}</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="nt">outputs</span><span class="p">:</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="nt">output5</span><span class="p">:</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">table</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage.output3#u1</span>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage.output3#stage_u1</span>
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
-</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output5.py {inputs} {output}</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">stage_u1</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">analysis</span><span class="p">:</span><span class="w"> </span><span class="nv">stage</span><span class="p p-Indicator">,</span><span class="nt"> universe</span><span class="p">:</span><span class="w"> </span><span class="nv">u1</span><span class="p p-Indicator">}</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span><span class="nt">output5</span><span class="p">:</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">table</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage.output3#u1</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stage.output3#stage_u1</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output5.py {inputs} {output}</span>
 </span></code></pre></div>
 <ul>
 <li><code>stage.output3#u1</code> is built in, and belongs to, <code>analysis</code>'s <code>u1</code></li>
@@ -1270,79 +1318,150 @@ which is built once.</p>
 <p>An <strong>insight</strong> is a <code>claim</code> whose <code>evidence</code> cites a <code>doi</code> or an output
   (<code>artifact</code>): <code>prior_insights</code> are what the analysis builds on, <code>findings</code>
   what it concludes. An <code>artifact</code> is a reference, like an output's <code>inputs</code>
-  entry: it may be pinned, and by address it reads another analysis's
-  output.</p>
+  entry: it may be pinned, by address it reads another analysis's output,
+  and it may name a switch each of whose cases names an output other than
+  a switch, or a switch like it.</p>
 </li>
 </ul>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nt">prior_insights</span><span class="p">:</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">insight2</span><span class="p">:</span>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">An earlier study found that decision1 changes the result.</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">doi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.5555/12345678</span>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">        </span><span class="nt">location</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="nv">page=6</span><span class="p p-Indicator">}</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="nt">findings</span><span class="p">:</span>
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">  </span><span class="nt">insight1</span><span class="p">:</span>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The two universes give different results.</span>
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">artifact</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output2</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nt">prior_insights</span><span class="p">:</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">insight2</span><span class="p">:</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">An earlier study found that decision1 changes the result.</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">doi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.5555/12345678</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">        </span><span class="nt">location</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="nv">page=6</span><span class="p p-Indicator">}</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="nt">findings</span><span class="p">:</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="nt">insight1</span><span class="p">:</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The two universes give different results.</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">artifact</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output2</span>
 </span></code></pre></div>
 <h2 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h2>
 <ul>
-<li>A <strong>result</strong> is the one file an output's recipe writes: an output built
+<li>
+<p>A <strong>result</strong> is the one file an output's recipe writes: an output built
   once has one, and an output built per universe has one in each universe
-  where it is active. The driving analysis <strong>plans</strong> the results of its own
-  outputs, and every result a planned result reads or its evidence cites,
-  through any declaration; nothing else is built. A result belongs to the
-  analysis whose universe built it or, for an output built once, the
-  analysis whose output it is. With <code>stage</code>'s own file:</li>
+  where it is <strong>built</strong> and its analysis is built. An output other than a
+  switch is built in a universe if everything it reads there without a pin
+  is an input, an output built once, or built there; a switch is built
+  there if its decision selects there an option with a case that names one
+  of these or, pinned, something built in its pin's universe. Whether an
+  output is built never depends on driving.</p>
+</li>
+<li>
+<p>The driving analysis <strong>plans</strong> from its own outputs other than switches
+  that no case of its own names, its own switches that no <code>inputs</code> entry or
+  case of its own names, and what its evidence cites. It plans their
+  results where they are built, a switch's being those of the case it
+  takes, and every result a planned result reads, through any declaration
+  and the case each switch takes; nothing else is made. An output that a
+  case names is so planned, as another analysis's is, only where something
+  planned reads it: one that is also a deliverable must be read or cited
+  elsewhere to be built where that case isn't taken.</p>
+</li>
+<li>
+<p>were <code>switch1</code>'s case for <code>b</code> an output of <code>analysis</code>'s own, that
+    output would be planned only because <code>output6</code> reads it in <code>u1</code>, not
+    for itself</p>
+</li>
+<li>
+<p>The driving analysis <strong>reaches</strong> what it plans from, built or not: an
+  output built once, and evidence citing one, once; other pinned evidence
+  in its pin's universe; anything else in each of its universes. It
+  reaches too whatever something reached reads, there or, pinned, in its
+  pin's universe: each entry of an output, and only the case a switch
+  takes.</p>
+</li>
+<li>
+<p>in <code>u2</code>, <code>output6</code> is reached, and so is <code>switch1</code>, which takes no
+    case there</p>
+</li>
+<li>
+<p>A universe <strong>uses</strong>, with its own analysis as the driving analysis, each
+  decision that a result planned in it lists or a switch reached in it
+  switches on.</p>
+</li>
+<li>
+<p><code>u1</code> uses <code>decision1</code>, <code>decision3</code> and <code>stage.decision2</code>; <code>u2</code> uses
+    <code>decision1</code> and <code>stage.decision2</code>, but not <code>decision3</code>, as <code>output6</code>
+    isn't built there</p>
+</li>
+<li>
+<p>A universe <strong>uses on some branch</strong> each decision listed or switched on
+  by what its analysis would reach in it were every case of every switch
+  followed. So that a universe can set a key only for those derived from
+  it, it also uses on some branch each decision that a universe inheriting
+  its key for it, without setting it, uses on some branch.</p>
+</li>
+<li>
+<p><code>u2</code> uses <code>decision3</code> on some branch, as <code>output6</code>, which lists it, is
+    reached there</p>
+</li>
+<li>
+<p>In a universe, the decisions <strong>in play</strong> are those it uses and, in a
+  universe of an analysis other than the driving analysis, those that
+  something reached through a pin uses there. Constraints are judged among
+  them: a decision not in play counts as selecting nothing.</p>
+</li>
+<li>
+<p>A result belongs to the analysis whose universe built it or, for an
+  output built once, the analysis whose output it is. With <code>stage</code>'s own
+  file:</p>
+</li>
 </ul>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># analysis/stage/astra.yaml</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nt">spec_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="nt">inputs</span><span class="p">:</span>
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="nt">input2</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">data/input2.csv</span><span class="p p-Indicator">}</span>
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="nt">decisions</span><span class="p">:</span>
-</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="nt">decision2</span><span class="p">:</span>
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{},</span><span class="nt"> b</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}}</span>
-</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="nt">outputs</span><span class="p">:</span>
-</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span><span class="nt">output3</span><span class="p">:</span>
-</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
-</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
-</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">input2</span><span class="p p-Indicator">]</span>
-</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision2</span><span class="p p-Indicator">]</span>
-</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
-</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output3.py {inputs.input2} {decisions.decision2} {output}</span>
-</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="nt">universes</span><span class="p">:</span>
-</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">  </span><span class="nt">v1</span><span class="p">:</span>
-</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">decision2</span><span class="p">:</span><span class="w"> </span><span class="nv">a</span><span class="p p-Indicator">}</span>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># analysis/stage/astra.yaml</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nt">spec_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="nt">input2</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="nv">data/input2.csv</span><span class="p p-Indicator">}</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">  </span><span class="nt">decision2</span><span class="p">:</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">a</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{},</span><span class="nt"> b</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}}</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">  </span><span class="nt">output3</span><span class="p">:</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">csv</span>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">    </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">input2</span><span class="p p-Indicator">]</span>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">decision2</span><span class="p p-Indicator">]</span>
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/output3.py {inputs.input2} {decisions.decision2} {output}</span>
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="w">  </span><span class="nt">v1</span><span class="p">:</span>
+</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">decision2</span><span class="p">:</span><span class="w"> </span><span class="nv">a</span><span class="p p-Indicator">}</span>
 </span></code></pre></div>
 <p>the build is:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>┌─ u1 · analysis&#39;s own ────────────────────────────────┐
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>│  input1 ────────────────────────┐                    │
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>│  stage.output3 (decision2 = b) ─┼─► output1          │── #u1 ──┐
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>│  upstream.output4 ──────────────┘   (decision1 = b)  │         │
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>└──────────────────────────────────────────────────────┘         │
-</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>┌─ u2 · analysis&#39;s own ────────────────────────────────┐         │
-</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>│  input1 ────────────────────────┐                    │         ▼
-</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>│  stage.output3 (decision2 = b) ─┼─► output1          │── #u2 ──► output2 ◄── insight1
-</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>│  upstream.output4 ──────────────┘   (decision1 = a)  │         ▲
-</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>└──────────────────────────────────────────────────────┘         │
-</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>┌─ v1 · stage&#39;s own ───────────────────────────────────┐         │
-</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>│  output3 (decision2 = a)                             │── #v1 ──┘
-</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>└──────────────────────────────────────────────────────┘
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>┌─ u1 · analysis&#39;s own ────────────────────────────────┐
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>│  input1 ────────────────────────┐                    │
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>│  stage.output3 (decision2 = b) ─┼─► output1          │── #u1 ──┐
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>│  upstream.output4 ──────────────┘   (decision1 = b)  │         │
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>│  stage.output3 ─► switch1 (b) ────► output6          │         │
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>│                                     (decision3 = a)  │         │
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>└──────────────────────────────────────────────────────┘         │
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>┌─ u2 · analysis&#39;s own ────────────────────────────────┐         │
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>│  input1 ────────────────────────┐                    │         ▼
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>│  stage.output3 (decision2 = b) ─┼─► output1          │── #u2 ──► output2 ◄── insight1
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>│  upstream.output4 ──────────────┘   (decision1 = a)  │         ▲
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>└──────────────────────────────────────────────────────┘         │
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>┌─ v1 · stage&#39;s own ───────────────────────────────────┐         │
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>│  output3 (decision2 = a)                             │── #v1 ──┘
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>└──────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <ul>
 <li>
 <p>the planned results are <code>output2</code>, <code>output1</code> in <code>u1</code> and <code>u2</code>,
-    <code>stage.output3</code> in <code>u1</code>, <code>u2</code> and <code>v1</code>, and <code>upstream.output4</code></p>
+    <code>output6</code> in <code>u1</code>, <code>stage.output3</code> in <code>u1</code>, <code>u2</code> and <code>v1</code>, and
+    <code>upstream.output4</code>; <code>output6</code> isn't built in <code>u2</code>, where <code>switch1</code> has
+    no case for <code>a</code></p>
 </li>
 <li>
 <p>A <strong>runner</strong> builds each planned result by running its output's recipe in
   a checkout of a commit, with no changes but records and results, and
   writes the result's bytes and a <strong>record</strong> of how it was made. Results of
-  an analysis declared with a <code>commit</code>, and of those it reaches, are
-  <strong>results from a commit</strong>: never rebuilt, but read through their records,
-  and their bytes (or a stand-in), at their analysis's commit. Driven, such
-  an analysis runs its recipes on exactly its files at its commit.</p>
+  an analysis declared with a <code>commit</code>, and of the analyses it declares,
+  directly or not, are <strong>results from a commit</strong>: never rebuilt, but read
+  through their records, and their bytes (or a stand-in), at their
+  analysis's commit. Driven, such an analysis runs its recipes on exactly
+  its files at its commit. A switch of such an analysis is read with its
+  files at its commit: the result its case gives is a result from a commit
+  or, where the analysis is driven, one built on its files at that commit.</p>
 </li>
 <li>at its commit, <code>upstream</code> has an output <code>output4</code>, built once, with its
     result and record committed: the runner reads them and runs no recipe
@@ -1357,22 +1476,22 @@ which is built once.</p>
   in and the runner. The record of <code>output1</code> in <code>u1</code>:</p>
 </li>
 </ul>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="p">{</span>
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span><span class="nt">&quot;spec_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span><span class="p">,</span>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;output1#u1&quot;</span><span class="p">,</span>
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">  </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">  </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">,</span>
-</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">  </span><span class="nt">&quot;generated_by&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">    </span><span class="nt">&quot;commit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;commit id&gt;&quot;</span><span class="p">,</span>
-</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">    </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;input1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">},</span>
-</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;stage.output3&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">},</span>
-</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;upstream.output4&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">}</span>
-</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="w">    </span><span class="p">],</span>
-</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;iri&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;urn:example:environment1&quot;</span><span class="p">},</span>
-</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="w">    </span><span class="nt">&quot;runner&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example-runner&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">}</span>
-</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="p">}</span>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="p">{</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nt">&quot;spec_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span><span class="p">,</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">  </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;output1#u1&quot;</span><span class="p">,</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">  </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">  </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">,</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">  </span><span class="nt">&quot;generated_by&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">    </span><span class="nt">&quot;commit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;commit id&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">    </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;input1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">},</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;stage.output3&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">},</span>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="w">      </span><span class="p">{</span><span class="nt">&quot;entry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;upstream.output4&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;content_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:&lt;hash&gt;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;size&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;size&gt;</span><span class="p">}</span>
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="w">    </span><span class="p">],</span>
+</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="w">    </span><span class="nt">&quot;environment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;iri&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;urn:example:environment1&quot;</span><span class="p">},</span>
+</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a><span class="w">    </span><span class="nt">&quot;runner&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example-runner&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">}</span>
+</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-20-16"><a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="p">}</span>
 </span></code></pre></div>
 <ul>
 <li>A <strong>checker</strong> later compares each record with the analysis as it then is,
@@ -1387,16 +1506,17 @@ which is built once.</p>
 </li>
 <li>
 <p>A result is <strong>made from</strong> its output's command, inputs in order, decisions
-  and format; the options those decisions select in its universe; its
-  inputs' content, never a stand-in's; and the results it reads. Code (fixed
-  by the commit) and the environment (installed software, container) are
-  recorded, not compared: an edited script shows only once a rerun makes
-  other bytes. A result made from a stale or missing one is stale until that
-  one is rebuilt with the hash it recorded. A record otherwise in order
-  leaves its result stale if its commit can't be read (squashed or rebased
-  away) or its output is gone at that commit, where <code>MISSING_RECORD_INPUTS</code>
-  isn't judged, or if an input is behind a stand-in that gives no hash. In
-  the example:</p>
+  and format; the options those decisions select in its universe; for each
+  switch it reads through, the decision it switches on, the option selected
+  for it where it is read and the case it takes; its inputs' content, never
+  a stand-in's; and the results it reads. Code (fixed by the commit) and the
+  environment (installed software, container) are recorded, not compared:
+  an edited script shows only once a rerun makes other bytes. A result made
+  from a stale or missing one is stale until that one is rebuilt with the
+  hash it recorded. A record otherwise in order leaves its result stale if
+  its commit can't be read (squashed or rebased away) or its output is gone
+  at that commit, where <code>MISSING_RECORD_INPUTS</code> isn't judged, or if an input
+  is behind a stand-in that gives no hash. In the example:</p>
 </li>
 </ul>
 <table>
@@ -1409,11 +1529,15 @@ which is built once.</p>
 <tbody>
 <tr>
 <td><code>analysis/stage/data/input2.csv</code> changes</td>
-<td>The six results built are stale; <code>upstream.output4</code> stays unchanged</td>
+<td>The seven results built are stale; <code>upstream.output4</code> stays unchanged</td>
 </tr>
 <tr>
 <td><code>u2</code> selects <code>a</code> for <code>stage.decision2</code></td>
 <td><code>stage.output3</code> and <code>output1</code> in <code>u2</code> are stale, and so is <code>output2</code>, which reads <code>output1#u2</code></td>
+</tr>
+<tr>
+<td><code>switch1</code>'s case for <code>b</code> becomes <code>upstream.output4</code></td>
+<td><code>output6</code> in <code>u1</code> is stale</td>
 </tr>
 <tr>
 <td><code>insight1</code>'s claim is reworded</td>
@@ -1435,11 +1559,12 @@ which is built once.</p>
   recipe reads it.</p>
 </li>
 <li>
-<p><strong>Evidence</strong> takes the status of the result it cites. Citing an output
-  built per universe without a pin, it cites its results in each of the
-  driving analysis's universes where it is active and its analysis built:
-  none means <code>missing</code>, several the worst status. A check covers a declared
-  analysis's evidence only where it cites a planned result.</p>
+<p><strong>Evidence</strong> takes the status of the result it cites. Citing without a
+  pin an output built per universe, or a switch, it cites that output's
+  results in the driving analysis's universes or, for a switch, the result
+  in each of them of the case it takes there: none means <code>missing</code>,
+  several the worst status. A check covers a declared analysis's evidence
+  only where it cites a planned result.</p>
 </li>
 <li>
 <p>A result's <strong>name</strong> is its output's id after the driven declarations
@@ -1449,15 +1574,17 @@ which is built once.</p>
   the analysis it belongs to, a <strong>place</strong> for its record,
   <code>.astra/records/{universe}/{name}.json</code>, and a <strong>default place</strong> for its
   bytes, <code>results/{universe}/{name}.{format}</code>; built once, neither has
-  <code>{universe}/</code>. The build above leaves:</p>
+  <code>{universe}/</code>. A switch has no name or place: a result read through one
+  keeps its own. The build above leaves:</p>
 </li>
 </ul>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>analysis/.astra/records/output2.json             analysis/results/output2.csv
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>analysis/.astra/records/u1/output1.json          analysis/results/u1/output1.json
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>analysis/.astra/records/u1/stage.output3.json    analysis/results/u1/stage.output3.csv
-</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>analysis/.astra/records/u2/output1.json          analysis/results/u2/output1.json
-</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>analysis/.astra/records/u2/stage.output3.json    analysis/results/u2/stage.output3.csv
-</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>analysis/stage/.astra/records/v1/output3.json    analysis/stage/results/v1/output3.csv
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>analysis/.astra/records/output2.json             analysis/results/output2.csv
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>analysis/.astra/records/u1/output1.json          analysis/results/u1/output1.json
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>analysis/.astra/records/u1/output6.json          analysis/results/u1/output6.png
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>analysis/.astra/records/u1/stage.output3.json    analysis/results/u1/stage.output3.csv
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>analysis/.astra/records/u2/output1.json          analysis/results/u2/output1.json
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>analysis/.astra/records/u2/stage.output3.json    analysis/results/u2/stage.output3.csv
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>analysis/stage/.astra/records/v1/output3.json    analysis/stage/results/v1/output3.csv
 </span></code></pre></div>
 <h2 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">&para;</a></h2>
 <p>Each rule has a code, a level (MUST or SHOULD, as in BCP 14) and a layer, set
@@ -1502,7 +1629,7 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <tr>
 <td><code>MISSING_FIELD</code></td>
 <td>MUST</td>
-<td><code>astra.yaml</code> has <code>spec_version</code> and <code>outputs</code>; an output, <code>type</code>, <code>format</code> and <code>recipe.command</code></td>
+<td><code>astra.yaml</code> has <code>spec_version</code> and <code>outputs</code>; an output other than a switch, <code>type</code>, <code>format</code> and <code>recipe.command</code></td>
 </tr>
 <tr>
 <td><code>MISSING_FIELD</code></td>
@@ -1527,7 +1654,7 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <tr>
 <td><code>EMPTY_COLLECTION</code></td>
 <td>MUST</td>
-<td><code>outputs</code>, <code>options</code>, <code>evidence</code> and every list of strings in <code>astra.yaml</code> are non-empty</td>
+<td><code>outputs</code>, <code>options</code>, <code>cases</code>, <code>evidence</code> and every list of strings in <code>astra.yaml</code> are non-empty</td>
 </tr>
 <tr>
 <td><code>DUPLICATE_ENTRY</code></td>
@@ -1557,7 +1684,7 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <tr>
 <td><code>INVALID_REFERENCE</code></td>
 <td>MUST</td>
-<td>Every address, reference, option reference and condition, bar universe keys, matches its grammar</td>
+<td>Every address, reference and option reference, bar universe keys, matches its grammar</td>
 </tr>
 <tr>
 <td><code>INVALID_PATH</code></td>
@@ -1568,6 +1695,11 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <td><code>INVALID_IMPORT</code></td>
 <td>MUST</td>
 <td>A <code>universes</code> entry with <code>analysis</code> or <code>universe</code> has both, and no <code>decisions</code> or <code>derived_from</code></td>
+</tr>
+<tr>
+<td><code>INVALID_SWITCH</code></td>
+<td>MUST</td>
+<td>An <code>outputs</code> entry with <code>switch</code> or <code>cases</code> has both, and no <code>type</code>, <code>format</code>, <code>inputs</code>, <code>decisions</code> or <code>recipe</code></td>
 </tr>
 <tr>
 <td><code>INVALID_EVIDENCE_SOURCE</code></td>
@@ -1642,12 +1774,12 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <tr>
 <td><code>UNRESOLVED_ADDRESS</code></td>
 <td>MUST</td>
-<td>An address in <code>inputs</code> reaches an input or output; in <code>artifact</code>, an output</td>
+<td>An address in <code>inputs</code> or <code>cases</code> names an input or output; in <code>artifact</code>, an output other than a switch, or a switch each of whose cases names one of these</td>
 </tr>
 <tr>
 <td><code>UNRESOLVED_ADDRESS</code></td>
 <td>MUST</td>
-<td>In <code>decisions</code>, universe keys, conditions and option references, a decision; in an import, another analysis's universe</td>
+<td>In <code>decisions</code>, <code>switch</code>, universe keys and option references, a decision; in an import, another analysis's universe</td>
 </tr>
 <tr>
 <td><code>AMBIGUOUS_ID</code></td>
@@ -1662,7 +1794,7 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <tr>
 <td><code>UNKNOWN_OPTION</code></td>
 <td>MUST</td>
-<td>Each option a condition, option reference or selection names is one of its decision's</td>
+<td>Each option an option reference, selection or key of <code>cases</code> names is one of its decision's</td>
 </tr>
 <tr>
 <td><code>INVALID_INSIGHT_REF</code></td>
@@ -1672,7 +1804,7 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <tr>
 <td><code>OUTPUT_CYCLE</code></td>
 <td>MUST</td>
-<td>No output reads itself through <code>inputs</code>, directly or not, pinned or not</td>
+<td>No output reads itself through <code>inputs</code> and <code>cases</code>, directly or not, pinned or not</td>
 </tr>
 <tr>
 <td><code>UNDECLARED_TEMPLATE_REF</code></td>
@@ -1695,24 +1827,29 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <td>No chain of <code>derived_from</code> loops back to its universe</td>
 </tr>
 <tr>
-<td><code>INACTIVE_DECISION</code></td>
+<td><code>UNUSED_DECISION</code></td>
 <td>MUST</td>
-<td>A universe's own <code>decisions</code> set only decisions active in its effective selection</td>
+<td>A universe's own <code>decisions</code> set only decisions it uses on some branch</td>
+</tr>
+<tr>
+<td><code>INACTIVE_DECISION</code></td>
+<td>SHOULD</td>
+<td>Of the decisions it uses on some branch, a universe's own <code>decisions</code> set only those it uses</td>
 </tr>
 <tr>
 <td><code>MISSING_DECISION</code></td>
 <td>MUST</td>
-<td>An effective selection sets every active decision of its analysis and of those its universes drive</td>
+<td>An effective selection sets every decision its universe uses, of its analysis and of those its universes drive</td>
 </tr>
 <tr>
 <td><code>MISSING_REQUIRED_OPTION</code></td>
 <td>MUST</td>
-<td>An effective selection meets the <code>requires</code> of each option it selects</td>
+<td>An effective selection meets the <code>requires</code> of each option it selects for a decision in play</td>
 </tr>
 <tr>
 <td><code>INCOMPATIBLE_OPTIONS</code></td>
 <td>MUST</td>
-<td>An effective selection meets the <code>incompatible_with</code> of each option it selects</td>
+<td>An effective selection meets the <code>incompatible_with</code> of each option it selects for a decision in play</td>
 </tr>
 <tr>
 <td><code>EXCLUDED_OPTION_SELECTED</code></td>
@@ -1737,32 +1874,32 @@ after the arrow. Rows that share a code are cases of one rule.</p>
 <tr>
 <td><code>UNKNOWN_PIN_UNIVERSE</code></td>
 <td>MUST</td>
-<td>Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose output it reads</td>
+<td>Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose element its reference names</td>
 </tr>
 <tr>
-<td><code>PIN_INACTIVE</code></td>
+<td><code>PIN_NOT_BUILT</code></td>
 <td>MUST</td>
-<td>Every pinned output is active in the universe it is pinned to</td>
+<td>Every pinned output is built in the universe it is pinned to</td>
 </tr>
 <tr>
-<td><strong><em>validator, in each universe where results are built</em></strong></td>
+<td><code>PIN_NOT_BUILT</code></td>
+<td>MUST</td>
+<td>Where a reached pin names a universe of an analysis other than the driving analysis, that universe sets each decision, of its analysis or one its universes drive, that what is reached through the pin uses there and it doesn't use itself</td>
+</tr>
+<tr>
+<td><strong><em>validator, in each universe the driving analysis reaches</em></strong></td>
 <td></td>
 <td></td>
-</tr>
-<tr>
-<td><code>INPUT_NOT_BUILT</code></td>
-<td>MUST</td>
-<td>Every output a result planned in a universe reads without a pin is active there</td>
 </tr>
 <tr>
 <td><code>NOT_BUILT_IN_UNIVERSE</code></td>
 <td>MUST</td>
-<td>An output reading another analysis's output built per universe, unpinned or pinned to a universe it is built in, or one of its decisions, reads it from an analysis built in that universe</td>
+<td>Something reached reads another analysis's output built per universe, or its switch, or uses one of its decisions, only in a universe where that analysis is built</td>
 </tr>
 <tr>
 <td><code>UNDRIVEN_DECLARATION</code></td>
 <td>MUST</td>
-<td>In the file of a universe's analysis, every address using another analysis's element there has a driven chain</td>
+<td>In the file of a universe's analysis, every address by which something reached reads another analysis's output built per universe, or its switch, in that universe, or uses one of its decisions there, has a driven chain</td>
 </tr>
 <tr>
 <td><code>RESULT_IN_TWO_PLACES</code></td>

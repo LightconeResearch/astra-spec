@@ -366,23 +366,6 @@ types:
       syntax: ^{id}(\.{id})+$
       interpolated: true
       partial_match: true
-  condition:
-    name: condition
-    definition_uri: https://w3id.org/astra/Condition
-    annotations:
-      rule:
-        tag: rule
-        value: INVALID_REFERENCE
-    description: An option reference, optionally preceded by `~`. Without `~` it holds
-      when that option is selected; with `~` it holds when that option is not selected.
-    from_schema: https://w3id.org/astra/types
-    typeof: string
-    base: str
-    uri: xsd:string
-    structured_pattern:
-      syntax: ^~?{id}(\.{id})+$
-      interpolated: true
-      partial_match: true
   commit_id:
     name: commit_id
     definition_uri: https://w3id.org/astra/CommitId
@@ -883,6 +866,6 @@ classes:
     class_uri: prov:SoftwareAgent
 metamodel_version: 1.12.0
 source_file: provenance.yaml
-source_file_date: '2026-11-11T15:46:21'
+source_file_date: '2026-11-11T21:36:27'
 source_file_size: 6118
 

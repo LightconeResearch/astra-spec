@@ -362,23 +362,6 @@ types:
       syntax: ^{id}(\.{id})+$
       interpolated: true
       partial_match: true
-  condition:
-    name: condition
-    definition_uri: https://w3id.org/astra/Condition
-    annotations:
-      rule:
-        tag: rule
-        value: INVALID_REFERENCE
-    description: An option reference, optionally preceded by `~`. Without `~` it holds
-      when that option is selected; with `~` it holds when that option is not selected.
-    from_schema: https://w3id.org/astra/types
-    typeof: string
-    base: str
-    uri: xsd:string
-    structured_pattern:
-      syntax: ^~?{id}(\.{id})+$
-      interpolated: true
-      partial_match: true
   commit_id:
     name: commit_id
     definition_uri: https://w3id.org/astra/CommitId
@@ -538,9 +521,10 @@ slots:
       \ for a literal `}`, and any other `{` opens a placeholder, which ends at the\
       \ next `}`. A runner substitutes each placeholder, and each `{{` and `}}`, before\
       \ running the command:\n\n  {inputs.<entry>}     the path of what an entry of\
-      \ the output's\n                       `inputs` names, with <entry> written\n\
-      \                       exactly as the entry is, dots and `#`\n            \
-      \           included, as in\n                       {inputs.subanalysis.output1#u1}\n\
+      \ the output's\n                       `inputs` names (for a switch, what the\
+      \ case\n                       it takes names), with <entry> written\n     \
+      \                  exactly as the entry is, dots and `#`\n                 \
+      \      included, as in\n                       {inputs.subanalysis.output1#u1}\n\
       \  {decisions.<entry>}  the id of the option selected for the\n            \
       \           decision an entry of the output's\n                       `decisions`\
       \ names, with <entry> written\n                       exactly as the entry is,\
@@ -689,7 +673,8 @@ slots:
     minimum_cardinality: 1
   output__type:
     name: output__type
-    description: The kind of artefact the output is.
+    description: The kind of artefact the output is. Every output but a switch has
+      one.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:type
     alias: type
@@ -697,7 +682,6 @@ slots:
     domain_of:
     - Output
     range: OutputType
-    required: true
   output__format:
     name: output__format
     annotations:
@@ -706,7 +690,7 @@ slots:
         value: INVALID_VALUE
     description: 'How the output''s artefact is encoded, as a lowercase token: the
       extension of its results'' files, without the leading dot, such as `png`, `csv`
-      or `parquet`.'
+      or `parquet`. Every output but a switch has one.'
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:format
     alias: format
@@ -714,13 +698,12 @@ slots:
     domain_of:
     - Output
     range: string
-    required: true
     pattern: ^[a-z0-9][a-z0-9_.+-]*$
   output__inputs:
     name: output__inputs
     description: 'What the output is made from, in order: references to inputs and
-      outputs of the analysis or of analyses it declares. A reference can be pinned
-      to a universe with `#`.'
+      outputs of the analysis or of analyses it declares, a switch read as the case
+      it takes. A reference can be pinned to a universe with `#`.'
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:inputs
     alias: inputs
@@ -744,22 +727,9 @@ slots:
     range: address
     multivalued: true
     minimum_cardinality: 1
-  output__when:
-    name: output__when
-    description: The conditions under which the output is active. It is active only
-      when every condition holds.
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:when
-    alias: when
-    owner: Output
-    domain_of:
-    - Output
-    range: condition
-    multivalued: true
-    minimum_cardinality: 1
   output__recipe:
     name: output__recipe
-    description: How the output is made.
+    description: How the output is made. Every output but a switch has one.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:recipe
     alias: recipe
@@ -767,9 +737,63 @@ slots:
     domain_of:
     - Output
     range: Recipe
-    required: true
     inlined: true
     inlined_as_list: true
+  output__switch:
+    name: output__switch
+    description: For a switch, the address of the decision whose selected option picks
+      the case it takes, such as `decision1` or `stage.decision2`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:switch
+    alias: switch
+    owner: Output
+    domain_of:
+    - Output
+    range: address
+  output__cases:
+    name: output__cases
+    description: 'For a switch, what it is read as where its decision selects each
+      option that has a case, as `<option>: <reference>`, such as `b: stage.output3`.
+      There is at least one, and several options can name one reference. Where its
+      decision selects an option with no case, the switch isn''t built, nor is anything
+      that reads it without a pin.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:cases
+    alias: cases
+    owner: Output
+    domain_of:
+    - Output
+    range: SwitchCase
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+    minimum_cardinality: 1
+  switchCase__case:
+    name: switchCase__case
+    description: The id of an option of the switch's decision, written as its key
+      in `cases`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:case
+    key: true
+    alias: case
+    owner: SwitchCase
+    domain_of:
+    - SwitchCase
+    range: id
+    required: true
+  switchCase__target:
+    name: switchCase__target
+    description: A reference to the input, output or switch the switch is read as
+      where the option is selected, written as an entry of an output's `inputs` is,
+      such as `stage.output3` or `output1#u1`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:target
+    alias: target
+    owner: SwitchCase
+    domain_of:
+    - SwitchCase
+    range: reference
+    required: true
   decision__id:
     name: decision__id
     description: The decision's id, written as its key in `decisions`.
@@ -812,19 +836,6 @@ slots:
     domain_of:
     - Decision
     range: string
-    multivalued: true
-    minimum_cardinality: 1
-  decision__when:
-    name: decision__when
-    description: The conditions under which the decision is active. It is active only
-      when every condition holds.
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:when
-    alias: when
-    owner: Decision
-    domain_of:
-    - Decision
-    range: condition
     multivalued: true
     minimum_cardinality: 1
   decision__options:
@@ -901,7 +912,8 @@ slots:
     minimum_cardinality: 1
   option__requires:
     name: option__requires
-    description: The options that are also selected whenever this option is.
+    description: 'The options that are also selected wherever this option is, among
+      the decisions a universe uses: a decision it doesn''t use selects none.'
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:requires
     alias: requires
@@ -913,7 +925,8 @@ slots:
     minimum_cardinality: 1
   option__incompatible_with:
     name: option__incompatible_with
-    description: The options that are never selected together with this option.
+    description: The options that are never selected together with this option, among
+      the decisions a universe uses.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:incompatible_with
     alias: incompatible_with
@@ -1184,8 +1197,8 @@ slots:
     inlined_as_list: false
   analysis__outputs:
     name: analysis__outputs
-    description: The artefacts the analysis makes, keyed by id. There is at least
-      one.
+    description: The artefacts the analysis makes, and its switches, keyed by id.
+      There is at least one.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:outputs
     alias: outputs
@@ -1369,6 +1382,8 @@ slots:
     name: evidence__artifact
     description: A reference to the cited output, written as in an output's `inputs`.
       It may pin the output to a universe, the one the claim is about, such as `output1#u1`.
+      A switch is cited as the case it takes, and each of its cases names an output
+      other than a switch, or a switch like it.
     from_schema: https://w3id.org/astra/insight
     slot_uri: astra:artifact
     alias: artifact
@@ -1532,9 +1547,9 @@ classes:
     name: Recipe
     definition_uri: https://w3id.org/astra/Recipe
     description: 'How an output is made: a `command` and the context it runs in (`resources`,
-      `container`). What the output is made from, the decisions it is made with and
-      when it is active are the output''s `inputs`, `decisions` and `when`; the command
-      reaches the inputs and decisions through its placeholders.'
+      `container`). What the output is made from and the decisions it is made with
+      are the output''s `inputs` and `decisions`; the command reaches the inputs and
+      decisions through its placeholders.'
     from_schema: https://w3id.org/astra/analysis
     slots:
     - recipe__command
@@ -1549,7 +1564,8 @@ classes:
           \ which ends at the next `}`. A runner substitutes each placeholder, and\
           \ each `{{` and `}}`, before running the command:\n\n  {inputs.<entry>}\
           \     the path of what an entry of the output's\n                      \
-          \ `inputs` names, with <entry> written\n                       exactly as\
+          \ `inputs` names (for a switch, what the case\n                       it\
+          \ takes names), with <entry> written\n                       exactly as\
           \ the entry is, dots and `#`\n                       included, as in\n \
           \                      {inputs.subanalysis.output1#u1}\n  {decisions.<entry>}\
           \  the id of the option selected for the\n                       decision\
@@ -1616,8 +1632,10 @@ classes:
   Output:
     name: Output
     definition_uri: https://w3id.org/astra/Output
-    description: 'An artefact the analysis makes, such as a metric, a figure or a
-      table: what it is, what it is made from, and how.'
+    description: 'An entry of `outputs`: an artefact the analysis makes, such as a
+      metric, a figure or a table, with what it is, what it is made from and how;
+      or a switch, which has a `switch` and `cases`, makes nothing, and is read as
+      the case it takes.'
     from_schema: https://w3id.org/astra/analysis
     slots:
     - output__id
@@ -1628,8 +1646,9 @@ classes:
     - output__format
     - output__inputs
     - output__decisions
-    - output__when
     - output__recipe
+    - output__switch
+    - output__cases
     attributes:
       id:
         name: id
@@ -1649,9 +1668,9 @@ classes:
         minimum_cardinality: 1
       type:
         name: type
-        description: The kind of artefact the output is.
+        description: The kind of artefact the output is. Every output but a switch
+          has one.
         range: OutputType
-        required: true
       format:
         name: format
         annotations:
@@ -1660,14 +1679,13 @@ classes:
             value: INVALID_VALUE
         description: 'How the output''s artefact is encoded, as a lowercase token:
           the extension of its results'' files, without the leading dot, such as `png`,
-          `csv` or `parquet`.'
-        required: true
+          `csv` or `parquet`. Every output but a switch has one.'
         pattern: ^[a-z0-9][a-z0-9_.+-]*$
       inputs:
         name: inputs
         description: 'What the output is made from, in order: references to inputs
-          and outputs of the analysis or of analyses it declares. A reference can
-          be pinned to a universe with `#`.'
+          and outputs of the analysis or of analyses it declares, a switch read as
+          the case it takes. A reference can be pinned to a universe with `#`.'
         range: reference
         multivalued: true
         minimum_cardinality: 1
@@ -1679,20 +1697,179 @@ classes:
         range: address
         multivalued: true
         minimum_cardinality: 1
-      when:
-        name: when
-        description: The conditions under which the output is active. It is active
-          only when every condition holds.
-        range: condition
-        multivalued: true
-        minimum_cardinality: 1
       recipe:
         name: recipe
-        description: How the output is made.
+        description: How the output is made. Every output but a switch has one.
         range: Recipe
-        required: true
         inlined: true
+      switch:
+        name: switch
+        description: For a switch, the address of the decision whose selected option
+          picks the case it takes, such as `decision1` or `stage.decision2`.
+        range: address
+      cases:
+        name: cases
+        description: 'For a switch, what it is read as where its decision selects
+          each option that has a case, as `<option>: <reference>`, such as `b: stage.output3`.
+          There is at least one, and several options can name one reference. Where
+          its decision selects an option with no case, the switch isn''t built, nor
+          is anything that reads it without a pin.'
+        range: SwitchCase
+        multivalued: true
+        inlined: true
+        minimum_cardinality: 1
     class_uri: astra:Output
+    rules:
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: ABSENT
+      postconditions:
+        slot_conditions:
+          type:
+            name: type
+            value_presence: PRESENT
+          format:
+            name: format
+            value_presence: PRESENT
+          recipe:
+            name: recipe
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: MISSING_FIELD
+      description: An output that isn't a switch has a `type`, a `format` and a `recipe`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          cases:
+            name: cases
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has `cases`.
+    - preconditions:
+        slot_conditions:
+          cases:
+            name: cases
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: An entry with `cases` has a `switch`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          type:
+            name: type
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `type`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          format:
+            name: format
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `format`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          inputs:
+            name: inputs
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `inputs`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          decisions:
+            name: decisions
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `decisions`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          recipe:
+            name: recipe
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `recipe`.
+  SwitchCase:
+    name: SwitchCase
+    definition_uri: https://w3id.org/astra/SwitchCase
+    description: 'What a switch is read as where its decision selects one option,
+      written in the switch''s `cases` as `<option>: <reference>`, such as `b: stage.output3`.'
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - switchCase__case
+    - switchCase__target
+    attributes:
+      case:
+        name: case
+        description: The id of an option of the switch's decision, written as its
+          key in `cases`.
+        key: true
+        range: id
+      target:
+        name: target
+        description: A reference to the input, output or switch the switch is read
+          as where the option is selected, written as an entry of an output's `inputs`
+          is, such as `stage.output3` or `output1#u1`.
+        range: reference
+        required: true
+    class_uri: astra:SwitchCase
   Decision:
     name: Decision
     definition_uri: https://w3id.org/astra/Decision
@@ -1704,7 +1881,6 @@ classes:
     - decision__label
     - decision__rationale
     - decision__tags
-    - decision__when
     - decision__options
     attributes:
       id:
@@ -1721,13 +1897,6 @@ classes:
       tags:
         name: tags
         description: Keywords for grouping and finding the decision.
-        multivalued: true
-        minimum_cardinality: 1
-      when:
-        name: when
-        description: The conditions under which the decision is active. It is active
-          only when every condition holds.
-        range: condition
         multivalued: true
         minimum_cardinality: 1
       options:
@@ -1779,13 +1948,16 @@ classes:
         minimum_cardinality: 1
       requires:
         name: requires
-        description: The options that are also selected whenever this option is.
+        description: 'The options that are also selected wherever this option is,
+          among the decisions a universe uses: a decision it doesn''t use selects
+          none.'
         range: option_reference
         multivalued: true
         minimum_cardinality: 1
       incompatible_with:
         name: incompatible_with
-        description: The options that are never selected together with this option.
+        description: The options that are never selected together with this option,
+          among the decisions a universe uses.
         range: option_reference
         multivalued: true
         minimum_cardinality: 1
@@ -1798,14 +1970,12 @@ classes:
     name: Universe
     definition_uri: https://w3id.org/astra/Universe
     description: 'An entry of `universes`: a universe of the analysis, a selection
-      of one option for every active decision of the analysis and of every analysis
-      reached through a declaration that the analysis''s universes drive, or an import,
+      of one option for every decision it uses of the analysis and of every analysis,
+      declared directly or not, that the analysis''s universes drive, or an import,
       which has an `analysis` and a `universe`, names one of another analysis''s universes
       and selects nothing. A universe''s effective selection is the effective selection
       of the universe it is derived from, if any, with its own `decisions` written
-      over it decision by decision and every inherited selection of a decision that
-      isn''t active in the result dropped, so a universe that switches a decision
-      on must set it.'
+      over it decision by decision.'
     from_schema: https://w3id.org/astra/analysis
     slots:
     - universe__id
@@ -2080,8 +2250,8 @@ classes:
         inlined: true
       outputs:
         name: outputs
-        description: The artefacts the analysis makes, keyed by id. There is at least
-          one.
+        description: The artefacts the analysis makes, and its switches, keyed by
+          id. There is at least one.
         range: Output
         required: true
         multivalued: true
@@ -2216,7 +2386,8 @@ classes:
         name: artifact
         description: A reference to the cited output, written as in an output's `inputs`.
           It may pin the output to a universe, the one the claim is about, such as
-          `output1#u1`.
+          `output1#u1`. A switch is cited as the case it takes, and each of its cases
+          names an output other than a switch, or a switch like it.
         range: reference
       version:
         name: version
@@ -2319,6 +2490,6 @@ classes:
     class_uri: astra:Insight
 metamodel_version: 1.12.0
 source_file: analysis.yaml
-source_file_date: '2026-11-11T15:46:21'
-source_file_size: 19588
+source_file_date: '2026-11-11T21:36:27'
+source_file_size: 23693
 

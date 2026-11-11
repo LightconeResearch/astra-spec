@@ -817,17 +817,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cardinality-and-requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Cardinality and Requirements
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#slot-characteristics" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -940,7 +929,7 @@
 
 
 <h1 id="slot-format">Slot: format<a class="headerlink" href="#slot-format" title="Permanent link">&para;</a></h1>
-<p><em>How the output's artefact is encoded, as a lowercase token: the extension of its results' files, without the leading dot, such as <code>png</code>, <code>csv</code> or <code>parquet</code>.</em></p>
+<p><em>How the output's artefact is encoded, as a lowercase token: the extension of its results' files, without the leading dot, such as <code>png</code>, <code>csv</code> or <code>parquet</code>. Every output but a switch has one.</em></p>
 <div data-search-exclude="data-search-exclude">
 <p>URI: <a href="https://w3id.org/astra/format">astra:format</a></p>
 <!-- no inheritance hierarchy -->
@@ -956,7 +945,7 @@
 <tbody>
 <tr>
 <td><a href="../Output/">Output</a></td>
-<td>An artefact the analysis makes, such as a metric, a figure or a table: what it…</td>
+<td>An entry of <code>outputs</code>: an artefact the analysis makes, such as a metric, a figure…</td>
 <td>no</td>
 </tr>
 </tbody>
@@ -978,21 +967,6 @@
 <tr>
 <td>Domain Of</td>
 <td><a href="../Output/">Output</a></td>
-</tr>
-</tbody>
-</table>
-<h3 id="cardinality-and-requirements">Cardinality and Requirements<a class="headerlink" href="#cardinality-and-requirements" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Property</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Required</td>
-<td>Yes</td>
 </tr>
 </tbody>
 </table>
@@ -1073,14 +1047,14 @@
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rule</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">INVALID_VALUE</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;How</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">output</span><span class="se">&#39;&#39;</span><span class="s">s</span><span class="nv"> </span><span class="s">artefact</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">encoded,</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">lowercase</span><span class="nv"> </span><span class="s">token:</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">extension</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="s">of</span><span class="nv"> </span><span class="s">its</span><span class="nv"> </span><span class="s">results</span><span class="se">&#39;&#39;</span><span class="nv"> </span><span class="s">files,</span><span class="nv"> </span><span class="s">without</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">leading</span><span class="nv"> </span><span class="s">dot,</span><span class="nv"> </span><span class="s">such</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">`png`,</span><span class="nv"> </span><span class="s">`csv`</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">`parquet`.&#39;</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/astra/analysis</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Output</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nt">domain_of</span><span class="p">:</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Output</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="s">of</span><span class="nv"> </span><span class="s">its</span><span class="nv"> </span><span class="s">results</span><span class="se">&#39;&#39;</span><span class="nv"> </span><span class="s">files,</span><span class="nv"> </span><span class="s">without</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">leading</span><span class="nv"> </span><span class="s">dot,</span><span class="nv"> </span><span class="s">such</span><span class="nv"> </span><span class="s">as</span><span class="nv"> </span><span class="s">`png`,</span><span class="nv"> </span><span class="s">`csv`</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">`parquet`.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="s">Every</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">but</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">switch</span><span class="nv"> </span><span class="s">has</span><span class="nv"> </span><span class="s">one.&#39;</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/astra/analysis</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Output</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="nt">domain_of</span><span class="p">:</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Output</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^[a-z0-9][a-z0-9_.+-]*$</span>
 </span></code></pre></div>
 </details>

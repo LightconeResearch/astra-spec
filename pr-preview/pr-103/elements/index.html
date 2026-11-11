@@ -1049,7 +1049,7 @@ artefacts it makes, and the decisions it makes along the way.</p>
 </tr>
 <tr>
 <td><a href="Output/">Output</a></td>
-<td>An artefact the analysis makes, such as a metric, a figure or a table: what it…</td>
+<td>An entry of <code>outputs</code>: an artefact the analysis makes, such as a metric, a figure…</td>
 </tr>
 <tr>
 <td><a href="Recipe/">Recipe</a></td>
@@ -1058,6 +1058,10 @@ artefacts it makes, and the decisions it makes along the way.</p>
 <tr>
 <td><a href="Resources/">Resources</a></td>
 <td>The compute resources a recipe asks for.</td>
+</tr>
+<tr>
+<td><a href="SwitchCase/">SwitchCase</a></td>
+<td>What a switch is read as where its decision selects one option, written in the…</td>
 </tr>
 <tr>
 <td><a href="TextQuoteSelector/">TextQuoteSelector</a></td>
@@ -1129,6 +1133,14 @@ this schema a record maps onto W3C PROV-O.</p>
 <tr>
 <td><a href="artifact/">artifact</a></td>
 <td>A reference to the cited output, written as in an output's <code>inputs</code>.</td>
+</tr>
+<tr>
+<td><a href="case/">case</a></td>
+<td>The id of an option of the switch's decision, written as its key in <code>cases</code>.</td>
+</tr>
+<tr>
+<td><a href="cases/">cases</a></td>
+<td>For a switch, what it is read as where its decision selects each option that…</td>
 </tr>
 <tr>
 <td><a href="claim/">claim</a></td>
@@ -1228,7 +1240,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="incompatible_with/">incompatible_with</a></td>
-<td>The options that are never selected together with this option.</td>
+<td>The options that are never selected together with this option, among the…</td>
 </tr>
 <tr>
 <td><a href="inputs/">inputs</a></td>
@@ -1264,7 +1276,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="outputs/">outputs</a></td>
-<td>The artefacts the analysis makes, keyed by id.</td>
+<td>The artefacts the analysis makes, and its switches, keyed by id.</td>
 </tr>
 <tr>
 <td><a href="path/">path</a></td>
@@ -1292,7 +1304,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="requires/">requires</a></td>
-<td>The options that are also selected whenever this option is.</td>
+<td>The options that are also selected wherever this option is, among the decisions…</td>
 </tr>
 <tr>
 <td><a href="resources-slot/">resources</a></td>
@@ -1323,8 +1335,16 @@ this schema a record maps onto W3C PROV-O.</p>
 <td>The text that comes just after the passage.</td>
 </tr>
 <tr>
+<td><a href="switch/">switch</a></td>
+<td>For a switch, the address of the decision whose selected option picks the case…</td>
+</tr>
+<tr>
 <td><a href="tags/">tags</a></td>
 <td>Keywords for grouping and finding the input.</td>
+</tr>
+<tr>
+<td><a href="target/">target</a></td>
+<td>A reference to the input, output or switch the switch is read as where the…</td>
 </tr>
 <tr>
 <td><a href="time_limit/">time_limit</a></td>
@@ -1353,10 +1373,6 @@ this schema a record maps onto W3C PROV-O.</p>
 <tr>
 <td><a href="version/">version</a></td>
 <td>The runner's version, such as <code>1.2.0</code>.</td>
-</tr>
-<tr>
-<td><a href="when/">when</a></td>
-<td>The conditions under which the output is active.</td>
 </tr>
 </tbody>
 </table>
@@ -1395,10 +1411,6 @@ this schema a record maps onto W3C PROV-O.</p>
 <tr>
 <td><a href="CommitId/">CommitId</a></td>
 <td>A full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64 (SHA-256).</td>
-</tr>
-<tr>
-<td><a href="Condition/">Condition</a></td>
-<td>An option reference, optionally preceded by <code>~</code>.</td>
 </tr>
 <tr>
 <td><a href="ContentHash/">ContentHash</a></td>
