@@ -92,7 +92,7 @@ linkml-templates/   # Templates for the generated field reference
 rfcs/               # RFCs
 ```
 
-The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/). The `astra-spec` package holds the LinkML sources and the generated schema files, as the namespace package `astra.schema`, read through `importlib.resources`; it ships no Python models and has no dependencies.
+The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). This repository is not a Python package and publishes nothing to PyPI: tools take the generated schema files from `src/astra/schema/generated/` at a release's tag, or from `https://w3id.org/astra/X.Y/`.
 
 ## Development
 

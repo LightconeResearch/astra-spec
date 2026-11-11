@@ -46,7 +46,8 @@ wheels = [
 
 [[package]]
 name = "astra-spec"
-source = { editable = "." }
+version = "0.0.0"
+source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [

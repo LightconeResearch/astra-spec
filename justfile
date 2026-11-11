@@ -181,8 +181,7 @@ lint:
 # version, updates CITATION.cff, commits both, and creates an annotated git
 # tag; then regenerates them as `dev` and commits that, so that only the
 # tagged commit holds the version. The version is X.Y.Z, or a pre-release:
-# X.Y.Z followed by aN, bN or rcN (PEP 440's normal form, which the wheel
-# takes from the tag). A patch release never changes what is valid, so when
+# X.Y.Z followed by aN, bN or rcN (PEP 440's normal form). A patch release never changes what is valid, so when
 # the version's minor already has a release (from 0.1 on), the regenerated
 # files are compared with its greatest release (`tools/check_patch.py`) before
 # anything is committed. Schema YAMLs are not mutated — generators inject the
