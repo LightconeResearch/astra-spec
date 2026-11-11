@@ -76,11 +76,10 @@ classes:
 
   Recipe:
     description: >-
-      How an output is made: a `command` and the context it runs in
-      (`resources`, `container`). What the output is made from and the
-      decisions it is made with are the output's `inputs` and `decisions`;
-      the command reaches the inputs and decisions through its
-      placeholders.
+      How an output is made: a `command` and the compute `resources` it
+      asks for. What the output is made from and the decisions it is made
+      with are the output's `inputs` and `decisions`; the command reaches
+      the inputs and decisions through its placeholders.
     attributes:
       command:
         required: true
@@ -115,10 +114,6 @@ classes:
         range: Resources
         inlined: true
         description: The compute resources the recipe asks for.
-      container:
-        description: >-
-          The container the recipe runs in: an image, or a Containerfile it
-          is built from.
 
   # --- Inputs and outputs ---
 
@@ -667,7 +662,3 @@ classes:
         multivalued: true
         inlined: true
         description: What the analysis concludes, as insights keyed by id.
-      container:
-        description: >-
-          The default container of the analysis's recipes: an image, or a
-          Containerfile it is built from.

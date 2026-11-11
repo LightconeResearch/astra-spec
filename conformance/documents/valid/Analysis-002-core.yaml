@@ -4,7 +4,6 @@ description: >-
   Estimates photometric redshifts from a photometry catalogue, then measures
   their bias.
 tags: [photometric-redshifts, cosmology]
-container: ghcr.io/desc/photoz:latest
 inputs:
   catalog:
     label: Photometry

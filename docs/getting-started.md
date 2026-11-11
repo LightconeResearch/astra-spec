@@ -28,12 +28,11 @@ The scaffolded `astra.yaml` is a complete, valid analysis: a `spec_version` and 
 
 ## Edit the analysis
 
-The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis states its **`spec_version`** and declares its **`outputs:`**, usually with **`inputs:`** and **`decisions:`** — plus optional metadata (`label`, `description`, `tags`, `container`).
+The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis states its **`spec_version`** and declares its **`outputs:`**, usually with **`inputs:`** and **`decisions:`** — plus optional metadata (`label`, `description`, `tags`).
 
 ```yaml
 spec_version: "0.1.0"
 label: My Analysis
-container: python:3.12-slim       # default for all recipes; per-output override allowed
 
 description: |                    # short free-prose orientation
   One paragraph describing the analysis.
