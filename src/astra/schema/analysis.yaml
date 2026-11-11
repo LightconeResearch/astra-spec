@@ -93,7 +93,8 @@ classes:
           the command:
 
             {inputs.<entry>}     the path of what an entry of the output's
-                                 `inputs` names, with <entry> written
+                                 `inputs` names (for a switch, what the case
+                                 it takes names), with <entry> written
                                  exactly as the entry is, dots and `#`
                                  included, as in
                                  {inputs.subanalysis.output1#u1}
@@ -149,8 +150,10 @@ classes:
 
   Output:
     description: >-
-      An artefact the analysis makes, such as a metric, a figure or a table:
-      what it is, what it is made from, and how.
+      An entry of `outputs`: an artefact the analysis makes, such as a
+      metric, a figure or a table, with what it is, what it is made from and
+      how; or a switch, which has a `switch` and `cases`, makes nothing, and
+      is read as the case it takes.
     attributes:
       id:
         key: true
@@ -166,25 +169,26 @@ classes:
         description: Keywords for grouping and finding the output.
       type:
         range: OutputType
-        required: true
-        description: The kind of artefact the output is.
+        description: >-
+          The kind of artefact the output is. Every output but a switch has
+          one.
       format:
-        required: true
         pattern: '^[a-z0-9][a-z0-9_.+-]*$'
         annotations:
           rule: INVALID_VALUE
         description: >-
           How the output's artefact is encoded, as a lowercase token: the
           extension of its results' files, without the leading dot, such as
-          `png`, `csv` or `parquet`.
+          `png`, `csv` or `parquet`. Every output but a switch has one.
       inputs:
         multivalued: true
         range: reference
         minimum_cardinality: 1
         description: >-
           What the output is made from, in order: references to inputs and
-          outputs of the analysis or of analyses it declares. A reference can
-          be pinned to a universe with `#`.
+          outputs of the analysis or of analyses it declares, a switch read
+          as the case it takes. A reference can be pinned to a universe with
+          `#`.
       decisions:
         multivalued: true
         range: address
@@ -195,9 +199,141 @@ classes:
           them, in the universe being built, can give a different result.
       recipe:
         range: Recipe
-        required: true
         inlined: true
-        description: How the output is made.
+        description: >-
+          How the output is made. Every output but a switch has one.
+      switch:
+        range: address
+        description: >-
+          For a switch, the address of the decision whose selected option
+          picks the case it takes, such as `decision1` or `stage.decision2`.
+      cases:
+        range: SwitchCase
+        multivalued: true
+        inlined: true
+        minimum_cardinality: 1
+        description: >-
+          For a switch, what it is read as where its decision selects each
+          option that has a case, as `<option>: <reference>`, such as
+          `b: stage.output3`. There is at least one, and several options can
+          name one reference. Where its decision selects an option with no
+          case, the switch isn't built, nor is anything that reads it without
+          a pin.
+    rules:
+      - description: An output that isn't a switch has a `type`, a `format` and a `recipe`.
+        annotations:
+          rule: MISSING_FIELD
+        preconditions:
+          slot_conditions:
+            switch:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            type:
+              value_presence: PRESENT
+            format:
+              value_presence: PRESENT
+            recipe:
+              value_presence: PRESENT
+      - description: A switch has `cases`.
+        annotations:
+          rule: INVALID_SWITCH
+        preconditions:
+          slot_conditions:
+            switch:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            cases:
+              value_presence: PRESENT
+      - description: An entry with `cases` has a `switch`.
+        annotations:
+          rule: INVALID_SWITCH
+        preconditions:
+          slot_conditions:
+            cases:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            switch:
+              value_presence: PRESENT
+      # Each absent field has a rule of its own: LinkML writes two absent
+      # fields in one postcondition as "not both".
+      - description: A switch has no `type`.
+        annotations:
+          rule: INVALID_SWITCH
+        preconditions:
+          slot_conditions:
+            switch:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            type:
+              value_presence: ABSENT
+      - description: A switch has no `format`.
+        annotations:
+          rule: INVALID_SWITCH
+        preconditions:
+          slot_conditions:
+            switch:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            format:
+              value_presence: ABSENT
+      - description: A switch has no `inputs`.
+        annotations:
+          rule: INVALID_SWITCH
+        preconditions:
+          slot_conditions:
+            switch:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            inputs:
+              value_presence: ABSENT
+      - description: A switch has no `decisions`.
+        annotations:
+          rule: INVALID_SWITCH
+        preconditions:
+          slot_conditions:
+            switch:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            decisions:
+              value_presence: ABSENT
+      - description: A switch has no `recipe`.
+        annotations:
+          rule: INVALID_SWITCH
+        preconditions:
+          slot_conditions:
+            switch:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            recipe:
+              value_presence: ABSENT
+
+  SwitchCase:
+    description: >-
+      What a switch is read as where its decision selects one option,
+      written in the switch's `cases` as `<option>: <reference>`, such as
+      `b: stage.output3`.
+    attributes:
+      case:
+        key: true
+        range: id
+        description: >-
+          The id of an option of the switch's decision, written as its key in
+          `cases`.
+      target:
+        range: reference
+        required: true
+        description: >-
+          A reference to the input, output or switch the switch is read as
+          where the option is selected, written as an entry of an output's
+          `inputs` is, such as `stage.output3` or `output1#u1`.
 
   # --- Decisions ---
 
@@ -253,13 +389,16 @@ classes:
         range: option_reference
         minimum_cardinality: 1
         description: >-
-          The options that are also selected whenever this option is.
+          The options that are also selected wherever this option is, among
+          the decisions a universe uses: a decision it doesn't use selects
+          none.
       incompatible_with:
         multivalued: true
         range: option_reference
         minimum_cardinality: 1
         description: >-
-          The options that are never selected together with this option.
+          The options that are never selected together with this option,
+          among the decisions a universe uses.
       excluded:
         description: >-
           Why the option is ruled out. An option with a reason is excluded: no
@@ -270,10 +409,10 @@ classes:
   Universe:
     description: >-
       An entry of `universes`: a universe of the analysis, a selection of one
-      option for every decision of the analysis and of every analysis
-      reached through a declaration that the analysis's universes drive, or
-      an import, which has an `analysis` and a `universe`, names one of
-      another analysis's universes and selects nothing. A universe's
+      option for every decision it uses of the analysis and of every
+      analysis, declared directly or not, that the analysis's universes
+      drive, or an import, which has an `analysis` and a `universe`, names
+      one of another analysis's universes and selects nothing. A universe's
       effective selection is the effective selection of the universe it is
       derived from, if any, with its own `decisions` written over it decision
       by decision.
@@ -494,8 +633,8 @@ classes:
         required: true
         minimum_cardinality: 1
         description: >-
-          The artefacts the analysis makes, keyed by id. There is at least
-          one.
+          The artefacts the analysis makes, and its switches, keyed by id.
+          There is at least one.
       decisions:
         range: Decision
         multivalued: true

@@ -494,12 +494,12 @@ after the arrow. Rows that share a code are cases of one rule.
 | `INVALID_SYNTAX` | MUST | An `astra.yaml` is a YAML 1.2 document holding a map |
 | `INVALID_SYNTAX` | MUST | A record is UTF-8 JSON text, no object repeating a name |
 | **schema** | | |
-| `MISSING_FIELD` | MUST | `astra.yaml` has `spec_version` and `outputs`; an output, `type`, `format` and `recipe.command` |
+| `MISSING_FIELD` | MUST | `astra.yaml` has `spec_version` and `outputs`; an output other than a switch, `type`, `format` and `recipe.command` |
 | `MISSING_FIELD` | MUST | An input has `path`; a decision, `options`; an insight, `claim`, `evidence`; `quote`, `exact`; `location`, `value` |
 | `MISSING_FIELD` | MUST | A record has every field but `started`, `finished` and `inputs` |
 | `UNKNOWN_FIELD` | MUST | Every field is one the schema defines |
 | `WRONG_TYPE` | MUST | Every value has its field's JSON type, never null (leave an optional field out) |
-| `EMPTY_COLLECTION` | MUST | `outputs`, `options`, `evidence` and every list of strings in `astra.yaml` are non-empty |
+| `EMPTY_COLLECTION` | MUST | `outputs`, `options`, `cases`, `evidence` and every list of strings in `astra.yaml` are non-empty |
 | `DUPLICATE_ENTRY` | MUST | No list of strings holds one entry twice |
 | `INVALID_VALUE` | MUST | `type` is `metric`, `figure`, `table`, `data` or `report`; `format` matches `^[a-z0-9][a-z0-9_.+-]*$` |
 | `INVALID_VALUE` | MUST | Every `spec_version`, hash, IRI, time, `doi`, `url` and location `value` has its form |
@@ -508,6 +508,7 @@ after the arrow. Rows that share a code are cases of one rule.
 | `INVALID_REFERENCE` | MUST | Every address, reference and option reference, bar universe keys, matches its grammar |
 | `INVALID_PATH` | MUST | Every input's and declaration's `path` is non-empty and doesn't start with `/` |
 | `INVALID_IMPORT` | MUST | A `universes` entry with `analysis` or `universe` has both, and no `decisions` or `derived_from` |
+| `INVALID_SWITCH` | MUST | An `outputs` entry with `switch` or `cases` has both, and no `type`, `format`, `inputs`, `decisions` or `recipe` |
 | `INVALID_EVIDENCE_SOURCE` | MUST | Evidence has exactly one of `doi` and `artifact`, and `version` only with `doi` |
 | `INVALID_DECLARATION_SOURCE` | MUST | A declaration has exactly one of `path` and `url` |
 | `URL_WITHOUT_COMMIT` | MUST | A declaration with a `url` has a `commit` |

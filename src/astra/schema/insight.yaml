@@ -95,7 +95,9 @@ classes:
         description: >-
           A reference to the cited output, written as in an output's
           `inputs`. It may pin the output to a universe, the one the claim is
-          about, such as `output1#u1`.
+          about, such as `output1#u1`. A switch is cited as the case it takes,
+          and each of its cases names an output other than a switch, or a
+          switch like it.
       version:
         range: integer
         minimum_value: 1

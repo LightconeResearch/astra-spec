@@ -1,0 +1,54 @@
+# Switches: a case names an input, an output, another switch or a declared
+# analysis's output, pinned or not; options may share a case, an excluded
+# option may have one, and an option may have none.
+spec_version: "0.1.0"
+analyses:
+  stage:
+    path: stage
+inputs:
+  catalog:
+    path: data/catalog.csv
+decisions:
+  survey:
+    options:
+      local: {}
+      remote: {}
+      future:
+        excluded: Its catalogue isn't public yet.
+  model:
+    options:
+      svm: {}
+      random_forest: {}
+      logistic: {}
+      neural_net: {}
+outputs:
+  standardised:
+    type: data
+    format: csv
+    inputs: [catalog]
+    recipe:
+      command: python make.py '{inputs.catalog}' '{output}'
+  survey_data:
+    label: Survey data
+    description: The selected survey's catalogue.
+    tags: [data]
+    switch: survey
+    cases:
+      local: catalog
+      remote: stage.catalog#v1
+      future: stage.future_catalog
+  training_data:
+    switch: model
+    cases:
+      svm: standardised
+      random_forest: survey_data
+      logistic: survey_data
+  result:
+    type: metric
+    format: json
+    inputs: [training_data]
+    decisions: [model]
+    recipe:
+      command: >-
+        python make.py '{inputs.training_data}' '{decisions.model}'
+        '{output}'

@@ -669,6 +669,8 @@ CODES = {
     ANALYSIS
     + "/$defs/Option__identifier_optional/properties/requires/items/pattern": "INVALID_REFERENCE",
     ANALYSIS + "/$defs/Evidence/properties/artifact/pattern": "INVALID_REFERENCE",
+    ANALYSIS
+    + "/$defs/Output__identifier_optional/properties/cases/additionalProperties/pattern": "INVALID_REFERENCE",
     ANALYSIS + "/properties/spec_version/pattern": "INVALID_VALUE",
     RECORD + "/properties/content_hash/pattern": "INVALID_VALUE",
     RECORD + "/$defs/Generation/properties/started/pattern": "INVALID_VALUE",
@@ -681,6 +683,8 @@ CODES = {
     + "/$defs/Universe__identifier_optional/properties/decisions/propertyNames": "INVALID_ID",
     ANALYSIS
     + "/$defs/Universe__identifier_optional/properties/decisions/propertyNames/pattern": "INVALID_ID",
+    ANALYSIS
+    + "/$defs/Output__identifier_optional/properties/cases/propertyNames": "INVALID_ID",
     # Patterns, by their slot
     ANALYSIS
     + "/$defs/Input__identifier_optional/properties/path/pattern": "INVALID_PATH",
@@ -706,9 +710,12 @@ CODES = {
     ANALYSIS + "/$defs/Evidence/allOf/0/then/oneOf": "INVALID_EVIDENCE_SOURCE",
     ANALYSIS + "/$defs/Evidence/allOf/1/if": "INVALID_EVIDENCE_SOURCE",
     ANALYSIS + "/$defs/Evidence/allOf/1/then/not": "INVALID_EVIDENCE_SOURCE",
+    ANALYSIS
+    + "/$defs/Output__identifier_optional/allOf/0/then/required": "MISSING_FIELD",
+    ANALYSIS + "/$defs/Output__identifier_optional/allOf/1/if": "INVALID_SWITCH",
+    ANALYSIS + "/$defs/Output__identifier_optional/allOf/3/then/not": "INVALID_SWITCH",
     # Defaults
     ANALYSIS + "/required": "MISSING_FIELD",
-    ANALYSIS + "/$defs/Output__identifier_optional/required": "MISSING_FIELD",
     ANALYSIS + "/additionalProperties": "UNKNOWN_FIELD",
     RECORD + "/$defs/Runner/additionalProperties": "UNKNOWN_FIELD",
     ANALYSIS + "/properties/tags/type": "WRONG_TYPE",
@@ -1078,7 +1085,12 @@ LOCATED = {
     ),
     "a map's additionalProperties, object form": (
         {**DOCUMENT, "outputs": {"o": {"type": "metric", "recipe": RECIPE}}},
-        {("/outputs/o", ANALYSIS + "/$defs/Output__identifier_optional/required")},
+        {
+            (
+                "/outputs/o",
+                ANALYSIS + "/$defs/Output__identifier_optional/allOf/0/then/required",
+            )
+        },
     ),
     "an enum through a $ref with a sibling": (
         {
@@ -1291,6 +1303,18 @@ def test_the_error_filter_gives_the_codes_jsonschema_gives(path, output_format):
     }
 
 
+SWITCH_LEAKS = {
+    # The `if`s of a switch's seven rules, which an ordinary output fails.
+    *(
+        ANALYSIS + "/$defs/Output__identifier_optional/allOf/" + f"{n}/if" + tail
+        for n in range(1, 8)
+        for tail in ("", "/required")
+    ),
+    # The `required` inside the `not` of the `if` an ordinary output passes, which fails as the `not` holds.
+    ANALYSIS + "/$defs/Output__identifier_optional/allOf/0/if/not/required",
+}
+"""What jschon lists, and the filter drops, for each ordinary output: the checks of a switch, which it isn't."""
+
 LEAKS = {
     "Analysis-150-short-commit": {
         # The failing branch of a `oneOf` that passes: its entry's code would be wrong.
@@ -1301,12 +1325,14 @@ LEAKS = {
             for n in range(4)
             for tail in ("", "/required")
         ),
+        *SWITCH_LEAKS,
     },
     "Analysis-166-doi-directory-not-10": {
         ANALYSIS + "/$defs/Evidence/allOf/0/then/oneOf/1/required",
         # An `if` whose `then` doesn't fail, and the `not` inside it, which has no entry.
         ANALYSIS + "/$defs/Evidence/allOf/1/if",
         ANALYSIS + "/$defs/Evidence/allOf/1/if/not",
+        *SWITCH_LEAKS,
     },
 }
 

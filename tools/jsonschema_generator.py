@@ -34,7 +34,9 @@ It also:
    wrong type is reported once, by its ``type``. Each ``required`` in a check
    also gets its fields in a ``properties`` beside it, inside a ``not`` too (an
    empty ``{}`` elsewhere goes), so that Ajv compiles the schema under
-   ``strict: true``.
+   ``strict: true``. A check on whether a multivalued field is there reads no
+   value, so the array of anything LinkML writes for it, ``{type: array,
+   items: {}}``, which a map, an object, would fail, becomes ``{}``.
 
 Through :func:`generate`, optional fields also reject null (``include_null=False``),
 and the schema's ``$id`` can be set, so that each generated file is identified
@@ -186,6 +188,10 @@ SUBSCHEMA_LISTS = ("oneOf", "anyOf", "allOf")
 JSON_TYPES = {"object", "array", "string", "integer", "number", "boolean"}
 """The JSON types a field a check reads may have, for its guard: one each, never `null` (no field takes it)."""
 
+ANY_ARRAY = {"type": "array", "items": {}}
+"""What LinkML writes in a check for a multivalued field whose presence alone it reads: an array of anything, even for
+a map, which is an object. A presence check reads no value, so step 5 writes `{}` in its place."""
+
 
 def _guard_checks(node: dict, name: str, ref_types: dict[str, str]) -> None:
     """Step 5 on `node`, the subschema of the class `name`: each class-level check moved into a guarded `allOf` member.
@@ -278,7 +284,8 @@ def _declare_required(node: Any) -> Any:
 
     Ajv's `strictRequired` (on under `strict: true`) wants each field a `required` names defined in the same subschema
     or a parent, and LinkML writes a field that must be absent with its `properties` beside the `not`, not inside it.
-    An empty `{}` there checks nothing, so a field that isn't required in the same subschema loses it.
+    An empty `{}` there checks nothing, so a field that isn't required in the same subschema loses it. A multivalued
+    field's `ANY_ARRAY` is read as `{}`.
     """
     if isinstance(node, list):
         return [_declare_required(sub) for sub in node]
@@ -291,11 +298,12 @@ def _declare_required(node: Any) -> Any:
         for keyword, value in node.items()
     }
     required = result.get("required", [])
-    properties = {
-        prop: sub
-        for prop, sub in result.pop("properties", {}).items()
-        if sub or prop in required
-    }
+    properties = {}
+    for prop, sub in result.pop("properties", {}).items():
+        if sub == ANY_ARRAY:
+            sub = {}
+        if sub or prop in required:
+            properties[prop] = sub
     properties.update({prop: {} for prop in required if prop not in properties})
     if properties:
         result["properties"] = properties

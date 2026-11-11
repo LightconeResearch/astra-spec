@@ -38,6 +38,14 @@ outputs:
       command: >-
         python src/bias.py --estimates {inputs.estimates#baseline}
         --out {output}
+  chosen:
+    label: Chosen estimates
+    description: The estimates of the selected method, or the baseline's.
+    tags: [redshifts]
+    switch: method
+    cases:
+      neural_net: estimates
+      template: estimates#baseline
 decisions:
   method:
     label: Estimator

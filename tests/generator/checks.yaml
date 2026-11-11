@@ -5,7 +5,8 @@ description: |-
   A scratch schema, not ASTRA, for testing the JSON Schema generator
   extension on class-level checks: an exactly_one_of and three class rules,
   one of which reads fields written as a `$ref`, to an enum and to an
-  inlined class.
+  inlined class, on a source; and a class rule on the document that reads a
+  map and a list.
 version: 0.0.0
 
 prefixes:
@@ -21,13 +22,28 @@ imports:
 classes:
   Root:
     tree_root: true
-    description: The document.
+    description: The document, with `sources` wherever it has `notes`.
     attributes:
       sources:
         description: A list of sources.
         range: Source
         multivalued: true
         inlined_as_list: true
+      notes:
+        description: A map of notes keyed by id.
+        range: Note
+        multivalued: true
+        inlined: true
+    rules:
+      - description: A document with `notes` has `sources`.
+        preconditions:
+          slot_conditions:
+            notes:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            sources:
+              value_presence: PRESENT
 
   Source:
     description: >-
@@ -93,6 +109,16 @@ classes:
     attributes:
       note:
         description: A note.
+
+  Note:
+    description: A note, keyed by id, written in the compact form.
+    attributes:
+      id:
+        description: The note's id.
+        key: true
+        pattern: '^[a-z]+$'
+      text:
+        description: The note's text.
 
 enums:
   Kind:

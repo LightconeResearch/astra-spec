@@ -100,6 +100,28 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/OutputType/enum": "INVALID_VALUE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/OutputType/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/additionalProperties": "UNKNOWN_FIELD",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/0/if": "MISSING_FIELD",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/0/then/required": "MISSING_FIELD",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/1/if": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/1/then/required": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/2/if": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/2/then/required": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/3/if": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/3/then/not": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/4/if": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/4/then/not": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/5/if": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/5/then/not": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/6/if": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/6/then/not": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/7/if": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/allOf/7/then/not": "INVALID_SWITCH",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/cases/additionalProperties/pattern": "INVALID_REFERENCE",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/cases/additionalProperties/type": "WRONG_TYPE",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/cases/minProperties": "EMPTY_COLLECTION",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/cases/propertyNames": "INVALID_ID",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/cases/propertyNames/pattern": "INVALID_ID",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/cases/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/decisions/items/pattern": "INVALID_REFERENCE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/decisions/items/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/decisions/minItems": "EMPTY_COLLECTION",
@@ -114,11 +136,12 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/inputs/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/inputs/uniqueItems": "DUPLICATE_ENTRY",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/label/type": "WRONG_TYPE",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/switch/pattern": "INVALID_REFERENCE",
+    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/switch/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/tags/items/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/tags/minItems": "EMPTY_COLLECTION",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/tags/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/tags/uniqueItems": "DUPLICATE_ENTRY",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/required": "MISSING_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Recipe/additionalProperties": "UNKNOWN_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Recipe/properties/command/type": "WRONG_TYPE",
@@ -288,7 +311,7 @@
       "code": "MISSING_FIELD",
       "layer": "schema",
       "level": "MUST",
-      "statement": "`astra.yaml` has `spec_version` and `outputs`; an output, `type`, `format` and `recipe.command`; An input has `path`; a decision, `options`; an insight, `claim`, `evidence`; `quote`, `exact`; `location`, `value`; A record has every field but `started`, `finished` and `inputs`"
+      "statement": "`astra.yaml` has `spec_version` and `outputs`; an output other than a switch, `type`, `format` and `recipe.command`; An input has `path`; a decision, `options`; an insight, `claim`, `evidence`; `quote`, `exact`; `location`, `value`; A record has every field but `started`, `finished` and `inputs`"
     },
     {
       "code": "UNKNOWN_FIELD",
@@ -306,7 +329,7 @@
       "code": "EMPTY_COLLECTION",
       "layer": "schema",
       "level": "MUST",
-      "statement": "`outputs`, `options`, `evidence` and every list of strings in `astra.yaml` are non-empty"
+      "statement": "`outputs`, `options`, `cases`, `evidence` and every list of strings in `astra.yaml` are non-empty"
     },
     {
       "code": "DUPLICATE_ENTRY",
@@ -343,6 +366,12 @@
       "layer": "schema",
       "level": "MUST",
       "statement": "A `universes` entry with `analysis` or `universe` has both, and no `decisions` or `derived_from`"
+    },
+    {
+      "code": "INVALID_SWITCH",
+      "layer": "schema",
+      "level": "MUST",
+      "statement": "An `outputs` entry with `switch` or `cases` has both, and no `type`, `format`, `inputs`, `decisions` or `recipe`"
     },
     {
       "code": "INVALID_EVIDENCE_SOURCE",

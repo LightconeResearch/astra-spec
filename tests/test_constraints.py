@@ -57,8 +57,10 @@ class Case(NamedTuple):
 
     The edit sets `value` at the pointer, adding the field or entry if there is none, or deletes what is there
     (`DELETE`). The document then fails at `fails_at` alone: by default the pointer for a value set, and the object or
-    list that held it for a deletion. `also` is the code of a second keyword the edit breaks there, if any: only an
-    enumeration's `type`, since a value of another type is none of its strings either.
+    list that held it for a deletion. `also` is the code of a second keyword the edit breaks there, if any: an
+    enumeration's `type`, since a value of another type is none of its strings either, or a field deleted where two
+    class rules read it (an entry with `cases` and no `switch` is a switch without its decision and an output without
+    `type`, `format` and `recipe`).
     """
 
     base: str
@@ -84,6 +86,7 @@ INSIGHT = {"claim": "The forest is accurate.", "evidence": [{"artifact": "scores
 SMALL = "/decisions/training/options/small"
 NEURAL_NET = "/decisions/method/options/neural_net"
 RESOURCES = "/outputs/result/recipe/resources"
+SWITCH = "/outputs/chosen"
 SVM = "/universes/svm_standard"
 IMPORT = "/universes/stage_alone"
 FINDING = "/findings/rf_accuracy"
@@ -212,6 +215,33 @@ NEGATIVE = [
     Case("quoted-keys", RESOURCES + "/memory", 16, "WRONG_TYPE"),
     Case("quoted-keys", RESOURCES + "/time_limit", 2, "WRONG_TYPE"),
     Case("quoted-keys", RESOURCES + "/disk", 10, "WRONG_TYPE"),
+    # --- A switch: an entry of outputs with switch and cases ---
+    Case("core", SWITCH + "/switch", 1, "WRONG_TYPE"),
+    Case("core", SWITCH + "/switch", "Method", "INVALID_REFERENCE"),
+    Case("core", SWITCH + "/cases", ["estimates"], "WRONG_TYPE"),
+    Case("core", SWITCH + "/cases", {}, "EMPTY_COLLECTION"),
+    Case(
+        "core",
+        SWITCH + "/cases/method.template",
+        "estimates",
+        "INVALID_ID",
+        SWITCH + "/cases",
+    ),
+    Case("core", SWITCH + "/cases/template", ["estimates"], "WRONG_TYPE"),
+    Case("core", SWITCH + "/cases/template", "estimates#", "INVALID_REFERENCE"),
+    Case("core", SWITCH + "/switch", DELETE, "INVALID_SWITCH", also="MISSING_FIELD"),
+    Case("core", SWITCH + "/cases", DELETE, "INVALID_SWITCH"),
+    Case("core", SWITCH + "/type", "data", "INVALID_SWITCH", SWITCH),
+    Case("core", SWITCH + "/format", "csv", "INVALID_SWITCH", SWITCH),
+    Case("core", SWITCH + "/inputs", ["catalog"], "INVALID_SWITCH", SWITCH),
+    Case("core", SWITCH + "/decisions", ["method"], "INVALID_SWITCH", SWITCH),
+    Case(
+        "core",
+        SWITCH + "/recipe",
+        {"command": "python make.py '{output}'"},
+        "INVALID_SWITCH",
+        SWITCH,
+    ),
     # --- Decision ---
     Case("core", "/decisions/method", "neural_net", "WRONG_TYPE"),
     Case(

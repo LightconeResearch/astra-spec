@@ -254,6 +254,31 @@ def test_each_check_is_a_guarded_member_of_all_of(checks_schema):
     ]
 
 
+def test_a_check_on_whether_a_map_or_a_list_is_there_reads_no_value(
+    checks_schema, checks
+):
+    """LinkML writes a multivalued field whose presence a check reads as an array of anything, `{type: array, items:
+    {}}`, which a map, an object, would fail: the check reads no value, so the guard alone gives each field its type."""
+    assert checks_schema["allOf"] == [
+        {
+            "if": {
+                "type": "object",
+                "properties": {
+                    "notes": {"type": "object"},
+                    "sources": {"type": "array"},
+                },
+                "required": ["notes"],
+            },
+            "then": {"properties": {"sources": {}}, "required": ["sources"]},
+        }
+    ]
+    assert checks.is_valid({"notes": {"a": "x"}, "sources": [{"path": "a"}]})
+    assert {
+        ("".join(f"/{part}" for part in error.absolute_path), error.validator)
+        for error in checks.iter_errors({"notes": {"a": "x"}})
+    } == {("", "required")}
+
+
 @pytest.mark.parametrize(
     ("source", "pointer"),
     [

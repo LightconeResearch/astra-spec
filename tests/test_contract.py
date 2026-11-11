@@ -170,6 +170,19 @@ def item_type(items: dict, defs: dict) -> Any:
     return items.get("type")
 
 
+GUARD = re.compile(r"/allOf/[0-9]+/if/properties/[^/]+$")
+"""The pointer of a field's type in a check's guard: its `{type: array}` for a list field is no list's subschema."""
+
+
+def lists(schema: dict) -> list[tuple[str, dict]]:
+    """`(pointer, subschema)` for each list `schema` checks: every `type: array` but a check's guard on a list field."""
+    return [
+        (pointer, node)
+        for pointer, node in nodes(schema)
+        if node.get("type") == "array" and not GUARD.search(pointer)
+    ]
+
+
 def accepts_null(subschema: dict, defs: dict) -> bool:
     """Whether a value that `subschema` checks may be `null`, its references resolved in `defs`."""
     return Draft201909Validator({**subschema, "$defs": defs}).is_valid(None)
@@ -179,6 +192,8 @@ TYPED = {
     ("Analysis", "spec_version"): "spec_version",
     ("Output", "inputs"): "reference",
     ("Output", "decisions"): "address",
+    ("Output", "switch"): "address",
+    ("SwitchCase", "target"): "reference",
     ("Option", "insights"): "id",
     ("Option", "requires"): "option_reference",
     ("Option", "incompatible_with"): "option_reference",
@@ -531,16 +546,13 @@ def test_every_def_is_reachable_from_the_root(name):
 def test_lists_of_strings_hold_no_entry_twice(name):
     """`uniqueItems` on every list of scalars, and on no list of objects (`DUPLICATE_ENTRY`)."""
     schema = load(name)
-    lists = [
-        (pointer, node)
-        for pointer, node in nodes(schema)
-        if node.get("type") == "array"
-    ]
-    assert lists
-    found = {pointer: node.get("uniqueItems") is True for pointer, node in lists}
+    found = {
+        pointer: node.get("uniqueItems") is True for pointer, node in lists(schema)
+    }
+    assert found
     expected = {
         pointer: item_type(node["items"], schema["$defs"]) != "object"
-        for pointer, node in lists
+        for pointer, node in lists(schema)
     }
     assert found == expected
 
@@ -551,9 +563,8 @@ def test_no_list_of_strings_in_an_analysis_is_empty():
     schema = load("analysis.schema.json")
     minimum = {
         pointer: node.get("minItems")
-        for pointer, node in nodes(schema)
-        if node.get("type") == "array"
-        and item_type(node["items"], schema["$defs"]) != "object"
+        for pointer, node in lists(schema)
+        if item_type(node["items"], schema["$defs"]) != "object"
     }
     assert minimum
     assert minimum == dict.fromkeys(minimum, 1)
