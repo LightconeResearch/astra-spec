@@ -455,7 +455,7 @@
       "code": "UNRESOLVED_ADDRESS",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An address in `inputs` reaches an input or output; in `artifact`, an output; In `decisions`, universe keys and option references, a decision; in an import, another analysis's universe"
+      "statement": "An address in `inputs` or `cases` names an input or output; in `artifact`, an output other than a switch, or a switch each of whose cases names one of these; In `decisions`, `switch`, universe keys and option references, a decision; in an import, another analysis's universe"
     },
     {
       "code": "AMBIGUOUS_ID",
@@ -473,7 +473,7 @@
       "code": "UNKNOWN_OPTION",
       "layer": "validator",
       "level": "MUST",
-      "statement": "Each option an option reference or selection names is one of its decision's"
+      "statement": "Each option an option reference, selection or key of `cases` names is one of its decision's"
     },
     {
       "code": "INVALID_INSIGHT_REF",
@@ -485,7 +485,7 @@
       "code": "OUTPUT_CYCLE",
       "layer": "validator",
       "level": "MUST",
-      "statement": "No output reads itself through `inputs`, directly or not, pinned or not"
+      "statement": "No output reads itself through `inputs` and `cases`, directly or not, pinned or not"
     },
     {
       "code": "UNDECLARED_TEMPLATE_REF",
@@ -506,22 +506,34 @@
       "statement": "No chain of `derived_from` loops back to its universe"
     },
     {
+      "code": "UNUSED_DECISION",
+      "layer": "validator",
+      "level": "MUST",
+      "statement": "A universe's own `decisions` set only decisions it uses on some branch"
+    },
+    {
+      "code": "INACTIVE_DECISION",
+      "layer": "validator",
+      "level": "SHOULD",
+      "statement": "Of the decisions it uses on some branch, a universe's own `decisions` set only those it uses"
+    },
+    {
       "code": "MISSING_DECISION",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An effective selection sets every decision of its analysis and of those its universes drive"
+      "statement": "An effective selection sets every decision its universe uses, of its analysis and of those its universes drive"
     },
     {
       "code": "MISSING_REQUIRED_OPTION",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An effective selection meets the `requires` of each option it selects"
+      "statement": "An effective selection, kept to the decisions its universe uses and those something reached through a pin uses there, meets the `requires` of each option it selects"
     },
     {
       "code": "INCOMPATIBLE_OPTIONS",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An effective selection meets the `incompatible_with` of each option it selects"
+      "statement": "An effective selection, kept to the decisions its universe uses and those something reached through a pin uses there, meets the `incompatible_with` of each option it selects"
     },
     {
       "code": "EXCLUDED_OPTION_SELECTED",
@@ -545,19 +557,25 @@
       "code": "UNKNOWN_PIN_UNIVERSE",
       "layer": "validator",
       "level": "MUST",
-      "statement": "Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose output it reads"
+      "statement": "Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose element its reference names"
+    },
+    {
+      "code": "PIN_NOT_BUILT",
+      "layer": "validator",
+      "level": "MUST",
+      "statement": "Every pinned output is built in the universe it is pinned to; A universe of an analysis other than the driving analysis, named by a reached pin, sets every decision, of its analysis and of those its universes drive, that something reached through that pin uses there and the universe doesn't"
     },
     {
       "code": "NOT_BUILT_IN_UNIVERSE",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An output reading another analysis's output built per universe, unpinned or pinned to a universe it is built in, or one of its decisions, reads it from an analysis built in that universe"
+      "statement": "Something reached reads another analysis's output built per universe, or its switch, or uses one of its decisions, only in a universe where that analysis is built"
     },
     {
       "code": "UNDRIVEN_DECLARATION",
       "layer": "validator",
       "level": "MUST",
-      "statement": "In the file of a universe's analysis, every address using another analysis's element there has a driven chain"
+      "statement": "In the file of a universe's analysis, every address by which something reached reads another analysis's output built per universe, or its switch, in that universe, or uses one of its decisions there, has a driven chain"
     },
     {
       "code": "RESULT_IN_TWO_PLACES",

@@ -11,9 +11,9 @@
     that first cell. Its columns are Code, Level and Rule, in that order. Other tables, such as the recommendations,
     are not read.
   - **Layer rows.** A row whose Code cell is text in strong emphasis (``**parse**``, ``***validator, in each universe
-    where results are built***``), and whose Level and Rule cells are empty, sets the layer of the rows below it, up to
-    the next layer row: its first word, ``parse``, ``schema``, ``validator``, ``check`` or ``runner``. The table starts
-    with one.
+    the driving analysis reaches***``), and whose Level and Rule cells are empty, sets the layer of the rows below it,
+    up to the next layer row: its first word, ``parse``, ``schema``, ``validator``, ``check`` or ``runner``. The table
+    starts with one.
   - **Rule rows.** Every other row is a case of a rule, with one cell per column (counted on its source line,
     blockquote markers aside) and none empty. Its Code is one code span holding a capital letter, then capitals, digits
     and underscores (``[A-Z][A-Z0-9_]*``), and its Level ``MUST`` or ``SHOULD``. The rows of one code are one rule: they

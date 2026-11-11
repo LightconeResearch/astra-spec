@@ -79,12 +79,13 @@ folder `analysis/`, and its paths are relative.
   - `b` requires `stage`'s `decision2` to be `b`
   - `c` is excluded and never selected
 
-- An **output** has a `type`, a `format` (its file extension), the
-  `decisions` it is made with, what it reads (`inputs`, ordered), and a
-  **recipe**: a POSIX shell `command`, run in its analysis's folder, whose
-  **placeholders** `{inputs}`, `{inputs.<entry>}`, `{decisions.<entry>}` and
-  `{output}` become paths and selected options, verbatim. Its **result** is
-  the one file the recipe writes.
+- An **output**, unless it is a switch (below), has a `type`, a `format`
+  (its file extension), the `decisions` it is made with, what it reads
+  (`inputs`, ordered), and a **recipe**: a POSIX shell `command`, run in
+  its analysis's folder, whose **placeholders** `{inputs}`,
+  `{inputs.<entry>}`, `{decisions.<entry>}` and `{output}` become paths and
+  selected options, verbatim. Its **result** is the one file the recipe
+  writes.
 
   ```yaml
   outputs:
@@ -97,21 +98,60 @@ folder `analysis/`, and its paths are relative.
         command: python src/output1.py {inputs} {decisions.decision1} {decisions.stage.decision2} {output}
   ```
 
-  Another analysis's elements are read by address in an output's `inputs`
-  and `decisions`, a constraint or evidence, just as if they were the
-  analysis's own: `output1` reads `stage`'s `output3` and is made with
-  `stage`'s `decision2`, whatever option is selected where it is built.
+  Another analysis's elements are read by address in an output's `inputs`,
+  `decisions`, `switch` and `cases`, a constraint or evidence, just as if
+  they were the analysis's own: `output1` reads `stage`'s `output3` and is
+  made with `stage`'s `decision2`, whatever option is selected where it is
+  built.
 
-- A **universe** selects an option for each decision: its own analysis's
-  by id, another's by address. With `derived_from` it inherits another
-  universe's selection, replacing what it sets: its **effective
-  selection**.
+- A **switch** is an output with a `switch`, a decision's address, and
+  `cases`, from options of that decision to references; it has no `type`,
+  `format`, `inputs`, `decisions` or recipe, and no result, record, name or
+  place of its own. In each universe it **takes** the case of the option
+  its decision selects there, and reading it reads what that case names.
+
+  ```yaml
+  outputs:
+    switch1:
+      switch: decision1
+      cases:
+        b: stage.output3
+    output6:
+      type: figure
+      format: png
+      inputs: [switch1]
+      decisions: [decision3]
+      recipe:
+        command: python src/output6.py {inputs.switch1} {decisions.decision3} {output}
+  decisions:
+    decision3:
+      options: {a: {}, b: {}}
+  ```
+
+  - where `decision1` selects `b`, `switch1` takes `stage.output3`, and
+    `{inputs.switch1}` is the path of its result there
+  - `a` has no case: where `decision1` selects `a`, `switch1` isn't built
+    (below), nor is `output6`, which reads it without a pin, and nothing
+    there uses `decision3`
+  - a case names an input, an output or a switch, of the analysis or by
+    address; options may share a case; and a case may name an excluded
+    option, such as `decision1`'s `c`, and is then never taken
+  - a case that names a switch nests the two; by convention, of two
+    decisions where one decides whether the other matters, that one is the
+    outer switch's
+
+- A **universe** selects an option for each decision it uses (below): its
+  own analysis's by id, another's by address. With `derived_from` it
+  inherits another universe's selection, replacing what it sets: its
+  **effective selection**. Its own `decisions` set only decisions it uses
+  on some branch, and should set only those it uses.
 
   ```yaml
   universes:
     u1:
       decisions:
         decision1: b
+        decision3: a
         stage.decision2: b
     u2:
       derived_from: u1
@@ -120,13 +160,15 @@ folder `analysis/`, and its paths are relative.
 
   - `u1` sets `stage`'s `decision2`: it **drives** `stage` (below)
   - `u2` changes `decision1` from `u1`'s `b` to `a`, and keeps
-    `stage.decision2` as `b`
+    `stage.decision2` as `b` and `decision3` as `a`, which it doesn't use:
+    `output6` isn't built there
 
-- An entry of an output's `inputs` is a **reference**: an address that may
-  end in a **pin**, `#` and a universe's id, fixing the universe it reads.
-  `#u` names, in order:
+- An entry of an output's `inputs`, or a switch's case, is a **reference**:
+  an address that may end in a **pin**, `#` and a universe's id, fixing the
+  universe it reads. `#u` names, in order:
   1. the `universes` entry `u` in the same `astra.yaml` as the pin;
-  2. else the universe `u` of the declared analysis whose output is read;
+  2. else the universe `u` of the declared analysis whose element the
+     reference names;
   3. else nothing, which breaks `UNKNOWN_PIN_UNIVERSE`.
 
   ```yaml
@@ -142,11 +184,13 @@ folder `analysis/`, and its paths are relative.
   - `output2` reads `output1` as built in `u1` and in `u2`
   - `analysis` has no `v1`, so `stage.output3#v1` reads `stage`'s own
     result in its `v1`
+  - a pinned switch reads as it is in its pin's universe: `switch1#u1`
+    reads `stage.output3` as built in `u1`
 
-- An output is **built per universe** if it lists `decisions` or reads an
-  output that is built per universe without a pin; it has a result in each
-  universe where its analysis is built. Any other output is **built once**
-  with one result:
+- An output other than a switch is **built per universe** if it lists
+  `decisions`, or reads without a pin a switch or an output built per
+  universe; it has a result in each universe where it and its analysis are
+  built (below). Otherwise it is **built once**, with one result:
 
   ```yaml
   outputs:
@@ -159,6 +203,8 @@ folder `analysis/`, and its paths are relative.
   ```
   - `output1` is built per universe because it lists decisions
   - `output2` is built once because it only reads `output1` pinned to specific universes
+  - `output6` is built per universe because it lists `decision3`; reading
+    `switch1` without a pin would be reason enough
 
   Were it also to have:
 
@@ -188,7 +234,8 @@ folder `analysis/`, and its paths are relative.
   for `stage.decision2`, and its result belongs to `analysis`.
 
   A universe sets a decision further down by its full address. Were `stage`
-  to declare `inner`, which has a `decision4`:
+  to declare `inner`, which has a `decision4`, and `output1` to list it as
+  `stage.inner.decision4`:
 
   ```yaml
   universes:
@@ -205,9 +252,10 @@ folder `analysis/`, and its paths are relative.
 
 
   The analyses an address goes through, here `stage` then `inner`, form a
-  **chain**. Once any universe drives a chain, every universe must set all
-  the decisions of the analyses on it: had `u2` not derived from `u1`, it
-  would have to set `stage.decision2` and `stage.inner.decision4` itself.
+  **chain**. Once any universe drives a chain, every universe must set the
+  decisions of the analyses on it that it uses: had `u2` not derived from
+  `u1`, it would have to set `stage.decision2` and `stage.inner.decision4`
+  itself, as `output1` lists both.
 
   - Each chain is driven on its own. Were `analysis/astra.yaml` also to declare
     `inner` directly, and set none of its decisions:
@@ -225,7 +273,8 @@ folder `analysis/`, and its paths are relative.
     `output11` can read `inner`'s outputs built once, or pinned to `inner`'s
     own universes, but not one built per universe in `u1` or `u2`.
 
-  - An analysis with no decisions of its own has nothing to set. Were
+  - An analysis with no decisions of its own, or none that a universe of
+    the driving analysis uses, has nothing to set. Were
     `analysis/astra.yaml` also to declare `tools`, which has none:
 
     ```yaml
@@ -246,6 +295,8 @@ folder `analysis/`, and its paths are relative.
     - `tools.output9` just exists as `tools`'s result
     - `tools.output10` varies, so it is built in `u1` and `u2`, and those
       results belong to `analysis`
+    - were `tools` to have a decision that only `output9` lists, it would
+      still have nothing to set, as `analysis` reads nothing of `output9`
 
   - An analysis never drives itself. A universe can't set a decision through
     a declaration that leads back, such as `self: {path: .}`, or `stage`'s
@@ -260,13 +311,17 @@ folder `analysis/`, and its paths are relative.
     ```
 
   - `stage`'s own universes, such as `v1`, don't set its decisions in `u1`
-    and `u2`, but must still be valid: a `v1` that left `decision2` unset
-    would break `MISSING_DECISION`.
+    and `u2`, but must still be valid, with `stage` as the driving
+    analysis: a `v1` that left `decision2` unset would break
+    `MISSING_DECISION`, as `stage` plans `output3`, which lists it. A pin
+    into `v1` can then read only what uses decisions that `v1` uses on some
+    branch, as `v1` may set no other.
 
-  - An output that reads another analysis's output built per universe,
-    without a pin or pinned to one of its own analysis's universes
-    (`stage.output3#u1`), or uses one of its decisions, needs that analysis
-    driven.
+  - An output that reads another analysis's output built per universe, or
+    its switch, without a pin or pinned to one of its own analysis's
+    universes (`stage.output3#u1`), or uses one of its decisions, needs that
+    analysis driven: an output uses the decisions it lists, and a switch the
+    decision it switches on; a switch reads only the case it takes.
     `output1` reads `stage.output3` and uses `stage.decision2`, so were no
     universe of `analysis` to set a decision of `stage`:
 
@@ -280,6 +335,21 @@ folder `analysis/`, and its paths are relative.
     `decision2` to build `stage.output3` with. It could still read what
     doesn't vary: `stage.input2`, `stage.output3#v1`, or `upstream.output4`,
     which is built once.
+
+  - A switch can choose between analyses. Were `analysis/astra.yaml` also
+    to declare `fast` and `slow`, each with an output `fit` that lists a
+    `decision5` of its own:
+
+    ```yaml
+    outputs:
+      switch2:
+        switch: decision1
+        cases: {a: fast.fit, b: slow.fit}
+    ```
+
+    a universe where `decision1` selects `a` would use, and set,
+    `fast.decision5` and nothing of `slow`'s, and one where it selects `b`
+    the reverse.
 
   By convention, a decision that matters to one analysis is driven, and one
   shared by several, such as a seed, is read by address from the analysis
@@ -311,8 +381,9 @@ folder `analysis/`, and its paths are relative.
 - An **insight** is a `claim` whose `evidence` cites a `doi` or an output
   (`artifact`): `prior_insights` are what the analysis builds on, `findings`
   what it concludes. An `artifact` is a reference, like an output's `inputs`
-  entry: it may be pinned, and by address it reads another analysis's
-  output.
+  entry: it may be pinned, by address it reads another analysis's output,
+  and it may name a switch each of whose cases names an output other than
+  a switch, or a switch like it.
 
   ```yaml
   prior_insights:
@@ -332,11 +403,41 @@ folder `analysis/`, and its paths are relative.
 
 - A **result** is the one file an output's recipe writes: an output built
   once has one, and an output built per universe has one in each universe
-  where its analysis is built. The driving analysis **plans** the results
-  of its own outputs, and every result a planned result reads or its
-  evidence cites, through any declaration; nothing else is built. A result
-  belongs to the analysis whose universe built it or, for an output built
-  once, the analysis whose output it is. With `stage`'s own file:
+  where it is **built** and its analysis is built. An output other than a
+  switch is built in a universe if everything it reads there without a pin
+  is an input, an output built once, or built there; a switch is built
+  there if its decision selects there an option with a case that names one
+  of these or, pinned, something built in its pin's universe. Whether an
+  output is built never depends on driving.
+
+- The driving analysis **plans** from its own outputs other than switches
+  that no case of its own names, its own switches that no `inputs` entry or
+  case of its own names, and what its evidence cites. It plans their
+  results where they are built, a switch's being those of the case it
+  takes, and every result a planned result reads, through any declaration
+  and the case each switch takes; nothing else is made. An output that a
+  case names is so planned, as another analysis's is, only where something
+  planned reads it: one that is also a deliverable must be read or cited
+  elsewhere to be built where that case isn't taken.
+
+- The driving analysis **reaches** what it plans from, built or not: an
+  output built once, and evidence citing one, once; other pinned evidence
+  in its pin's universe; anything else in each of its universes. It
+  reaches too whatever something reached reads, there or, pinned, in its
+  pin's universe: each entry of an output, and only the case a switch
+  takes. A universe **uses**, with its own analysis as the driving
+  analysis, each decision that a result planned in it lists or a switch
+  reached in it switches on. It **uses on some branch** each decision
+  listed or switched on by what that analysis would reach in it were every
+  case of every switch followed, and each that a universe inheriting its
+  key for it, without setting it, uses on some branch. Constraints hold
+  among the decisions a universe uses and, in another analysis's universe,
+  those that something reached through a pin uses there: one outside these
+  counts as selecting nothing.
+
+- A result belongs to the analysis whose universe built it or, for an
+  output built once, the analysis whose output it is. With `stage`'s own
+  file:
 
   ```yaml
   # analysis/stage/astra.yaml
@@ -366,6 +467,8 @@ folder `analysis/`, and its paths are relative.
   │  input1 ────────────────────────┐                    │
   │  stage.output3 (decision2 = b) ─┼─► output1          │── #u1 ──┐
   │  upstream.output4 ──────────────┘   (decision1 = b)  │         │
+  │  stage.output3 ─► switch1 (b) ────► output6          │         │
+  │                                     (decision3 = a)  │         │
   └──────────────────────────────────────────────────────┘         │
   ┌─ u2 · analysis's own ────────────────────────────────┐         │
   │  input1 ────────────────────────┐                    │         ▼
@@ -378,15 +481,20 @@ folder `analysis/`, and its paths are relative.
   ```
 
   - the planned results are `output2`, `output1` in `u1` and `u2`,
-    `stage.output3` in `u1`, `u2` and `v1`, and `upstream.output4`
+    `output6` in `u1`, `stage.output3` in `u1`, `u2` and `v1`, and
+    `upstream.output4`; `output6` isn't built in `u2`, where `switch1` has
+    no case for `a`
 
 - A **runner** builds each planned result by running its output's recipe in
   a checkout of a commit, with no changes but records and results, and
   writes the result's bytes and a **record** of how it was made. Results of
-  an analysis declared with a `commit`, and of those it reaches, are
-  **results from a commit**: never rebuilt, but read through their records,
-  and their bytes (or a stand-in), at their analysis's commit. Driven, such
-  an analysis runs its recipes on exactly its files at its commit.
+  an analysis declared with a `commit`, and of the analyses it declares,
+  directly or not, are **results from a commit**: never rebuilt, but read
+  through their records, and their bytes (or a stand-in), at their
+  analysis's commit. Driven, such an analysis runs its recipes on exactly
+  its files at its commit. A switch of such an analysis is read with its
+  files at its commit: the result its case gives is a result from a commit
+  or, where the analysis is driven, one built on its files at that commit.
   - at its commit, `upstream` has an output `output4`, built once, with its
     result and record committed: the runner reads them and runs no recipe
     of `upstream`'s
@@ -426,21 +534,23 @@ folder `analysis/`, and its paths are relative.
   - else **unchanged**.
 
 - A result is **made from** its output's command, inputs in order, decisions
-  and format; the options those decisions select in its universe; its
-  inputs' content, never a stand-in's; and the results it reads. Code (fixed
-  by the commit) and the environment (installed software, container) are
-  recorded, not compared: an edited script shows only once a rerun makes
-  other bytes. A result made from a stale or missing one is stale until that
-  one is rebuilt with the hash it recorded. A record otherwise in order
-  leaves its result stale if its commit can't be read (squashed or rebased
-  away) or its output is gone at that commit, where `MISSING_RECORD_INPUTS`
-  isn't judged, or if an input is behind a stand-in that gives no hash. In
-  the example:
+  and format; the options those decisions select in its universe; for each
+  switch it reads through, the decision it switches on, the option selected
+  for it where it is read and the case it takes; its inputs' content, never
+  a stand-in's; and the results it reads. Code (fixed by the commit) and the
+  environment (installed software, container) are recorded, not compared:
+  an edited script shows only once a rerun makes other bytes. A result made
+  from a stale or missing one is stale until that one is rebuilt with the
+  hash it recorded. A record otherwise in order leaves its result stale if
+  its commit can't be read (squashed or rebased away) or its output is gone
+  at that commit, where `MISSING_RECORD_INPUTS` isn't judged, or if an input
+  is behind a stand-in that gives no hash. In the example:
 
   | Edit | Effect |
   |---|---|
-  | `analysis/stage/data/input2.csv` changes | The six results built are stale; `upstream.output4` stays unchanged |
+  | `analysis/stage/data/input2.csv` changes | The seven results built are stale; `upstream.output4` stays unchanged |
   | `u2` selects `a` for `stage.decision2` | `stage.output3` and `output1` in `u2` are stale, and so is `output2`, which reads `output1#u2` |
+  | `switch1`'s case for `b` becomes `upstream.output4` | `output6` in `u1` is stale |
   | `insight1`'s claim is reworded | Every result stays unchanged |
   | `analysis/src/output1.py` is edited | Every result stays unchanged; once `output1` is rebuilt with other bytes, `output2` is stale |
 
@@ -451,11 +561,12 @@ folder `analysis/`, and its paths are relative.
   from are unchanged, and gets a bytes status, from what B holds, only if a
   recipe reads it.
 
-- **Evidence** takes the status of the result it cites. Citing an output
-  built per universe without a pin, it cites its results in each of the
-  driving analysis's universes where its analysis is built: none means
-  `missing`, several the worst status. A check covers a declared
-  analysis's evidence only where it cites a planned result.
+- **Evidence** takes the status of the result it cites. Citing without a
+  pin an output built per universe, or a switch, it cites that output's
+  results in the driving analysis's universes or, for a switch, the result
+  in each of them of the case it takes there: none means `missing`,
+  several the worst status. A check covers a declared analysis's evidence
+  only where it cites a planned result.
 
 - A result's **name** is its output's id after the driven declarations
   leading there from the analysis it belongs to (`stage.output3`); two
@@ -464,11 +575,13 @@ folder `analysis/`, and its paths are relative.
   the analysis it belongs to, a **place** for its record,
   `.astra/records/{universe}/{name}.json`, and a **default place** for its
   bytes, `results/{universe}/{name}.{format}`; built once, neither has
-  `{universe}/`. The build above leaves:
+  `{universe}/`. A switch has no name or place: a result read through one
+  keeps its own. The build above leaves:
 
   ```text
   analysis/.astra/records/output2.json             analysis/results/output2.csv
   analysis/.astra/records/u1/output1.json          analysis/results/u1/output1.json
+  analysis/.astra/records/u1/output6.json          analysis/results/u1/output6.png
   analysis/.astra/records/u1/stage.output3.json    analysis/results/u1/stage.output3.csv
   analysis/.astra/records/u2/output1.json          analysis/results/u2/output1.json
   analysis/.astra/records/u2/stage.output3.json    analysis/results/u2/stage.output3.csv
@@ -523,28 +636,32 @@ after the arrow. Rows that share a code are cases of one rule.
 | `DECLARATION_OUTSIDE_REPOSITORY` | MUST | A tidied declaration `path` doesn't go above the top of the driving analysis's working tree or, at a commit, of its repository |
 | `COMMIT_NOT_FOUND` | MUST | In a file not read from a remote, a `path` and `commit` name a commit of the file's repository |
 | `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with all it declares, is valid at that commit |
-| `UNRESOLVED_ADDRESS` | MUST | An address in `inputs` reaches an input or output; in `artifact`, an output |
-| `UNRESOLVED_ADDRESS` | MUST | In `decisions`, universe keys and option references, a decision; in an import, another analysis's universe |
+| `UNRESOLVED_ADDRESS` | MUST | An address in `inputs` or `cases` names an input or output; in `artifact`, an output other than a switch, or a switch each of whose cases names one of these |
+| `UNRESOLVED_ADDRESS` | MUST | In `decisions`, `switch`, universe keys and option references, a decision; in an import, another analysis's universe |
 | `AMBIGUOUS_ID` | MUST | No input and output of one analysis share an id |
 | `CLASHING_RESULT_NAME` | MUST | No output shares its id with a declaration of its analysis |
-| `UNKNOWN_OPTION` | MUST | Each option an option reference or selection names is one of its decision's |
+| `UNKNOWN_OPTION` | MUST | Each option an option reference, selection or key of `cases` names is one of its decision's |
 | `INVALID_INSIGHT_REF` | MUST | An option's `insights` name prior insights of its analysis |
-| `OUTPUT_CYCLE` | MUST | No output reads itself through `inputs`, directly or not, pinned or not |
+| `OUTPUT_CYCLE` | MUST | No output reads itself through `inputs` and `cases`, directly or not, pinned or not |
 | `UNDECLARED_TEMPLATE_REF` | MUST | Every brace of a `command`, read from the left, is in `{{`, `}}` or a placeholder |
 | `UNDECLARED_TEMPLATE_REF` | MUST | Placeholders are `{inputs}`, `{output}`, and `{inputs.<entry>}` or `{decisions.<entry>}` for entries as listed |
 | `UNKNOWN_DERIVED_FROM` | MUST | `derived_from` names a universe of its analysis, never an import |
 | `DERIVED_FROM_CYCLE` | MUST | No chain of `derived_from` loops back to its universe |
-| `MISSING_DECISION` | MUST | An effective selection sets every decision of its analysis and of those its universes drive |
-| `MISSING_REQUIRED_OPTION` | MUST | An effective selection meets the `requires` of each option it selects |
-| `INCOMPATIBLE_OPTIONS` | MUST | An effective selection meets the `incompatible_with` of each option it selects |
+| `UNUSED_DECISION` | MUST | A universe's own `decisions` set only decisions it uses on some branch |
+| `INACTIVE_DECISION` | SHOULD | Of the decisions it uses on some branch, a universe's own `decisions` set only those it uses |
+| `MISSING_DECISION` | MUST | An effective selection sets every decision its universe uses, of its analysis and of those its universes drive |
+| `MISSING_REQUIRED_OPTION` | MUST | An effective selection, kept to the decisions its universe uses and those something reached through a pin uses there, meets the `requires` of each option it selects |
+| `INCOMPATIBLE_OPTIONS` | MUST | An effective selection, kept to the decisions its universe uses and those something reached through a pin uses there, meets the `incompatible_with` of each option it selects |
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option |
 | `DUPLICATE_ELEMENT` | MUST | No two keys of a universe's own `decisions` name one decision |
 | `DUPLICATE_ELEMENT` | MUST | A universe sets an inherited decision only under the key it inherits |
 | `LOOPING_KEY` | MUST | No universe key goes through a declaration that leads back |
-| `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose output it reads |
-| ***validator, in each universe where results are built*** | | |
-| `NOT_BUILT_IN_UNIVERSE` | MUST | An output reading another analysis's output built per universe, unpinned or pinned to a universe it is built in, or one of its decisions, reads it from an analysis built in that universe |
-| `UNDRIVEN_DECLARATION` | MUST | In the file of a universe's analysis, every address using another analysis's element there has a driven chain |
+| `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose element its reference names |
+| `PIN_NOT_BUILT` | MUST | Every pinned output is built in the universe it is pinned to |
+| `PIN_NOT_BUILT` | MUST | A universe of an analysis other than the driving analysis, named by a reached pin, sets every decision, of its analysis and of those its universes drive, that something reached through that pin uses there and the universe doesn't |
+| ***validator, in each universe the driving analysis reaches*** | | |
+| `NOT_BUILT_IN_UNIVERSE` | MUST | Something reached reads another analysis's output built per universe, or its switch, or uses one of its decisions, only in a universe where that analysis is built |
+| `UNDRIVEN_DECLARATION` | MUST | In the file of a universe's analysis, every address by which something reached reads another analysis's output built per universe, or its switch, in that universe, or uses one of its decisions there, has a driven chain |
 | `RESULT_IN_TWO_PLACES` | SHOULD | No planned result has two names |
 | **check** | | |
 | `MISSING_RECORD` | MUST | Every planned result has a record at each of its places → `missing` |
