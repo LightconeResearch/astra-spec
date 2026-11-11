@@ -1,7 +1,7 @@
 ---
-rfc: NNNN
+rfc: 0008
 title: Settling the schema for v0.1
-status: Draft
+status: Accepted
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-11-07
