@@ -12,9 +12,7 @@ case is wrong.
 |---|---|
 | `documents/valid/` | documents that break no parse or schema rule |
 | `documents/invalid/` | documents that each break one |
-| `documents/when/invalid/` | the invalid documents whose break is in a `when`, named and headed the same way |
 | `analyses/<NNN>-<what>/` | one analysis case each, for the validator |
-| `analyses/when/<NNN>-<what>/` | the analysis cases that use `when`, laid out the same way |
 | `expected.schema.json` | the JSON Schema of an analysis case's `expected.json` |
 
 There are two kinds of case. A document is one file, judged by the parse and
@@ -158,17 +156,6 @@ doesn't test. This is case `015-input-is-a-folder`'s:
 
 Any other diagnostic is allowed: a case says what must and mustn't be
 reported, not everything that is.
-
-## The cases that use `when`
-
-`documents/when/invalid/` holds every invalid document whose break is in a
-`when` ([Elements](../docs/specification.md#elements)), and `analyses/when/`
-every analysis case whose files use `when`, and no other. They are kept apart
-because `when` may leave the specification (issue #93): if it does, deleting
-`documents/when/` and `analyses/when/` removes them whole. One other document
-uses `when`: `documents/valid/Analysis-002-core.yaml`, a valid analysis that
-uses many fields at once. If `when` goes, that document is edited rather than
-deleted.
 
 ## Running it
 

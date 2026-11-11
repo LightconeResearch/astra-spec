@@ -5,7 +5,7 @@ Each case's folder holds its files, its `expected.json` and perhaps a `setup.sh`
 rules of `rules.json`, gives a pointer only for a parse or schema code, and its
 `valid` agrees with the levels of the codes it must report. The case builds: its `setup.sh` runs to completion, or its
 files are committed once, and the folder `root` holds an `astra.yaml` in a git repository (in none, for a case of
-`NOT_IN_REPOSITORY`), with no placeholder left. The cases that use `when` are those in `analyses/when/`, and no other.
+`NOT_IN_REPOSITORY`), with no placeholder left.
 The documents (`conformance/documents/`) are checked by `test_fixtures.py`.
 """
 
@@ -20,12 +20,11 @@ from typing import Any
 import pytest
 from jsonschema import Draft201909Validator
 
-from .conftest import REPO_ROOT, YAMLError, load_yaml, rules_catalogue
+from .conftest import REPO_ROOT, rules_catalogue
 
 CONFORMANCE = REPO_ROOT / "conformance"
 ANALYSES = CONFORMANCE / "analyses"
-WHEN = ANALYSES / "when"
-CASES = sorted([*ANALYSES.glob("[0-9]*"), *WHEN.glob("[0-9]*")])
+CASES = sorted(ANALYSES.glob("[0-9]*"))
 CASE_NAME = re.compile(r"[0-9]{3}(-[a-z0-9]+)+")
 
 IDENTITY = {
@@ -97,31 +96,11 @@ def build(case: Path, place: Path) -> Path:
     return work
 
 
-def uses_when(case: Path) -> bool:
-    """Whether an output or a decision has a `when` in an `astra.yaml` of the case's files (§9)."""
-    for path in (case / "files").rglob("astra.yaml"):
-        try:
-            analysis = load_yaml(path)
-        except YAMLError:
-            continue
-        if not isinstance(analysis, dict):
-            continue
-        for field in ("outputs", "decisions"):
-            elements = analysis.get(field)
-            if isinstance(elements, dict) and any(
-                isinstance(element, dict) and "when" in element
-                for element in elements.values()
-            ):
-                return True
-    return False
-
-
 def test_the_analyses_folder_holds_only_cases():
-    entries = [*ANALYSES.iterdir(), *(WHEN.iterdir() if WHEN.is_dir() else [])]
     assert [
-        entry.relative_to(ANALYSES).as_posix()
-        for entry in entries
-        if entry != WHEN and not CASE_NAME.fullmatch(entry.name)
+        entry.name
+        for entry in ANALYSES.iterdir()
+        if not CASE_NAME.fullmatch(entry.name)
     ] == []
     assert CASES, "conformance/analyses/ holds no case"
 
@@ -217,8 +196,3 @@ def test_a_case_builds(case, tmp_path):
         and any(placeholder in path.read_bytes() for placeholder in PLACEHOLDERS)
     ]
     assert left == [], "setup.sh leaves a placeholder"
-
-
-@pytest.mark.parametrize("case", CASES, ids=name)
-def test_the_cases_that_use_when_are_in_their_group(case):
-    assert uses_when(case) == (case.parent == WHEN)
