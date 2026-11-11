@@ -527,13 +527,13 @@
       "code": "MISSING_REQUIRED_OPTION",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An effective selection, kept to the decisions its universe uses and those something reached through a pin uses there, meets the `requires` of each option it selects"
+      "statement": "An effective selection meets the `requires` of each option it selects for a decision in play"
     },
     {
       "code": "INCOMPATIBLE_OPTIONS",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An effective selection, kept to the decisions its universe uses and those something reached through a pin uses there, meets the `incompatible_with` of each option it selects"
+      "statement": "An effective selection meets the `incompatible_with` of each option it selects for a decision in play"
     },
     {
       "code": "EXCLUDED_OPTION_SELECTED",
@@ -563,7 +563,7 @@
       "code": "PIN_NOT_BUILT",
       "layer": "validator",
       "level": "MUST",
-      "statement": "Every pinned output is built in the universe it is pinned to; A universe of an analysis other than the driving analysis, named by a reached pin, sets every decision, of its analysis and of those its universes drive, that something reached through that pin uses there and the universe doesn't"
+      "statement": "Every pinned output is built in the universe it is pinned to; Where a reached pin names a universe of an analysis other than the driving analysis, that universe sets each decision, of its analysis or one its universes drive, that what is reached through the pin uses there and it doesn't use itself"
     },
     {
       "code": "NOT_BUILT_IN_UNIVERSE",

@@ -136,9 +136,8 @@ folder `analysis/`, and its paths are relative.
   - a case names an input, an output or a switch, of the analysis or by
     address; options may share a case; and a case may name an excluded
     option, such as `decision1`'s `c`, and is then never taken
-  - a case that names a switch nests the two; by convention, of two
-    decisions where one decides whether the other matters, that one is the
-    outer switch's
+  - a case that names a switch nests the two; by convention, the switch on
+    the decision that decides whether the other matters is the outer one
 
 - A **universe** selects an option for each decision it uses (below): its
   own analysis's by id, another's by address. With `derived_from` it
@@ -419,21 +418,38 @@ folder `analysis/`, and its paths are relative.
   case names is so planned, as another analysis's is, only where something
   planned reads it: one that is also a deliverable must be read or cited
   elsewhere to be built where that case isn't taken.
+  - were `switch1`'s case for `b` an output of `analysis`'s own, that
+    output would be planned only because `output6` reads it in `u1`, not
+    for itself
 
 - The driving analysis **reaches** what it plans from, built or not: an
   output built once, and evidence citing one, once; other pinned evidence
   in its pin's universe; anything else in each of its universes. It
   reaches too whatever something reached reads, there or, pinned, in its
   pin's universe: each entry of an output, and only the case a switch
-  takes. A universe **uses**, with its own analysis as the driving
-  analysis, each decision that a result planned in it lists or a switch
-  reached in it switches on. It **uses on some branch** each decision
-  listed or switched on by what that analysis would reach in it were every
-  case of every switch followed, and each that a universe inheriting its
-  key for it, without setting it, uses on some branch. Constraints hold
-  among the decisions a universe uses and, in another analysis's universe,
-  those that something reached through a pin uses there: one outside these
-  counts as selecting nothing.
+  takes.
+  - in `u2`, `output6` is reached, and so is `switch1`, which takes no
+    case there
+
+- A universe **uses**, with its own analysis as the driving analysis, each
+  decision that a result planned in it lists or a switch reached in it
+  switches on.
+  - `u1` uses `decision1`, `decision3` and `stage.decision2`; `u2` uses
+    `decision1` and `stage.decision2`, but not `decision3`, as `output6`
+    isn't built there
+
+- A universe **uses on some branch** each decision listed or switched on
+  by what its analysis would reach in it were every case of every switch
+  followed. So that a universe can set a key only for those derived from
+  it, it also uses on some branch each decision that a universe inheriting
+  its key for it, without setting it, uses on some branch.
+  - `u2` uses `decision3` on some branch, as `output6`, which lists it, is
+    reached there
+
+- In a universe, the decisions **in play** are those it uses and, in a
+  universe of an analysis other than the driving analysis, those that
+  something reached through a pin uses there. Constraints are judged among
+  them: a decision not in play counts as selecting nothing.
 
 - A result belongs to the analysis whose universe built it or, for an
   output built once, the analysis whose output it is. With `stage`'s own
@@ -650,15 +666,15 @@ after the arrow. Rows that share a code are cases of one rule.
 | `UNUSED_DECISION` | MUST | A universe's own `decisions` set only decisions it uses on some branch |
 | `INACTIVE_DECISION` | SHOULD | Of the decisions it uses on some branch, a universe's own `decisions` set only those it uses |
 | `MISSING_DECISION` | MUST | An effective selection sets every decision its universe uses, of its analysis and of those its universes drive |
-| `MISSING_REQUIRED_OPTION` | MUST | An effective selection, kept to the decisions its universe uses and those something reached through a pin uses there, meets the `requires` of each option it selects |
-| `INCOMPATIBLE_OPTIONS` | MUST | An effective selection, kept to the decisions its universe uses and those something reached through a pin uses there, meets the `incompatible_with` of each option it selects |
+| `MISSING_REQUIRED_OPTION` | MUST | An effective selection meets the `requires` of each option it selects for a decision in play |
+| `INCOMPATIBLE_OPTIONS` | MUST | An effective selection meets the `incompatible_with` of each option it selects for a decision in play |
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option |
 | `DUPLICATE_ELEMENT` | MUST | No two keys of a universe's own `decisions` name one decision |
 | `DUPLICATE_ELEMENT` | MUST | A universe sets an inherited decision only under the key it inherits |
 | `LOOPING_KEY` | MUST | No universe key goes through a declaration that leads back |
 | `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose element its reference names |
 | `PIN_NOT_BUILT` | MUST | Every pinned output is built in the universe it is pinned to |
-| `PIN_NOT_BUILT` | MUST | A universe of an analysis other than the driving analysis, named by a reached pin, sets every decision, of its analysis and of those its universes drive, that something reached through that pin uses there and the universe doesn't |
+| `PIN_NOT_BUILT` | MUST | Where a reached pin names a universe of an analysis other than the driving analysis, that universe sets each decision, of its analysis or one its universes drive, that what is reached through the pin uses there and it doesn't use itself |
 | ***validator, in each universe the driving analysis reaches*** | | |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | Something reached reads another analysis's output built per universe, or its switch, or uses one of its decisions, only in a universe where that analysis is built |
 | `UNDRIVEN_DECLARATION` | MUST | In the file of a universe's analysis, every address by which something reached reads another analysis's output built per universe, or its switch, in that universe, or uses one of its decisions there, has a driven chain |
