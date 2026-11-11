@@ -1,0 +1,7 @@
+{
+  "about": "An output reads a switch whose case names that output pinned to a universe.",
+  "valid": false,
+  "must_report": [
+    {"code": "OUTPUT_CYCLE", "file": "astra.yaml"}
+  ]
+}

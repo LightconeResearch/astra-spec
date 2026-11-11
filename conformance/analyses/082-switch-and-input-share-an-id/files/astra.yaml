@@ -1,0 +1,16 @@
+spec_version: "0.1.0"
+inputs:
+  switch1:
+    path: data/switch1.csv
+decisions:
+  decision1:
+    options: {a: {}, b: {}}
+outputs:
+  output1:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py output1 '{output}'
+  switch1:
+    switch: decision1
+    cases: {a: output1}

@@ -1,0 +1,7 @@
+{
+  "about": "A switch has a case for an option its decision doesn't have.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNKNOWN_OPTION", "file": "astra.yaml"}
+  ]
+}

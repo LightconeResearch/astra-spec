@@ -1,0 +1,8 @@
+{
+  "about": "An output lists a switch in its `decisions`, where only a decision may be named.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNRESOLVED_ADDRESS", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["UNUSED_DECISION"]
+}

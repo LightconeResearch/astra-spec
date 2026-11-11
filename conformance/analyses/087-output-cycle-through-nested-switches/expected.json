@@ -1,0 +1,7 @@
+{
+  "about": "Two switches each have a case that names the other.",
+  "valid": false,
+  "must_report": [
+    {"code": "OUTPUT_CYCLE", "file": "astra.yaml"}
+  ]
+}

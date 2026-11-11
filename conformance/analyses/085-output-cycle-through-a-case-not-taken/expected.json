@@ -1,0 +1,7 @@
+{
+  "about": "An output reads a switch whose case, on an option no universe selects, names that output.",
+  "valid": false,
+  "must_report": [
+    {"code": "OUTPUT_CYCLE", "file": "astra.yaml"}
+  ]
+}

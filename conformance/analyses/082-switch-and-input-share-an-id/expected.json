@@ -1,0 +1,7 @@
+{
+  "about": "An input and a switch of one analysis share an id.",
+  "valid": false,
+  "must_report": [
+    {"code": "AMBIGUOUS_ID", "file": "astra.yaml"}
+  ]
+}

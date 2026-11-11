@@ -1,0 +1,7 @@
+{
+  "about": "A switch shares its id with a declaration of its analysis.",
+  "valid": false,
+  "must_report": [
+    {"code": "CLASHING_RESULT_NAME", "file": "astra.yaml"}
+  ]
+}
