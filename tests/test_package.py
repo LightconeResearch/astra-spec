@@ -1,4 +1,4 @@
-"""The built wheel ships exactly the schema artefacts (design D7)."""
+"""The built wheel ships exactly the schema artefacts (design D7), plus the generated Pydantic models."""
 
 import shutil
 import subprocess
@@ -8,7 +8,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Every file the wheel ships outside its `*.dist-info/`: the LinkML sources,
-# the generated contract and the agent briefing (design D7, CLAUDE.md).
+# the generated contract and Pydantic models, and the agent briefing (design
+# D7, CLAUDE.md).
 ARTEFACTS = frozenset(
     {
         "astra/schema/types.yaml",
@@ -20,6 +21,8 @@ ARTEFACTS = frozenset(
         "astra/schema/generated/provenance.open.schema.json",
         "astra/schema/generated/provenance.context.jsonld",
         "astra/schema/generated/rules.json",
+        "astra/schema/generated/analysis.py",
+        "astra/schema/generated/provenance.py",
         "astra/docs/llms.txt",
     }
 )
@@ -55,8 +58,12 @@ def test_wheel_ships_exactly_the_artefacts(tmp_path):
 
 
 def test_metadata_has_no_runtime_dependencies(tmp_path):
+    """The one dependency is the `pydantic` extra's, which only the generated models need."""
     wheel = built_wheel(tmp_path)
     (metadata,) = [n for n in wheel.namelist() if n.endswith(".dist-info/METADATA")]
-    meta = wheel.read(metadata).decode()
-    assert "Requires-Dist:" not in meta
-    assert "Requires-Python: >=3.10" in meta
+    lines = wheel.read(metadata).decode().splitlines()
+    assert [line for line in lines if line.startswith("Requires-Dist:")] == [
+        "Requires-Dist: pydantic>=2.11; extra == 'pydantic'"
+    ]
+    assert "Provides-Extra: pydantic" in lines
+    assert "Requires-Python: >=3.10" in lines

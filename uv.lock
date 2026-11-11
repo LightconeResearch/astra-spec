@@ -48,12 +48,20 @@ wheels = [
 name = "astra-spec"
 source = { editable = "." }
 
+[package.optional-dependencies]
+pydantic = [
+    { name = "pydantic", version = "2.13.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pydantic", version = "2.14.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "jschon" },
     { name = "jsonschema" },
     { name = "linkml" },
     { name = "markdown-it-py" },
+    { name = "pydantic", version = "2.13.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "pydantic", version = "2.14.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pytest" },
     { name = "rdflib" },
     { name = "ruamel-yaml" },
@@ -65,6 +73,8 @@ docs = [
 ]
 
 [package.metadata]
+requires-dist = [{ name = "pydantic", marker = "extra == 'pydantic'", specifier = ">=2.11" }]
+provides-extras = ["pydantic"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -72,6 +82,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4.23" },
     { name = "linkml", specifier = "==1.12.1" },
     { name = "markdown-it-py", specifier = ">=3" },
+    { name = "pydantic", specifier = ">=2.11" },
     { name = "pytest", specifier = ">=8" },
     { name = "rdflib", specifier = ">=7" },
     { name = "ruamel-yaml", specifier = ">=0.18" },

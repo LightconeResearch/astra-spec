@@ -57,14 +57,14 @@ classes:
       value:
         required: true
         slot_uri: rdf:value
-        pattern: '^([^\x00-\x20\x7f"#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$'
+        pattern: '^([^\x00-\x20\x7f\x22#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$'
         annotations:
           rule: INVALID_VALUE
         description: >-
           The fragment identifier, without the leading `#`, such as `page=6`.
           It is non-empty, holds no ASCII space or control character and none
-          of `"`, `#`, `<`, `>`, `[`, `\`, `]`, `^`, the backtick, `{`, `|`
-          and `}`, and has `%` only before two hex digits.
+          of `"`, `#`, `<`, `>`, `[`, the backslash, `]`, `^`, the backtick,
+          `{`, `|` and `}`, and has `%` only before two hex digits.
       conforms_to:
         slot_uri: dcterms:conformsTo
         range: iri

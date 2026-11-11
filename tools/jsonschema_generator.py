@@ -38,6 +38,12 @@ It also:
    value, so the array of anything LinkML writes for it, ``{type: array,
    items: {}}``, which a map, an object, would fail, becomes ``{}``.
 
+Each step runs in one of the lifecycle hooks LinkML's JSON Schema generator
+offers for changing what it generates (``LifecycleMixin``), never in an
+override of its own methods: steps 1 to 3 in ``after_generate_class_slot``, on
+each field of a class, step 5 in ``after_generate_class``, and step 4, with the
+keys step 2 drops from the entries' definitions, in ``after_generate_schema``.
+
 Through :func:`generate`, optional fields also reject null (``include_null=False``),
 and the schema's ``$id`` can be set, so that each generated file is identified
 by its own URI. In that ``$id``, ``{series}`` stands for the series of the
@@ -80,27 +86,23 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
     _entry_keys: dict[str, str] = field(default_factory=dict, init=False, repr=False)
     """Each object-form entry definition the maps reference, with the key property it drops."""
 
-    def get_subschema_for_slot(
-        self, slot, omit_type=False, include_null=True, cls=None
-    ):
-        """LinkML's subschema for `slot`; for a map, with `propertyNames` and the one form its entries take."""
-        prop = super().get_subschema_for_slot(
-            slot, omit_type=omit_type, include_null=include_null, cls=cls
-        )
-        key_slot = None if omit_type else self._map_key_slot(slot)
+    def after_generate_class_slot(self, slot, cls, sv):
+        """LinkML's subschema for the field `slot` of the class `cls`: for a map, with `propertyNames` and the one form
+        its entries take (steps 1 and 2); for a list of scalars, with `uniqueItems` (step 3)."""
+        slot = super().after_generate_class_slot(slot, cls, sv)
+        prop, source = slot.schema_, slot.source
+        key_slot = self._map_key_slot(source)
         if key_slot is not None:
             key_pattern = self.get_subschema_for_slot(key_slot, include_null=False).get(
                 "pattern"
             )
             prop["propertyNames"] = JsonSchema({"pattern": key_pattern})
-            prop["additionalProperties"] = self._entry_subschema(slot, key_slot)
-        if (
-            not omit_type
-            and prop.is_array
-            and getattr(slot, "range", None) not in self.schemaview.all_classes()
-        ):
+            prop["additionalProperties"] = self._entry_subschema(
+                source, key_slot, prop["additionalProperties"]
+            )
+        if prop.is_array and source.range not in sv.all_classes():
             prop["uniqueItems"] = True
-        return prop
+        return slot
 
     def after_generate_class(self, cls, sv):
         """LinkML's subschema for the class `cls`, with its class-level checks guarded in `allOf` (step 5)."""
@@ -157,8 +159,12 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
             return None
         return sv.get_identifier_slot(slot.range, use_key=True)
 
-    def _entry_subschema(self, slot, key_slot: SlotDefinition) -> JsonSchema:
-        """The one form an entry of the map `slot` takes: compact if the class has one slot besides its key."""
+    def _entry_subschema(
+        self, slot, key_slot: SlotDefinition, forms: JsonSchema
+    ) -> JsonSchema:
+        """The one form an entry of the map `slot` takes, of the `forms` LinkML allows it: compact if the class has one
+        slot besides its key, otherwise the object form, LinkML's reference to the class's definition without its key.
+        """
         others = [
             s
             for s in self.schemaview.class_induced_slots(slot.range)
@@ -166,13 +172,25 @@ class AstraJsonSchemaGenerator(JsonSchemaGenerator):
         ]
         if len(others) == 1:
             return self.get_subschema_for_slot(others[0], include_null=False)
-        _, _, reference = self.get_type_info_for_slot_subschema(slot)
-        entry = JsonSchema.ref_for(reference, identifier_optional=True)
-        for ref in entry.get("anyOf", [entry]):
-            self._entry_keys[ref["$ref"].removeprefix("#/$defs/")] = (
+        refs = _keyless_refs(forms)
+        if not refs:
+            raise ValueError(
+                f"{slot.name}: LinkML allows its entries no form without their key"
+            )
+        for ref in refs:
+            self._entry_keys[ref["$ref"].removeprefix(DEF_PREFIX)] = (
                 self.aliased_slot_name(key_slot)
             )
-        return entry
+        return refs[0] if len(refs) == 1 else JsonSchema({"anyOf": refs})
+
+
+def _keyless_refs(forms: dict) -> list[dict]:
+    """The `$ref`s in `forms`, LinkML's subschema for the entries of a map, to a class's definition without its key
+    (``<Class>__identifier_optional``), one for each class an entry may be."""
+    if "$ref" in forms:
+        suffix = JsonSchema.OPTIONAL_IDENTIFIER_SUFFIX
+        return [forms] if forms["$ref"].endswith(suffix) else []
+    return [ref for sub in forms.get("anyOf", []) for ref in _keyless_refs(sub)]
 
 
 UNGUARDED = ("anyOf", "not")

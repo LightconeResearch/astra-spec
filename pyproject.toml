@@ -49,6 +49,11 @@ classifiers = [
 
 dependencies = []
 
+[project.optional-dependencies]
+# The Pydantic models of the two documents, astra.schema.generated.analysis
+# and astra.schema.generated.provenance.
+pydantic = ["pydantic>=2.11"]
+
 [project.urls]
 Homepage = "https://astra-spec.org"
 Documentation = "https://astra-spec.org"
@@ -65,6 +70,8 @@ dev = [
     "pytest>=8",
     "markdown-it-py>=3",
     "rdflib>=7",
+    # tests/test_models.py loads documents into the generated Pydantic models.
+    "pydantic>=2.11",
     # Pinned: tests/test_rules.py reads its standard output formats to check spec §10's filter.
     "jschon==0.11.1",
 ]
@@ -86,7 +93,8 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/astra"]
-# astra.schema holds no .py file, so an editable install needs src on the path to expose it.
+# astra and astra.schema have no __init__.py (namespace packages), so an editable install needs
+# src on the path to expose them.
 dev-mode-dirs = ["src"]
 
 # Ship the agent briefing inside the package so tooling (e.g. `astra guide`

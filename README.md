@@ -83,16 +83,25 @@ This repository (`astra-spec`) holds the LinkML schema and the documentation sit
 
 ```
 src/astra/schema/   # LinkML schema sources (edit these)
-  generated/        # JSON Schemas, JSON-LD context and rules.json (generated, do not edit)
+  generated/        # JSON Schemas, JSON-LD context, rules.json and Pydantic models (generated, do not edit)
 docs/               # Documentation source, the specification included (Zensical → astra-spec.org)
 examples/           # Example analyses
 conformance/        # Conformance suite: astra.yaml files, records and analyses, with their verdicts
 tools/              # Generators and checks of the schema files and the docs
-linkml-templates/   # Templates for the generated field reference
+linkml-templates/   # Templates for the generated field reference and Pydantic models
 rfcs/               # RFCs
 ```
 
-The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/). The `astra-spec` package holds the LinkML sources and the generated schema files, as the namespace package `astra.schema`, read through `importlib.resources`; it ships no Python models and has no dependencies.
+The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/). The `astra-spec` package holds the LinkML sources and the generated schema files, as the namespace package `astra.schema`, read through `importlib.resources`, and has no dependencies.
+
+It also ships Pydantic models of the two documents, generated from the LinkML sources, which need the `pydantic` extra (`pip install "astra-spec[pydantic]"`). They are a typed view of a document the JSON Schema accepted, not a validator: they don't check the patterns of the named types, the class rules or the maps' keys.
+
+```python
+from astra.schema.generated.analysis import Analysis
+
+analysis = Analysis.model_validate(document)  # `document`: an astra.yaml the JSON Schema accepted
+analysis.outputs["result"].id                # "result": each entry takes its key as its id
+```
 
 ## Development
 
@@ -107,7 +116,7 @@ Requires Python 3.10+, [uv](https://docs.astral.sh/uv/), and [just](https://gith
 ```bash
 just test         # Schema generation, examples
 just lint         # LinkML schema lint
-just gen-schema   # Regenerate the JSON Schemas, JSON-LD context and rules.json
+just gen-schema   # Regenerate the JSON Schemas, JSON-LD context, rules.json and Pydantic models
 just gen-doc      # Regenerate the field reference docs
 just docs-serve   # Live-reload local preview of the docs site
 just --list       # Everything else

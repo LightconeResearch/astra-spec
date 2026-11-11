@@ -155,7 +155,10 @@ test: check-generated _pytest lint
 # version, or `dev`), so the closed and open record schemas are distinct, and
 # so are two minor versions. `rules.json` holds the rules extracted from the
 # codes table of the specification's Rules section, and the code of each JSON
-# Schema keyword that can fail
+# Schema keyword that can fail. Last, the Pydantic models of the two documents,
+# LinkML's `gen-pydantic` with the base model of `linkml-templates/pydantic/`,
+# whose one validator gives each entry of a map keyed by `id` its key as its
+# `id`: a typed view of a document the JSON Schema accepted, never a validator
 [group('model development')]
 gen-schema out="src/astra/schema/generated": _stage-versioned
   mkdir -p {{out}}
@@ -164,13 +167,17 @@ gen-schema out="src/astra/schema/generated": _stage-versioned
   uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}{series}/provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
   uv run python tools/jsonld_context.py {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
   uv run python tools/rules.py docs/specification.md {{staged_schema_dir}}/analysis.yaml {{staged_schema_dir}}/provenance.yaml --schemas {{out}}/analysis.schema.json {{out}}/provenance.schema.json {{out}}/provenance.open.schema.json > {{out}}/rules.json
+  uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.py
+  uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.py
 
-# Check that the committed generated files are what `gen-schema` makes now
+# Check that the committed generated files are what `gen-schema` makes now.
+# The `__pycache__` Python writes on importing the Pydantic models (the tests
+# do) is ignored by git, the wheel and this check
 [group('model development')]
 check-generated:
   rm -rf tmp/generated-check
   just gen-schema tmp/generated-check
-  diff -r tmp/generated-check src/astra/schema/generated
+  diff -r -x __pycache__ tmp/generated-check src/astra/schema/generated
 
 # Run linting
 [group('model development')]
@@ -331,10 +338,10 @@ _gen-yaml:
 # context and `rules.json` of `gen-schema`, beside the merged model. Copied,
 # not regenerated: stock `gen-json-schema` would publish a second, weaker
 # schema (design D1). Any other .json or .jsonld there is removed, so only the
-# contract is published.
+# contract is published; the Pydantic models ship in the wheel, not on the site.
 _add-artifacts:
   rm -f {{distrib_schema_path}}/*.json {{distrib_schema_path}}/*.jsonld
-  cp {{source_schema_dir}}/generated/* {{distrib_schema_path}}/
+  cp {{source_schema_dir}}/generated/*.json {{source_schema_dir}}/generated/*.jsonld {{distrib_schema_path}}/
 
 # Initialize git repository
 _git-init:

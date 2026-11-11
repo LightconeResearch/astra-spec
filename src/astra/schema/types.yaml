@@ -131,9 +131,9 @@ types:
       than `#`, then optionally `#` and any characters other than `#`, such
       as `http://tools.ietf.org/rfc/rfc7111`. None of these characters is an
       ASCII space or control, a C1 control, `<`, `>`, `"`, `{`, `}`, the
-      vertical bar, `\`, `^`, the backtick or a bidi formatting character
-      U+200E, U+200F or U+202A–U+202E, and `%` comes only before two hex
-      digits.
-    pattern: '^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$'
+      vertical bar, the backslash, `^`, the backtick or a bidi formatting
+      character U+200E, U+200F or U+202A–U+202E, and `%` comes only before
+      two hex digits.
+    pattern: '^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$'
     annotations:
       rule: INVALID_VALUE
