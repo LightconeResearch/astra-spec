@@ -146,7 +146,7 @@ astra universe show alt       # the selection alt makes
 astra plan                    # the planned results and their commands
 ```
 
-Universe validation enforces three rules, among others: every active decision of the analysis and of the analyses it drives has a selection; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
+Universe validation enforces three rules, among others: every decision of the analysis and of the analyses it drives has a selection; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
 
 For declared analyses, the universe sets their decisions by address ([Elements](specification.md#elements)):
 

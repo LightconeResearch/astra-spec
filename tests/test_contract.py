@@ -179,8 +179,6 @@ TYPED = {
     ("Analysis", "spec_version"): "spec_version",
     ("Output", "inputs"): "reference",
     ("Output", "decisions"): "address",
-    ("Output", "when"): "condition",
-    ("Decision", "when"): "condition",
     ("Option", "insights"): "id",
     ("Option", "requires"): "option_reference",
     ("Option", "incompatible_with"): "option_reference",

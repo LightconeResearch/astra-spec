@@ -26,11 +26,6 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/tags/minItems": "EMPTY_COLLECTION",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/tags/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/tags/uniqueItems": "DUPLICATE_ENTRY",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/when/items/pattern": "INVALID_REFERENCE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/when/items/type": "WRONG_TYPE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/when/minItems": "EMPTY_COLLECTION",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/when/type": "WRONG_TYPE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/properties/when/uniqueItems": "DUPLICATE_ENTRY",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/required": "MISSING_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Decision__identifier_optional/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Evidence/additionalProperties": "UNKNOWN_FIELD",
@@ -123,11 +118,6 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/tags/minItems": "EMPTY_COLLECTION",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/tags/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/tags/uniqueItems": "DUPLICATE_ENTRY",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/when/items/pattern": "INVALID_REFERENCE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/when/items/type": "WRONG_TYPE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/when/minItems": "EMPTY_COLLECTION",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/when/type": "WRONG_TYPE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/properties/when/uniqueItems": "DUPLICATE_ENTRY",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/required": "MISSING_FIELD",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Output__identifier_optional/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/$defs/Recipe/additionalProperties": "UNKNOWN_FIELD",
@@ -340,7 +330,7 @@
       "code": "INVALID_REFERENCE",
       "layer": "schema",
       "level": "MUST",
-      "statement": "Every address, reference, option reference and condition, bar universe keys, matches its grammar"
+      "statement": "Every address, reference and option reference, bar universe keys, matches its grammar"
     },
     {
       "code": "INVALID_PATH",
@@ -436,7 +426,7 @@
       "code": "UNRESOLVED_ADDRESS",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An address in `inputs` reaches an input or output; in `artifact`, an output; In `decisions`, universe keys, conditions and option references, a decision; in an import, another analysis's universe"
+      "statement": "An address in `inputs` reaches an input or output; in `artifact`, an output; In `decisions`, universe keys and option references, a decision; in an import, another analysis's universe"
     },
     {
       "code": "AMBIGUOUS_ID",
@@ -454,7 +444,7 @@
       "code": "UNKNOWN_OPTION",
       "layer": "validator",
       "level": "MUST",
-      "statement": "Each option a condition, option reference or selection names is one of its decision's"
+      "statement": "Each option an option reference or selection names is one of its decision's"
     },
     {
       "code": "INVALID_INSIGHT_REF",
@@ -487,16 +477,10 @@
       "statement": "No chain of `derived_from` loops back to its universe"
     },
     {
-      "code": "INACTIVE_DECISION",
-      "layer": "validator",
-      "level": "MUST",
-      "statement": "A universe's own `decisions` set only decisions active in its effective selection"
-    },
-    {
       "code": "MISSING_DECISION",
       "layer": "validator",
       "level": "MUST",
-      "statement": "An effective selection sets every active decision of its analysis and of those its universes drive"
+      "statement": "An effective selection sets every decision of its analysis and of those its universes drive"
     },
     {
       "code": "MISSING_REQUIRED_OPTION",
@@ -533,18 +517,6 @@
       "layer": "validator",
       "level": "MUST",
       "statement": "Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose output it reads"
-    },
-    {
-      "code": "PIN_INACTIVE",
-      "layer": "validator",
-      "level": "MUST",
-      "statement": "Every pinned output is active in the universe it is pinned to"
-    },
-    {
-      "code": "INPUT_NOT_BUILT",
-      "layer": "validator",
-      "level": "MUST",
-      "statement": "Every output a result planned in a universe reads without a pin is active there"
     },
     {
       "code": "NOT_BUILT_IN_UNIVERSE",

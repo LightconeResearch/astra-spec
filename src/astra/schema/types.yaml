@@ -2,9 +2,9 @@
 id: https://w3id.org/astra/types
 name: types
 description: |-
-  The named types of ASTRA: the ids, addresses, references and conditions the
-  format is built from, and the forms of commit ids, content hashes,
-  specification versions, timestamps and IRIs.
+  The named types of ASTRA: the ids, addresses and references the format is
+  built from, and the forms of commit ids, content hashes, specification
+  versions, timestamps and IRIs.
 # Placeholder version. The real version is injected at build time from the
 # latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0
@@ -79,19 +79,6 @@ types:
       `decision1` of the declared analysis `subanalysis`.
     structured_pattern:
       syntax: '^{id}(\.{id})+$'
-      interpolated: true
-      partial_match: true
-    annotations:
-      rule: INVALID_REFERENCE
-
-  condition:
-    typeof: string
-    description: >-
-      An option reference, optionally preceded by `~`. Without `~` it holds
-      when that option is selected; with `~` it holds when that option is not
-      selected.
-    structured_pattern:
-      syntax: '^~?{id}(\.{id})+$'
       interpolated: true
       partial_match: true
     annotations:

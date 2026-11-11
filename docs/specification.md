@@ -98,34 +98,20 @@ folder `analysis/`, and its paths are relative.
   ```
 
   Another analysis's elements are read by address in an output's `inputs`
-  and `decisions`, a condition, a constraint or evidence, just as if they
-  were the analysis's own: `output1` reads `stage`'s `output3` and is made
-  with `stage`'s `decision2`, whatever option is selected where it is built.
+  and `decisions`, a constraint or evidence, just as if they were the
+  analysis's own: `output1` reads `stage`'s `output3` and is made with
+  `stage`'s `decision2`, whatever option is selected where it is built.
 
-- A `when` lists **conditions**, `d.o` (decision `d` selects option `o`) or
-  `~d.o` (decision `d` doesn't select option `o`).
-
-  ```yaml
-  decisions:
-    decision3:
-      when: [decision1.b, stage.decision2.b]
-      options: {a: {}, b: {}}
-  ```
-
-  - `decision3` is only active when `decision1` selects `b` and `stage`'s
-    `decision2` selects `b`; an output can have a `when` too
-
-- A **universe** selects an option for each active decision: its own
-  analysis's by id, another's by address. With `derived_from` it inherits
-  another universe's selection, replacing what it sets and dropping what
-  turns inactive: its **effective selection**.
+- A **universe** selects an option for each decision: its own analysis's
+  by id, another's by address. With `derived_from` it inherits another
+  universe's selection, replacing what it sets: its **effective
+  selection**.
 
   ```yaml
   universes:
     u1:
       decisions:
         decision1: b
-        decision3: a
         stage.decision2: b
     u2:
       derived_from: u1
@@ -133,8 +119,8 @@ folder `analysis/`, and its paths are relative.
   ```
 
   - `u1` sets `stage`'s `decision2`: it **drives** `stage` (below)
-  - `u2` changes `decision1` from `u1`'s `b` to `a`, keeps `stage.decision2`
-    as `b`, and drops `decision3`, whose `when` no longer holds
+  - `u2` changes `decision1` from `u1`'s `b` to `a`, and keeps
+    `stage.decision2` as `b`
 
 - An entry of an output's `inputs` is a **reference**: an address that may
   end in a **pin**, `#` and a universe's id, fixing the universe it reads.
@@ -157,10 +143,10 @@ folder `analysis/`, and its paths are relative.
   - `analysis` has no `v1`, so `stage.output3#v1` reads `stage`'s own
     result in its `v1`
 
-- An output is **built per universe** if it lists `decisions`, has a `when`,
-  or reads an output that is built per universe without a pin; it has a
-  result in each universe where it is active. Any other output is **built
-  once** with one result:
+- An output is **built per universe** if it lists `decisions` or reads an
+  output that is built per universe without a pin; it has a result in each
+  universe where its analysis is built. Any other output is **built once**
+  with one result:
 
   ```yaml
   outputs:
@@ -178,14 +164,10 @@ folder `analysis/`, and its paths are relative.
 
   ```yaml
   outputs:
-    output6:
-      when: [decision1.b]
-      ...
     output7:
       inputs: [output1]
       ...
   ```
-  - `output6` is built per universe because it depends on a decision via `when`
   - `output7` is built per universe because it reads `output1`, which is
     built per universe, without a pin
 
@@ -224,9 +206,8 @@ folder `analysis/`, and its paths are relative.
 
   The analyses an address goes through, here `stage` then `inner`, form a
   **chain**. Once any universe drives a chain, every universe must set all
-  the active decisions of the analyses on it: had `u2` not derived from
-  `u1`, it would have to set `stage.decision2` and `stage.inner.decision4`
-  itself.
+  the decisions of the analyses on it: had `u2` not derived from `u1`, it
+  would have to set `stage.decision2` and `stage.inner.decision4` itself.
 
   - Each chain is driven on its own. Were `analysis/astra.yaml` also to declare
     `inner` directly, and set none of its decisions:
@@ -351,11 +332,11 @@ folder `analysis/`, and its paths are relative.
 
 - A **result** is the one file an output's recipe writes: an output built
   once has one, and an output built per universe has one in each universe
-  where it is active. The driving analysis **plans** the results of its own
-  outputs, and every result a planned result reads or its evidence cites,
-  through any declaration; nothing else is built. A result belongs to the
-  analysis whose universe built it or, for an output built once, the
-  analysis whose output it is. With `stage`'s own file:
+  where its analysis is built. The driving analysis **plans** the results
+  of its own outputs, and every result a planned result reads or its
+  evidence cites, through any declaration; nothing else is built. A result
+  belongs to the analysis whose universe built it or, for an output built
+  once, the analysis whose output it is. With `stage`'s own file:
 
   ```yaml
   # analysis/stage/astra.yaml
@@ -472,8 +453,8 @@ folder `analysis/`, and its paths are relative.
 
 - **Evidence** takes the status of the result it cites. Citing an output
   built per universe without a pin, it cites its results in each of the
-  driving analysis's universes where it is active and its analysis built:
-  none means `missing`, several the worst status. A check covers a declared
+  driving analysis's universes where its analysis is built: none means
+  `missing`, several the worst status. A check covers a declared
   analysis's evidence only where it cites a planned result.
 
 - A result's **name** is its output's id after the driven declarations
@@ -524,7 +505,7 @@ after the arrow. Rows that share a code are cases of one rule.
 | `INVALID_VALUE` | MUST | Every `spec_version`, hash, IRI, time, `doi`, `url` and location `value` has its form |
 | `INVALID_VALUE` | MUST | `size` ≥ 0, evidence `version` ≥ 1, `resources.cpus` ≥ 0, `resources.gpus` ≥ 1 |
 | `INVALID_ID` | MUST | Map keys and id-typed values are ids; a universe's `decisions` keys are addresses |
-| `INVALID_REFERENCE` | MUST | Every address, reference, option reference and condition, bar universe keys, matches its grammar |
+| `INVALID_REFERENCE` | MUST | Every address, reference and option reference, bar universe keys, matches its grammar |
 | `INVALID_PATH` | MUST | Every input's and declaration's `path` is non-empty and doesn't start with `/` |
 | `INVALID_IMPORT` | MUST | A `universes` entry with `analysis` or `universe` has both, and no `decisions` or `derived_from` |
 | `INVALID_EVIDENCE_SOURCE` | MUST | Evidence has exactly one of `doi` and `artifact`, and `version` only with `doi` |
@@ -542,18 +523,17 @@ after the arrow. Rows that share a code are cases of one rule.
 | `COMMIT_NOT_FOUND` | MUST | In a file not read from a remote, a `path` and `commit` name a commit of the file's repository |
 | `DECLARED_ANALYSIS_INVALID` | MUST | An analysis from a commit, with all it declares, is valid at that commit |
 | `UNRESOLVED_ADDRESS` | MUST | An address in `inputs` reaches an input or output; in `artifact`, an output |
-| `UNRESOLVED_ADDRESS` | MUST | In `decisions`, universe keys, conditions and option references, a decision; in an import, another analysis's universe |
+| `UNRESOLVED_ADDRESS` | MUST | In `decisions`, universe keys and option references, a decision; in an import, another analysis's universe |
 | `AMBIGUOUS_ID` | MUST | No input and output of one analysis share an id |
 | `CLASHING_RESULT_NAME` | MUST | No output shares its id with a declaration of its analysis |
-| `UNKNOWN_OPTION` | MUST | Each option a condition, option reference or selection names is one of its decision's |
+| `UNKNOWN_OPTION` | MUST | Each option an option reference or selection names is one of its decision's |
 | `INVALID_INSIGHT_REF` | MUST | An option's `insights` name prior insights of its analysis |
 | `OUTPUT_CYCLE` | MUST | No output reads itself through `inputs`, directly or not, pinned or not |
 | `UNDECLARED_TEMPLATE_REF` | MUST | Every brace of a `command`, read from the left, is in `{{`, `}}` or a placeholder |
 | `UNDECLARED_TEMPLATE_REF` | MUST | Placeholders are `{inputs}`, `{output}`, and `{inputs.<entry>}` or `{decisions.<entry>}` for entries as listed |
 | `UNKNOWN_DERIVED_FROM` | MUST | `derived_from` names a universe of its analysis, never an import |
 | `DERIVED_FROM_CYCLE` | MUST | No chain of `derived_from` loops back to its universe |
-| `INACTIVE_DECISION` | MUST | A universe's own `decisions` set only decisions active in its effective selection |
-| `MISSING_DECISION` | MUST | An effective selection sets every active decision of its analysis and of those its universes drive |
+| `MISSING_DECISION` | MUST | An effective selection sets every decision of its analysis and of those its universes drive |
 | `MISSING_REQUIRED_OPTION` | MUST | An effective selection meets the `requires` of each option it selects |
 | `INCOMPATIBLE_OPTIONS` | MUST | An effective selection meets the `incompatible_with` of each option it selects |
 | `EXCLUDED_OPTION_SELECTED` | MUST | No effective selection selects an excluded option |
@@ -561,9 +541,7 @@ after the arrow. Rows that share a code are cases of one rule.
 | `DUPLICATE_ELEMENT` | MUST | A universe sets an inherited decision only under the key it inherits |
 | `LOOPING_KEY` | MUST | No universe key goes through a declaration that leads back |
 | `UNKNOWN_PIN_UNIVERSE` | MUST | Every pin names a universe: its analysis's entry or, lacking one, that of the analysis whose output it reads |
-| `PIN_INACTIVE` | MUST | Every pinned output is active in the universe it is pinned to |
 | ***validator, in each universe where results are built*** | | |
-| `INPUT_NOT_BUILT` | MUST | Every output a result planned in a universe reads without a pin is active there |
 | `NOT_BUILT_IN_UNIVERSE` | MUST | An output reading another analysis's output built per universe, unpinned or pinned to a universe it is built in, or one of its decisions, reads it from an analysis built in that universe |
 | `UNDRIVEN_DECLARATION` | MUST | In the file of a universe's analysis, every address using another analysis's element there has a driven chain |
 | `RESULT_IN_TWO_PLACES` | SHOULD | No planned result has two names |

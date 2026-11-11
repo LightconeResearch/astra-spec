@@ -33,18 +33,6 @@ TABLE = {
         ["scaling.standard", "iris.random_seed.seed_42"],
         ["scaling", "~scaling.standard", "a.b#u", "scaling.standard\n"],
     ),
-    "condition": (
-        ["scaling.standard", "~scaling.standard", "~iris.random_seed.seed_42"],
-        [
-            "scaling",
-            "~scaling",
-            "a.~b",
-            "~~a.b",
-            "!a.b",
-            "~ a.b",
-            "~scaling.standard\n",
-        ],
-    ),
     "commit_id": (
         [HEX_40, HEX_64],
         [HEX_40[:7], HEX_40 + "a", HEX_40.upper(), "main", HEX_40 + "\n"],

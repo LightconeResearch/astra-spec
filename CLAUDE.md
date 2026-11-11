@@ -4,7 +4,7 @@
 
 The ASTRA schema is written in LinkML, in four modules under `src/astra/schema/`:
 
-- **`types.yaml`** — the named types: `id`, `address`, `reference`, `option_reference`, `condition`, `commit_id`, `content_hash`, `spec_version`, `timestamp`, `iri`. The id grammar is written once, in `settings`, and the `structured_pattern`s are built from it.
+- **`types.yaml`** — the named types: `id`, `address`, `reference`, `option_reference`, `commit_id`, `content_hash`, `spec_version`, `timestamp`, `iri`. The id grammar is written once, in `settings`, and the `structured_pattern`s are built from it.
 - **`analysis.yaml`** — the analysis document, `astra.yaml` (`tree_root: Analysis`): inputs, outputs, recipes, decisions and options, universes and imports of other analyses' universes, declarations of other analyses.
 - **`insight.yaml`** — insights and evidence, with the W3C Web Annotation selectors.
 - **`provenance.yaml`** — the provenance record of a result (`tree_root: ProvenanceRecord`), mapped onto PROV-O.

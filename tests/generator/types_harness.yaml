@@ -34,9 +34,6 @@ classes:
       option_reference:
         description: An option reference.
         range: option_reference
-      condition:
-        description: A condition.
-        range: condition
       commit_id:
         description: A commit id.
         range: commit_id

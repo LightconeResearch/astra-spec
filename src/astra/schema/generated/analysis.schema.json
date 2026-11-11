@@ -114,16 +114,6 @@
           "minItems": 1,
           "type": "array",
           "uniqueItems": true
-        },
-        "when": {
-          "description": "The conditions under which the decision is active. It is active only when every condition holds.",
-          "items": {
-            "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-            "type": "string"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
         }
       },
       "required": [
@@ -452,16 +442,6 @@
         "type": {
           "$ref": "#/$defs/OutputType",
           "description": "The kind of artefact the output is."
-        },
-        "when": {
-          "description": "The conditions under which the output is active. It is active only when every condition holds.",
-          "items": {
-            "pattern": "^~?[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-            "type": "string"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
         }
       },
       "required": [
@@ -474,7 +454,7 @@
     },
     "Recipe": {
       "additionalProperties": false,
-      "description": "How an output is made: a `command` and the context it runs in (`resources`, `container`). What the output is made from, the decisions it is made with and when it is active are the output's `inputs`, `decisions` and `when`; the command reaches the inputs and decisions through its placeholders.",
+      "description": "How an output is made: a `command` and the context it runs in (`resources`, `container`). What the output is made from and the decisions it is made with are the output's `inputs` and `decisions`; the command reaches the inputs and decisions through its placeholders.",
       "properties": {
         "command": {
           "description": "The POSIX shell command that makes the output, such as `python src/output1.py`. It is a template. Read from the left, `{{` stands for a literal `{` and `}}` for a literal `}`, and any other `{` opens a placeholder, which ends at the next `}`. A runner substitutes each placeholder, and each `{{` and `}}`, before running the command:\n\n  {inputs.<entry>}     the path of what an entry of the output's\n                       `inputs` names, with <entry> written\n                       exactly as the entry is, dots and `#`\n                       included, as in\n                       {inputs.subanalysis.output1#u1}\n  {decisions.<entry>}  the id of the option selected for the\n                       decision an entry of the output's\n                       `decisions` names, with <entry> written\n                       exactly as the entry is, as in\n                       {decisions.subanalysis.decision1}\n  {inputs}             the paths of all the output's inputs, in\n                       the order of `inputs`, separated by spaces\n  {output}             the path the result is written to\n\nEvery brace belongs to a `{{`, a `}}` or a placeholder, every placeholder takes one of these forms, and the <entry> of an {inputs.<entry>} or {decisions.<entry>} is an entry of the output's `inputs` or `decisions`, exactly as written.",
@@ -652,7 +632,7 @@
           }
         }
       ],
-      "description": "An entry of `universes`: a universe of the analysis, a selection of one option for every active decision of the analysis and of every analysis reached through a declaration that the analysis's universes drive, or an import, which has an `analysis` and a `universe`, names one of another analysis's universes and selects nothing. A universe's effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` written over it decision by decision and every inherited selection of a decision that isn't active in the result dropped, so a universe that switches a decision on must set it.",
+      "description": "An entry of `universes`: a universe of the analysis, a selection of one option for every decision of the analysis and of every analysis reached through a declaration that the analysis's universes drive, or an import, which has an `analysis` and a `universe`, names one of another analysis's universes and selects nothing. A universe's effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` written over it decision by decision.",
       "properties": {
         "analysis": {
           "description": "For an import, the address of the declaration that leads to the analysis whose universe it imports, through as many declarations as lead to it, such as `subanalysis` or `stage.inner`.",

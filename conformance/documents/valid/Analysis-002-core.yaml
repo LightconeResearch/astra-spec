@@ -34,8 +34,6 @@ outputs:
     format: json
     inputs:
       - estimates#baseline
-    when:
-      - "~method.template"
     recipe:
       command: >-
         python src/bias.py --estimates {inputs.estimates#baseline}
@@ -55,7 +53,6 @@ decisions:
       template: {}
   training:
     label: Training set
-    when: [method.neural_net]
     options:
       large: {}
       small:

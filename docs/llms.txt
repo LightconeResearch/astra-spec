@@ -11,8 +11,7 @@ An `astra.yaml` is a YAML 1.2 document whose content is a map. Every element the
 - `decisions`: the choices the analysis makes, each with its `rationale` and at least one of its `options`. An option can list options it `requires` or is `incompatible_with` (as `decision.option`), cite the prior `insights` that support it, or be `excluded` with a reason: it stays listed, and no universe selects it.
 - `outputs` (at least one): what the analysis makes. Each has a `type` (`metric`, `figure`, `table`, `data` or `report`), a `format` (the file extension, without the dot, such as `csv`), the `inputs` it is made from (inputs and outputs, in order), the `decisions` it is made with directly, and a `recipe`.
 - `recipe`: a `command`, a POSIX shell command run in the analysis's folder, optionally with `resources` and a `container`. A runner fills in its placeholders verbatim, with no shell quoting: `{inputs.<entry>}` and `{inputs}` (paths), `{decisions.<entry>}` (the selected option's id) and `{output}` (the path to write). Each `<entry>` is an entry of the output's `inputs` or `decisions`, exactly as written; `{{` and `}}` are literal braces.
-- `when`, on a decision or an output: a list of conditions, `decision1.a` or `~decision1.a`. The element is active only when every one holds.
-- `universes`: each selects one option for each active decision, as `decisions: {decision1: a}`. With `derived_from`, a universe inherits another's selection and gives only what it changes. No universe is privileged: there is no default universe or option. An entry can instead import a universe of a declared analysis, with `analysis` and `universe`.
+- `universes`: each selects one option for each decision, as `decisions: {decision1: a}`. With `derived_from`, a universe inherits another's selection and gives only what it changes. No universe is privileged: there is no default universe or option. An entry can instead import a universe of a declared analysis, with `analysis` and `universe`.
 - `prior_insights` (what earlier work establishes) and `findings` (what the analysis concludes): each has a `claim` and at least one item of `evidence`, which cites exactly one of a published work, by `doi`, and an output, as `artifact`. Evidence can quote the passage (`quote`, with `exact`) and locate it (`location`, with a fragment identifier such as `page=6`).
 - `analyses`: the other analyses this one declares, each by `path`, or by `url` and `commit`. Their elements are named by address, `<declaration>.<element>`, such as `subanalysis.output1`.
 
@@ -71,7 +70,7 @@ findings:
 
 ## Building and checking
 
-- An output is built per universe when it lists `decisions`, has a `when`, or reads an output built per universe without a pin. Any other output is built once.
+- An output is built per universe when it lists `decisions` or reads an output built per universe without a pin. Any other output is built once.
 - A pin, `#` and a universe's id, reads an output as built in that universe, so one output can compare universes.
 - A declared analysis's decisions can be set from this analysis's universes, under keys such as `subanalysis.decision1`: its universes then drive it.
 - A runner writes each result's bytes at `results/{universe}/{name}.{format}` (or `results/{name}.{format}` when built once) and a JSON record of the run that made it under `.astra/records/`, in the folder of the analysis the result belongs to.

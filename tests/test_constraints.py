@@ -82,7 +82,6 @@ INSIGHT = {"claim": "The forest is accurate.", "evidence": [{"artifact": "scores
 """A valid insight, for a map entry added under a bad key."""
 
 SMALL = "/decisions/training/options/small"
-TRAINING = "/decisions/training"
 NEURAL_NET = "/decisions/method/options/neural_net"
 RESOURCES = "/outputs/result/recipe/resources"
 SVM = "/universes/svm_standard"
@@ -193,11 +192,6 @@ NEGATIVE = [
         "DUPLICATE_ENTRY",
         "/outputs/estimates/decisions",
     ),
-    Case("core", "/outputs/bias/when", "~method.template", "WRONG_TYPE"),
-    Case("core", "/outputs/bias/when/0", 1, "WRONG_TYPE"),
-    Case("core", "/outputs/bias/when/0", "~method", "INVALID_REFERENCE"),
-    Case("core", "/outputs/bias/when", [], "EMPTY_COLLECTION"),
-    Case("core", "/outputs/bias/when", ["~method.template"] * 2, "DUPLICATE_ENTRY"),
     Case("core", "/outputs/bias/recipe", "python src/bias.py", "WRONG_TYPE"),
     Case(
         "core",
@@ -230,11 +224,6 @@ NEGATIVE = [
     Case("core", "/decisions/method/tags/0", 1, "WRONG_TYPE"),
     Case("core", "/decisions/method/tags", [], "EMPTY_COLLECTION"),
     Case("core", "/decisions/method/tags", ["estimator"] * 2, "DUPLICATE_ENTRY"),
-    Case("core", TRAINING + "/when", "method.neural_net", "WRONG_TYPE"),
-    Case("core", TRAINING + "/when/0", 1, "WRONG_TYPE"),
-    Case("core", TRAINING + "/when/0", "method.neural_net#u1", "INVALID_REFERENCE"),
-    Case("core", TRAINING + "/when", [], "EMPTY_COLLECTION"),
-    Case("core", TRAINING + "/when", ["method.neural_net"] * 2, "DUPLICATE_ENTRY"),
     Case("core", "/decisions/method/options", ["template"], "WRONG_TYPE"),
     Case("core", "/decisions/method/options", {}, "EMPTY_COLLECTION"),
     Case(

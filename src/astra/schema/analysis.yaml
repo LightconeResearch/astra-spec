@@ -77,10 +77,10 @@ classes:
   Recipe:
     description: >-
       How an output is made: a `command` and the context it runs in
-      (`resources`, `container`). What the output is made from, the
-      decisions it is made with and when it is active are the output's
-      `inputs`, `decisions` and `when`; the command reaches the inputs and
-      decisions through its placeholders.
+      (`resources`, `container`). What the output is made from and the
+      decisions it is made with are the output's `inputs` and `decisions`;
+      the command reaches the inputs and decisions through its
+      placeholders.
     attributes:
       command:
         required: true
@@ -193,13 +193,6 @@ classes:
           The addresses of the decisions whose option the output is made with
           directly, not through what it reads: a different option for any of
           them, in the universe being built, can give a different result.
-      when:
-        multivalued: true
-        range: condition
-        minimum_cardinality: 1
-        description: >-
-          The conditions under which the output is active. It is active only
-          when every condition holds.
       recipe:
         range: Recipe
         required: true
@@ -225,13 +218,6 @@ classes:
         multivalued: true
         minimum_cardinality: 1
         description: Keywords for grouping and finding the decision.
-      when:
-        multivalued: true
-        range: condition
-        minimum_cardinality: 1
-        description: >-
-          The conditions under which the decision is active. It is active only
-          when every condition holds.
       options:
         range: Option
         multivalued: true
@@ -284,15 +270,13 @@ classes:
   Universe:
     description: >-
       An entry of `universes`: a universe of the analysis, a selection of one
-      option for every active decision of the analysis and of every analysis
+      option for every decision of the analysis and of every analysis
       reached through a declaration that the analysis's universes drive, or
       an import, which has an `analysis` and a `universe`, names one of
       another analysis's universes and selects nothing. A universe's
       effective selection is the effective selection of the universe it is
       derived from, if any, with its own `decisions` written over it decision
-      by decision and every inherited selection of a decision that isn't
-      active in the result dropped, so a universe that switches a decision on
-      must set it.
+      by decision.
     attributes:
       id:
         key: true

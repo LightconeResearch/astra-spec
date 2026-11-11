@@ -667,8 +667,6 @@ CODES = {
     ANALYSIS
     + "/$defs/Output__identifier_optional/properties/decisions/items/pattern": "INVALID_REFERENCE",
     ANALYSIS
-    + "/$defs/Output__identifier_optional/properties/when/items/pattern": "INVALID_REFERENCE",
-    ANALYSIS
     + "/$defs/Option__identifier_optional/properties/requires/items/pattern": "INVALID_REFERENCE",
     ANALYSIS + "/$defs/Evidence/properties/artifact/pattern": "INVALID_REFERENCE",
     ANALYSIS + "/properties/spec_version/pattern": "INVALID_VALUE",
