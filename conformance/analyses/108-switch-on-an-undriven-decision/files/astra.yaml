@@ -1,0 +1,15 @@
+spec_version: "0.1.0"
+analyses:
+  stage:
+    path: stage
+outputs:
+  output1:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py output1 '{output}'
+  switch1:
+    switch: stage.decision2
+    cases: {a: output1}
+universes:
+  u1: {}

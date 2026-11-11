@@ -1,0 +1,8 @@
+{
+  "about": "The only universe leaves a switch's decision unset, so whether the declaration its case goes through must be driven isn't judged.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECISION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION"]
+}

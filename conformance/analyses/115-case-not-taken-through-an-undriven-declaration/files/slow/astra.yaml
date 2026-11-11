@@ -1,0 +1,11 @@
+spec_version: "0.1.0"
+decisions:
+  decision5:
+    options: {x: {}, y: {}}
+outputs:
+  fit:
+    type: data
+    format: json
+    decisions: [decision5]
+    recipe:
+      command: python make.py '{decisions.decision5}' '{output}'

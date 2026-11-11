@@ -1,0 +1,5 @@
+{
+  "about": "A switch on a declared analysis's decision is the only use of the keys that drive that analysis.",
+  "valid": true,
+  "must_not_report": ["UNUSED_DECISION", "INACTIVE_DECISION", "MISSING_DECISION", "NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION"]
+}

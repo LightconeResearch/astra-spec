@@ -1,0 +1,11 @@
+spec_version: "0.1.0"
+decisions:
+  decision1:
+    options: {a: {}, b: {}}
+outputs:
+  output1:
+    type: metric
+    format: json
+    decisions: [decision1]
+    recipe:
+      command: python make.py '{decisions.decision1}' '{output}'

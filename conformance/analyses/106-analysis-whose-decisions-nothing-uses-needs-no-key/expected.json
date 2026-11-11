@@ -1,0 +1,5 @@
+{
+  "about": "A declared analysis has a decision that only an output the driving analysis never reads lists, so it has nothing to set and its chain is driven without a key.",
+  "valid": true,
+  "must_not_report": ["NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION", "MISSING_DECISION"]
+}

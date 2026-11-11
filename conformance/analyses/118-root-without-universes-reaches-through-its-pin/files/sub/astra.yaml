@@ -1,0 +1,13 @@
+spec_version: "0.1.0"
+analyses:
+  other:
+    path: ../other
+outputs:
+  output2:
+    type: table
+    format: csv
+    inputs: [other.output1]
+    recipe:
+      command: python make.py '{inputs.other.output1}' '{output}'
+universes:
+  v1: {}

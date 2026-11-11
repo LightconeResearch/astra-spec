@@ -1,0 +1,16 @@
+spec_version: "0.1.0"
+analyses:
+  fast:
+    path: fast
+  slow:
+    path: slow
+decisions:
+  decision1:
+    options: {a: {}, b: {}}
+outputs:
+  switch2:
+    switch: decision1
+    cases: {a: fast.fit, b: slow.fit}
+universes:
+  u1:
+    decisions: {decision1: a, fast.decision5: x}

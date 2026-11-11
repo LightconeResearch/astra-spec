@@ -1,0 +1,8 @@
+{
+  "about": "A driven analysis's switch switches on a decision of an analysis that nothing drives.",
+  "valid": false,
+  "must_report": [
+    {"code": "NOT_BUILT_IN_UNIVERSE", "file": "stage/astra.yaml"}
+  ],
+  "must_not_report": ["UNDRIVEN_DECLARATION", "MISSING_DECISION", "UNUSED_DECISION", "INACTIVE_DECISION"]
+}

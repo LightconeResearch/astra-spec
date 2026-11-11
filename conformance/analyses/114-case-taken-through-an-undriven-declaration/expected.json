@@ -1,0 +1,9 @@
+{
+  "about": "A universe takes a switch's case through a declaration that no key drives.",
+  "valid": false,
+  "must_report": [
+    {"code": "NOT_BUILT_IN_UNIVERSE", "file": "astra.yaml"},
+    {"code": "UNDRIVEN_DECLARATION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_DECISION"]
+}

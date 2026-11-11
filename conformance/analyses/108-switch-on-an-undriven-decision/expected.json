@@ -1,0 +1,9 @@
+{
+  "about": "A switch switches on a declared analysis's decision that no key drives, in a universe where nothing is built.",
+  "valid": false,
+  "must_report": [
+    {"code": "NOT_BUILT_IN_UNIVERSE", "file": "astra.yaml"},
+    {"code": "UNDRIVEN_DECLARATION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_DECISION"]
+}
