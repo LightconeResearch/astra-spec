@@ -430,14 +430,14 @@ types:
       \ letters, digits, `+`, `.` and `-`), `:`, at least one character other than\
       \ `#`, then optionally `#` and any characters other than `#`, such as `http://tools.ietf.org/rfc/rfc7111`.\
       \ None of these characters is an ASCII space or control, a C1 control, `<`,\
-      \ `>`, `\"`, `{`, `}`, the vertical bar, `\\`, `^`, the backtick or a bidi formatting\
-      \ character U+200E, U+200F or U+202A\u2013U+202E, and `%` comes only before\
-      \ two hex digits."
+      \ `>`, `\"`, `{`, `}`, the vertical bar, the backslash, `^`, the backtick or\
+      \ a bidi formatting character U+200E, U+200F or U+202A\u2013U+202E, and `%`\
+      \ comes only before two hex digits."
     from_schema: https://w3id.org/astra/types
     typeof: string
     base: str
     uri: xsd:string
-    pattern: ^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>"{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$
+    pattern: ^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$
 enums:
   OutputType:
     name: OutputType
@@ -1313,8 +1313,8 @@ slots:
         value: INVALID_VALUE
     description: The fragment identifier, without the leading `#`, such as `page=6`.
       It is non-empty, holds no ASCII space or control character and none of `"`,
-      `#`, `<`, `>`, `[`, `\`, `]`, `^`, the backtick, `{`, `|` and `}`, and has `%`
-      only before two hex digits.
+      `#`, `<`, `>`, `[`, the backslash, `]`, `^`, the backtick, `{`, `|` and `}`,
+      and has `%` only before two hex digits.
     from_schema: https://w3id.org/astra/insight
     mappings:
     - rdf:value
@@ -1325,7 +1325,7 @@ slots:
     - FragmentSelector
     range: string
     required: true
-    pattern: ^([^\x00-\x20\x7f"#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$
+    pattern: ^([^\x00-\x20\x7f\x22#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$
   fragmentSelector__conforms_to:
     name: fragmentSelector__conforms_to
     description: The IRI of the specification of the fragment syntax `value` follows,
@@ -2314,11 +2314,11 @@ classes:
             value: INVALID_VALUE
         description: The fragment identifier, without the leading `#`, such as `page=6`.
           It is non-empty, holds no ASCII space or control character and none of `"`,
-          `#`, `<`, `>`, `[`, `\`, `]`, `^`, the backtick, `{`, `|` and `}`, and has
-          `%` only before two hex digits.
+          `#`, `<`, `>`, `[`, the backslash, `]`, `^`, the backtick, `{`, `|` and
+          `}`, and has `%` only before two hex digits.
         slot_uri: rdf:value
         required: true
-        pattern: ^([^\x00-\x20\x7f"#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$
+        pattern: ^([^\x00-\x20\x7f\x22#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$
       conforms_to:
         name: conforms_to
         description: The IRI of the specification of the fragment syntax `value` follows,
@@ -2458,6 +2458,6 @@ classes:
     class_uri: astra:Insight
 metamodel_version: 1.12.0
 source_file: analysis.yaml
-source_file_date: '2026-11-11T21:53:15'
+source_file_date: '2026-11-11T22:00:47'
 source_file_size: 23374
 

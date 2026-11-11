@@ -940,7 +940,7 @@
 
 
 <h1 id="slot-value">Slot: value<a class="headerlink" href="#slot-value" title="Permanent link">&para;</a></h1>
-<p><em>The fragment identifier, without the leading <code>#</code>, such as <code>page=6</code>. It is non-empty, holds no ASCII space or control character and none of <code>"</code>, <code>#</code>, <code>&lt;</code>, <code>&gt;</code>, <code>[</code>, <code>\</code>, <code>]</code>, <code>^</code>, the backtick, <code>{</code>, <code>|</code> and <code>}</code>, and has <code>%</code> only before two hex digits.</em></p>
+<p><em>The fragment identifier, without the leading <code>#</code>, such as <code>page=6</code>. It is non-empty, holds no ASCII space or control character and none of <code>"</code>, <code>#</code>, <code>&lt;</code>, <code>&gt;</code>, <code>[</code>, the backslash, <code>]</code>, <code>^</code>, the backtick, <code>{</code>, <code>|</code> and <code>}</code>, and has <code>%</code> only before two hex digits.</em></p>
 <div data-search-exclude="data-search-exclude">
 <p>URI: <a href="http://www.w3.org/1999/02/22-rdf-syntax-ns#value">rdf:value</a></p>
 <!-- no inheritance hierarchy -->
@@ -1026,7 +1026,7 @@
 <tbody>
 <tr>
 <td>Regex Pattern</td>
-<td><code>&#94;&#40;&#91;&#94;&#92;x00&#45;&#92;x20&#92;x7f&#34;&#35;&#37;&#60;&#62;&#92;&#91;&#92;&#92;&#92;&#93;&#94;&#96;&#123;&#124;&#125;&#93;&#124;&#37;&#91;0&#45;9A&#45;Fa&#45;f&#93;&#123;2&#125;&#41;&#43;&#36;</code></td>
+<td><code>&#94;&#40;&#91;&#94;&#92;x00&#45;&#92;x20&#92;x7f&#92;x22&#35;&#37;&#60;&#62;&#92;&#91;&#92;&#92;&#92;&#93;&#94;&#96;&#123;&#124;&#125;&#93;&#124;&#37;&#91;0&#45;9A&#45;Fa&#45;f&#93;&#123;2&#125;&#41;&#43;&#36;</code></td>
 </tr>
 </tbody>
 </table>
@@ -1078,8 +1078,8 @@
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">INVALID_VALUE</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">The fragment identifier, without the leading `#`, such as `page=6`. It</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">is non-empty, holds no ASCII space or control character and none of `&quot;`, `#`, `&lt;`,</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">`&gt;`, `[`, `\`, `]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">two hex digits.</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">`&gt;`, `[`, the backslash, `]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">before two hex digits.</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nt">from_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://w3id.org/astra/analysis</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nt">rank</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="nt">slot_uri</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rdf:value</span>
@@ -1088,7 +1088,7 @@
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">FragmentSelector</span>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="nt">range</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
 </span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^([^\x00-\x20\x7f&quot;#%&lt;&gt;\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">^([^\x00-\x20\x7f\x22#%&lt;&gt;\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$</span>
 </span></code></pre></div>
 </details>
 </div>

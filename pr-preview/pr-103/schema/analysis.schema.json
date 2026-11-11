@@ -225,12 +225,12 @@
       "properties": {
         "conforms_to": {
           "description": "The IRI of the specification of the fragment syntax `value` follows, as W3C Web Annotation gives it, such as `http://tools.ietf.org/rfc/rfc7111` for a CSV. Without it, `value` is a PDF fragment identifier (RFC 8118).",
-          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\"{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$",
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\\x22{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\\x22{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$",
           "type": "string"
         },
         "value": {
-          "description": "The fragment identifier, without the leading `#`, such as `page=6`. It is non-empty, holds no ASCII space or control character and none of `\"`, `#`, `<`, `>`, `[`, `\\`, `]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before two hex digits.",
-          "pattern": "^([^\\x00-\\x20\\x7f\"#%<>\\[\\\\\\]^`{|}]|%[0-9A-Fa-f]{2})+$",
+          "description": "The fragment identifier, without the leading `#`, such as `page=6`. It is non-empty, holds no ASCII space or control character and none of `\"`, `#`, `<`, `>`, `[`, the backslash, `]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before two hex digits.",
+          "pattern": "^([^\\x00-\\x20\\x7f\\x22#%<>\\[\\\\\\]^`{|}]|%[0-9A-Fa-f]{2})+$",
           "type": "string"
         }
       },
