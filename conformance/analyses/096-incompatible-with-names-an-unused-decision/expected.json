@@ -1,0 +1,8 @@
+{
+  "about": "An option is incompatible with an option of a decision the universe doesn't use, so the constraint holds.",
+  "valid": true,
+  "must_report": [
+    {"code": "INACTIVE_DECISION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["INCOMPATIBLE_OPTIONS"]
+}

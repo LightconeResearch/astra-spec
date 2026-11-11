@@ -1,0 +1,8 @@
+{
+  "about": "An option requires an option of a decision the universe doesn't use, which counts as selecting nothing, though the universe sets it.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_REQUIRED_OPTION", "file": "astra.yaml"},
+    {"code": "INACTIVE_DECISION", "file": "astra.yaml"}
+  ]
+}

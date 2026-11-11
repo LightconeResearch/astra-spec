@@ -1,0 +1,40 @@
+spec_version: "0.1.0"
+decisions:
+  nmo:
+    options:
+      nmo1:
+        incompatible_with: [ecl.ecl3]
+      nmo2:
+        incompatible_with: [ecl.ecl2]
+      nmo3: {}
+  ecl:
+    options: {ecl1: {}, ecl2: {}, ecl3: {}}
+outputs:
+  study2:
+    type: metric
+    format: json
+    decisions: [nmo, ecl]
+    recipe:
+      command: python make.py '{decisions.nmo}' '{decisions.ecl}' '{output}'
+  study1_all:
+    type: metric
+    format: json
+    decisions: [nmo, ecl]
+    recipe:
+      command: python make.py '{decisions.nmo}' '{decisions.ecl}' '{output}'
+  study1:
+    switch: nmo
+    cases: {nmo1: study1_all, nmo2: study1_all}
+  fig1:
+    type: figure
+    format: png
+    inputs: [study1#u1, study1#u2]
+    recipe:
+      command: python make.py {inputs} '{output}'
+universes:
+  u1:
+    decisions: {nmo: nmo1, ecl: ecl1}
+  u2:
+    decisions: {nmo: nmo2, ecl: ecl1}
+  u3:
+    decisions: {nmo: nmo3, ecl: ecl3}

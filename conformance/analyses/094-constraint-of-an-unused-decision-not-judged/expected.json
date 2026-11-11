@@ -1,0 +1,8 @@
+{
+  "about": "A universe inherits a selection whose requires fails, but uses neither decision there, so the constraint isn't judged.",
+  "valid": true,
+  "must_report": [
+    {"code": "INACTIVE_DECISION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_REQUIRED_OPTION", "UNUSED_DECISION"]
+}

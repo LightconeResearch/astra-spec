@@ -1,0 +1,5 @@
+{
+  "about": "A switch stands in for a when on one output, with constraints judged in every universe because another output lists both decisions, and an output built once pins only the universes where the switch takes a case.",
+  "valid": true,
+  "must_not_report": ["PIN_NOT_BUILT", "INCOMPATIBLE_OPTIONS", "INACTIVE_DECISION", "UNUSED_DECISION", "MISSING_DECISION"]
+}

@@ -1,0 +1,11 @@
+spec_version: "0.1.0"
+analyses:
+  stage:
+    path: stage
+outputs:
+  out:
+    type: table
+    format: csv
+    inputs: [stage.output3#v1]
+    recipe:
+      command: python make.py '{inputs.stage.output3#v1}' '{output}'
