@@ -555,17 +555,6 @@ slots:
     range: Resources
     inlined: true
     inlined_as_list: true
-  recipe__container:
-    name: recipe__container
-    description: 'The container the recipe runs in: an image, or a Containerfile it
-      is built from.'
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:container
-    alias: container
-    owner: Recipe
-    domain_of:
-    - Recipe
-    range: string
   input__id:
     name: input__id
     description: The input's id, written as its key in `inputs`.
@@ -1279,17 +1268,6 @@ slots:
     multivalued: true
     inlined: true
     inlined_as_list: false
-  analysis__container:
-    name: analysis__container
-    description: 'The default container of the analysis''s recipes: an image, or a
-      Containerfile it is built from.'
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:container
-    alias: container
-    owner: Analysis
-    domain_of:
-    - Analysis
-    range: string
   textQuoteSelector__exact:
     name: textQuoteSelector__exact
     description: The passage, exactly as the cited work or output writes it.
@@ -1546,15 +1524,14 @@ classes:
   Recipe:
     name: Recipe
     definition_uri: https://w3id.org/astra/Recipe
-    description: 'How an output is made: a `command` and the context it runs in (`resources`,
-      `container`). What the output is made from and the decisions it is made with
-      are the output''s `inputs` and `decisions`; the command reaches the inputs and
-      decisions through its placeholders.'
+    description: 'How an output is made: a `command` and the compute `resources` it
+      asks for. What the output is made from and the decisions it is made with are
+      the output''s `inputs` and `decisions`; the command reaches the inputs and decisions
+      through its placeholders.'
     from_schema: https://w3id.org/astra/analysis
     slots:
     - recipe__command
     - recipe__resources
-    - recipe__container
     attributes:
       command:
         name: command
@@ -1584,10 +1561,6 @@ classes:
         description: The compute resources the recipe asks for.
         range: Resources
         inlined: true
-      container:
-        name: container
-        description: 'The container the recipe runs in: an image, or a Containerfile
-          it is built from.'
     class_uri: astra:Recipe
   Input:
     name: Input
@@ -2223,7 +2196,6 @@ classes:
     - analysis__universes
     - analysis__prior_insights
     - analysis__findings
-    - analysis__container
     attributes:
       spec_version:
         name: spec_version
@@ -2290,10 +2262,6 @@ classes:
         range: Insight
         multivalued: true
         inlined: true
-      container:
-        name: container
-        description: 'The default container of the analysis''s recipes: an image,
-          or a Containerfile it is built from.'
     class_uri: astra:Analysis
     tree_root: true
   TextQuoteSelector:
@@ -2490,6 +2458,6 @@ classes:
     class_uri: astra:Insight
 metamodel_version: 1.12.0
 source_file: analysis.yaml
-source_file_date: '2026-11-11T21:36:27'
-source_file_size: 23693
+source_file_date: '2026-11-11T21:53:15'
+source_file_size: 23374
 

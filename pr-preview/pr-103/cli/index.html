@@ -1401,7 +1401,8 @@ that is broken is a warning and doesn't change the exit code.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>astra info [PATH]
 </span></code></pre></div>
 <p>Shows each analysis of the stack, the root first, with its declarations, inputs, outputs,
-decisions and universes. It checks nothing, and prints text only.</p>
+decisions and universes. A switch shows the decision it switches on and its cases. It checks
+nothing, and prints text only.</p>
 <div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp">$ </span>astra<span class="w"> </span>info
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="go">astra.yaml</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="go">  analyses  noisy: astra.yaml at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d from file:///…/noisy-line</span>
@@ -1431,8 +1432,8 @@ selected, and, where the option is inherited through <code>derived_from</code>, 
 </span></code></pre></div>
 <p>Lists every planned result, each after what it reads. For each result it shows where its record
 and its bytes go (<a href="https://astra-spec.org/0.1/specification/#results">Results</a>),
-the folder its recipe runs in, the container and resources the recipe asks for, if any, and its
-command with the placeholders filled in
+the folder its recipe runs in, the resources the recipe asks for, if any, and its command with
+the placeholders filled in
 (<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>). A result that belongs to an
 analysis from a commit isn't built here: it is read through its record at that commit
 (<a href="https://astra-spec.org/0.1/specification/#results">Results</a>).</p>
@@ -1484,6 +1485,8 @@ the bytes and gives the recipe a path to them.</p>
   that id;</li>
 <li>a result with two names;</li>
 <li>an output with no planned result;</li>
+<li>an output that isn't built in some universe, because a switch it reads has no case there for
+  the option selected (<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>);</li>
 <li>results that are one computation in several universes;</li>
 <li>a command that names a path outside its analysis's folder, or inside a folder below it that
   holds an analysis of its own.</li>
@@ -1497,9 +1500,11 @@ is more.</p>
 </span></code></pre></div>
 <p>Shows the analysis as it is in UNIVERSE. For each analysis of the stack, it gives whether that
 analysis is built in UNIVERSE
-(<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>), the option selected
-for each decision, and each output's result and where it goes, or why it has none. <code>--json</code>
-prints it as <code>astra-universe-view/1</code>. Exits 2 where the analysis has no universe UNIVERSE.</p>
+(<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>); the option selected for each
+decision, or that the universe doesn't use it
+(<a href="https://astra-spec.org/0.1/specification/#results">Results</a>); each output's result and where
+it goes, or why it has none; and the case each switch takes. <code>--json</code> prints it as
+<code>astra-universe-view/1</code>. Exits 2 where the analysis has no universe UNIVERSE.</p>
 <div class="language-console highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gp">$ </span>astra<span class="w"> </span>view<span class="w"> </span>huber
 </span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="go">universe huber</span>
 </span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="go">astra.yaml  built</span>
