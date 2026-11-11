@@ -59,4 +59,5 @@ discoverability. Each RFC's `status:` frontmatter field is the durable record.
 | [0005](0005-result-provenance-and-layout.md) | Result provenance and layout | Accepted |
 | [0006](0006-data-inputs.md) | Data inputs | Accepted |
 | [0007](0007-analyses-in-other-repositories.md) | Analyses in other repositories | Accepted |
+| [0008](0008-settling-the-schema-for-v0.1.md) | Settling the schema for v0.1 | Acrcepted |
 
