@@ -44,9 +44,6 @@ source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 staged_schema_dir := "tmp/schema"
 staged_schema_path := staged_schema_dir / schema_source_file + ".yaml"
 docdir := "docs/elements"  # Directory for generated documentation
-# The Pydantic models' base model (`linkml-templates/pydantic/`): gen-pydantic
-# runs from the staged dir, so the path is absolute
-pydantic_template := "--template-dir " + justfile_directory() / "linkml-templates" / "pydantic"
 # Every generated file that is committed: the contract (`gen-schema`) and the
 # Python datamodels (`gen-python`, all but `__init__.py`)
 generated_files := dest / "jsonschema" + " " + dest / "jsonld" + " " + dest / "rules" + " " + pymodel
@@ -227,8 +224,8 @@ gen-python: _stage-versioned
   uv run gen-project -d  {{pymodel}} -I python {{staged_schema_dir}}/provenance.yaml
   @# Run gen-pydantic from the staged dir so the recorded source_file is just
   @# the bare filename (e.g. "analysis.yaml") rather than the tmp/ build path.
-  cd {{staged_schema_dir}} && uv run gen-pydantic {{pydantic_template}} {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
-  cd {{staged_schema_dir}} && uv run gen-pydantic {{pydantic_template}} {{gen_pydantic_args}} provenance.yaml > {{justfile_directory()}}/{{pymodel}}/provenance_pydantic.py
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{gen_pydantic_args}} provenance.yaml > {{justfile_directory()}}/{{pymodel}}/provenance_pydantic.py
 
 # Generate project files including Python data model
 [group('model development')]
@@ -236,8 +233,8 @@ gen-project: _stage-versioned
   uv run gen-project {{config_yaml}} -d {{dest}} {{staged_schema_path}}
   uv run gen-project {{config_yaml}} -d {{dest}} {{staged_schema_dir}}/provenance.yaml
   mv {{dest}}/*.py {{pymodel}}
-  cd {{staged_schema_dir}} && uv run gen-pydantic {{pydantic_template}} {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
-  cd {{staged_schema_dir}} && uv run gen-pydantic {{pydantic_template}} {{gen_pydantic_args}} provenance.yaml > {{justfile_directory()}}/{{pymodel}}/provenance_pydantic.py
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{gen_pydantic_args}} provenance.yaml > {{justfile_directory()}}/{{pymodel}}/provenance_pydantic.py
 
   @# Some generators ignore config_yaml or cannot create directories, so we run them separately.
   uv run gen-java {{gen_java_args}} --output-directory {{dest}}/java/ {{staged_schema_path}}

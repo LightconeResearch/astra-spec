@@ -1,6 +1,6 @@
 # Templates for LinkML's generators
 
-`just gen-doc` passes this folder to `gen-doc` (`tools/docgen.py`) as its template directory (`LINKML_GENERATORS_DOC_ARGS` in `config.public.mk`), and `just gen-python` passes `pydantic/` to `gen-pydantic` as its. The templates are written in Jinja2.
+`just gen-doc` passes this folder to `gen-doc` (`tools/docgen.py`) as its template directory (`LINKML_GENERATORS_DOC_ARGS` in `config.public.mk`), and `just gen-python` passes `pydantic/` to `gen-pydantic` as its (`LINKML_GENERATORS_PYDANTIC_ARGS`). The templates are written in Jinja2.
 
 - `type.md.jinja2` and `slot.md.jinja2` are LinkML's own, changed as the first comment of each says.
 - `common_metadata.md.jinja2` is LinkML's own, unchanged: the type and slot templates include it from this folder.
