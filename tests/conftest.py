@@ -27,8 +27,14 @@ RULES_JSON = PROJECT / "rules" / "rules.json"
 """The committed rule catalogue of `just gen-schema`."""
 DATA = REPO_ROOT / "tests" / "data"
 
-_SCHEMA_NAMES = {"Analysis": "analysis", "ProvenanceRecord": "provenance"}
-"""Each fixture root, with the name of its generated schema."""
+_SCHEMA_NAMES = {
+    "Analysis": "analysis",
+    "ProvenanceRecord": "provenance",
+    "ValidationReport": "validation-report",
+    "ResolvedAnalysis": "resolved-analysis",
+    "CheckReport": "check-report",
+}
+"""Each root, a fixture's or a document's that tools exchange, with the name of its generated schema."""
 
 _RULE_LINE = re.compile(r"# rule: ([A-Z][A-Z0-9_]*)")
 _FAILS_AT_LINE = re.compile(r"# fails at: (\(root\)|parse|(/[^/]*)+)")

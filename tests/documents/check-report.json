@@ -1,0 +1,440 @@
+{
+  "shape": "astra-check-report/1",
+  "root": "astra.yaml",
+  "at": "worktree",
+  "results": [
+    {
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "id": "output3"
+      },
+      "universe": "u1",
+      "places": [
+        {
+          "name": "stage.output3",
+          "address": "stage.output3#u1",
+          "record": ".astra/records/u1/stage.output3.json",
+          "bytes": "results/u1/stage.output3.csv",
+          "record_status": "unchanged",
+          "bytes_status": "present",
+          "committed": true,
+          "reasons": [],
+          "provenance": {
+            "spec_version": "0.1.0",
+            "address": "stage.output3#u1",
+            "content_hash": "sha256:8ca7a9f00fa85d7486c257d3aff7082f4ab01a9d9a914db9e6cc38cf96a7922f",
+            "size": 228,
+            "generated_by": {
+              "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
+              "inputs": [
+                {
+                  "entry": "input2",
+                  "content_hash": "sha256:84a283a4be7720d614a635ccb8036bf11c77c7fc45ac9473f04025d6dd364c20",
+                  "size": 121
+                }
+              ],
+              "environment": {
+                "iri": "urn:example-runner:env:sha256:ba5285161ba6eed0085fb13784ce5c92f70ebc268b94fd66aa1d68a32884204d"
+              },
+              "runner": {
+                "id": "example-runner",
+                "version": "1.2.0"
+              },
+              "started": "2026-10-26T14:00:00.000Z",
+              "finished": "2026-10-26T14:00:02.000Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "owner": {
+        "folder": "",
+        "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+      },
+      "output": {
+        "analysis": {
+          "folder": "",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+        },
+        "id": "output4"
+      },
+      "places": [
+        {
+          "name": "output4",
+          "address": "output4",
+          "record": ".astra/records/output4.json",
+          "bytes": "results/output4.json",
+          "record_status": "unchanged",
+          "bytes_status": "present",
+          "committed": true,
+          "reasons": [],
+          "provenance": {
+            "spec_version": "0.1.0",
+            "address": "output4",
+            "content_hash": "sha256:48fa9f3a2ef358ab6c7ed2e388747f5453d80c8cd49df91b62fcadcde089245c",
+            "size": 220,
+            "generated_by": {
+              "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+              "environment": {
+                "iri": "urn:example-runner:env:sha256:ba5285161ba6eed0085fb13784ce5c92f70ebc268b94fd66aa1d68a32884204d"
+              },
+              "runner": {
+                "id": "example-runner",
+                "version": "1.2.0"
+              },
+              "started": "2026-10-26T14:00:00.000Z",
+              "finished": "2026-10-26T14:00:02.000Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "id": "output1"
+      },
+      "universe": "u1",
+      "places": [
+        {
+          "name": "output1",
+          "address": "output1#u1",
+          "record": ".astra/records/u1/output1.json",
+          "bytes": "results/u1/output1.json",
+          "record_status": "unchanged",
+          "bytes_status": "present",
+          "committed": true,
+          "reasons": [],
+          "provenance": {
+            "spec_version": "0.1.0",
+            "address": "output1#u1",
+            "content_hash": "sha256:3edec660ea696f32b26fcf748f20b8a863ddb511f8f6d401456ffa7d0cbe2679",
+            "size": 223,
+            "generated_by": {
+              "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
+              "inputs": [
+                {
+                  "entry": "input1",
+                  "content_hash": "sha256:57f681709c5bb261b2199726e9562533db86c7217286484297a38c17642badc7",
+                  "size": 115
+                },
+                {
+                  "entry": "stage.output3",
+                  "content_hash": "sha256:8ca7a9f00fa85d7486c257d3aff7082f4ab01a9d9a914db9e6cc38cf96a7922f",
+                  "size": 128
+                },
+                {
+                  "entry": "upstream.output4",
+                  "content_hash": "sha256:48fa9f3a2ef358ab6c7ed2e388747f5453d80c8cd49df91b62fcadcde089245c",
+                  "size": 120
+                }
+              ],
+              "environment": {
+                "iri": "urn:example-runner:env:sha256:ba5285161ba6eed0085fb13784ce5c92f70ebc268b94fd66aa1d68a32884204d"
+              },
+              "runner": {
+                "id": "example-runner",
+                "version": "1.2.0"
+              },
+              "started": "2026-10-26T14:00:00.000Z",
+              "finished": "2026-10-26T14:00:02.000Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "id": "output3"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "stage.output3",
+          "address": "stage.output3#u2",
+          "record": ".astra/records/u2/stage.output3.json",
+          "bytes": "results/u2/stage.output3.csv",
+          "record_status": "unchanged",
+          "bytes_status": "present",
+          "committed": true,
+          "reasons": [],
+          "provenance": {
+            "spec_version": "0.1.0",
+            "address": "stage.output3#u2",
+            "content_hash": "sha256:1894ed6a5dfe7b9775f311a3bbe30b37a69d8db75723bda3c813fab44c7a2577",
+            "size": 228,
+            "generated_by": {
+              "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
+              "inputs": [
+                {
+                  "entry": "input2",
+                  "content_hash": "sha256:84a283a4be7720d614a635ccb8036bf11c77c7fc45ac9473f04025d6dd364c20",
+                  "size": 121
+                }
+              ],
+              "environment": {
+                "iri": "urn:example-runner:env:sha256:ba5285161ba6eed0085fb13784ce5c92f70ebc268b94fd66aa1d68a32884204d"
+              },
+              "runner": {
+                "id": "example-runner",
+                "version": "1.2.0"
+              },
+              "started": "2026-10-26T14:00:00.000Z",
+              "finished": "2026-10-26T14:00:02.000Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "id": "output1"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "output1",
+          "address": "output1#u2",
+          "record": ".astra/records/u2/output1.json",
+          "bytes": "results/u2/output1.json",
+          "record_status": "unchanged",
+          "bytes_status": "present",
+          "committed": true,
+          "reasons": [],
+          "provenance": {
+            "spec_version": "0.1.0",
+            "address": "output1#u2",
+            "content_hash": "sha256:1d2889bfd038c8044525ac6040a965efff6477e83de8ea5ff369a1405a690e41",
+            "size": 223,
+            "generated_by": {
+              "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
+              "inputs": [
+                {
+                  "entry": "input1",
+                  "content_hash": "sha256:57f681709c5bb261b2199726e9562533db86c7217286484297a38c17642badc7",
+                  "size": 115
+                },
+                {
+                  "entry": "stage.output3",
+                  "content_hash": "sha256:1894ed6a5dfe7b9775f311a3bbe30b37a69d8db75723bda3c813fab44c7a2577",
+                  "size": 128
+                },
+                {
+                  "entry": "upstream.output4",
+                  "content_hash": "sha256:48fa9f3a2ef358ab6c7ed2e388747f5453d80c8cd49df91b62fcadcde089245c",
+                  "size": 120
+                }
+              ],
+              "environment": {
+                "iri": "urn:example-runner:env:sha256:ba5285161ba6eed0085fb13784ce5c92f70ebc268b94fd66aa1d68a32884204d"
+              },
+              "runner": {
+                "id": "example-runner",
+                "version": "1.2.0"
+              },
+              "started": "2026-10-26T14:00:00.000Z",
+              "finished": "2026-10-26T14:00:02.000Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "owner": {
+        "folder": "stage"
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "id": "output3"
+      },
+      "universe": "v1",
+      "places": [
+        {
+          "name": "output3",
+          "address": "output3#v1",
+          "record": "stage/.astra/records/v1/output3.json",
+          "bytes": "stage/results/v1/output3.csv",
+          "record_status": "unchanged",
+          "bytes_status": "present",
+          "committed": true,
+          "reasons": [],
+          "provenance": {
+            "spec_version": "0.1.0",
+            "address": "output3#v1",
+            "content_hash": "sha256:f226188ee7c2eb5b534b456f4b1455f83ac275a0f8c1453f11c93220750a23d6",
+            "size": 228,
+            "generated_by": {
+              "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
+              "inputs": [
+                {
+                  "entry": "input2",
+                  "content_hash": "sha256:84a283a4be7720d614a635ccb8036bf11c77c7fc45ac9473f04025d6dd364c20",
+                  "size": 121
+                }
+              ],
+              "environment": {
+                "iri": "urn:example-runner:env:sha256:ba5285161ba6eed0085fb13784ce5c92f70ebc268b94fd66aa1d68a32884204d"
+              },
+              "runner": {
+                "id": "example-runner",
+                "version": "1.2.0"
+              },
+              "started": "2026-10-26T14:00:00.000Z",
+              "finished": "2026-10-26T14:00:02.000Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "id": "output2"
+      },
+      "places": [
+        {
+          "name": "output2",
+          "address": "output2",
+          "record": ".astra/records/output2.json",
+          "bytes": "results/output2.csv",
+          "record_status": "stale",
+          "bytes_status": "present",
+          "committed": true,
+          "reasons": [
+            {
+              "code": "STALE_RESULT",
+              "level": "error",
+              "message": "the command of `output2` has changed since a7d9ea9, the commit its record names: build it again",
+              "location": {
+                "file": ".astra/records/output2.json",
+                "pointer": ""
+              }
+            }
+          ],
+          "provenance": {
+            "spec_version": "0.1.0",
+            "address": "output2",
+            "content_hash": "sha256:a81b88500cd5bf019a31799e72b6751812e9cf3076bb22fe4980b42959a4e471",
+            "size": 219,
+            "generated_by": {
+              "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
+              "inputs": [
+                {
+                  "entry": "output1#u1",
+                  "content_hash": "sha256:3edec660ea696f32b26fcf748f20b8a863ddb511f8f6d401456ffa7d0cbe2679",
+                  "size": 123
+                },
+                {
+                  "entry": "output1#u2",
+                  "content_hash": "sha256:1d2889bfd038c8044525ac6040a965efff6477e83de8ea5ff369a1405a690e41",
+                  "size": 123
+                },
+                {
+                  "entry": "stage.output3#v1",
+                  "content_hash": "sha256:f226188ee7c2eb5b534b456f4b1455f83ac275a0f8c1453f11c93220750a23d6",
+                  "size": 128
+                }
+              ],
+              "environment": {
+                "iri": "urn:example-runner:env:sha256:ba5285161ba6eed0085fb13784ce5c92f70ebc268b94fd66aa1d68a32884204d"
+              },
+              "runner": {
+                "id": "example-runner",
+                "version": "1.2.0"
+              },
+              "started": "2026-10-26T14:00:00.000Z",
+              "finished": "2026-10-26T14:00:02.000Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "id": "output6"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "output6",
+          "address": "output6#u2",
+          "record": ".astra/records/u2/output6.json",
+          "bytes": "results/u2/output6.png",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "`output6#u2` has no record: build it",
+              "location": {
+                "file": ".astra/records/u2/output6.json",
+                "pointer": ""
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "analysis": {
+        "folder": ""
+      },
+      "pointer": "/findings/insight1/evidence/0",
+      "record_status": "stale",
+      "reasons": [
+        {
+          "code": "STALE_EVIDENCE",
+          "level": "error",
+          "message": "`output2`, which the evidence cites, is stale: build it again",
+          "location": {
+            "file": "astra.yaml",
+            "pointer": "/findings/insight1/evidence/0/artifact",
+            "line": 49,
+            "column": 19
+          }
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

@@ -727,3 +727,13 @@ every patch of that minor version:
 
 A file breaks no schema rule exactly when a JSON Schema 2019-09 validator
 reports no error for it against its schema.
+
+Three more JSON Schemas are published beside them, for the JSON documents
+tools exchange about an analysis. They are not part of the specification, and
+no rule is about them:
+
+| File | What it is |
+|---|---|
+| `validation-report.schema.json` | what validating an analysis found |
+| `resolved-analysis.schema.json` | a valid analysis, resolved: each file as written, where its declarations lead, what each universe selects, and the planned results |
+| `check-report.schema.json` | the record and bytes statuses of each planned result |

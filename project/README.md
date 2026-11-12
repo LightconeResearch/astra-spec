@@ -9,7 +9,9 @@ Three folders are ASTRA's contract, written by `just gen-schema` with its own ge
 shipped in the wheel under `astra/schema/`:
 
 - `jsonschema/`: the JSON Schemas of `astra.yaml` (`analysis.schema.json`) and of the provenance record
-  (`provenance.schema.json`, and `provenance.open.schema.json` for fields it doesn't define);
+  (`provenance.schema.json`, and `provenance.open.schema.json` for fields it doesn't define), and those of the three
+  documents tools exchange, from `documents.yaml` (`validation-report.schema.json`, `resolved-analysis.schema.json`,
+  `check-report.schema.json`);
 - `jsonld/`: the record's JSON-LD context (`provenance.context.jsonld`);
 - `rules/`: the rule catalogue (`rules.json`).
 

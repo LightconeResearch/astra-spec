@@ -55,6 +55,7 @@ pre-release such as ``0.1.0rc1``, and ``dev`` between releases.
 import argparse
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -380,17 +381,32 @@ def series(version: str) -> str:
 
 
 def generate(
-    schema: str | Path, *, closed: bool = True, schema_id: str | None = None
+    schema: str | Path,
+    *,
+    closed: bool = True,
+    schema_id: str | None = None,
+    root: str | None = None,
+    open_classes: Iterable[str] = (),
 ) -> dict:
     """The JSON Schema for the LinkML `schema`: closed unless `closed` is false; optional fields reject null.
+
+    It is rooted at the class `root` if given, otherwise at the schema's tree root: a schema with several roots, or
+    one that imports a schema with a tree root of its own, names its root. In a closed schema, each of `open_classes`
+    and every class it reaches takes fields it doesn't define, as in the open schema.
 
     Its `$id` is `schema_id` if given, with `{series}` replaced by the series of the LinkML schema's version, otherwise
     the LinkML schema's own id, as LinkML sets it.
     """
     generator = AstraJsonSchemaGenerator(
-        str(schema), include_null=False, not_closed=not closed
+        str(schema), include_null=False, not_closed=not closed, top_class=root
     )
     result = json.loads(generator.serialize())
+    opened = {
+        "allOf": [{"$ref": DEF_PREFIX + name} for name in open_classes],
+        "$defs": result.get("$defs", {}),
+    }
+    for name in _reachable_defs(opened):
+        result["$defs"][name]["additionalProperties"] = True
     if schema_id is not None:
         if SERIES in schema_id:
             schema_id = schema_id.replace(SERIES, series(str(generator.schema.version)))
@@ -415,10 +431,29 @@ def main(argv: list[str] | None = None) -> None:
         help="the `$id` of the JSON Schema, in which `{series}` stands for the series of the schema's version: X.Y "
         "for a release X.Y.Z, the whole version for a pre-release, `dev` for `dev` (default: the schema's id)",
     )
+    parser.add_argument(
+        "--root",
+        metavar="CLASS",
+        help="the class the JSON Schema is rooted at (default: the schema's tree root)",
+    )
+    parser.add_argument(
+        "--open",
+        metavar="CLASS",
+        dest="open_classes",
+        action="append",
+        default=[],
+        help="in a closed schema, a class that takes fields it does not declare, as does every class it reaches",
+    )
     args = parser.parse_args(argv)
     print(
         json.dumps(
-            generate(args.schema, closed=not args.not_closed, schema_id=args.schema_id),
+            generate(
+                args.schema,
+                closed=not args.not_closed,
+                schema_id=args.schema_id,
+                root=args.root,
+                open_classes=args.open_classes,
+            ),
             indent=2,
         )
     )

@@ -42,6 +42,10 @@ ELEMENTS = SITE / "elements"
 """The field reference: one directory per element, named as `gen-doc` names its page."""
 SOURCES = REPO_ROOT / "src" / "astra" / "schema"
 """The LinkML sources."""
+MODULES = sorted(
+    module for module in SOURCES.glob("*.yaml") if module.stem != "documents"
+)
+"""The specification's modules, which the field reference shows: not `documents.yaml`, the documents tools exchange."""
 
 RULES = "Rules"
 """The heading of the section that holds the codes table."""
@@ -263,10 +267,7 @@ def schema_patterns() -> dict[str, list[str]]:
     `{name}` filled in from the settings. A slot's page, under its own name, shows the pattern of the classes that
     define the slot, where they all give it the same one: `Input.path` and `AnalysisDeclaration.path` share a page."""
     yaml = YAML(typ="safe", pure=True)
-    sources = [
-        yaml.load(module.read_text(encoding="utf-8"))
-        for module in sorted(SOURCES.glob("*.yaml"))
-    ]
+    sources = [yaml.load(module.read_text(encoding="utf-8")) for module in MODULES]
     settings = {}
     for source in sources:
         settings.update(source.get("settings") or {})
@@ -314,11 +315,10 @@ def test_element_pages_show_their_patterns():
 
 
 def sources() -> dict[str, dict[str, Any]]:
-    """Each LinkML module, keyed by its file's stem: `analysis`, `insight`, `provenance`, `types`."""
+    """Each of the specification's LinkML modules, keyed by its file's stem: `analysis`, `insight`, `provenance`, `types`."""
     yaml = YAML(typ="safe", pure=True)
     return {
-        module.stem: yaml.load(module.read_text(encoding="utf-8"))
-        for module in sorted(SOURCES.glob("*.yaml"))
+        module.stem: yaml.load(module.read_text(encoding="utf-8")) for module in MODULES
     }
 
 

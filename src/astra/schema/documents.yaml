@@ -1,0 +1,682 @@
+---
+id: https://w3id.org/astra/documents
+name: documents
+description: |-
+  The three JSON documents tools exchange about an analysis: the validation
+  report, the resolved analysis and the check report. Each states its `shape`,
+  holds only the fields defined here, and leaves an absent value out, never
+  null. A path is relative, with `/` between folders, from the top of the tree
+  its analysis is read in: the driving analysis's working tree, or the
+  repository a commit is read in. An index counts from 0 in a list of the same
+  document.
+# Placeholder version. The real version is injected at build time: the tag at
+# HEAD, else `dev` (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
+license: https://creativecommons.org/licenses/by/4.0/
+
+prefixes:
+  astra: https://w3id.org/astra/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: astra
+default_range: string
+
+# These documents are not part of the specification: no rule of its codes
+# table is about them, so no constraint here names a `rule`. The module has
+# three roots, so none is a `tree_root`: `gen-schema` names each (`--root`).
+imports:
+  - linkml:types
+  - types
+  - analysis
+  - provenance
+
+enums:
+
+  Level:
+    description: How a broken rule counts.
+    permissible_values:
+      error:
+        description: A broken `MUST`.
+      warning:
+        description: A broken `SHOULD`.
+
+  NoteKind:
+    description: What a note is about.
+    permissible_values:
+      fallback_pin:
+        description: >-
+          A pin that names another analysis's universe only because its own
+          file has no entry of that id.
+      two_names:
+        description: A result with two names, and so two places.
+      unplanned:
+        description: An output with no planned result.
+      not_built:
+        description: >-
+          An output that a switch leaves unbuilt in a universe, as the switch
+          has no case for the option selected there.
+      same_computation:
+        description: >-
+          Results that are one computation in several universes, which a
+          runner can build once and copy.
+      outside_folder:
+        description: >-
+          A command that names a path outside its analysis's folder, or inside
+          an analysis below it.
+
+  RecordStatus:
+    description: What a checker finds of a planned result's record.
+    permissible_values:
+      unchanged:
+        description: The record is still true of the analysis.
+      stale:
+        description: >-
+          Something the result is made from has changed since the record's
+          commit.
+      missing:
+        description: No record there can be read as the result's.
+
+  BytesStatus:
+    description: What a checker finds of a planned result's bytes.
+    permissible_values:
+      present:
+        description: The default place holds the recorded bytes.
+      absent:
+        description: It doesn't.
+
+classes:
+
+  # --- Common types ---
+
+  Identity:
+    description: >-
+      What names an analysis: its folder and the commit it is read at. One
+      folder at one commit is one analysis, however it is declared.
+    attributes:
+      folder:
+        required: true
+        description: >-
+          The analysis's folder, as a path. The top of the tree is the empty
+          string.
+      commit:
+        range: commit_id
+        description: >-
+          The full id of the commit the analysis is read at. Left out for the
+          working tree.
+
+  ElementRef:
+    description: >-
+      What names an element of an analysis: the analysis and the element's id
+      there. The kind of element follows from the field that holds the
+      reference.
+    attributes:
+      analysis:
+        range: Identity
+        inlined: true
+        required: true
+        description: The analysis the element is in.
+      id:
+        range: id
+        required: true
+        description: The element's id in that analysis.
+
+  Location:
+    description: 'Where a diagnostic or a note is: a file, and a place in it.'
+    attributes:
+      file:
+        required: true
+        description: The file's path from the top of the repository that holds it.
+      pointer:
+        required: true
+        description: >-
+          A JSON Pointer to the place in the file. The whole file is the empty
+          string.
+      line:
+        range: integer
+        minimum_value: 1
+        description: The line of the place in the file, counted from 1.
+      column:
+        range: integer
+        minimum_value: 1
+        description: The column of the place in its line, counted from 1.
+      key:
+        description: The map key or field named at the place.
+      commit:
+        range: commit_id
+        description: >-
+          The full id of the commit the file is read at. Left out for the
+          working tree.
+      url:
+        description: The remote the file is read from, if any.
+
+  Diagnostic:
+    description: 'A rule broken: its code, how it counts, and where.'
+    attributes:
+      code:
+        required: true
+        description: >-
+          The rule's code, one of the specification's codes table or one of
+          the tool's own, such as `UNRESOLVED_ADDRESS`.
+      level:
+        range: Level
+        required: true
+        description: How the broken rule counts.
+      message:
+        required: true
+        description: What is wrong and what to do about it, in a sentence.
+      location:
+        range: Location
+        inlined: true
+        required: true
+        description: Where the rule is broken.
+      related:
+        range: Location
+        multivalued: true
+        inlined_as_list: true
+        minimum_cardinality: 1
+        description: The other places the diagnostic is about.
+      breaks:
+        description: >-
+          In a check report, for a record that doesn't parse or meet its
+          schema, the code of the rule the record breaks.
+
+  # --- The resolved analysis ---
+
+  DeclaredAnalysis:
+    is_a: Identity
+    description: >-
+      The analysis one declaration leads to, written in an entry's `declares`
+      as `<declaration>: <identity>`.
+    attributes:
+      declaration:
+        key: true
+        range: id
+        description: >-
+          The declaration's id, written as its key in `declares`: a key of
+          the `analyses` of the entry's `fields`.
+
+  AnalysisEntry:
+    is_a: Identity
+    description: >-
+      One analysis, the driving analysis or one it declares, directly or not:
+      its identity, its file as written and where its declarations lead. Its
+      file is `astra.yaml` in `folder`.
+    attributes:
+      url:
+        description: >-
+          The remote the analysis is read from, for an analysis declared with
+          a `url` or reached through one.
+      declares:
+        range: DeclaredAnalysis
+        multivalued: true
+        inlined: true
+        required: true
+        description: >-
+          For each entry of the analysis's `analyses`, the identity of the
+          analysis it leads to, itself an entry of the document's `analyses`.
+      fields:
+        range: Analysis
+        inlined: true
+        required: true
+        description: The content of the analysis's `astra.yaml`, exactly as written.
+
+  SelectedOption:
+    is_a: ElementRef
+    description: >-
+      A decision, named by its analysis and id, and the option a universe
+      selects for it.
+    attributes:
+      option:
+        range: id
+        required: true
+        description: >-
+          The id of the option the universe's effective selection selects,
+          after inheritance through `derived_from`.
+      in_play:
+        range: boolean
+        required: true
+        description: >-
+          Whether the decision is in play in the universe, as the
+          specification defines it. Constraints ignore a decision that isn't.
+
+  UniverseEntry:
+    is_a: ElementRef
+    description: >-
+      A universe, named by its analysis and id, and the option it selects for
+      each decision. An import has no entry: the universe it imports has one.
+    attributes:
+      decisions:
+        range: SelectedOption
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          One item for each decision the universe's effective selection sets,
+          of its own analysis or of another, in the order of the document's
+          `analyses`, then as written in each file. A decision with no item is
+          neither set nor in play.
+
+  Place:
+    description: >-
+      Where one name of a planned result puts it, in the folder of the
+      analysis the result belongs to.
+    attributes:
+      name:
+        range: address
+        required: true
+        description: >-
+          The result's name: its output's id after the ids of the driven
+          declarations that lead to it from the analysis it belongs to, such
+          as `stage.output3`.
+      address:
+        range: reference
+        required: true
+        description: >-
+          The name, then, for a result built in a universe, `#` and that
+          universe's own id, such as `stage.output3#u1`. With the result's
+          `owner`, it names the result.
+      record:
+        required: true
+        description: The path of the result's record at the place.
+      bytes:
+        required: true
+        description: The path of the default place of the result's bytes.
+
+  Through:
+    description: >-
+      A switch an entry reads through, and the option that picks the case it
+      takes.
+    attributes:
+      switch:
+        range: ElementRef
+        inlined: true
+        required: true
+        description: The switch.
+      option:
+        range: id
+        required: true
+        description: >-
+          The id of the option selected, in the universe the switch is read
+          in, for the decision it switches on. The case taken is that
+          option's entry of the switch's `cases`.
+
+  Read:
+    description: >-
+      One entry of an output's `inputs`, and what a planned result reads
+      through it: an input's file, or another planned result's bytes. It has
+      exactly one of `input` and `result`.
+    attributes:
+      entry:
+        range: reference
+        required: true
+        description: The entry exactly as the output's `inputs` lists it.
+      path:
+        required: true
+        description: >-
+          The path of the file read: the input's file, or the default place
+          of the bytes of the result read.
+      commit:
+        range: commit_id
+        description: >-
+          The full id of the commit `path` is read at. Left out for the
+          working tree.
+      input:
+        range: ElementRef
+        inlined: true
+        description: The input read.
+      result:
+        range: integer
+        minimum_value: 0
+        description: >-
+          The planned result read, as its index in the document's `results`,
+          always smaller than the index of the result that reads it.
+      through:
+        range: Through
+        multivalued: true
+        inlined_as_list: true
+        minimum_cardinality: 1
+        description: >-
+          The switches the entry reads through, the outermost first. Left out
+          where the entry names no switch.
+    exactly_one_of:
+      - slot_conditions:
+          input:
+            required: true
+      - slot_conditions:
+          result:
+            required: true
+
+  MadeWith:
+    description: >-
+      One entry of an output's `decisions`, and the option a planned result
+      is made with for it, written in the result's `decisions` as
+      `<entry>: <option>`.
+    attributes:
+      entry:
+        key: true
+        range: address
+        description: The entry exactly as the output's `decisions` lists it.
+      option:
+        range: id
+        required: true
+        description: The id of the option selected where the result is built.
+
+  PlannedResult:
+    abstract: true
+    description: >-
+      What a document says of a planned result whatever else it says: the
+      analysis it belongs to, its output and the universe it is built in.
+    attributes:
+      owner:
+        range: Identity
+        inlined: true
+        required: true
+        description: >-
+          The analysis the result belongs to: the one whose universe builds
+          it or, for an output built once, the one whose output it is.
+      output:
+        range: ElementRef
+        inlined: true
+        required: true
+        description: The output the result is of, never a switch.
+      universe:
+        range: id
+        description: >-
+          The id of the universe the result is built in, one of its owner's.
+          Left out for an output built once.
+
+  Result:
+    is_a: PlannedResult
+    description: >-
+      A planned result: one output's, in the universe it is built in or, for
+      an output built once, once. Its recipe is its output's, in `fields`.
+    attributes:
+      places:
+        range: Place
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          Where the result goes, one item for each of its names, in the order
+          the names are reached. The recipe writes the first.
+      inputs:
+        range: Read
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          What the result reads: one item for each entry of its output's
+          `inputs`, in their order.
+      decisions:
+        range: MadeWith
+        multivalued: true
+        inlined: true
+        required: true
+        description: >-
+          What the result is made with: for each entry of its output's
+          `decisions`, the option selected where the result is built.
+
+  Citation:
+    description: A planned result that an item of evidence cites.
+    attributes:
+      universe:
+        range: id
+        description: >-
+          The id of the universe of the driving analysis in which this result
+          is the one cited. Left out for pinned evidence and for evidence
+          that cites an output built once.
+      result:
+        range: integer
+        minimum_value: 0
+        required: true
+        description: The result cited, as its index in the document's `results`.
+
+  EvidenceItem:
+    abstract: true
+    description: >-
+      What names an item of evidence that cites an output: the analysis whose
+      file holds it, and where.
+    attributes:
+      analysis:
+        range: Identity
+        inlined: true
+        required: true
+        description: The analysis whose file holds the item.
+      pointer:
+        required: true
+        description: >-
+          A JSON Pointer to the item in that analysis's `fields`, such as
+          `/findings/insight1/evidence/0`.
+
+  EvidenceEntry:
+    is_a: EvidenceItem
+    description: An item of evidence that cites an output, and the results it cites.
+    attributes:
+      cites:
+        range: Citation
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The planned results the item cites, through any switch and pin: one
+          with no `universe`, or one for each universe of the driving
+          analysis that has a result to cite, in those universes' order.
+
+  Note:
+    description: Something an author may want to tidy, which breaks no rule.
+    attributes:
+      kind:
+        range: NoteKind
+        required: true
+        description: What the note is about.
+      message:
+        required: true
+        description: The note, in a sentence.
+      location:
+        range: Location
+        inlined: true
+        description: The pin, the output or the command the note is about.
+      results:
+        range: integer
+        minimum_value: 0
+        multivalued: true
+        required: true
+        description: >-
+          The planned results the note is about, each as its index in the
+          document's `results`.
+      built:
+        range: boolean
+        required: true
+        description: Whether the note concerns what the driving analysis builds.
+
+  ResolvedAnalysis:
+    description: >-
+      A valid analysis, resolved: what it and every analysis it declares
+      hold, what each universe selects, and which results are to be built,
+      from what. It is always whole.
+    attributes:
+      shape:
+        required: true
+        equals_string: astra-resolved-analysis/1
+        description: The name and version of the document's shape.
+      analyses:
+        range: AnalysisEntry
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          The driving analysis, then every analysis it declares, directly or
+          not, in the order they are reached, each identity once.
+      universes:
+        range: UniverseEntry
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          Every universe of the driving analysis, in the order written, then
+          each universe of another analysis that a planned result is built in
+          or that a pin reached by the driving analysis names.
+      results:
+        range: Result
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The planned results, each after every result it reads: an order a
+          runner can build them in.
+      evidence:
+        range: EvidenceEntry
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          Every item of the driving analysis's evidence that cites an output,
+          and each item of another analysis that cites a planned result, in
+          the order of `analyses`, then as written in each file.
+      notes:
+        range: Note
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: What an author may want to tidy, grouped by kind.
+
+  # --- The validation report ---
+
+  ValidationReport:
+    description: What validating an analysis found.
+    attributes:
+      shape:
+        required: true
+        equals_string: astra-validation-report/1
+        description: The name and version of the document's shape.
+      root:
+        required: true
+        description: >-
+          The driving analysis's `astra.yaml`, as a path from the top of the
+          repository that holds it.
+      valid:
+        range: boolean
+        required: true
+        description: 'Whether the analysis is valid: no diagnostic is an error.'
+      diagnostics:
+        range: Diagnostic
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The rules broken, in the order of their places.
+      unchecked:
+        multivalued: true
+        required: true
+        description: >-
+          The codes of the validator rules the tool didn't check: a report
+          with no diagnostic for one of them says nothing of that rule.
+
+  # --- The check report ---
+
+  CheckedPlace:
+    is_a: Place
+    description: A planned result's statuses at one of its places.
+    attributes:
+      record_status:
+        range: RecordStatus
+        required: true
+        description: The status of the record at the place.
+      bytes_status:
+        range: BytesStatus
+        description: >-
+          The status of the bytes at the default place. Left out for a result
+          from a commit that no recipe reads.
+      committed:
+        range: boolean
+        required: true
+        description: Whether git holds the record at the place as it is.
+      reasons:
+        range: Diagnostic
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The check rules broken at the place.
+      provenance:
+        range: ProvenanceRecord
+        inlined: true
+        description: >-
+          The record at the place, where it is the result's: its status is
+          `unchanged` or `stale`. It may follow a later minor version of the
+          specification, so it may hold fields this schema doesn't define.
+
+  CheckedResult:
+    is_a: PlannedResult
+    description: A planned result, with its statuses at each of its places.
+    attributes:
+      places:
+        range: CheckedPlace
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          The result's places, as the resolved analysis gives them, each with
+          its statuses.
+
+  CheckedEvidence:
+    is_a: EvidenceItem
+    description: An item of evidence that cites an output, and the status it gets.
+    attributes:
+      record_status:
+        range: RecordStatus
+        required: true
+        description: >-
+          The worst record status of the results the item cites; `missing`
+          where it cites none.
+      reasons:
+        range: Diagnostic
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: '`STALE_EVIDENCE`, where the status isn''t `unchanged`.'
+
+  CheckReport:
+    description: >-
+      What checking an analysis found: whether each planned result's record
+      is still true of the analysis, and whether its bytes are there.
+    attributes:
+      shape:
+        required: true
+        equals_string: astra-check-report/1
+        description: The name and version of the document's shape.
+      root:
+        required: true
+        description: >-
+          The driving analysis's `astra.yaml`, as a path from the top of the
+          repository that holds it.
+      at:
+        required: true
+        pattern: '^(worktree|[0-9a-f]{40}|[0-9a-f]{64})$'
+        description: >-
+          What the analysis, its records and its bytes are read at:
+          `worktree`, or the full id of a commit.
+      results:
+        range: CheckedResult
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The planned results checked, in the order of the resolved analysis
+          read at the same `at`. A result is matched to the resolved
+          analysis's by its `owner` and its first place's `address`.
+      evidence:
+        range: CheckedEvidence
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The evidence checked, in the resolved analysis's order. An item is
+          matched to the resolved analysis's by its `analysis` and `pointer`.
+      errors:
+        range: Diagnostic
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The `MUST`s the analysis breaks, as a validator finds them.

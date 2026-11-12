@@ -40,6 +40,9 @@ gen-schema: _stage-versioned
   uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/analysis.schema.json {{staged_schema_dir}}/analysis.yaml > {{dest}}/jsonschema/analysis.schema.json
   uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{dest}}/jsonschema/provenance.schema.json
   uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}{series}/provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{dest}}/jsonschema/provenance.open.schema.json
+  uv run python tools/jsonschema_generator.py --root ValidationReport --id {{schema_namespace}}{series}/validation-report.schema.json {{staged_schema_dir}}/documents.yaml > {{dest}}/jsonschema/validation-report.schema.json
+  uv run python tools/jsonschema_generator.py --root ResolvedAnalysis --id {{schema_namespace}}{series}/resolved-analysis.schema.json {{staged_schema_dir}}/documents.yaml > {{dest}}/jsonschema/resolved-analysis.schema.json
+  uv run python tools/jsonschema_generator.py --root CheckReport --open ProvenanceRecord --id {{schema_namespace}}{series}/check-report.schema.json {{staged_schema_dir}}/documents.yaml > {{dest}}/jsonschema/check-report.schema.json
   uv run python tools/jsonld_context.py {{staged_schema_dir}}/provenance.yaml > {{dest}}/jsonld/provenance.context.jsonld
   uv run python tools/rules.py docs/specification.md {{staged_schema_dir}}/analysis.yaml {{staged_schema_dir}}/provenance.yaml --schemas {{dest}}/jsonschema/analysis.schema.json {{dest}}/jsonschema/provenance.schema.json {{dest}}/jsonschema/provenance.open.schema.json > {{dest}}/rules/rules.json
 
