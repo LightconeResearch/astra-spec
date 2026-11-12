@@ -204,7 +204,6 @@
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/inputs/propertyNames/pattern": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/inputs/type": "WRONG_TYPE",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/label/type": "WRONG_TYPE",
-    "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/minProperties": "EMPTY_COLLECTION",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/propertyNames": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/propertyNames/pattern": "INVALID_ID",
     "https://w3id.org/astra/dev/analysis.schema.json#/properties/outputs/type": "WRONG_TYPE",
@@ -309,7 +308,7 @@
       "code": "MISSING_FIELD",
       "layer": "schema",
       "level": "MUST",
-      "statement": "`astra.yaml` has `spec_version` and `outputs`; an output other than a switch, `type`, `format` and `recipe.command`; An input has `path`; a decision, `options`; an insight, `claim`, `evidence`; `quote`, `exact`; `location`, `value`; A record has every field but `started`, `finished` and `inputs`"
+      "statement": "`astra.yaml` has `spec_version`; an output other than a switch, `type`, `format` and `recipe.command`; An input has `path`; a decision, `options`; an insight, `claim`, `evidence`; `quote`, `exact`; `location`, `value`; A record has every field but `started`, `finished` and `inputs`"
     },
     {
       "code": "UNKNOWN_FIELD",
@@ -327,7 +326,7 @@
       "code": "EMPTY_COLLECTION",
       "layer": "schema",
       "level": "MUST",
-      "statement": "`outputs`, `options`, `cases`, `evidence` and every list of strings in `astra.yaml` are non-empty"
+      "statement": "`options`, `cases`, `evidence` and every list of strings in `astra.yaml` are non-empty"
     },
     {
       "code": "DUPLICATE_ENTRY",

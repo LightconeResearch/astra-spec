@@ -623,12 +623,12 @@ after the arrow. Rows that share a code are cases of one rule.
 | `INVALID_SYNTAX` | MUST | An `astra.yaml` is a YAML 1.2 document holding a map |
 | `INVALID_SYNTAX` | MUST | A record is UTF-8 JSON text, no object repeating a name |
 | **schema** | | |
-| `MISSING_FIELD` | MUST | `astra.yaml` has `spec_version` and `outputs`; an output other than a switch, `type`, `format` and `recipe.command` |
+| `MISSING_FIELD` | MUST | `astra.yaml` has `spec_version`; an output other than a switch, `type`, `format` and `recipe.command` |
 | `MISSING_FIELD` | MUST | An input has `path`; a decision, `options`; an insight, `claim`, `evidence`; `quote`, `exact`; `location`, `value` |
 | `MISSING_FIELD` | MUST | A record has every field but `started`, `finished` and `inputs` |
 | `UNKNOWN_FIELD` | MUST | Every field is one the schema defines |
 | `WRONG_TYPE` | MUST | Every value has its field's JSON type, never null (leave an optional field out) |
-| `EMPTY_COLLECTION` | MUST | `outputs`, `options`, `cases`, `evidence` and every list of strings in `astra.yaml` are non-empty |
+| `EMPTY_COLLECTION` | MUST | `options`, `cases`, `evidence` and every list of strings in `astra.yaml` are non-empty |
 | `DUPLICATE_ENTRY` | MUST | No list of strings holds one entry twice |
 | `INVALID_VALUE` | MUST | `type` is `metric`, `figure`, `table`, `data` or `report`; `format` matches `^[a-z0-9][a-z0-9_.+-]*$` |
 | `INVALID_VALUE` | MUST | Every `spec_version`, hash, IRI, time, `doi`, `url` and location `value` has its form |

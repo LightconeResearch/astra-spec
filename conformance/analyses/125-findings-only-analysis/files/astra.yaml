@@ -1,0 +1,14 @@
+spec_version: "0.1.0"
+analyses:
+  fit:
+    path: fit
+universes:
+  u1:
+    decisions: {fit.method: ols}
+  u2:
+    decisions: {fit.method: huber}
+findings:
+  robust:
+    claim: The slope barely moves from one fit to the other.
+    evidence:
+      - artifact: fit.slope

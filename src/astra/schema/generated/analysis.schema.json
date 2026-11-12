@@ -968,8 +968,7 @@
       "additionalProperties": {
         "$ref": "#/$defs/Output__identifier_optional"
       },
-      "description": "The artefacts the analysis makes, and its switches, keyed by id. There is at least one.",
-      "minProperties": 1,
+      "description": "The artefacts the analysis makes, and its switches, keyed by id.",
       "propertyNames": {
         "pattern": "^[a-z][a-z0-9_]*$"
       },
@@ -1011,8 +1010,7 @@
     }
   },
   "required": [
-    "spec_version",
-    "outputs"
+    "spec_version"
   ],
   "title": "analysis",
   "type": "object"

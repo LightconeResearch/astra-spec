@@ -1,0 +1,5 @@
+{
+  "about": "A declared analysis with no outputs holds a decision that an output lists by address, and the universes that set it drive that analysis.",
+  "valid": true,
+  "must_not_report": ["UNUSED_DECISION", "MISSING_DECISION", "NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION"]
+}

@@ -1,0 +1,3 @@
+# An empty outputs map is valid, as an empty inputs or decisions map is.
+spec_version: "0.1.0"
+outputs: {}

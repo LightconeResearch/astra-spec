@@ -625,11 +625,8 @@ classes:
         range: Output
         multivalued: true
         inlined: true
-        required: true
-        minimum_cardinality: 1
         description: >-
           The artefacts the analysis makes, and its switches, keyed by id.
-          There is at least one.
       decisions:
         range: Decision
         multivalued: true

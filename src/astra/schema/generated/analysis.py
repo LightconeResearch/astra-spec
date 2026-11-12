@@ -659,7 +659,7 @@ class Analysis(ConfiguredBaseModel):
                        'Universe',
                        'Analysis']} })
     inputs: Optional[dict[str, Input]] = Field(default=None, description="""The files the analysis reads, keyed by id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Analysis']} })
-    outputs: dict[str, Output] = Field(default=..., description="""The artefacts the analysis makes, and its switches, keyed by id. There is at least one.""", min_length=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
+    outputs: Optional[dict[str, Output]] = Field(default=None, description="""The artefacts the analysis makes, and its switches, keyed by id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     decisions: Optional[dict[str, Decision]] = Field(default=None, description="""The choices the analysis makes, keyed by id.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Output', 'Universe', 'Analysis']} })
     analyses: Optional[dict[str, AnalysisDeclaration]] = Field(default=None, description="""The analyses this analysis uses, keyed by the id it addresses them by.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })
     universes: Optional[dict[str, Universe]] = Field(default=None, description="""The universes of the analysis, and the universes of other analyses it imports, keyed by id. An import has an `analysis` and a `universe`.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Analysis']} })

@@ -67,5 +67,7 @@ def test_valid_document_loads(path):
 @pytest.mark.parametrize("path", ANALYSES, ids=_name)
 def test_each_entry_takes_its_key_as_its_id(path):
     entries = list(_entries(_model(path)))
-    assert entries, "every analysis has outputs"
+    assert bool(entries) == any(
+        isinstance(value, dict) and value for value in load_fixture(path).values()
+    )
     assert [(key, entry.id) for key, entry in entries if entry.id != key] == []

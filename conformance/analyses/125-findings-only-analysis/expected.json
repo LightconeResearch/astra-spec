@@ -1,0 +1,5 @@
+{
+  "about": "An analysis with no outputs drives a declared analysis through its findings, whose evidence cites that analysis's output in each of its universes.",
+  "valid": true,
+  "must_not_report": ["UNUSED_DECISION", "MISSING_DECISION", "NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION"]
+}

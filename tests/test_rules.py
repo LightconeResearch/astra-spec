@@ -719,7 +719,8 @@ CODES = {
     ANALYSIS + "/additionalProperties": "UNKNOWN_FIELD",
     RECORD + "/$defs/Runner/additionalProperties": "UNKNOWN_FIELD",
     ANALYSIS + "/properties/tags/type": "WRONG_TYPE",
-    ANALYSIS + "/properties/outputs/minProperties": "EMPTY_COLLECTION",
+    ANALYSIS
+    + "/$defs/Decision__identifier_optional/properties/options/minProperties": "EMPTY_COLLECTION",
     ANALYSIS
     + "/$defs/Insight__identifier_optional/properties/evidence/minItems": "EMPTY_COLLECTION",
     ANALYSIS + "/properties/tags/uniqueItems": "DUPLICATE_ENTRY",

@@ -102,7 +102,6 @@ NEGATIVE = [
     # --- An astra.yaml (`Analysis`) ---
     Case("minimal", "", ["result"], "WRONG_TYPE"),
     Case("minimal", "/spec_version", DELETE, "MISSING_FIELD"),
-    Case("minimal", "/outputs", DELETE, "MISSING_FIELD"),
     Case("minimal", "/version", "0.0.11", "UNKNOWN_FIELD", "(root)"),
     Case("minimal", "/spec_version", 0.1, "WRONG_TYPE"),
     Case("minimal", "/spec_version", "0.1", "INVALID_VALUE"),
@@ -116,7 +115,6 @@ NEGATIVE = [
     Case("core", "/inputs", ["catalog"], "WRONG_TYPE"),
     Case("core", "/inputs/data.catalog", {"path": "a.csv"}, "INVALID_ID", "/inputs"),
     Case("minimal", "/outputs", ["result"], "WRONG_TYPE"),
-    Case("minimal", "/outputs", {}, "EMPTY_COLLECTION"),
     Case("minimal", "/outputs/result.v2", OUTPUT, "INVALID_ID", "/outputs"),
     Case("core", "/decisions", ["method"], "WRONG_TYPE"),
     Case(

@@ -1,0 +1,7 @@
+spec_version: "0.1.0"
+decisions:
+  method:
+    rationale: Both fits are standard for this data.
+    options:
+      ols: {}
+      huber: {}
