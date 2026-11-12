@@ -131,14 +131,14 @@ class OutputType(str, Enum):
 
 class TextQuoteSelector(ConfiguredBaseModel):
     """
-    A passage of the cited work or output, quoted exactly, with the text just before and after it to tell it apart where the same words occur more than once.
+    W3C TextQuoteSelector for locating text in a document. The authoritative anchor for verification.
     """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'oa:TextQuoteSelector',
          'from_schema': 'https://w3id.org/astra/insight'})
 
     exact: str = Field(default=..., description="""The passage, exactly as the cited work or output writes it.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TextQuoteSelector'], 'slot_uri': 'oa:exact'} })
-    prefix: Optional[str] = Field(default=None, description="""The text that comes just before the passage.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TextQuoteSelector'], 'slot_uri': 'oa:prefix'} })
-    suffix: Optional[str] = Field(default=None, description="""The text that comes just after the passage.""", json_schema_extra = { "linkml_meta": {'domain_of': ['TextQuoteSelector'], 'slot_uri': 'oa:suffix'} })
+    prefix: Optional[str] = Field(default=None, description="""~20-100 chars before for disambiguation""", json_schema_extra = { "linkml_meta": {'domain_of': ['TextQuoteSelector'], 'slot_uri': 'oa:prefix'} })
+    suffix: Optional[str] = Field(default=None, description="""~20-100 chars after for disambiguation""", json_schema_extra = { "linkml_meta": {'domain_of': ['TextQuoteSelector'], 'slot_uri': 'oa:suffix'} })
 
 
 class FragmentSelector(ConfiguredBaseModel):
@@ -222,7 +222,7 @@ class Insight(ConfiguredBaseModel):
                        'Option',
                        'Universe',
                        'AnalysisDeclaration']} })
-    label: Optional[str] = Field(default=None, description="""A short display name for the insight.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight',
+    label: Optional[str] = Field(default=None, description="""Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight',
                        'Input',
                        'Output',
                        'Decision',
@@ -232,8 +232,8 @@ class Insight(ConfiguredBaseModel):
     claim: str = Field(default=..., description="""What the insight asserts.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
     description: Optional[str] = Field(default=None, description="""The reasoning behind the claim, in free prose.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight', 'Input', 'Output', 'Option', 'Universe', 'Analysis']} })
     evidence: list[Evidence] = Field(default=..., description="""What the claim rests on, as a list. There is at least one.""", min_length=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
-    scope: Optional[str] = Field(default=None, description="""The conditions under which the claim holds, in free prose.""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
-    tags: Optional[list[str]] = Field(default=None, description="""Keywords for grouping and finding the insight.""", min_length=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Insight',
+    scope: Optional[str] = Field(default=None, description="""Applicability conditions""", json_schema_extra = { "linkml_meta": {'domain_of': ['Insight']} })
+    tags: Optional[list[str]] = Field(default=None, description="""Categorization tags""", min_length=1, json_schema_extra = { "linkml_meta": {'domain_of': ['Insight',
                        'Input',
                        'Output',
                        'Decision',

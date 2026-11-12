@@ -172,7 +172,7 @@ prior_insights:
       - doi: "10.48550/arXiv.1706.03762"
         version: 7
         quote:
-          exact: "Attention Is All You Need"
+          exact: "Attention is all you need"
 
 decisions:
   architecture:
@@ -199,6 +199,6 @@ Artifact-backed evidence (typical for `findings:`) cites an output's results rat
 
 ## What ASTRA doesn't run
 
-The CLI validates and inspects analyses, and checks results against their records; it does **not** execute recipes. Each `recipe.command` is a POSIX shell command that a runner, such as lightcone-cli, reads and invokes ([Results](specification.md#results)). The runner materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the `{inputs.<id>}` / `{inputs}` / `{decisions.<id>}` / `{output}` placeholders against the universe being built, runs the resulting command, and writes the result with a record of the run, which [`astra check`](cli.md#astra-check) later compares with the analysis.
+The CLI validates and inspects analyses, and checks results against their records; it does **not** execute recipes. Each `recipe.command` is a POSIX shell command that a runner — an agent, a workflow runner, a notebook, or you on the command line — reads and invokes ([Results](specification.md#results)). The runner materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the `{inputs.<id>}` / `{inputs}` / `{decisions.<id>}` / `{output}` placeholders against the universe being built, runs the resulting command, and writes the result with a record of the run, which [`astra check`](cli.md#astra-check) later compares with the analysis.
 
 This separation is intentional: the spec stays stable as the agent and execution layer evolves. ASTRA's job is to make every analytical choice explicit, traceable, and verifiable; the choice of *runner* is yours.

@@ -294,15 +294,15 @@
           "type": "array"
         },
         "label": {
-          "description": "A short display name for the insight.",
+          "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
           "type": "string"
         },
         "scope": {
-          "description": "The conditions under which the claim holds, in free prose.",
+          "description": "Applicability conditions",
           "type": "string"
         },
         "tags": {
-          "description": "Keywords for grouping and finding the insight.",
+          "description": "Categorization tags",
           "items": {
             "type": "string"
           },
@@ -735,18 +735,18 @@
     },
     "TextQuoteSelector": {
       "additionalProperties": false,
-      "description": "A passage of the cited work or output, quoted exactly, with the text just before and after it to tell it apart where the same words occur more than once.",
+      "description": "W3C TextQuoteSelector for locating text in a document. The authoritative anchor for verification.",
       "properties": {
         "exact": {
           "description": "The passage, exactly as the cited work or output writes it.",
           "type": "string"
         },
         "prefix": {
-          "description": "The text that comes just before the passage.",
+          "description": "~20-100 chars before for disambiguation",
           "type": "string"
         },
         "suffix": {
-          "description": "The text that comes just after the passage.",
+          "description": "~20-100 chars after for disambiguation",
           "type": "string"
         }
       },

@@ -108,7 +108,7 @@ stay in sync.
 
 When an accepted RFC changes the schema, its **Implementation implications &
 migration** section should state whether the change is a minor or major bump under ASTRA's
-[versioning policy](specification.md#schema-files) and what migration (if any) existing analyses
+[versioning policy](about.md) and what migration (if any) existing analyses
 need. The mechanics of versioned schema hosting — per-version docs and
 machine-fetchable schemas at stable URLs — are already in place; see the
 [About](about.md) page and the canonical `https://w3id.org/astra/` namespace.

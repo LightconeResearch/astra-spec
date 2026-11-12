@@ -24,7 +24,7 @@ outputs:
   trained_output:
     type: data
     format: pkl
-    description: The classifier trained in each universe
+    description: Best performing classifier
     inputs: [iris_data]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
@@ -80,9 +80,7 @@ outputs:
   conclusion:
     type: report
     format: md
-    description: >-
-      Summary of classifier performance and suitability for the
-      application
+    description: Summary of classifier performance and suitability for the application
     inputs: [trained_output]
     recipe:
       command: >-
@@ -142,8 +140,7 @@ decisions:
 
 universes:
   baseline:
-    description: >-
-      A random forest with standard scaling, a 20% test set and seed 42
+    description: Default configuration using standard practices
     decisions:
       scaling: standard
       model: random_forest
@@ -151,9 +148,7 @@ universes:
       random_seed: seed_42
 
   svm_focused:
-    description: >-
-      The baseline with the model switched to an SVM, which requires the
-      standard scaling it inherits
+    description: Configuration optimized for SVM (requires standard scaling)
     derived_from: baseline
     decisions:
       model: svm

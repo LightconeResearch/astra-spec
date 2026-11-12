@@ -665,8 +665,7 @@ class Analysis(YAMLRoot):
 @dataclass(repr=False)
 class TextQuoteSelector(YAMLRoot):
     """
-    A passage of the cited work or output, quoted exactly, with the text just before and after it to tell it apart
-    where the same words occur more than once.
+    W3C TextQuoteSelector for locating text in a document. The authoritative anchor for verification.
     """
     _inherited_slots: ClassVar[list[str]] = []
 

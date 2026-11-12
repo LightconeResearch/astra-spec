@@ -1,11 +1,11 @@
 spec_version: "0.1.0"
 label: Feature extraction
 description: |
-  Learns a low-dimensional representation of the 4 Iris features. PCA
-  provides a linear, deterministic baseline; the MLP encoder trains a
-  small autoencoder (4-8-k-8-4) and keeps the bottleneck layer as the
-  representation. It reads the root's data and seed by address, and
-  emits the transformed features matrix and a feature-plot scatter.
+  Learn a low-dimensional representation of the 4 Iris features.
+  PCA provides a linear, deterministic baseline; the MLP encoder
+  trains a small autoencoder (4-8-k-8-4) and keeps the bottleneck
+  layer as the representation. Emits the transformed features
+  matrix and a feature-plot scatter.
 
 analyses:
   iris:
@@ -13,31 +13,27 @@ analyses:
 
 decisions:
   method:
-    label: Extraction method
-    rationale: >-
-      PCA is interpretable and deterministic; MLP encoder may capture
-      nonlinear structure
+    label: Extraction Method
+    rationale: PCA is interpretable and deterministic; MLP encoder may capture nonlinear structure
     options:
       pca:
         label: PCA
         description: Principal Component Analysis
       mlp_encoder:
-        label: MLP encoder
+        label: MLP Encoder
         description: Bottleneck layer of a small autoencoder (4-8-k-8-4)
         incompatible_with: [n_components.three]
 
   n_components:
-    label: Number of components
+    label: Number of Components
     rationale: Dimensionality of the learned representation
     options:
       two:
-        label: "2"
+        label: 2 components
         description: Aggressive reduction, easy to visualize
       three:
-        label: "3"
-        description: >-
-          Retains more variance but bottleneck is nearly input-sized for
-          the encoder
+        label: 3 components
+        description: Retains more variance but bottleneck is nearly input-sized for the encoder
 
 outputs:
   features:

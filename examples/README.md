@@ -1,7 +1,6 @@
 # Examples
 
-Example ASTRA analyses. An analysis is a directory with an `astra.yaml`, and every
-`astra.yaml` here is valid against the published JSON Schema.
+Example ASTRA projects demonstrating the specification format.
 
 ## iris/
 

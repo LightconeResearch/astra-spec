@@ -16,18 +16,16 @@ analyses:
 decisions:
   classifier:
     label: Classifier
-    rationale: >-
-      Logistic regression is a strong linear baseline; SVM adds a
-      nonlinear kernel
+    rationale: Logistic regression is a strong linear baseline; SVM adds a nonlinear kernel
     options:
       logistic:
-        label: Logistic regression
+        label: Logistic Regression
         description: Multinomial logistic regression with L2 penalty
       svm:
-        label: SVM
+        label: SVM (RBF)
         description: Support vector machine with radial basis function kernel
       knn:
-        label: k-NN
+        label: k-Nearest Neighbors
         description: k=5 nearest neighbors in the extracted feature space
 
 outputs:

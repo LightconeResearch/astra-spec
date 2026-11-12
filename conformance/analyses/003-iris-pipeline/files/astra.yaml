@@ -1,5 +1,5 @@
 spec_version: "0.1.0"
-label: Iris two-stage pipeline
+label: Iris Two-Stage Classification
 description: |
   A two-stage pipeline for Iris classification, in three analyses. This
   root loads and splits the data and holds the decisions the stages
@@ -22,7 +22,7 @@ analyses:
 
 decisions:
   test_split:
-    label: Test set proportion
+    label: Test Set Proportion
     rationale: Trade-off between training data and evaluation reliability
     options:
       twenty_pct:
@@ -33,7 +33,7 @@ decisions:
         description: 70/30 train-test split
 
   random_seed:
-    label: Random seed
+    label: Random Seed
     rationale: Controls reproducibility of splits and model initialization
     options:
       seed_42:
@@ -89,9 +89,7 @@ outputs:
 
 universes:
   baseline:
-    description: >-
-      PCA with 2 components, logistic regression: the simplest sensible
-      pipeline
+    description: PCA with 2 components, logistic regression — the simplest sensible pipeline
     decisions:
       test_split: twenty_pct
       random_seed: seed_42
@@ -100,9 +98,7 @@ universes:
       classification.classifier: logistic
 
   mlp_svm:
-    description: >-
-      MLP encoder features with an SVM classifier: tests whether learned
-      features help
+    description: MLP encoder features with SVM classifier — tests whether learned features help
     derived_from: baseline
     decisions:
       feature_extraction.method: mlp_encoder

@@ -69,7 +69,7 @@ In ASTRA, an analysis declares the design space, a universe picks one option per
     # astra.yaml, continued
     universes:
       baseline:
-        description: Baseline configuration for the period-luminosity fit.
+        description: Default configuration for the period-luminosity fit.
         decisions:
           fit_method: ordinary_least_squares
     ```

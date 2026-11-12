@@ -30,9 +30,8 @@ classes:
 
   TextQuoteSelector:
     description: >-
-      A passage of the cited work or output, quoted exactly, with the text
-      just before and after it to tell it apart where the same words occur
-      more than once.
+      W3C TextQuoteSelector for locating text in a document.
+      The authoritative anchor for verification.
     class_uri: oa:TextQuoteSelector
     attributes:
       exact:
@@ -41,10 +40,10 @@ classes:
         description: The passage, exactly as the cited work or output writes it.
       prefix:
         slot_uri: oa:prefix
-        description: The text that comes just before the passage.
+        description: ~20-100 chars before for disambiguation
       suffix:
         slot_uri: oa:suffix
-        description: The text that comes just after the passage.
+        description: ~20-100 chars after for disambiguation
 
   FragmentSelector:
     description: >-
@@ -155,7 +154,10 @@ classes:
           The insight's id, written as its key in `prior_insights` or
           `findings`.
       label:
-        description: A short display name for the insight.
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       claim:
         required: true
         description: What the insight asserts.
@@ -169,8 +171,8 @@ classes:
         minimum_cardinality: 1
         description: What the claim rests on, as a list. There is at least one.
       scope:
-        description: The conditions under which the claim holds, in free prose.
+        description: Applicability conditions
       tags:
         multivalued: true
         minimum_cardinality: 1
-        description: Keywords for grouping and finding the insight.
+        description: Categorization tags
