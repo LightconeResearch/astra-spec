@@ -137,11 +137,11 @@ SUFFIXES = {"Analysis": ".yaml", "ProvenanceRecord": ".json"}
 
 
 def test_every_fixture_is_written_as_its_kind_of_file():
-    """Every file in the fixture folders is an `astra.yaml` (`.yaml`), a record (`.json`), or a record's header
-    sidecar (`.header`) beside its record, and every invalid record has one."""
+    """Every file in the fixture folders, the template's `.gitkeep` aside, is an `astra.yaml` (`.yaml`), a record
+    (`.json`), or a record's header sidecar (`.header`) beside its record, and every invalid record has one."""
     problems = []
     for kind in ("valid", "invalid"):
-        for path in sorted((DATA / kind).iterdir()):
+        for path in sorted(path for path in (DATA / kind).iterdir() if path.name != ".gitkeep"):
             if path.suffix == ".header":
                 if not path.with_suffix(".json").is_file():
                     problems.append(f"{kind}/{path.name}: no record beside it")

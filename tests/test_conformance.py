@@ -6,7 +6,7 @@ rules of `rules.json`, gives a pointer only for a parse or schema code, and its
 `valid` agrees with the levels of the codes it must report. The case builds: its `setup.sh` runs to completion, or its
 files are committed once, and the folder `root` holds an `astra.yaml` in a git repository (in none, for a case of
 `NOT_IN_REPOSITORY`), with no placeholder left.
-The documents (`conformance/documents/`) are checked by `test_fixtures.py`.
+The documents (`tests/data/`) are checked by `test_fixtures.py`.
 """
 
 import json

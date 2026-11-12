@@ -86,7 +86,7 @@ src/astra/
   schema/       # LinkML schema source (edit these)
   datamodel/    # Generated Python datamodel (do not edit directly)
 docs/           # Documentation source (Zensical → astra-spec.org)
-conformance/    # Conformance suite: astra.yaml files, records and analyses, with their verdicts
+conformance/    # Conformance suite: analysis cases with their verdicts (documents: tests/data/)
 project/        # Generated: JSON Schemas, JSON-LD context and rules.json (committed); TS, OWL, Java and more
 tools/          # Generators and checks of the schema files and the docs
 linkml-templates/  # Templates for the generated field reference and Pydantic models

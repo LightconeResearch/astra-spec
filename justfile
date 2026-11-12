@@ -327,7 +327,7 @@ _test-python: gen-python
 #    schema doesn't have.
 # 3. It judges documents with stock LinkML validation, not the contract
 #    (project/jsonschema/), which the pytest suite checks every document of
-#    conformance/documents against.
+#    tests/data against.
 # Allow this step to fail until the upstream issues are resolved.
 _test-examples: _stage-versioned _ensure_examples_output
   -uv run linkml-run-examples \
@@ -335,8 +335,8 @@ _test-examples: _stage-versioned _ensure_examples_output
     --input-formats yaml \
     --output-formats json \
     --output-formats yaml \
-    --counter-example-input-directory conformance/documents/invalid \
-    --input-directory conformance/documents/valid \
+    --counter-example-input-directory tests/data/invalid \
+    --input-directory tests/data/valid \
     --output-directory examples/output \
     --schema {{staged_schema_path}} > examples/output/README.md
 

@@ -25,7 +25,7 @@ JSONSCHEMA = PROJECT / "jsonschema"
 """The committed JSON Schemas of `just gen-schema`."""
 RULES_JSON = PROJECT / "rules" / "rules.json"
 """The committed rule catalogue of `just gen-schema`."""
-DATA = REPO_ROOT / "conformance" / "documents"
+DATA = REPO_ROOT / "tests" / "data"
 
 _SCHEMA_NAMES = {"Analysis": "analysis", "ProvenanceRecord": "provenance"}
 """Each fixture root, with the name of its generated schema."""

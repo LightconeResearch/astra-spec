@@ -10,8 +10,8 @@ case is wrong.
 
 | Path | Holds |
 |---|---|
-| `documents/valid/` | documents that break no parse or schema rule |
-| `documents/invalid/` | documents that each break one |
+| `../tests/data/valid/` | documents that break no parse or schema rule |
+| `../tests/data/invalid/` | documents that each break one |
 | `analyses/<NNN>-<what>/` | one analysis case each, for the validator |
 | `expected.schema.json` | the JSON Schema of an analysis case's `expected.json` |
 

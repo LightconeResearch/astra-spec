@@ -58,7 +58,7 @@ just lint          # Lint the LinkML schema
 just test          # Run all tests
 ```
 
-Open a PR with the schema, generated artefacts, and any doc updates in a single commit so reviewers see the full picture. Every schema constraint needs a row in `NEGATIVE` (`tests/test_constraints.py`), and a new schema-layer code an invalid fixture in `conformance/documents/`.
+Open a PR with the schema, generated artefacts, and any doc updates in a single commit so reviewers see the full picture. Every schema constraint needs a row in `NEGATIVE` (`tests/test_constraints.py`), and a new schema-layer code an invalid fixture in `tests/data/invalid/`.
 
 ### Reporting problems
 
@@ -69,7 +69,7 @@ A useful issue includes:
 - The full error output, copy-pasted from the terminal.
 - What you expected to happen instead.
 
-Validation issues are easier to triage when accompanied by a fixture small enough to drop into [`conformance/documents/`](https://github.com/LightconeResearch/astra-spec/tree/main/conformance/documents) — usually a single decision and a single output is plenty.
+Validation issues are easier to triage when accompanied by a fixture small enough to drop into [`tests/data/`](https://github.com/LightconeResearch/astra-spec/tree/main/tests/data) — usually a single decision and a single output is plenty.
 
 ## Code of Conduct
 

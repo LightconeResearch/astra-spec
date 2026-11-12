@@ -8,7 +8,7 @@ repos:
       - id: check-yaml
         # What this hook's loader refuses is the point of this fixture: it
         # fails at parse (malformed YAML). Keep in step with .yamllint.yaml.
-        exclude: ^conformance/documents/invalid/Analysis-182-malformed-yaml\.yaml$
+        exclude: ^tests/data/invalid/Analysis-182-malformed-yaml\.yaml$
       # Generated files are checked against a fresh generation instead
       # (`just check-generated`), so these hooks leave them as they are.
       - id: end-of-file-fixer
