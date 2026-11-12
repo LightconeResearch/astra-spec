@@ -7,8 +7,8 @@ description: |-
   The analysis document, `astra.yaml`: the files an analysis reads, the
   artefacts it makes, and the decisions it makes along the way.
 license: https://creativecommons.org/licenses/by/4.0/
-# Placeholder version. The real version is injected at build time from the
-# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+# Placeholder version. The real version is injected at build time: the tag at
+# HEAD, else `dev` (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0
 
 prefixes:

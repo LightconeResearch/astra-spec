@@ -5,8 +5,8 @@ description: |-
   The provenance record: what a runner writes for each result it makes,
   saying what the result is and the run of the recipe that made it. Through
   this schema a record maps onto W3C PROV-O.
-# Placeholder version. The real version is injected at build time from the
-# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+# Placeholder version. The real version is injected at build time: the tag at
+# HEAD, else `dev` (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0
 license: https://creativecommons.org/licenses/by/4.0/
 

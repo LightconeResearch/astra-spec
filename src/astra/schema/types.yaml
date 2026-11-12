@@ -5,8 +5,8 @@ description: |-
   The named types of ASTRA: the ids, addresses and references the format is
   built from, and the forms of commit ids, content hashes, specification
   versions, timestamps and IRIs.
-# Placeholder version. The real version is injected at build time from the
-# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+# Placeholder version. The real version is injected at build time: the tag at
+# HEAD, else `dev` (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0
 license: https://creativecommons.org/licenses/by/4.0/
 

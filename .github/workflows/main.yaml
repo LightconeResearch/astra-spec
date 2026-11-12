@@ -68,8 +68,9 @@ jobs:
         uses: actions/checkout@v7
         with:
           persist-credentials: false
-          # Fetch full history + tags so `_stage-versioned` can resolve
-          # the latest tag and inject the matching version.
+          # Fetch full history + tags so `_stage-versioned` can find the
+          # tag at HEAD, if there is one, and inject its version (`dev`
+          # otherwise), as the committed files were generated with.
           fetch-depth: 0
           fetch-tags: true
 
