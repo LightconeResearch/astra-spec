@@ -9,12 +9,12 @@ If you find ASTRA useful, awkward, surprising, missing something, or just adjace
 | Channel | Use it for |
 |---------|-----------|
 | [`astra-spec` issues](https://github.com/LightconeResearch/astra-spec/issues) | Schema bugs, proposed schema changes, doc issues. |
-| [`ASTRA` (tools) issues](https://github.com/LightconeResearch/ASTRA/issues) | CLI bugs, validator issues, paper-cache problems. |
+| [`astra-tools` issues](https://github.com/LightconeResearch/astra-tools/issues) | CLI bugs, validator issues, paper-cache problems. |
 | [GitHub Discussions](https://github.com/LightconeResearch/astra-spec/discussions) | Open-ended questions, design conversations, "is this the right approach?" threads. |
 | [RFCs](rfc-process.md) | Significant or contested changes — new schema concepts, breaking changes, versioning rules, conventions. |
 | Pull requests | Code, schema, and documentation changes — for both repositories. |
 
-When in doubt about which repo to file an issue in: schema or specification questions go to `astra-spec`; CLI / validator / paper-tool questions go to [`ASTRA`](https://github.com/LightconeResearch/ASTRA).
+When in doubt about which repo to file an issue in: schema or specification questions go to `astra-spec`; CLI / validator / paper-tool questions go to [`astra-tools`](https://github.com/LightconeResearch/astra-tools).
 
 ## What's most useful right now
 
@@ -35,7 +35,7 @@ The full guide is in [`CONTRIBUTING.md`](https://github.com/LightconeResearch/as
 3. **Run the project checks** locally before pushing:
 
     ```bash
-    just test          # schema generation, Python data model, examples
+    just test          # schema generation, Python datamodels, pytest, schema lint
     just lint          # LinkML schema lint
     just docs-strict   # build docs in strict mode
     ```

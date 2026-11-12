@@ -114,7 +114,7 @@ uv sync --dev
 Requires Python 3.10+, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just/).
 
 ```bash
-just test         # Schema generation, Python datamodel, examples
+just test         # Schema generation, Python datamodels, pytest, schema lint
 just lint         # LinkML schema lint
 just gen-schema   # Regenerate the JSON Schemas, JSON-LD context and rules.json
 just gen-python   # Regenerate Python datamodels
@@ -136,7 +136,7 @@ Both are permissive; commercial and academic use are unrestricted. Schema reuse 
 
 ## Citing
 
-If you use ASTRA, please cite the repository — the easiest way is the **"Cite this repository"** button on this page (it generates APA and BibTeX from [`CITATION.cff`](CITATION.cff)). Include the schema version you targeted; it is recorded at the top of each LinkML source file and in every generated artefact.
+If you use ASTRA, please cite the repository — the easiest way is the **"Cite this repository"** button on this page (it generates APA and BibTeX from [`CITATION.cff`](CITATION.cff)). Include the schema version you targeted; it is recorded in the `$id` and `$comment` of each generated JSON Schema.
 
 For the broader context, the [Lightcone Research position paper](https://github.com/LightconeResearch/astra-paper) is a separate citation, not a replacement.
 

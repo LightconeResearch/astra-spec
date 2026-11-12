@@ -172,7 +172,7 @@ prior_insights:
       - doi: "10.48550/arXiv.1706.03762"
         version: 7
         quote:
-          exact: "Attention is all you need"
+          exact: "Attention Is All You Need"
 
 decisions:
   architecture:
