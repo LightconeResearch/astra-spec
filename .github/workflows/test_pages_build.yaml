@@ -39,14 +39,14 @@ jobs:
 
       # https://github.com/actions/setup-python
       - name: Set up Python
-        uses: actions/setup-python@v7.0.0
+        uses: actions/setup-python@v7.1.0
         with:
           
           python-version: ${{ matrix.pyversion }}
           
       # https://github.com/astral-sh/setup-uv
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           
           python-version: ${{ matrix.pyversion }}
@@ -68,7 +68,7 @@ jobs:
 
       # https://github.com/rossjrw/pr-preview-action
       - name: Deploy preview
-        uses: rossjrw/pr-preview-action@v1.8.1
+        uses: rossjrw/pr-preview-action@v1.8.2
         with:
           source-dir: site/
           preview-branch: gh-pages
