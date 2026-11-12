@@ -322,12 +322,6 @@ _test-python: gen-python
 # NOTE: linkml-run-examples has known issues:
 # 1. "simple dict" detection bug for classes with an identifier + exactly
 #    one required field (e.g. Option).
-# 2. It reads one schema, so it stops at the first document of the
-#    provenance record (ProvenanceRecord-*.json), a class the analysis
-#    schema doesn't have.
-# 3. It judges documents with stock LinkML validation, not the contract
-#    (project/jsonschema/), which the pytest suite checks every document of
-#    tests/data against.
 # Allow this step to fail until the upstream issues are resolved.
 _test-examples: _stage-versioned _ensure_examples_output
   -uv run linkml-run-examples \
@@ -445,3 +439,12 @@ set allow-duplicate-recipes
 # project/rules), which `just clean` removes with the rest of project/
 _test-python: gen-python gen-schema
   uv run python -m pytest
+
+# `test` leaves out the template's _test-examples: stock LinkML validation can't
+# judge ASTRA 0.1's documents. It reads YAML 1.1 (`no` is false, a date-like
+# label a date), not the compact maps of a switch's cases or a universe's
+# decisions, and none of the parse layer, so tests/test_fixtures.py checks each
+# document of tests/data against the contract (project/jsonschema/) instead.
+
+# Run all tests
+test: _test-schema _test-python
