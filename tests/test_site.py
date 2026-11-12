@@ -13,10 +13,8 @@ names an element there.
 
 The field reference's pages are built from `gen-doc`'s Markdown, where a pattern's backtick, `|`, `[^` or `^` would be
 read as Markdown. So another test reads each element's page and compares its Regex Pattern cell with the pattern the
-LinkML sources write. Others check what `tools/docgen.py` and the index template change: each description on the
-index is cut at the end of a sentence or of a word, in at most 80 characters, no two pages' names differ only in case,
-each range links to a class, an enumeration or a type, never a slot of the same name, a description's `<` shows as
-written, and the record's classes are listed apart from the analysis document's; and that the published merged models,
+LinkML sources write. Others check what `tools/docgen.py` changes: each range links to a class, an enumeration or a
+type, never a slot of the same name, and a description's `<` shows as written; and that the published merged models,
 one for each tree root, hold every class.
 The tests run in CI after the docs build (`main.yaml`, `test_pages_build.yaml`), and are skipped when there is no
 `site/`.
@@ -260,8 +258,8 @@ def schema_patterns() -> dict[str, list[str]]:
     """Each pattern the LinkML sources write, as they write it, keyed by the page that shows it.
 
     A named type's page, under its CamelCase name, shows its `pattern`, or its structured pattern's syntax with each
-    `{name}` filled in from the settings. A slot's page, under its own name, shows the pattern of the classes that
-    define the slot, where they all give it the same one: `Input.path` and `AnalysisDeclaration.path` share a page."""
+    `{name}` filled in from the settings. A slot's page, under its own name, shows its pattern where one class alone
+    defines the slot: `gen-doc` shows none on the page `Input.path` and `AnalysisDeclaration.path` share."""
     yaml = YAML(typ="safe", pure=True)
     sources = [
         yaml.load(module.read_text(encoding="utf-8"))
@@ -285,8 +283,8 @@ def schema_patterns() -> dict[str, list[str]]:
             for name, slot in ((definition or {}).get("attributes") or {}).items():
                 slots[name].append((slot or {}).get("pattern"))
     for name, patterns in slots.items():
-        if patterns[0] is not None and len(set(patterns)) == 1:
-            expected[name] = patterns[:1]
+        if len(patterns) == 1 and patterns[0] is not None:
+            expected[name] = patterns
     return expected
 
 
@@ -328,59 +326,6 @@ def classes_of(*stems: str) -> set[str]:
     return {name for stem in stems for name in modules[stem].get("classes") or {}}
 
 
-INDEX = ELEMENTS / "index.html"
-"""The field reference's index."""
-
-
-def index_tables() -> list[tuple[str, list[str], list[list[tuple[str, list[str]]]]]]:
-    parser = _Tables(("h1", "h2"))
-    parser.feed(INDEX.read_text(encoding="utf-8"))
-    parser.close()
-    return parser.tables
-
-
-def test_index_cuts_descriptions_short():
-    """Each description on the field reference's index is cut at the end of a sentence (`gen-doc` cuts it at its first
-    `.`, which can fall inside `astra.yaml` or a version), or of a word: the start of the element's description, in at
-    most 80 characters, ending with a `.`, `?` or `!` that ends it or is followed by white space, or with a word
-    followed by white space, or by a `,`, `;` or `:` the cut leaves out and white space, then `…`. A slot shared by
-    several classes shows one of theirs."""
-    descriptions = defaultdict(list)
-    for module in sources().values():
-        for name, definition in (module.get("classes") or {}).items():
-            descriptions[name].append(definition.get("description"))
-            for slot, attribute in (definition.get("attributes") or {}).items():
-                descriptions[slot].append((attribute or {}).get("description"))
-        for name, definition in (module.get("enums") or {}).items():
-            descriptions[name].append(definition.get("description"))
-        for name, definition in (module.get("types") or {}).items():
-            descriptions[camelcase(name)].append(definition.get("description"))
-    rows = [row for _, _, rows in index_tables() for row in rows]
-    shown = {row[0][0]: row[1][0] for row in rows if row[0][0] in descriptions}
-    assert set(shown) == set(descriptions)
-    cut = []
-    for name, text in shown.items():
-        whole = [
-            html_text(MarkdownIt("commonmark").renderInline(description))
-            for description in descriptions[name]
-            if description
-        ]
-        start = text.removesuffix("…")
-        word = start != text
-        if len(text) > 80 or not any(
-            full.startswith(start)
-            and (
-                re.match(r"[,;:]* ", full[len(start) :])
-                if word
-                else start.endswith((".", "?", "!"))
-                and full[len(start) : len(start) + 1] in ("", " ")
-            )
-            for full in whole
-        ):
-            cut.append((name, text))
-    assert cut == []
-
-
 RANGE = {"Class", "Enum", "Type"}
 """The kinds of element a range names."""
 
@@ -397,8 +342,8 @@ slot is used with, then that slot."""
 
 def test_ranges_link_to_types():
     """Each range in the field reference links to a class's, an enumeration's or a type's page, and each slot of a
-    Usages table to a slot's: `gen-doc` would link a range of the type `id` to the slot `id`, whose page is `id-slot`
-    (`tools/docgen.py`). A page's kind is the start of its title (`Type: Id`)."""
+    Usages table to a slot's: `gen-doc` would link a range of the type `id` to the slot `id` (`tools/docgen.py`). A
+    page's kind is the start of its title (`Type: Id`)."""
     kinds = {}
     for page in ELEMENTS.glob("*/index.html"):
         title = re.search(r"<h1[^>]*>(\w+):", page.read_text(encoding="utf-8"))
@@ -429,42 +374,6 @@ def test_descriptions_show_angle_brackets():
     page = (ELEMENTS / "command" / "index.html").read_text(encoding="utf-8")
     shown = page.split("</h1>", 1)[1].split("<div", 1)[0]
     assert count and html_text(shown).count("<entry>") == count
-
-
-def test_page_names_differ_by_more_than_case():
-    """No two pages of the field reference have names that differ only in case, which a case-insensitive file system
-    would keep one of (a slot's page takes `-slot` instead), and each link from one page to another reaches it."""
-    names = sorted(page.name for page in ELEMENTS.iterdir() if page.is_dir())
-    assert len({name.casefold() for name in names}) == len(names)
-    broken = set()
-    for page in ELEMENTS.glob("*/index.html"):
-        links = _Links()
-        links.feed(page.read_text(encoding="utf-8"))
-        links.close()
-        for href in links.hrefs:
-            target = href.split("#")[0]
-            if (
-                target.startswith("../")
-                and target.count("/") == 2
-                and not (ELEMENTS / target[3:-1]).is_dir()
-            ):
-                broken.add((page.parent.name, href))
-    assert broken == set()
-
-
-def test_index_lists_the_record_classes_apart():
-    """The field reference's index lists the classes of the analysis document under Classes, and those of the
-    provenance record under the record schema's own heading."""
-    record = sources()["provenance"]
-    tables = {
-        heading: {row[0][0] for row in rows}
-        for heading, header, rows in index_tables()
-        if header[:1] == ["Class"]
-    }
-    assert tables == {
-        "Classes": classes_of("analysis", "insight"),
-        record.get("title") or record["name"]: classes_of("provenance"),
-    }
 
 
 SCHEMA = SITE / "schema"

@@ -1,8 +1,8 @@
 # Templates for LinkML's generators
 
-`just gen-doc` passes this folder to `gen-doc` (`tools/docgen.py`) as its template directory, and `just gen-schema` passes `pydantic/` to `gen-pydantic` as its. The templates are written in Jinja2.
+`just gen-doc` passes this folder to `gen-doc` (`tools/docgen.py`) as its template directory (`LINKML_GENERATORS_DOC_ARGS` in `config.public.mk`), and `just gen-python` passes `pydantic/` to `gen-pydantic` as its. The templates are written in Jinja2.
 
-- `index.md.jinja2`, `type.md.jinja2` and `slot.md.jinja2` are LinkML's own, changed as the first comment of each says.
+- `type.md.jinja2` and `slot.md.jinja2` are LinkML's own, changed as the first comment of each says.
 - `common_metadata.md.jinja2` is LinkML's own, unchanged: the type and slot templates include it from this folder.
 - `pydantic/base_model.py.jinja` is LinkML's own base model of the Pydantic models, with one validator added: each entry of a map keyed by `id`, which an `astra.yaml` writes without its `id`, takes its key as its `id`.
 

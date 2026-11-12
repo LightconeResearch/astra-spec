@@ -1,10 +1,7 @@
 {#-
-  LinkML 1.12.1's slot.md.jinja2 (Apache License 2.0), changed so that each
-  heading of Properties is a heading of its own, a slot that several classes
-  define with the same pattern shows it, the Markdown in a <details> block is
-  rendered, the description shows each `<` and `&` as written, and Usages
-  links each slot by its definition, never to a type of the same name
-  (tools/docgen.py).
+  LinkML 1.12.1's slot.md.jinja2 (Apache License 2.0), changed so that the
+  description shows each `<` and `&` as written, and Usages links each slot
+  by its definition, never to a type of the same name (tools/docgen.py).
 -#}
 ---
 search:
@@ -118,7 +115,6 @@ Alias: {{ element.alias }}
     or element.maximum_cardinality is not none or element.exact_cardinality is not none %}
 
 {%- if has_cardinality %}
-
 ### Cardinality and Requirements
 
 | Property | Value |
@@ -143,7 +139,6 @@ Alias: {{ element.alias }}
 
 {% endif %}
 {%- if element.multivalued and (element.list_elements_unique is not none or element.list_elements_ordered is not none) %}
-
 ### List/Collection Properties
 
 | Property | Value |
@@ -162,7 +157,6 @@ Alias: {{ element.alias }}
     or element.usage_slot_name or element.singular_name or schemaview.is_mixin(element.name) %}
 
 {%- if has_slot_chars %}
-
 ### Slot Characteristics
 
 | Property | Value |
@@ -208,20 +202,9 @@ Alias: {{ element.alias }}
 {%- endif %}
 
 {% endif %}
-{%- set pattern = element.pattern %}
-{%- if not pattern and element.domain_of %}
-{%- set class_patterns = [] %}
-{%- for c in element.domain_of %}
-{%- set _ = class_patterns.append(schemaview.induced_slot(element.name, c).pattern) %}
-{%- endfor %}
-{%- if class_patterns | unique(case_sensitive=true) | list | length == 1 %}
-{%- set pattern = class_patterns[0] %}
-{%- endif %}
-{%- endif %}
-{%- set has_basic_constraints = element.minimum_value is not none or element.maximum_value is not none or pattern %}
+{%- set has_basic_constraints = element.minimum_value is not none or element.maximum_value is not none or element.pattern %}
 
 {%- if has_basic_constraints %}
-
 ### Value Constraints
 
 | Property | Value |
@@ -232,8 +215,8 @@ Alias: {{ element.alias }}
 {%- if element.maximum_value is not none %}
 | Maximum Value | {{ element.maximum_value|int }} |
 {%- endif %}
-{%- if pattern %}
-| Regex Pattern | `{{ pattern }}` |
+{%- if element.pattern %}
+| Regex Pattern | `{{ element.pattern }}` |
 {%- endif %}
 
 {% endif %}
@@ -242,7 +225,7 @@ Alias: {{ element.alias }}
     or element.unit or element.implicit_prefix %}
 
 {%- if has_advanced_constraints %}
-<details markdown="1">
+<details>
 <summary>Additional Constraints</summary>
 
 {%- if element.structured_pattern %}
@@ -315,7 +298,7 @@ Alias: {{ element.alias }}
     or element.role or element.relational_role %}
 
 {%- if has_rel_props %}
-<details markdown="1">
+<details>
 <summary>Relationship Properties</summary>
 
 | Property | Value |
@@ -363,7 +346,7 @@ Alias: {{ element.alias }}
     or element.value_presence or element.range_expression %}
 
 {%- if has_advanced %}
-<details markdown="1">
+<details>
 <summary>Advanced Properties</summary>
 
 {%- if element.subproperty_of %}
@@ -426,7 +409,7 @@ Alias: {{ element.alias }}
     or element.none_of or element.equals_expression or element.has_member or element.all_members %}
 
 {%- if has_expressions %}
-<details markdown="1">
+<details>
 <summary>Expressions & Logic</summary>
 
 {%- if element.any_of %}
