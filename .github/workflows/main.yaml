@@ -52,8 +52,10 @@ jobs:
       - name: Install project
         run: uv sync --dev
 
-      # Before the tests: tests/test_site.py reads the built site.
+      # Before the tests: tests/test_site.py reads the built site, and skips
+      # where there is none. One Python version is enough to build it.
       - name: Build documentation
+        if: matrix.python-version == '3.13'
         run: just docs-strict
 
       - name: Run test suite
