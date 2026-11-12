@@ -113,7 +113,7 @@ Core developers should read the material on the [LinkML site](https://linkml.io/
 - Use enums for categorical values
     - Rationale: Open-ended string ranges encourage multiple values to represent the same entity, like “water”, “H2O” and “HOH”
     - Any slot whose values could be constrained to a finite set should use an Enum
-    - Non-categorical values, e.g. descriptive fields like `name` or `description` fall outside of this.
+    - Non-categorical values, e.g. descriptive fields like `label` or `description` fall outside of this.
 - Reuse
     - Existing scheme elements should be reused where appropriate, rather than making duplicative elements
     - More specific classes can be created by refinining classes using inheritance (`is_a`)

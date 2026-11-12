@@ -28,7 +28,7 @@ The scaffolded `astra.yaml` is a complete, valid analysis: a `spec_version` and 
 
 ## Edit the analysis
 
-The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis states its **`spec_version`** and declares its **`outputs:`**, usually with **`inputs:`** and **`decisions:`** — plus optional metadata (`label`, `description`, `tags`).
+The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis states its **`spec_version`** and usually declares its **`outputs:`**, with **`inputs:`** and **`decisions:`** — plus optional metadata (`label`, `description`, `tags`).
 
 ```yaml
 spec_version: "0.1.0"
@@ -78,7 +78,7 @@ Validation runs in three stages, each gating the next:
 
 1. **Parsing** — the file is YAML 1.2 whose content is a map, with no key twice.
 2. **Schema validation** — the JSON Schema (generated from the LinkML schema) checks types, required fields, and format patterns (ID pattern, version pattern, DOI pattern, …).
-3. **Semantic validation** — duplicate IDs, input files exist and are tracked in git, declared analyses and addresses resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve, universes are complete and consistent.
+3. **Semantic validation** — clashing IDs, input files exist and are tracked in git, declared analyses and addresses resolve, recipe template placeholders match `Output.inputs` / `Output.decisions`, output dependency graph has no cycles, constraint references resolve, universes are complete and consistent.
 
 A clean run prints:
 

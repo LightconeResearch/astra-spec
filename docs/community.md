@@ -21,7 +21,7 @@ When in doubt about which repo to file an issue in: schema or specification ques
 In alpha, three kinds of contribution are worth more than they will be later:
 
 - **Real-analysis attempts.** Take an analysis you actually ran and try to express it in ASTRA. Report what fits, what doesn't, and where the spec forced you to invent a workaround. These reports are the single best signal for what to fix at the schema level.
-- **Schema review.** Read the [specification](specification.md) and the [field reference](elements/index.md) with an adversarial eye. Ambiguity, missing constraints, and reserved-name collisions are easier to fix now than after the format has consumers.
+- **Schema review.** Read the [specification](specification.md) and the [field reference](elements/index.md) with an adversarial eye. Ambiguity, missing constraints, and clashing names are easier to fix now than after the format has consumers.
 - **Downstream tooling experiments.** Build something that consumes an ASTRA spec — a runner, a renderer, a retrieval index, a JSON-Schema-driven editor. Even a prototype tells the project what is awkward to consume, which is information the spec authors otherwise don't have.
 
 Documentation fixes, typo PRs, and tightening of error messages are also welcome and small enough to ship the same day.
@@ -35,7 +35,7 @@ The full guide is in [`CONTRIBUTING.md`](https://github.com/LightconeResearch/as
 3. **Run the project checks** locally before pushing:
 
     ```bash
-    just test          # schema generation, fixtures, examples
+    just test          # generated files current, pytest, schema lint
     just lint          # LinkML schema lint
     just docs-strict   # build docs in strict mode
     ```

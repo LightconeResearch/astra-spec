@@ -114,7 +114,7 @@ uv sync --dev
 Requires Python 3.10+, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just/).
 
 ```bash
-just test         # Schema generation, examples
+just test         # Generated files current, pytest, schema lint
 just lint         # LinkML schema lint
 just gen-schema   # Regenerate the JSON Schemas, JSON-LD context, rules.json and Pydantic models
 just gen-doc      # Regenerate the field reference docs
