@@ -33,15 +33,15 @@ enums:
     description: The kind of artefact an output is.
     permissible_values:
       metric:
-        description: A metric or measurement.
+        description: A metric or measurement
       figure:
-        description: A figure or visualisation.
+        description: A figure or visualization
       table:
-        description: A table of data.
+        description: A table of data
       data:
-        description: A data file or dataset.
+        description: A data file or dataset
       report:
-        description: A report or document.
+        description: A report or document
 
 # ==========================================================================
 # Classes
@@ -50,29 +50,41 @@ enums:
 classes:
 
   # --- Execution ---
+  #
+  # ASTRA is a specification layer: a recipe describes *what* to run
+  # and *what it needs*, not how a runner schedules or instruments it.
+  # Field names follow modern container / cluster conventions so the
+  # spec reads naturally to anyone familiar with Docker, Kubernetes,
+  # Slurm, or batch schedulers.
 
   Resources:
-    description: The compute resources a recipe asks for.
+    description: >-
+      Compute resource requirements for a recipe. Values follow
+      cloud-native conventions (string-with-units for sized
+      quantities) so cluster executors can consume them directly.
     attributes:
       cpus:
         range: float
         minimum_value: 0
         description: >-
-          The number of CPU cores the recipe asks for, which may be
-          fractional, such as 0.5.
+          CPU cores requested. Fractional values are allowed
+          (e.g., 0.5) for runners that support CPU shares.
       memory:
         description: >-
-          The memory the recipe asks for, as free text, such as `4GB`.
+          Memory requirement as a string with units
+          (e.g., '16Gi', '512Mi', '8GB').
       time_limit:
         description: >-
-          The longest the recipe may run, as free text, such as `2h`.
+          Maximum wall time as a duration string
+          (e.g., '2h', '30m', '1h30m').
       disk:
         description: >-
-          The disk space the recipe asks for, as free text, such as `10GB`.
+          Disk requirement as a string with units
+          (e.g., '10Gi', '500Mi').
       gpus:
         range: integer
         minimum_value: 1
-        description: The number of GPUs the recipe asks for.
+        description: Number of GPUs
 
   Recipe:
     description: >-
@@ -113,9 +125,9 @@ classes:
       resources:
         range: Resources
         inlined: true
-        description: The compute resources the recipe asks for.
+        description: Compute resource requirements (cpus, memory, time_limit, …)
 
-  # --- Inputs and outputs ---
+  # --- Inputs and Outputs ---
 
   Input:
     description: >-
@@ -126,9 +138,12 @@ classes:
         range: id
         description: The input's id, written as its key in `inputs`.
       label:
-        description: A short display name for the input.
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       description:
-        description: What the input's data is, in free prose.
+        description: Free-prose description of this input.
       tags:
         multivalued: true
         minimum_cardinality: 1
@@ -155,9 +170,12 @@ classes:
         range: id
         description: The output's id, written as its key in `outputs`.
       label:
-        description: A short display name for the output.
+        description: >-
+          Short human-readable name for compact rendering
+          (margin glyphs, breadcrumbs, card titles). Optional;
+          tooling falls back to id when absent.
       description:
-        description: What the output is, in free prose.
+        description: Free-prose description of this output.
       tags:
         multivalued: true
         minimum_cardinality: 1
@@ -332,33 +350,6 @@ classes:
 
   # --- Decisions ---
 
-  Decision:
-    description: >-
-      A choice the analysis makes between options, such as which method to
-      use.
-    attributes:
-      id:
-        key: true
-        range: id
-        description: The decision's id, written as its key in `decisions`.
-      label:
-        description: A short display name for the decision.
-      rationale:
-        description: Why the analysis makes this decision, in free prose.
-      tags:
-        multivalued: true
-        minimum_cardinality: 1
-        description: Keywords for grouping and finding the decision.
-      options:
-        range: Option
-        multivalued: true
-        inlined: true
-        required: true
-        minimum_cardinality: 1
-        description: >-
-          The options the decision chooses between, keyed by id. There is at
-          least one.
-
   Option:
     description: One of the options a decision chooses between.
     attributes:
@@ -367,9 +358,9 @@ classes:
         range: id
         description: The option's id, written as its key in `options`.
       label:
-        description: A short display name for the option.
+        description: Human-readable name for the option
       description:
-        description: What the option is, in free prose.
+        description: Free-prose description of this option.
       tags:
         multivalued: true
         minimum_cardinality: 1
@@ -398,6 +389,33 @@ classes:
         description: >-
           Why the option is ruled out. An option with a reason is excluded: no
           effective selection selects it.
+
+  Decision:
+    description: >-
+      A choice the analysis makes between options, such as which method to
+      use.
+    attributes:
+      id:
+        key: true
+        range: id
+        description: The decision's id, written as its key in `decisions`.
+      label:
+        description: Human-readable name for the decision
+      rationale:
+        description: Why this decision exists
+      tags:
+        multivalued: true
+        minimum_cardinality: 1
+        description: Tags for grouping and categorizing
+      options:
+        range: Option
+        multivalued: true
+        inlined: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          The options the decision chooses between, keyed by id. There is at
+          least one.
 
   # --- Universes ---
 
@@ -609,13 +627,19 @@ classes:
           The version of the ASTRA specification the document is written
           against, such as `0.1.0`.
       label:
-        description: A short display name for the analysis.
+        description: Human-readable name for the analysis
       description:
-        description: What the analysis does, in free prose.
+        description: >-
+          Free-prose description of this analysis — the same optional
+          field every other content object carries (Input, Output,
+          Option, Universe). A short human orientation lives here;
+          richer write-ups (figures, citations, multi-page reports)
+          are authored externally and reference analysis elements by
+          address rather than restating them.
       tags:
         multivalued: true
         minimum_cardinality: 1
-        description: Keywords for grouping and finding the analysis.
+        description: Tags for categorization
       inputs:
         range: Input
         multivalued: true

@@ -158,11 +158,11 @@ class SwitchCaseCase(Id):
     pass
 
 
-class DecisionId(Id):
+class OptionId(Id):
     pass
 
 
-class OptionId(Id):
+class DecisionId(Id):
     pass
 
 
@@ -185,7 +185,8 @@ class InsightId(Id):
 @dataclass(repr=False)
 class Resources(YAMLRoot):
     """
-    The compute resources a recipe asks for.
+    Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized
+    quantities) so cluster executors can consume them directly.
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -388,47 +389,6 @@ class SwitchCase(YAMLRoot):
 
 
 @dataclass(repr=False)
-class Decision(YAMLRoot):
-    """
-    A choice the analysis makes between options, such as which method to use.
-    """
-    _inherited_slots: ClassVar[list[str]] = []
-
-    class_class_uri: ClassVar[URIRef] = ASTRA["Decision"]
-    class_class_curie: ClassVar[str] = "astra:Decision"
-    class_name: ClassVar[str] = "Decision"
-    class_model_uri: ClassVar[URIRef] = ASTRA.Decision
-
-    id: Union[str, DecisionId] = None
-    options: Union[dict[Union[str, OptionId], Union[dict, "Option"]], list[Union[dict, "Option"]]] = empty_dict()
-    label: Optional[str] = None
-    rationale: Optional[str] = None
-    tags: Optional[Union[str, list[str]]] = empty_list()
-
-    def __post_init__(self, *_: str, **kwargs: Any):
-        if self._is_empty(self.id):
-            self.MissingRequiredField("id")
-        if not isinstance(self.id, DecisionId):
-            self.id = DecisionId(self.id)
-
-        if self._is_empty(self.options):
-            self.MissingRequiredField("options")
-        self._normalize_inlined_as_dict(slot_name="options", slot_type=Option, key_name="id", keyed=True)
-
-        if self.label is not None and not isinstance(self.label, str):
-            self.label = str(self.label)
-
-        if self.rationale is not None and not isinstance(self.rationale, str):
-            self.rationale = str(self.rationale)
-
-        if not isinstance(self.tags, list):
-            self.tags = [self.tags] if self.tags is not None else []
-        self.tags = [v if isinstance(v, str) else str(v) for v in self.tags]
-
-        super().__post_init__(**kwargs)
-
-
-@dataclass(repr=False)
 class Option(YAMLRoot):
     """
     One of the options a decision chooses between.
@@ -479,6 +439,47 @@ class Option(YAMLRoot):
 
         if self.excluded is not None and not isinstance(self.excluded, str):
             self.excluded = str(self.excluded)
+
+        super().__post_init__(**kwargs)
+
+
+@dataclass(repr=False)
+class Decision(YAMLRoot):
+    """
+    A choice the analysis makes between options, such as which method to use.
+    """
+    _inherited_slots: ClassVar[list[str]] = []
+
+    class_class_uri: ClassVar[URIRef] = ASTRA["Decision"]
+    class_class_curie: ClassVar[str] = "astra:Decision"
+    class_name: ClassVar[str] = "Decision"
+    class_model_uri: ClassVar[URIRef] = ASTRA.Decision
+
+    id: Union[str, DecisionId] = None
+    options: Union[dict[Union[str, OptionId], Union[dict, Option]], list[Union[dict, Option]]] = empty_dict()
+    label: Optional[str] = None
+    rationale: Optional[str] = None
+    tags: Optional[Union[str, list[str]]] = empty_list()
+
+    def __post_init__(self, *_: str, **kwargs: Any):
+        if self._is_empty(self.id):
+            self.MissingRequiredField("id")
+        if not isinstance(self.id, DecisionId):
+            self.id = DecisionId(self.id)
+
+        if self._is_empty(self.options):
+            self.MissingRequiredField("options")
+        self._normalize_inlined_as_dict(slot_name="options", slot_type=Option, key_name="id", keyed=True)
+
+        if self.label is not None and not isinstance(self.label, str):
+            self.label = str(self.label)
+
+        if self.rationale is not None and not isinstance(self.rationale, str):
+            self.rationale = str(self.rationale)
+
+        if not isinstance(self.tags, list):
+            self.tags = [self.tags] if self.tags is not None else []
+        self.tags = [v if isinstance(v, str) else str(v) for v in self.tags]
 
         super().__post_init__(**kwargs)
 
@@ -763,8 +764,8 @@ class Evidence(YAMLRoot):
 @dataclass(repr=False)
 class Insight(YAMLRoot):
     """
-    A claim backed by evidence: as a prior insight, what earlier work establishes and the analysis builds on; as a
-    finding, what the analysis concludes.
+    A unit of scientific knowledge backed by evidence. Used for both prior_insights (informing decisions) and findings
+    (conclusions from the analysis).
     """
     _inherited_slots: ClassVar[list[str]] = []
 
@@ -821,19 +822,19 @@ class OutputType(EnumDefinitionImpl):
     """
     metric = PermissibleValue(
         text="metric",
-        description="A metric or measurement.")
+        description="A metric or measurement")
     figure = PermissibleValue(
         text="figure",
-        description="A figure or visualisation.")
+        description="A figure or visualization")
     table = PermissibleValue(
         text="table",
-        description="A table of data.")
+        description="A table of data")
     data = PermissibleValue(
         text="data",
-        description="A data file or dataset.")
+        description="A data file or dataset")
     report = PermissibleValue(
         text="report",
-        description="A report or document.")
+        description="A report or document")
 
     _defn = EnumDefinition(
         name="OutputType",
@@ -921,21 +922,6 @@ slots.switchCase__case = Slot(uri=ASTRA.case, name="switchCase__case", curie=AST
 slots.switchCase__target = Slot(uri=ASTRA.target, name="switchCase__target", curie=ASTRA.curie('target'),
                    model_uri=ASTRA.switchCase__target, domain=None, range=Union[str, Reference])
 
-slots.decision__id = Slot(uri=ASTRA.id, name="decision__id", curie=ASTRA.curie('id'),
-                   model_uri=ASTRA.decision__id, domain=None, range=URIRef)
-
-slots.decision__label = Slot(uri=ASTRA.label, name="decision__label", curie=ASTRA.curie('label'),
-                   model_uri=ASTRA.decision__label, domain=None, range=Optional[str])
-
-slots.decision__rationale = Slot(uri=ASTRA.rationale, name="decision__rationale", curie=ASTRA.curie('rationale'),
-                   model_uri=ASTRA.decision__rationale, domain=None, range=Optional[str])
-
-slots.decision__tags = Slot(uri=ASTRA.tags, name="decision__tags", curie=ASTRA.curie('tags'),
-                   model_uri=ASTRA.decision__tags, domain=None, range=Optional[Union[str, list[str]]])
-
-slots.decision__options = Slot(uri=ASTRA.options, name="decision__options", curie=ASTRA.curie('options'),
-                   model_uri=ASTRA.decision__options, domain=None, range=Union[dict[Union[str, OptionId], Union[dict, Option]], list[Union[dict, Option]]])
-
 slots.option__id = Slot(uri=ASTRA.id, name="option__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.option__id, domain=None, range=URIRef)
 
@@ -959,6 +945,21 @@ slots.option__incompatible_with = Slot(uri=ASTRA.incompatible_with, name="option
 
 slots.option__excluded = Slot(uri=ASTRA.excluded, name="option__excluded", curie=ASTRA.curie('excluded'),
                    model_uri=ASTRA.option__excluded, domain=None, range=Optional[str])
+
+slots.decision__id = Slot(uri=ASTRA.id, name="decision__id", curie=ASTRA.curie('id'),
+                   model_uri=ASTRA.decision__id, domain=None, range=URIRef)
+
+slots.decision__label = Slot(uri=ASTRA.label, name="decision__label", curie=ASTRA.curie('label'),
+                   model_uri=ASTRA.decision__label, domain=None, range=Optional[str])
+
+slots.decision__rationale = Slot(uri=ASTRA.rationale, name="decision__rationale", curie=ASTRA.curie('rationale'),
+                   model_uri=ASTRA.decision__rationale, domain=None, range=Optional[str])
+
+slots.decision__tags = Slot(uri=ASTRA.tags, name="decision__tags", curie=ASTRA.curie('tags'),
+                   model_uri=ASTRA.decision__tags, domain=None, range=Optional[Union[str, list[str]]])
+
+slots.decision__options = Slot(uri=ASTRA.options, name="decision__options", curie=ASTRA.curie('options'),
+                   model_uri=ASTRA.decision__options, domain=None, range=Union[dict[Union[str, OptionId], Union[dict, Option]], list[Union[dict, Option]]])
 
 slots.universe__id = Slot(uri=ASTRA.id, name="universe__id", curie=ASTRA.curie('id'),
                    model_uri=ASTRA.universe__id, domain=None, range=URIRef)

@@ -2,9 +2,8 @@
 id: https://w3id.org/astra/insight
 name: insight
 description: |-
-  The insights of an analysis: claims backed by evidence, which cites a
-  published work by its DOI or an output by reference, and locates the
-  passage it relies on with W3C Web Annotation selectors.
+  Insight and evidence models with W3C Web Annotation-compliant selectors
+  for referencing content in scientific papers and analysis artifacts.
 # Placeholder version. The real version is injected at build time from the
 # latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
 version: 0.0.0
@@ -24,9 +23,11 @@ imports:
   - linkml:types
   - types
 
-classes:
+# ==========================================================================
+# W3C Web Annotation Selectors
+# ==========================================================================
 
-  # --- Selectors (W3C Web Annotation) ---
+classes:
 
   TextQuoteSelector:
     description: >-
@@ -73,7 +74,9 @@ classes:
           `http://tools.ietf.org/rfc/rfc7111` for a CSV. Without it, `value` is
           a PDF fragment identifier (RFC 8118).
 
-  # --- Insights and evidence ---
+  # ==========================================================================
+  # Evidence and Insights
+  # ==========================================================================
 
   Evidence:
     description: >-
@@ -143,9 +146,9 @@ classes:
 
   Insight:
     description: >-
-      A claim backed by evidence: as a prior insight, what earlier work
-      establishes and the analysis builds on; as a finding, what the analysis
-      concludes.
+      A unit of scientific knowledge backed by evidence.
+      Used for both prior_insights (informing decisions) and
+      findings (conclusions from the analysis).
     attributes:
       id:
         key: true
