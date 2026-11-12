@@ -33,6 +33,7 @@ generated_files := dest / "jsonschema" + " " + dest / "jsonld" + " " + dest / "r
 # schemas are distinct, and so are two minor versions. `rules.json` holds the
 # rules extracted from the codes table of the specification's Rules section,
 # and the code of each JSON Schema keyword that can fail.
+# Generate the contract: the JSON Schemas, JSON-LD context and rules.json
 [group('model development')]
 gen-schema: _stage-versioned
   mkdir -p {{dest}}/jsonschema {{dest}}/jsonld {{dest}}/rules
@@ -47,6 +48,7 @@ gen-schema: _stage-versioned
 # into tmp/generated-check/, and each file is compared with its committed
 # copy. The `__pycache__` Python writes on importing the datamodels (the tests
 # do) is ignored by git, the wheel and this check.
+# Check that the committed contract and datamodels are current
 [group('model development')]
 check-generated:
   rm -rf tmp/generated-check

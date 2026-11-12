@@ -100,6 +100,7 @@ docs: _docs-prep
 # only at the commit tagged vX.Y.Z (`_at-tag`), before it builds anything: the
 # site publishes the checkout's committed contract (`_add-artifacts`), and
 # only the tagged commit holds the release's, while main holds `dev`.
+# Deploy the docs of release <version> to gh-pages, with its aliases
 [group('documentation')]
 docs-deploy version *aliases: (_at-tag version) _docs-prep
   uv run mike deploy --push --update-aliases {{version}} {{aliases}}
@@ -155,6 +156,7 @@ lint:
 # mutated — generators inject the version from $RELEASE_VERSION at build time.
 # After pushing the tag, the `Deploy versioned docs on tag` workflow will
 # publish the docs automatically.
+# Release <version>: regenerate, commit and tag, then go back to dev
 [group('model development')]
 release version:
   #!/usr/bin/env bash
@@ -208,14 +210,16 @@ release version:
 # with each range linked to its type and each `<` and `&` of a description
 # shown as written. Each Regex Pattern cell is then written as HTML, every
 # character but an ASCII letter or digit as a character reference, so that the
-# site shows the pattern exactly (`tools/pattern_cells.py`)
+# site shows the pattern exactly (`tools/pattern_cells.py`).
+# Generate the field reference (docs/elements/) and the published schema files
 [group('model development')]
 gen-doc: _stage-versioned _gen-yaml && _add-artifacts
   uv run python tools/docgen.py {{gen_doc_args}} --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
   uv run python tools/pattern_cells.py {{docdir}}
 
-# Generate the Python data models (dataclasses & pydantic) of both roots, the
-# analysis document and the provenance record
+# Both roots, the analysis document and the provenance record, each get
+# LinkML's dataclasses and its Pydantic models.
+# Generate the Python data models (dataclasses & pydantic)
 gen-python: _stage-versioned
   uv run gen-project -d  {{pymodel}} -I python {{staged_schema_path}}
   uv run gen-project -d  {{pymodel}} -I python {{staged_schema_dir}}/provenance.yaml
