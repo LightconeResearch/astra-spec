@@ -447,4 +447,4 @@ _test-python: gen-python gen-schema
 # document of tests/data against the contract (project/jsonschema/) instead.
 
 # Run all tests
-test: _test-schema _test-python
+test: _test-schema _test-python lint
