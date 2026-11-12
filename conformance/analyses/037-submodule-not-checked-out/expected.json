@@ -1,0 +1,7 @@
+{
+  "about": "A declared analysis is a submodule that isn't checked out, so its folder is empty.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECLARED_ANALYSIS", "file": "astra.yaml"}
+  ]
+}

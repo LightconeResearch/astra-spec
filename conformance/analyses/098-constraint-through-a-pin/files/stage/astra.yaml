@@ -1,0 +1,27 @@
+spec_version: "0.1.0"
+decisions:
+  mode:
+    options: {x: {}, y: {}}
+  decision2:
+    options:
+      a:
+        requires: [mode.x]
+      b: {}
+outputs:
+  output3:
+    type: data
+    format: csv
+    decisions: [decision2]
+    recipe:
+      command: python make.py '{decisions.decision2}' '{output}'
+  output4:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py output4 '{output}'
+  switch3:
+    switch: mode
+    cases: {x: output3, y: output4}
+universes:
+  v1:
+    decisions: {mode: y, decision2: a}

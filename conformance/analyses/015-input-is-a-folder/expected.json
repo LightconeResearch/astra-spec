@@ -1,0 +1,7 @@
+{
+  "about": "An input whose path names a folder rather than a file.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_INPUT_FILE", "file": "astra.yaml"}
+  ]
+}

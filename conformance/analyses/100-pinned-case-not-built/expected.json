@@ -1,0 +1,7 @@
+{
+  "about": "A switch's case is pinned to a universe where the switch it names takes nothing.",
+  "valid": false,
+  "must_report": [
+    {"code": "PIN_NOT_BUILT", "file": "astra.yaml"}
+  ]
+}

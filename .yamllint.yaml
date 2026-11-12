@@ -2,6 +2,12 @@
 
 extends: default
 
+# What yamllint's loader refuses is the point of this fixture: it fails at
+# parse (malformed YAML). Keep in step with check-yaml's exclude in
+# .pre-commit-config.yaml.
+ignore: |
+  tests/data/invalid/Analysis-182-malformed-yaml.yaml
+
 rules:
   document-start: disable  # Don't check if document has a start marker (---).
   line-length:

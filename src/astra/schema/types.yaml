@@ -1,0 +1,139 @@
+---
+id: https://w3id.org/astra/types
+name: types
+description: |-
+  The named types of ASTRA: the ids, addresses and references the format is
+  built from, and the forms of commit ids, content hashes, specification
+  versions, timestamps and IRIs.
+# Placeholder version. The real version is injected at build time: the tag at
+# HEAD, else `dev` (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
+license: https://creativecommons.org/licenses/by/4.0/
+
+prefixes:
+  astra: https://w3id.org/astra/
+  linkml: https://w3id.org/linkml/
+  xsd: http://www.w3.org/2001/XMLSchema#
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+
+# The id grammar, written once: the structured patterns below are built from it.
+#
+# Each pattern names the rule it enforces, a code of the specification's codes
+# table, in a `rule` annotation: `rules.json` maps its errors to that code.
+settings:
+  id: "[a-z][a-z0-9_]*"
+
+types:
+
+  id:
+    typeof: string
+    description: >-
+      An id: a lowercase ASCII letter, then any number of lowercase ASCII
+      letters, ASCII digits (`0`–`9`) and underscores, such as `input1`.
+    structured_pattern:
+      syntax: '^{id}$'
+      interpolated: true
+      partial_match: true
+    annotations:
+      rule: INVALID_ID
+
+  address:
+    typeof: string
+    description: >-
+      The address of an element: the ids of the declared analyses that lead to
+      it, if any, then the element's own id, joined by `.`, such as
+      `subanalysis.decision1`.
+    structured_pattern:
+      syntax: '^{id}(\.{id})*$'
+      interpolated: true
+      partial_match: true
+    annotations:
+      rule: INVALID_REFERENCE
+
+  reference:
+    typeof: string
+    description: >-
+      A reference to an element: its address, optionally followed by `#` and a
+      universe id, which pins the reference to that universe, such as
+      `output1#u1`. In an `astra.yaml`, the id is that of an entry of
+      the file's `universes` or, where the file has no entry with that id, of a
+      universe of the analysis whose element the reference names.
+    structured_pattern:
+      syntax: '^{id}(\.{id})*(#{id})?$'
+      interpolated: true
+      partial_match: true
+    annotations:
+      rule: INVALID_REFERENCE
+
+  option_reference:
+    typeof: string
+    description: >-
+      A reference to an option: the address of its decision, then `.` and the
+      option's id. The last segment is always the option, so
+      `subanalysis.decision1.a` is the option `a` of the decision
+      `decision1` of the declared analysis `subanalysis`.
+    structured_pattern:
+      syntax: '^{id}(\.{id})+$'
+      interpolated: true
+      partial_match: true
+    annotations:
+      rule: INVALID_REFERENCE
+
+  commit_id:
+    typeof: string
+    description: >-
+      A full git commit id: 40 lowercase hexadecimal digits (SHA-1) or 64
+      (SHA-256).
+    pattern: "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    annotations:
+      rule: INVALID_COMMIT
+
+  content_hash:
+    typeof: string
+    description: >-
+      A SHA-256 digest of content: `sha256:` followed by 64 lowercase
+      hexadecimal digits.
+    pattern: "^sha256:[0-9a-f]{64}$"
+    annotations:
+      rule: INVALID_VALUE
+
+  spec_version:
+    typeof: string
+    description: >-
+      A version of the ASTRA specification, `MAJOR.MINOR.PATCH`: three
+      non-negative integers without leading zeros, joined by `.`, such as
+      `0.1.0`.
+    pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    annotations:
+      rule: INVALID_VALUE
+
+  timestamp:
+    typeof: string
+    uri: xsd:dateTime
+    description: >-
+      A date and time in UTC to the millisecond, written
+      `YYYY-MM-DDThh:mm:ss.sssZ`, with month 01–12, day 01–31, hour 00–23,
+      and minute and second 00–59, such as `2026-10-26T14:00:00.000Z`.
+    pattern: "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$"
+    annotations:
+      rule: INVALID_VALUE
+
+  iri:
+    typeof: string
+    description: >-
+      An IRI, never a CURIE: a scheme (an ASCII letter, then any ASCII
+      letters, digits, `+`, `.` and `-`), `:`, at least one character other
+      than `#`, then optionally `#` and any characters other than `#`, such
+      as `http://tools.ietf.org/rfc/rfc7111`. None of these characters is an
+      ASCII space or control, a C1 control, `<`, `>`, `"`, `{`, `}`, the
+      vertical bar, the backslash, `^`, the backtick or a bidi formatting
+      character U+200E, U+200F or U+202A–U+202E, and `%` comes only before
+      two hex digits.
+    pattern: '^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$'
+    annotations:
+      rule: INVALID_VALUE

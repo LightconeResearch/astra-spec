@@ -1,0 +1,7 @@
+{
+  "about": "An analysis at the top of its repository declares the folder above it.",
+  "valid": false,
+  "must_report": [
+    {"code": "DECLARATION_OUTSIDE_REPOSITORY", "file": "astra.yaml"}
+  ]
+}

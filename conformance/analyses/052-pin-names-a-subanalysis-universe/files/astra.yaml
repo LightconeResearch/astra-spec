@@ -1,0 +1,11 @@
+spec_version: "0.1.0"
+analyses:
+  subanalysis:
+    path: subanalysis
+outputs:
+  result:
+    type: metric
+    format: json
+    inputs: [subanalysis.output1#v1]
+    recipe:
+      command: python make.py '{inputs.subanalysis.output1#v1}' '{output}'

@@ -1,0 +1,16 @@
+{
+  "spec_version": "0.1.0",
+  "address": "output1#u1",
+  "content_hash": "sha256:7AF13CF14F96106B729279EC96430C5B115437053C29AECA4FF70B95770FB83E",
+  "size": 732,
+  "generated_by": {
+    "commit": "a7d9ea93c409ab6da0d919308f91f51de7c7ec6f",
+    "environment": {
+      "iri": "urn:example-runner:env:1"
+    },
+    "runner": {
+      "id": "example-runner",
+      "version": "1.2.0"
+    }
+  }
+}

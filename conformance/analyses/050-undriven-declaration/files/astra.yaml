@@ -1,0 +1,16 @@
+spec_version: "0.1.0"
+analyses:
+  subanalysis:
+    path: subanalysis
+  undriven:
+    path: subanalysis
+outputs:
+  output6:
+    type: metric
+    format: json
+    inputs: [undriven.output1]
+    recipe:
+      command: python make.py '{inputs.undriven.output1}' '{output}'
+universes:
+  u1:
+    decisions: {subanalysis.decision1: a}

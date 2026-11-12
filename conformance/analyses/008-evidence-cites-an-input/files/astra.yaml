@@ -1,0 +1,16 @@
+spec_version: "0.1.0"
+inputs:
+  input1:
+    path: data/input1.csv
+outputs:
+  result:
+    type: metric
+    format: json
+    inputs: [input1]
+    recipe:
+      command: python make.py '{inputs.input1}' '{output}'
+findings:
+  finding1:
+    claim: The measurements are complete.
+    evidence:
+      - artifact: input1

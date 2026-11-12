@@ -1,0 +1,26 @@
+# rule: INVALID_SWITCH
+# fails at: /outputs/estimator
+spec_version: "0.1.0"
+decisions:
+  method:
+    options:
+      neural_net: {}
+      template: {}
+outputs:
+  network:
+    type: data
+    format: pt
+    recipe:
+      command: python train.py '{output}'
+  templates:
+    type: data
+    format: csv
+    recipe:
+      command: python fit.py '{output}'
+  estimator:
+    switch: method
+    cases:
+      neural_net: network
+      template: templates
+    recipe:
+      command: python estimate.py '{output}'

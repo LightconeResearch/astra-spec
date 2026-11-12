@@ -25,68 +25,64 @@ ASTRA gives every methodological choice an explicit place in the spec. In ASTRA,
 
 ## At a glance
 
-In ASTRA, an analysis declares the design space, a universe picks one option per decision, and the CLI allows for validation and inspection. Below is an example of an `astra.yaml`. For a detailed walkthrough of the spec, see our [specification explained](specification.md).
+In ASTRA, an analysis declares the design space, a universe picks one option per decision it uses, and the CLI allows for validation and inspection. Below is an example of an `astra.yaml`. For the full format, see the [specification](specification.md).
 
 === "Analysis (`astra.yaml`)"
 
-```yaml
-version: "1.0"
-name: Period-Luminosity Fit
+    ```yaml
+    spec_version: "0.1.0"
+    label: Period-Luminosity Fit
 
-inputs:
-  - id: catalog_data
-    type: data
-    source: data/catalog_data.csv
-    description: Periods and mean apparent magnitudes.
+    inputs:
+      catalog_data:
+        path: data/catalog_data.csv
+        description: Periods and mean apparent magnitudes.
 
-outputs:
-  - id: fit_params
-    type: table
-    format: csv
-    description: Slope, intercept, and scatter for the fitted relation.
-    inputs: [catalog_data]
-    decisions: [fit_method]
-    recipe:
-      command: >-
-        python src/fit_period_luminosity.py
-        --catalog {inputs.catalog_data}
-        --method {decisions.fit_method}
-        --out {output}
+    outputs:
+      fit_params:
+        type: table
+        format: csv
+        description: Slope, intercept, and scatter for the fitted relation.
+        inputs: [catalog_data]
+        decisions: [fit_method]
+        recipe:
+          command: >-
+            python src/fit_period_luminosity.py
+            --catalog {inputs.catalog_data}
+            --method {decisions.fit_method}
+            --out {output}
 
-decisions:
-  fit_method:
-    label: Fitting method
-    rationale: The fitting method determines how outliers influence the inferred relation.
-    default: ordinary_least_squares
-    options:
-      ordinary_least_squares:
-        label: Ordinary least squares
-      robust_linear:
-        label: Robust linear fit
-```
+    decisions:
+      fit_method:
+        label: Fitting method
+        rationale: The fitting method determines how outliers influence the inferred relation.
+        options:
+          ordinary_least_squares:
+            label: Ordinary least squares
+          robust_linear:
+            label: Robust linear fit
+    ```
 
-=== "Universe (`universes/baseline.yaml`)"
+=== "Universe (`astra.yaml`)"
 
-```yaml
-# universes/baseline.yaml
-id: baseline
-description: Default configuration for the period-luminosity fit.
-
-decisions:
-  fit_method: ordinary_least_squares
-```
+    ```yaml
+    # astra.yaml, continued
+    universes:
+      baseline:
+        description: Default configuration for the period-luminosity fit.
+        decisions:
+          fit_method: ordinary_least_squares
+    ```
 
 === "Run it"
 
-````
-```bash
-uv tool install astra-tools
+    ```bash
+    uv tool install astra-tools
 
-astra validate astra.yaml
-astra info
-astra viz
-```
-````
+    astra validate
+    astra info
+    astra plan
+    ```
 
 ---
 

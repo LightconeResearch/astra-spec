@@ -1,0 +1,7 @@
+{
+  "about": "Two outputs read each other.",
+  "valid": false,
+  "must_report": [
+    {"code": "OUTPUT_CYCLE", "file": "astra.yaml"}
+  ]
+}

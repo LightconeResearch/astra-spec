@@ -1,0 +1,15 @@
+# rule: UNKNOWN_FIELD
+# fails at: /findings/f/evidence/0
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'
+findings:
+  f:
+    claim: C
+    evidence:
+      - id: ev1
+        artifact: result

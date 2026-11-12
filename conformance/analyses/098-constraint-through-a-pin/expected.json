@@ -1,0 +1,9 @@
+{
+  "about": "A pin reads a declared analysis's output in that analysis's universe v1, where its own switch doesn't read it, so the constraints are judged with the decision the pin uses, and v1's key for it is only used through the pin.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_REQUIRED_OPTION", "file": "stage/astra.yaml"},
+    {"code": "INACTIVE_DECISION", "file": "stage/astra.yaml"}
+  ],
+  "must_not_report": ["PIN_NOT_BUILT"]
+}

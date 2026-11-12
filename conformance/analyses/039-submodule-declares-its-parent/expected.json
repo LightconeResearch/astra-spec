@@ -1,0 +1,4 @@
+{
+  "about": "A submodule's analysis that declares its parent with .. is validated from the parent.",
+  "valid": true
+}

@@ -1,0 +1,105 @@
+spec_version: "0.1.0"
+label: Iris Two-Stage Classification
+description: |
+  A two-stage pipeline for Iris classification that demonstrates
+  sub-analyses. A feature-extraction stage learns a compact
+  representation of the raw features (PCA or MLP encoder), whose
+  output feeds into a separate classification stage. The top level
+  loads and splits the data, holds the decisions the stages share,
+  reports the classifier accuracy in each universe, and compares two
+  universes.
+tags:
+  - classification
+  - sub-analyses
+  - sklearn
+  - example
+
+analyses:
+  feature_extraction:
+    path: feature_extraction
+  classification:
+    path: classification
+
+decisions:
+  test_split:
+    label: Test Set Proportion
+    rationale: Trade-off between training data and evaluation reliability
+    options:
+      twenty_pct:
+        label: "20%"
+        description: 80/20 train-test split
+      thirty_pct:
+        label: "30%"
+        description: 70/30 train-test split
+
+  random_seed:
+    label: Random Seed
+    rationale: Controls reproducibility of splits and model initialization
+    options:
+      seed_42:
+        label: "42"
+      seed_7:
+        label: "7"
+
+outputs:
+  iris_data:
+    type: data
+    format: csv
+    description: Fisher's classic 150-sample, 4-feature, 3-class dataset
+    recipe:
+      command: >-
+        python src/load.py --loader sklearn.datasets.load_iris
+        --out {output}
+
+  split:
+    type: data
+    format: json
+    description: The train-test split of the samples
+    inputs: [iris_data]
+    decisions: [test_split, random_seed]
+    recipe:
+      command: >-
+        python src/split.py --data {inputs.iris_data}
+        --test {decisions.test_split} --seed {decisions.random_seed}
+        --out {output}
+
+  summary:
+    type: report
+    format: md
+    description: A report of this universe's classification accuracy
+    inputs: [classification.accuracy]
+    recipe:
+      command: >-
+        python src/summarize.py --accuracy {inputs.classification.accuracy}
+        --out {output}
+
+  comparison:
+    type: metric
+    format: json
+    description: The classification accuracy of baseline against mlp_svm
+    inputs:
+      - classification.accuracy#baseline
+      - classification.accuracy#mlp_svm
+    recipe:
+      command: >-
+        python src/compare.py
+        --a {inputs.classification.accuracy#baseline}
+        --b {inputs.classification.accuracy#mlp_svm}
+        --out {output}
+
+universes:
+  baseline:
+    description: PCA with 2 components, logistic regression — the simplest sensible pipeline
+    decisions:
+      test_split: twenty_pct
+      random_seed: seed_42
+      feature_extraction.method: pca
+      feature_extraction.n_components: two
+      classification.classifier: logistic
+
+  mlp_svm:
+    description: MLP encoder features with SVM classifier — tests whether learned features help
+    derived_from: baseline
+    decisions:
+      feature_extraction.method: mlp_encoder
+      classification.classifier: svm

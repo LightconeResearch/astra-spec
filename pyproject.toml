@@ -16,7 +16,7 @@ maintainers = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.10,<4.0"
 dynamic = ["version"]
 keywords = [
   "astra",
@@ -38,7 +38,6 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -47,7 +46,6 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Software Development :: Libraries :: Python Modules",
-  "Typing :: Typed",
 ]
 
 dependencies = [
@@ -64,7 +62,14 @@ Changelog = "https://github.com/LightconeResearch/astra-spec/releases"
 
 [dependency-groups]
 dev = [
-    "linkml>=1.9.3",
+    "linkml==1.12.1",
+    "jsonschema>=4.23",
+    "ruamel.yaml>=0.18",
+    "pytest>=8",
+    "markdown-it-py>=3",
+    "rdflib>=7",
+    # Pinned: tests/test_rules.py reads its standard output formats to check which errors fail a file.
+    "jschon==0.11.1",
 ]
 docs = [
     "zensical>=0.0.33; python_version >= '3.10'",
@@ -80,6 +85,9 @@ include = [
   "/pyproject.toml",
   "/LICENSE",
   "/docs/llms.txt",
+  "/project/jsonschema",
+  "/project/jsonld",
+  "/project/rules",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -87,8 +95,14 @@ packages = ["src/astra"]
 
 # Ship the agent briefing inside the package so tooling (e.g. `astra guide`
 # from astra-tools) can read the copy matching the installed schema.
+# Ship the contract `just gen-schema` commits under project/, each LinkML
+# generator's folder beside the LinkML sources in astra/schema/, where tools
+# read it through importlib.resources (`files("astra.schema")`).
 [tool.hatch.build.targets.wheel.force-include]
 "docs/llms.txt" = "astra/docs/llms.txt"
+"project/jsonschema" = "astra/schema/jsonschema"
+"project/jsonld" = "astra/schema/jsonld"
+"project/rules" = "astra/schema/rules"
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
@@ -99,9 +113,29 @@ vcs = "git"
 style = "pep440"
 fallback-version = "0.0.0"
 
+# Where a project installs astra-spec from a path (astra-tools does), uv
+# rebuilds it only when a cache key changes, and pyproject.toml alone is the
+# default. The wheel takes its version from git and copies in the
+# force-included files (the contract in project/'s three committed folders,
+# docs/llms.txt), even into an editable install, so each of those is a key too.
+[tool.uv]
+cache-keys = [
+  { file = "pyproject.toml" },
+  { git = { commit = true, tags = true } },
+  { file = "project/jsonschema/*" },
+  { file = "project/jsonld/*" },
+  { file = "project/rules/*" },
+  { file = "docs/llms.txt" },
+]
+
 # Ref.: https://docs.pytest.org/en/stable/reference/reference.html#configuration-options
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tools"]
+# jschon (tests/test_rules.py) checks URIs through rfc3986's deprecated methods.
+filterwarnings = [
+  "ignore:Please use rfc3986.validators.Validator instead:DeprecationWarning",
+]
 
 # Ref.: https://github.com/codespell-project/codespell
 [tool.codespell]

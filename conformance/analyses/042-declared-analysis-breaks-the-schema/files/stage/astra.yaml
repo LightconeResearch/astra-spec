@@ -1,0 +1,7 @@
+spec_version: "0.1.0"
+outputs:
+  output3:
+    type: dataset
+    format: csv
+    recipe:
+      command: python make.py '{output}'

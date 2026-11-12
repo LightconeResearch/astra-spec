@@ -1,0 +1,5 @@
+{
+  "about": "A switch's case goes through a declaration that no key drives, but no universe takes it.",
+  "valid": true,
+  "must_not_report": ["NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION", "MISSING_DECISION"]
+}

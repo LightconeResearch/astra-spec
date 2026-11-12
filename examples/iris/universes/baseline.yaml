@@ -1,8 +1,0 @@
-id: baseline
-description: Default configuration using standard practices
-
-decisions:
-  scaling: standard
-  model: random_forest
-  test_size: small
-  random_seed: seed_42

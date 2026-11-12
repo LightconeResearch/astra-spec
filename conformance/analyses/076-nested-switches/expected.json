@@ -1,0 +1,5 @@
+{
+  "about": "An outer switch on the guarding decision takes an inner switch for one option only, so universes that take the outer switch's other case leave the inner decision unset or inherit it unused.",
+  "valid": true,
+  "must_not_report": ["MISSING_DECISION", "INACTIVE_DECISION", "UNUSED_DECISION"]
+}

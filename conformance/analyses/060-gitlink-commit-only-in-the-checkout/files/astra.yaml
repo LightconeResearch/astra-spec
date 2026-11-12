@@ -1,0 +1,12 @@
+spec_version: "0.1.0"
+analyses:
+  lib:
+    path: lib
+    commit: "@commit:C@"
+outputs:
+  summary:
+    type: metric
+    format: json
+    inputs: [lib.result]
+    recipe:
+      command: python make.py '{inputs.lib.result}' '{output}'

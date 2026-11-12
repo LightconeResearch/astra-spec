@@ -1,0 +1,5 @@
+{
+  "about": "A finding cites a switch whose cases name an output and a nested switch whose cases name outputs.",
+  "valid": true,
+  "must_not_report": ["UNRESOLVED_ADDRESS", "MISSING_DECISION"]
+}

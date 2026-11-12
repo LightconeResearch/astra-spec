@@ -1,0 +1,16 @@
+spec_version: "0.1.0"
+analyses:
+  catalog:
+    path: catalog
+outputs:
+  slope:
+    type: metric
+    format: json
+    decisions: [catalog.method]
+    recipe:
+      command: python make.py '{decisions.catalog.method}' '{output}'
+universes:
+  u1:
+    decisions: {catalog.method: ols}
+  u2:
+    decisions: {catalog.method: huber}

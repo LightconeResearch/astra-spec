@@ -1,0 +1,5 @@
+{
+  "about": "The specification's running example with its switch: switch1 takes stage.output3 where decision1 selects b, and has no case for a, so output6 isn't built in u2, which inherits decision3 without using it.",
+  "valid": true,
+  "must_not_report": ["INACTIVE_DECISION", "UNUSED_DECISION", "MISSING_DECISION", "PIN_NOT_BUILT", "NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION"]
+}

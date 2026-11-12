@@ -1,0 +1,51 @@
+---
+id: https://example.org/types_harness
+name: types_harness
+description: |-
+  A scratch schema, not ASTRA, for testing the named types of the ASTRA
+  types module: one field per type, named after it.
+version: 0.0.0
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  types_harness: https://example.org/types_harness/
+
+default_prefix: types_harness
+default_range: string
+
+imports:
+  - linkml:types
+  - ../../src/astra/schema/types
+
+classes:
+  Root:
+    tree_root: true
+    description: The document.
+    attributes:
+      id:
+        description: An id.
+        range: id
+      address:
+        description: An address.
+        range: address
+      reference:
+        description: A reference.
+        range: reference
+      option_reference:
+        description: An option reference.
+        range: option_reference
+      commit_id:
+        description: A commit id.
+        range: commit_id
+      content_hash:
+        description: A content hash.
+        range: content_hash
+      spec_version:
+        description: A specification version.
+        range: spec_version
+      timestamp:
+        description: A timestamp.
+        range: timestamp
+      iri:
+        description: An IRI.
+        range: iri

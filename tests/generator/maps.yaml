@@ -1,0 +1,81 @@
+---
+id: https://example.org/maps
+name: maps
+description: |-
+  A scratch schema, not ASTRA, for testing the JSON Schema generator extension
+  on id-keyed maps.
+version: 0.0.0
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  maps: https://example.org/maps/
+
+default_prefix: maps
+default_range: string
+
+imports:
+  - linkml:types
+
+types:
+  local_id:
+    typeof: string
+    pattern: "^[a-z][a-z0-9_]*$"
+    description: A local id.
+
+classes:
+  Root:
+    tree_root: true
+    description: The document.
+    attributes:
+      things:
+        description: A map of things keyed by id.
+        range: Thing
+        multivalued: true
+        inlined: true
+      picks:
+        description: A map of picks keyed by name.
+        range: Pick
+        multivalued: true
+        inlined: true
+      required_things:
+        description: A map of things keyed by id, with at least one entry.
+        range: Thing
+        multivalued: true
+        inlined: true
+        required: true
+        minimum_cardinality: 1
+      note:
+        description: An optional string.
+      names:
+        description: A list of strings.
+        multivalued: true
+      listed_things:
+        description: A list of things, each written with its id.
+        range: Thing
+        multivalued: true
+        inlined_as_list: true
+
+  Thing:
+    description: A thing with a key and two other slots.
+    attributes:
+      id:
+        description: The thing's id.
+        key: true
+        range: local_id
+      label:
+        description: A label.
+      size:
+        description: A size.
+        range: integer
+
+  Pick:
+    description: A pick with a key and exactly one other slot.
+    attributes:
+      name:
+        description: The pick's name.
+        key: true
+        pattern: '^[a-z]+(\.[a-z]+)*$'
+      choice:
+        description: The id of the chosen thing.
+        required: true
+        range: local_id

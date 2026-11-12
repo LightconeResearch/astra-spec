@@ -1,6 +1,5 @@
-id: iris_classification
-version: "0.0.11"
-name: Iris Classification Study
+spec_version: "0.1.0"
+label: Iris Classification Study
 description: |
   A demonstration analysis that builds a classifier for the classic
   Iris dataset, exploring different preprocessing and model choices.
@@ -12,75 +11,86 @@ tags:
   - sklearn
   - example
 
-inputs:
-  - id: iris_data
-    type: data
-    source: "sklearn.datasets.load_iris"
-    description: "Fisher's classic 150-sample, 3-class dataset"
-
-  - id: preprocessing_study
-    type: analysis
-    ref: "analyses/scaling_comparison_2024"
-    description: Our previous study on scaling methods
-
 outputs:
-  - id: trained_output
+  iris_data:
+    type: data
+    format: csv
+    description: >-
+      Fisher's classic 150-sample, 3-class dataset, loaded from
+      sklearn.datasets.load_iris
+    recipe:
+      command: python src/load.py --out {output}
+
+  trained_output:
     type: data
     format: pkl
     description: Best performing classifier
+    inputs: [iris_data]
     decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/train.py
+      command: >-
+        python src/train.py --data {inputs.iris_data}
+        --scaling {decisions.scaling} --model {decisions.model}
+        --test-size {decisions.test_size} --seed {decisions.random_seed}
+        --out {output}
 
-  - id: accuracy
+  accuracy:
     type: metric
     format: json
     description: Classification accuracy on held-out test set
     inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --model {inputs.trained_output}
+        --metric accuracy --out {output}
 
-  - id: f1_score
+  f1_score:
     type: metric
     format: json
     description: Macro-averaged F1 score
     inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --model {inputs.trained_output}
+        --metric f1 --out {output}
 
-  - id: confusion_matrix
+  confusion_matrix:
     type: figure
     format: png
     description: Confusion matrix heatmap
     inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --model {inputs.trained_output}
+        --metric confusion_matrix --out {output}
 
-  - id: model_comparison
+  model_comparison:
     type: table
     format: csv
-    description: Accuracy by model and preprocessing combination
-    inputs: [trained_output]
-    decisions: [scaling, model, test_size, random_seed]
+    description: >-
+      Accuracy of the baseline (random forest) against svm_focused (SVM)
+    inputs:
+      - accuracy#baseline
+      - accuracy#svm_focused
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/compare.py --a {inputs.accuracy#baseline}
+        --b {inputs.accuracy#svm_focused} --out {output}
 
-  - id: conclusion
+  conclusion:
     type: report
     format: md
     description: Summary of classifier performance and suitability for the application
     inputs: [trained_output]
     recipe:
-      command: python src/evaluate.py
+      command: >-
+        python src/evaluate.py --model {inputs.trained_output}
+        --report --out {output}
 
 decisions:
   scaling:
     label: Feature Scaling
     rationale: Scaling affects distance-based algorithms like SVM
-    default: standard
     options:
       none:
         label: No Scaling
@@ -97,7 +107,6 @@ decisions:
   model:
     label: Classification Model
     rationale: Core algorithmic choice affecting accuracy and interpretability
-    default: random_forest
     options:
       svm:
         label: Support Vector Machine
@@ -114,7 +123,6 @@ decisions:
   test_size:
     label: Test Set Proportion
     rationale: Trade-off between training data and evaluation reliability
-    default: small
     options:
       small:
         label: "20%"
@@ -124,9 +132,23 @@ decisions:
   random_seed:
     label: Random Seed
     rationale: For reproducibility and stability testing
-    default: seed_42
     options:
       seed_42:
         label: "42"
       seed_123:
         label: "123"
+
+universes:
+  baseline:
+    description: Default configuration using standard practices
+    decisions:
+      scaling: standard
+      model: random_forest
+      test_size: small
+      random_seed: seed_42
+
+  svm_focused:
+    description: Configuration optimized for SVM (requires standard scaling)
+    derived_from: baseline
+    decisions:
+      model: svm

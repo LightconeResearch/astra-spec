@@ -1,0 +1,9 @@
+{
+  "about": "One universe takes a switch's case through a declaration that no key drives, and another leaves the switch's decision unset: both are reported.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECISION", "file": "astra.yaml"},
+    {"code": "NOT_BUILT_IN_UNIVERSE", "file": "astra.yaml"},
+    {"code": "UNDRIVEN_DECLARATION", "file": "astra.yaml"}
+  ]
+}

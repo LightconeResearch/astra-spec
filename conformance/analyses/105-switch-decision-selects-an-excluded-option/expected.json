@@ -1,0 +1,8 @@
+{
+  "about": "A universe selects an excluded option of a switch's decision, which has a case: only the excluded selection is reported, not a pin to an output reading the switch there.",
+  "valid": false,
+  "must_report": [
+    {"code": "EXCLUDED_OPTION_SELECTED", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["PIN_NOT_BUILT"]
+}

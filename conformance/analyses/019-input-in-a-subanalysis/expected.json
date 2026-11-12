@@ -1,0 +1,8 @@
+{
+  "about": "An input whose file is in a folder below the analysis that holds an astra.yaml of its own.",
+  "valid": false,
+  "must_report": [
+    {"code": "INPUT_IN_ANOTHER_ANALYSIS", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_INPUT_FILE", "INPUT_NOT_TRACKED"]
+}

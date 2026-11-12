@@ -1,0 +1,8 @@
+# rule: MISSING_FIELD
+# fails at: (root)
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'

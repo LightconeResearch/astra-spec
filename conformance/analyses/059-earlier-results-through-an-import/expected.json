@@ -1,0 +1,4 @@
+{
+  "about": "An analysis reads its own earlier result, declaring its folder at an earlier commit and importing that commit's u1, since it has a u1 of its own.",
+  "valid": true
+}

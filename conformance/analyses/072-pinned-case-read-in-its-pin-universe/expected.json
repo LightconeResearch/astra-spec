@@ -1,0 +1,5 @@
+{
+  "about": "A switch's case pinned to u3 is read in u3, so u3 uses the decision its output lists and the universe that takes the case doesn't.",
+  "valid": true,
+  "must_not_report": ["MISSING_DECISION", "UNUSED_DECISION", "INACTIVE_DECISION", "PIN_NOT_BUILT"]
+}

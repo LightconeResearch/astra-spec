@@ -1,0 +1,19 @@
+# An outputs map that holds only a switch: the analysis makes nothing of its
+# own, and reads what one of two declared analyses makes.
+spec_version: "0.1.0"
+analyses:
+  fast:
+    path: fast
+  slow:
+    path: slow
+decisions:
+  method:
+    options:
+      quick: {}
+      careful: {}
+outputs:
+  fit:
+    switch: method
+    cases:
+      quick: fast.fit
+      careful: slow.fit

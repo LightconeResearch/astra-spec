@@ -1,0 +1,21 @@
+spec_version: "0.1.0"
+analyses:
+  stage: {path: stage}
+decisions:
+  decision1:
+    options: {a: {}, b: {}}
+outputs:
+  output1:
+    type: metric
+    format: json
+    decisions: [decision1]
+    recipe:
+      command: python make.py '{decisions.decision1}' '{output}'
+universes:
+  u1:
+    decisions: {decision1: a}
+findings:
+  finding1:
+    claim: The stage's selected output agrees.
+    evidence:
+      - artifact: stage.switch3

@@ -1,0 +1,2 @@
+# Only the required fields: a result built in a universe from an output that
+# lists no inputs, so no `inputs`, and no `started` or `finished`.

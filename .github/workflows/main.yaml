@@ -52,6 +52,12 @@ jobs:
       - name: Install project
         run: uv sync --dev
 
+      # Before the tests: tests/test_site.py reads the built site, and skips
+      # where there is none. One Python version is enough to build it.
+      - name: Build documentation
+        if: matrix.python-version == '3.13'
+        run: just docs-strict
+
       - name: Run test suite
         run: just test
 
@@ -64,8 +70,9 @@ jobs:
         uses: actions/checkout@v7
         with:
           persist-credentials: false
-          # Fetch full history + tags so `_stage-versioned` can resolve
-          # the latest tag and inject the matching version.
+          # Fetch full history + tags so `_stage-versioned` can find the
+          # tag at HEAD, if there is one, and inject its version (`dev`
+          # otherwise), as the committed files were generated with.
           fetch-depth: 0
           fetch-tags: true
 
@@ -87,19 +94,9 @@ jobs:
       - name: Install project
         run: uv sync --dev
 
-      - name: Regenerate datamodels and docs
-        run: |
-          just gen-python
-          just gen-doc
-
-      - name: Check for uncommitted changes
-        run: |
-          # docs/schema artifacts are git-ignored and regenerated on every docs build,
-          # so they are intentionally excluded here. The `Generation date` line
-          # changes on every regen and is similarly ignored.
-          if ! git diff --exit-code \
-            -I 'Generation date:' \
-            -- src/astra/datamodel/; then
-            echo "::error::Generated datamodels are out of date. Run 'just gen-python' and commit the results."
-            exit 1
-          fi
+      # The contract (project/jsonschema, project/jsonld, project/rules) and
+      # the datamodels (src/astra/datamodel) are generated again and compared
+      # with the committed files. docs/schema artifacts are git-ignored and
+      # regenerated on every docs build, so they are not checked here.
+      - name: Check the generated files are current
+        run: just check-generated

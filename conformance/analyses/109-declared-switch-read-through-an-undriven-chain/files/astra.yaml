@@ -1,0 +1,20 @@
+spec_version: "0.1.0"
+analyses:
+  stage:
+    path: stage
+decisions:
+  decision1:
+    options: {a: {}, b: {}}
+outputs:
+  output1:
+    type: metric
+    format: json
+    inputs: [stage.switch3]
+    decisions: [decision1]
+    recipe:
+      command: >-
+        python make.py '{inputs.stage.switch3}' '{decisions.decision1}'
+        '{output}'
+universes:
+  u1:
+    decisions: {decision1: a}

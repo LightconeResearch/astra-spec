@@ -6,9 +6,16 @@ repos:
     hooks:
       - id: check-toml
       - id: check-yaml
+        # What this hook's loader refuses is the point of this fixture: it
+        # fails at parse (malformed YAML). Keep in step with .yamllint.yaml.
+        exclude: ^tests/data/invalid/Analysis-182-malformed-yaml\.yaml$
+      # Generated files are checked against a fresh generation instead
+      # (`just check-generated`), so these hooks leave them as they are.
       - id: end-of-file-fixer
+        exclude: ^(project/|src/astra/datamodel/)
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
+        exclude: ^(project/|src/astra/datamodel/)
 
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.37.0
@@ -32,11 +39,14 @@ repos:
     # Ruff version.
     rev: v0.11.3
     hooks:
-      # Run the linter.
+      # Run the linter. The generated datamodels are LinkML's output,
+      # checked against a fresh generation instead, as above.
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
+        exclude: ^(project/|src/astra/datamodel/)
       # Run the formatter.
       - id: ruff-format
+        exclude: ^(project/|src/astra/datamodel/)
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.

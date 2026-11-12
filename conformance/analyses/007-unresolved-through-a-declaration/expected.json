@@ -1,0 +1,7 @@
+{
+  "about": "An address through a declaration names an output that the declared analysis doesn't have.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNRESOLVED_ADDRESS", "file": "astra.yaml"}
+  ]
+}

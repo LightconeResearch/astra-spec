@@ -1,0 +1,14 @@
+spec_version: "0.1.0"
+analyses:
+  catalog:
+    path: catalog
+outputs:
+  result:
+    type: metric
+    format: json
+    inputs:
+      - catalog.input1#main
+      - catalog.output3#main
+      - catalog.output4#main
+    recipe:
+      command: python make.py {inputs} '{output}'

@@ -1,0 +1,7 @@
+{
+  "about": "Two universes derive from each other.",
+  "valid": false,
+  "must_report": [
+    {"code": "DERIVED_FROM_CYCLE", "file": "astra.yaml"}
+  ]
+}

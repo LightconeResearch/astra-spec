@@ -1,0 +1,20 @@
+spec_version: "0.1.0"
+analyses:
+  parent:
+    path: ..
+decisions:
+  decision6:
+    options: {p: {}, r: {}}
+outputs:
+  output9:
+    type: metric
+    format: json
+    decisions: [decision6]
+    recipe:
+      command: python make.py '{decisions.decision6}' '{output}'
+  output10:
+    type: metric
+    format: json
+    decisions: [parent.decision1]
+    recipe:
+      command: python make.py '{decisions.parent.decision1}' '{output}'

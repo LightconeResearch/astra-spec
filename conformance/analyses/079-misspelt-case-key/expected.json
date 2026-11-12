@@ -1,0 +1,8 @@
+{
+  "about": "The selected option has no case while a key of cases names no option, so only that key is reported, not a pin to the switch there.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNKNOWN_OPTION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["PIN_NOT_BUILT"]
+}

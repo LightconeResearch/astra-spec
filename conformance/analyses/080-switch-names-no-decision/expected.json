@@ -1,0 +1,8 @@
+{
+  "about": "A switch names a decision the analysis doesn't have, and only that is reported.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNRESOLVED_ADDRESS", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["UNKNOWN_OPTION", "UNUSED_DECISION", "MISSING_DECISION"]
+}

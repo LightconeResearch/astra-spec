@@ -1,0 +1,8 @@
+{
+  "about": "A declared analysis's input is on disk but not tracked in git.",
+  "valid": false,
+  "must_report": [
+    {"code": "INPUT_NOT_TRACKED", "file": "stage/astra.yaml"}
+  ],
+  "must_not_report": ["MISSING_INPUT_FILE", "DECLARED_ANALYSIS_INVALID"]
+}

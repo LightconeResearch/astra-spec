@@ -1,0 +1,4 @@
+{
+  "about": "A command holds an awk program with its braces doubled, and passes the inputs with {inputs}.",
+  "valid": true
+}

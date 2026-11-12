@@ -1,0 +1,7 @@
+{
+  "about": "One universe drives a declared analysis, and another leaves that analysis's decision unset.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECISION", "file": "astra.yaml"}
+  ]
+}

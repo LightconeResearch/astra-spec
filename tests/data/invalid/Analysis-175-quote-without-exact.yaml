@@ -1,0 +1,15 @@
+# rule: MISSING_FIELD
+# fails at: /prior_insights/p/evidence/0/quote
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'
+prior_insights:
+  p:
+    claim: C
+    evidence:
+      - doi: 10.1234/x
+        quote: {prefix: x}

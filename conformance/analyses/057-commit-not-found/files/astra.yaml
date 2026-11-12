@@ -1,0 +1,11 @@
+spec_version: "0.1.0"
+analyses:
+  previous:
+    path: .
+    commit: "0000000000000000000000000000000000000000"
+outputs:
+  result:
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'

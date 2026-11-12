@@ -1,0 +1,11 @@
+spec_version: "0.1.0"
+analyses:
+  sub2:
+    path: ../sub2
+outputs:
+  output1:
+    type: table
+    format: csv
+    inputs: [sub2.switch2#w1]
+    recipe:
+      command: python make.py '{inputs.sub2.switch2#w1}' '{output}'

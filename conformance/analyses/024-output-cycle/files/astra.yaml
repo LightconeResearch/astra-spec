@@ -1,0 +1,14 @@
+spec_version: "0.1.0"
+outputs:
+  output1:
+    type: metric
+    format: json
+    inputs: [output2]
+    recipe:
+      command: python make.py '{inputs.output2}' '{output}'
+  output2:
+    type: metric
+    format: json
+    inputs: [output1]
+    recipe:
+      command: python make.py '{inputs.output1}' '{output}'

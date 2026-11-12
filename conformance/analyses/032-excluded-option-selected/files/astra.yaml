@@ -1,0 +1,18 @@
+spec_version: "0.1.0"
+decisions:
+  decision2:
+    options:
+      a: {}
+      b: {}
+      c:
+        excluded: It needs data this analysis doesn't have.
+outputs:
+  result:
+    type: metric
+    format: json
+    decisions: [decision2]
+    recipe:
+      command: python make.py '{decisions.decision2}' '{output}'
+universes:
+  u1:
+    decisions: {decision2: c}

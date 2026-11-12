@@ -1,0 +1,7 @@
+{
+  "about": "A command names an input that its output doesn't list.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNDECLARED_TEMPLATE_REF", "file": "astra.yaml"}
+  ]
+}

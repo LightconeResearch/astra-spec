@@ -1,0 +1,130 @@
+---
+id: https://example.org/checks
+name: checks
+description: |-
+  A scratch schema, not ASTRA, for testing the JSON Schema generator
+  extension on class-level checks: an exactly_one_of and three class rules,
+  one of which reads fields written as a `$ref`, to an enum and to an
+  inlined class, on a source; and a class rule on the document that reads a
+  map and a list.
+version: 0.0.0
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  checks: https://example.org/checks/
+
+default_prefix: checks
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Root:
+    tree_root: true
+    description: The document, with `sources` wherever it has `notes`.
+    attributes:
+      sources:
+        description: A list of sources.
+        range: Source
+        multivalued: true
+        inlined_as_list: true
+      notes:
+        description: A map of notes keyed by id.
+        range: Note
+        multivalued: true
+        inlined: true
+    rules:
+      - description: A document with `notes` has `sources`.
+        preconditions:
+          slot_conditions:
+            notes:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            sources:
+              value_presence: PRESENT
+
+  Source:
+    description: >-
+      A source with exactly one of `path` and `url`, a `commit` with a `url`,
+      a `version` only with a `doi`, and `details` with a `kind`.
+    attributes:
+      path:
+        description: A path.
+      url:
+        description: A URL.
+      commit:
+        description: A commit.
+      doi:
+        description: A DOI.
+      version:
+        description: A version.
+        range: integer
+      kind:
+        description: A kind.
+        range: Kind
+      details:
+        description: Details.
+        range: Details
+        inlined: true
+    exactly_one_of:
+      - slot_conditions:
+          path:
+            required: true
+      - slot_conditions:
+          url:
+            required: true
+    rules:
+      - description: A source with a `url` has a `commit`.
+        preconditions:
+          slot_conditions:
+            url:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            commit:
+              value_presence: PRESENT
+      - description: A source without a `doi` has no `version`.
+        preconditions:
+          slot_conditions:
+            doi:
+              value_presence: ABSENT
+        postconditions:
+          slot_conditions:
+            version:
+              value_presence: ABSENT
+      - description: A source with a `kind` has `details`.
+        preconditions:
+          slot_conditions:
+            kind:
+              value_presence: PRESENT
+        postconditions:
+          slot_conditions:
+            details:
+              value_presence: PRESENT
+
+  Details:
+    description: Details of a source.
+    attributes:
+      note:
+        description: A note.
+
+  Note:
+    description: A note, keyed by id, written in the compact form.
+    attributes:
+      id:
+        description: The note's id.
+        key: true
+        pattern: '^[a-z]+$'
+      text:
+        description: The note's text.
+
+enums:
+  Kind:
+    description: A kind of source.
+    permissible_values:
+      a:
+        description: The kind a.
+      b:
+        description: The kind b.

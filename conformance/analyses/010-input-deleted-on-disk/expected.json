@@ -1,0 +1,7 @@
+{
+  "about": "An input whose file is committed, then deleted from the working tree.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_INPUT_FILE", "file": "astra.yaml"}
+  ]
+}

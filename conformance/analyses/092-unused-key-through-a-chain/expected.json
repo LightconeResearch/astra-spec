@@ -1,0 +1,8 @@
+{
+  "about": "A universe sets a decision of an analysis declared further down, of which nothing is read.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNUSED_DECISION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["INACTIVE_DECISION"]
+}

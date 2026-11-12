@@ -1,0 +1,10 @@
+# Under YAML 1.2's core schema an unquoted date is a string, so it is a valid
+# label.
+spec_version: "0.1.0"
+outputs:
+  result:
+    type: metric
+    format: json
+    label: 2026-10-26
+    recipe:
+      command: python make.py '{output}'

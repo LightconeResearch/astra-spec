@@ -1,0 +1,7 @@
+{
+  "about": "An output reading a switch names, in its command, the output the switch's case names rather than its own entry.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNDECLARED_TEMPLATE_REF", "file": "astra.yaml"}
+  ]
+}

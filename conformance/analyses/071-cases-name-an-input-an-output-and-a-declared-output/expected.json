@@ -1,0 +1,5 @@
+{
+  "about": "A switch's cases name an input, an output, and a declared analysis's output pinned to that analysis's own universe.",
+  "valid": true,
+  "must_not_report": ["UNRESOLVED_ADDRESS", "PIN_NOT_BUILT", "MISSING_DECISION", "NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION"]
+}

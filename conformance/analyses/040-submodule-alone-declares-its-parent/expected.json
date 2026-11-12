@@ -1,0 +1,8 @@
+{
+  "about": "A submodule's analysis that declares its parent with .. is validated on its own.",
+  "root": "lib",
+  "valid": false,
+  "must_report": [
+    {"code": "DECLARATION_OUTSIDE_REPOSITORY", "file": "astra.yaml"}
+  ]
+}

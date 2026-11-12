@@ -1,0 +1,24 @@
+# rule: INVALID_REFERENCE
+# fails at: /outputs/estimator/cases/template
+spec_version: "0.1.0"
+decisions:
+  method:
+    options:
+      neural_net: {}
+      template: {}
+outputs:
+  network:
+    type: data
+    format: pt
+    recipe:
+      command: python train.py '{output}'
+  templates:
+    type: data
+    format: csv
+    recipe:
+      command: python fit.py '{output}'
+  estimator:
+    switch: method
+    cases:
+      neural_net: network
+      template: templates#u1#u2

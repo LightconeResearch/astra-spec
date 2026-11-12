@@ -1,0 +1,5 @@
+{
+  "about": "An output that only a switch's case names is planned only where the switch takes it, so a universe where it takes the other case leaves that output's decision unset.",
+  "valid": true,
+  "must_not_report": ["MISSING_DECISION"]
+}

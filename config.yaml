@@ -6,6 +6,14 @@
 # By default all generators are run. Specify here the ones to skip.
 excludes:
   - markdown
+  # ASTRA's contract is generated into project/jsonschema/ and project/jsonld/
+  # by `just gen-schema`, with its own generators, and committed. The stock
+  # jsonschema and jsonldcontext generators would overwrite it, and the stock
+  # jsonld generator would leave untracked files (analysis.jsonld,
+  # provenance.jsonld) in the committed project/jsonld/.
+  - jsonschema
+  - jsonldcontext
+  - jsonld
 
 # Alternatively only specify the generators to run
 # (comment out the above "excludes" section)

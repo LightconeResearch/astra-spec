@@ -1,0 +1,7 @@
+{
+  "about": "A declaration names a symlink to the folder of an analysis.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECLARED_ANALYSIS", "file": "astra.yaml"}
+  ]
+}

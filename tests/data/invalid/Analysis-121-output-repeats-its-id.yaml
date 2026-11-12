@@ -1,0 +1,10 @@
+# rule: UNKNOWN_FIELD
+# fails at: /outputs/result
+spec_version: "0.1.0"
+outputs:
+  result:
+    id: result
+    type: metric
+    format: json
+    recipe:
+      command: python make.py '{output}'

@@ -1,0 +1,8 @@
+{
+  "about": "A universe sets a decision that only an output it doesn't build lists, which another universe uses.",
+  "valid": true,
+  "must_report": [
+    {"code": "INACTIVE_DECISION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["UNUSED_DECISION"]
+}

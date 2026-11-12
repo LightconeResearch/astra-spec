@@ -1,0 +1,5 @@
+{
+  "about": "A universe leaves unset a decision that nothing uses.",
+  "valid": true,
+  "must_not_report": ["MISSING_DECISION"]
+}

@@ -1,0 +1,7 @@
+{
+  "about": "A pin names a universe that neither its file nor the analysis of the output it reads has.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNKNOWN_PIN_UNIVERSE", "file": "astra.yaml"}
+  ]
+}

@@ -1,0 +1,20 @@
+spec_version: "0.1.0"
+analyses:
+  subanalysis:
+    path: subanalysis
+outputs:
+  output5:
+    type: table
+    format: csv
+    inputs:
+      - subanalysis.output1#u1               # the driving analysis's u1
+      - subanalysis.output1#subanalysis_u1   # subanalysis's own u1, imported
+      - subanalysis.output1#v1               # subanalysis's own v1
+    recipe:
+      command: python make.py '{output}'
+universes:
+  u1:
+    decisions: {subanalysis.decision1: a}
+  subanalysis_u1:
+    analysis: subanalysis
+    universe: u1

@@ -1,0 +1,7 @@
+{
+  "about": "A finding's evidence cites an input, where artifact takes an output.",
+  "valid": false,
+  "must_report": [
+    {"code": "UNRESOLVED_ADDRESS", "file": "astra.yaml"}
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "about": "A switch, the analysis's only output, picks one of two declared analyses' outputs, and each universe sets only the decisions of the analysis whose output it takes.",
+  "valid": true,
+  "must_not_report": ["MISSING_DECISION", "INACTIVE_DECISION", "UNUSED_DECISION", "NOT_BUILT_IN_UNIVERSE", "UNDRIVEN_DECLARATION"]
+}

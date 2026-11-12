@@ -1,0 +1,41 @@
+spec_version: "0.1.0"
+decisions:
+  decision1:
+    options:
+      a: {}
+      b:
+        requires: [decision2.b]
+  decision2:
+    options: {a: {}, b: {}}
+  decision3:
+    options: {a: {}, b: {}}
+outputs:
+  output1:
+    type: data
+    format: csv
+    decisions: [decision1]
+    recipe:
+      command: python make.py '{decisions.decision1}' '{output}'
+  output2:
+    type: data
+    format: csv
+    decisions: [decision2]
+    recipe:
+      command: python make.py '{decisions.decision2}' '{output}'
+  output3:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py output3 '{output}'
+  switch1:
+    switch: decision3
+    cases: {a: output2, b: output3}
+  result:
+    type: metric
+    format: json
+    inputs: [output1, switch1]
+    recipe:
+      command: python make.py {inputs} '{output}'
+universes:
+  u1:
+    decisions: {decision1: b, decision2: b, decision3: b}

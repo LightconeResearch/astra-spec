@@ -1,0 +1,553 @@
+"""The published page shows every cell of its codes table as the same text as `rules.json`, every in-page link of the
+specification goes to an element of it, and the field reference shows every pattern as the LinkML sources write it.
+
+`tools/rules.py` reads the codes table as CommonMark with GFM tables, but the site renders it with Python-Markdown and
+Zensical's extensions. So a cell could read one way in `rules.json` and another on the page: `~~`, `==`, `^^`, emoji,
+smart symbols (`-->`, `1/2`), `$…$`, footnotes, attribute lists, `\\|` in a code span, or a codes table right after a
+paragraph, which Python-Markdown doesn't read as a table. Pinning the site's extensions can't remove the last two.
+
+So a test reads the built page and compares the text of the codes table (the table whose first column is Code) with
+`rules.json`, rendered by markdown-it: the same rules, in the same order, word for word, each under the layer row of
+its layer, the table under the Rules heading. Another checks that every link of the page to a fragment of the page
+names an element there.
+
+The field reference's pages are built from `gen-doc`'s Markdown, where a pattern's backtick, `|`, `[^` or `^` would be
+read as Markdown. So another test reads each element's page and compares its Regex Pattern cell with the pattern the
+LinkML sources write. Others check what `tools/docgen.py` and the index template change: each description on the
+index is cut at the end of a sentence or of a word, in at most 80 characters, no two pages' names differ only in case,
+each range links to a class, an enumeration or a type, never a slot of the same name, a description's `<` shows as
+written, and the record's classes are listed apart from the analysis document's; and that the published merged models,
+one for each tree root, hold every class.
+The tests run in CI after the docs build (`main.yaml`, `test_pages_build.yaml`), and are skipped when there is no
+`site/`.
+"""
+
+import itertools
+import re
+from collections import defaultdict
+from html.parser import HTMLParser
+from typing import Any
+from urllib.parse import unquote
+
+import pytest
+from linkml_runtime.utils.formatutils import camelcase
+from markdown_it import MarkdownIt
+from ruamel.yaml import YAML
+
+from .conftest import REPO_ROOT, rules_catalogue
+
+SITE = REPO_ROOT / "site"
+PAGE = SITE / "specification" / "index.html"
+ELEMENTS = SITE / "elements"
+"""The field reference: one directory per element, named as `gen-doc` names its page."""
+SOURCES = REPO_ROOT / "src" / "astra" / "schema"
+"""The LinkML sources."""
+
+RULES = "Rules"
+"""The heading of the section that holds the codes table."""
+
+STATUS = "→"
+"""The mark in a check row's Rule cell between its part of the statement and its status."""
+
+MARKDOWN = {"statement", "status"}
+"""The fields that are inline Markdown, rendered by markdown-it before their text is compared."""
+
+pytestmark = pytest.mark.skipif(
+    not SITE.is_dir(),
+    reason="no built site: CI runs this test after `zensical build`",
+)
+
+
+def _words(text: str) -> str:
+    """`text` with each run of white space as one space, and none at either end."""
+    return " ".join(text.split())
+
+
+class _Text(HTMLParser):
+    """The text of an HTML fragment, its character references decoded."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+
+    def handle_data(self, data: str) -> None:
+        self.parts.append(data)
+
+
+def html_text(html: str) -> str:
+    parser = _Text()
+    parser.feed(html)
+    parser.close()
+    return _words("".join(parser.parts))
+
+
+def expected_text(rule: dict[str, Any], field: str) -> str:
+    """The text a rule's field shows: inline Markdown rendered by markdown-it, a code, layer or level as it is."""
+    value = rule[field]
+    return (
+        html_text(MarkdownIt("commonmark").renderInline(value))
+        if field in MARKDOWN
+        else value
+    )
+
+
+def page_rows() -> list[tuple[str, dict[str, str]]]:
+    """Each row of the page's codes table, in order, with the text of the heading above the table, and the text of
+    each of its cells keyed by its column."""
+    parser = _Tables(("h1", "h2", "h3"))
+    parser.feed(PAGE.read_text(encoding="utf-8"))
+    parser.close()
+    return [
+        (heading, {column: text for column, (text, _) in zip(header, row)})
+        for heading, header, rows in parser.tables
+        if header[:1] == ["Code"]
+        for row in rows
+    ]
+
+
+def page_rules() -> list[dict[str, Any]]:
+    """The rules the page's codes table shows, in order: for each, the heading above the table, the first word of the
+    layer row above it, its code and level, and the text of its rows' Rule cells, each a check row's split at its `→`
+    into its part of the statement and its status."""
+    rules: list[dict[str, Any]] = []
+    layer = None
+    for heading, row in page_rows():
+        if not row.get("Level") and not row.get("Rule"):
+            layer = "".join(itertools.takewhile(str.isalpha, row.get("Code", "")))
+            continue
+        statement, status = row.get("Rule", ""), None
+        if layer == "check":
+            statement, _, status = statement.partition(STATUS)
+            statement, status = statement.strip(), status.strip()
+        last = rules[-1] if rules else None
+        if last is not None and (last["code"], last["layer"]) == (
+            row.get("Code"),
+            layer,
+        ):
+            last["parts"].append(statement)
+            last["statuses"].append(status)
+            continue
+        rules.append(
+            {
+                "heading": heading,
+                "layer": layer,
+                "code": row.get("Code"),
+                "level": row.get("Level"),
+                "parts": [statement],
+                "statuses": [status],
+                "columns": sorted(row),
+            }
+        )
+    return rules
+
+
+def test_page_shows_every_rule_as_rules_json_words_it():
+    """The page's codes table holds the rules of `rules.json`, in order, under the Rules heading, each under the layer
+    row of its layer: its code and level, and its rows' Rule cells, joined with `; `, its statement then, for a check
+    rule, its status after each `→`, each the text of its field."""
+    assert PAGE.is_file(), f"{PAGE} is missing: build the site with `zensical build`"
+    page = page_rules()
+    rules = rules_catalogue()["rules"]
+    assert [shown["code"] for shown in page] == [rule["code"] for rule in rules], (
+        "the page's codes table doesn't hold the rules of rules.json, in order: rebuild the site after `just gen-schema`"
+    )
+    differences = []
+    for shown, rule in zip(page, rules):
+        code = rule["code"]
+        if shown["columns"] != sorted(["Code", "Level", "Rule"]):
+            differences.append(f"{code}: the page shows the columns {shown['columns']}")
+            continue
+        if shown["heading"] != RULES:
+            differences.append(
+                f"{code}: its table is under {shown['heading']!r}, not {RULES!r}"
+            )
+        if shown["layer"] != rule["layer"]:
+            differences.append(
+                f"{code}: under the layer row of {shown['layer']!r}, not {rule['layer']!r}"
+            )
+        if shown["level"] != rule["level"]:
+            differences.append(
+                f"{code}: the page shows the level {shown['level']!r}, rules.json {rule['level']!r}"
+            )
+        statement = "; ".join(shown["parts"])
+        if statement != expected_text(rule, "statement"):
+            differences.append(
+                f"{code}: the page shows {statement!r}, rules.json {expected_text(rule, 'statement')!r}"
+            )
+        statuses = {expected_text(rule, "status") if "status" in rule else None}
+        if set(shown["statuses"]) != statuses:
+            differences.append(
+                f"{code}: the page shows the statuses {shown['statuses']}, rules.json {statuses}"
+            )
+    assert differences == []
+
+
+class _Links(HTMLParser):
+    """The `id` of every element of a page, and the `href` of each of its links."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.ids: set[str] = set()
+        self.hrefs: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        found = dict(attrs)
+        if found.get("id"):
+            self.ids.add(found["id"] or "")
+        if tag == "a" and found.get("href") is not None:
+            self.hrefs.append(found["href"] or "")
+
+
+def test_every_in_page_link_resolves():
+    """Every link of the specification's page to one of its own fragments (`#rules`) names an element of the page: a
+    section's heading, as the site makes its anchor."""
+    assert PAGE.is_file(), f"{PAGE} is missing: build the site with `zensical build`"
+    links = _Links()
+    links.feed(PAGE.read_text(encoding="utf-8"))
+    links.close()
+    fragments = [href[1:] for href in links.hrefs if href.startswith("#")]
+    assert fragments
+    assert sorted({f for f in fragments if unquote(f) not in links.ids}) == []
+
+
+class _Rows(HTMLParser):
+    """The text of each cell of each table row of a page, as written: character references decoded, white space
+    kept."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.rows: list[list[str]] = []
+        self._row: list[str] | None = None
+        self._cell: list[str] | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "tr":
+            self._row = []
+        elif tag in ("th", "td") and self._row is not None:
+            self._cell = []
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in ("th", "td") and self._cell is not None and self._row is not None:
+            self._row.append("".join(self._cell))
+            self._cell = None
+        elif tag == "tr" and self._row is not None:
+            self.rows.append(self._row)
+            self._row = None
+
+    def handle_data(self, data: str) -> None:
+        if self._cell is not None:
+            self._cell.append(data)
+
+
+def shown_patterns() -> dict[str, list[str]]:
+    """The text of each Regex Pattern cell of the field reference, keyed by its element's page."""
+    shown = {}
+    for page in sorted(ELEMENTS.glob("*/index.html")):
+        parser = _Rows()
+        parser.feed(page.read_text(encoding="utf-8"))
+        parser.close()
+        cells = [
+            row[1]
+            for row in parser.rows
+            if len(row) == 2 and row[0].strip() == "Regex Pattern"
+        ]
+        if cells:
+            shown[page.parent.name] = cells
+    return shown
+
+
+def schema_patterns() -> dict[str, list[str]]:
+    """Each pattern the LinkML sources write, as they write it, keyed by the page that shows it.
+
+    A named type's page, under its CamelCase name, shows its `pattern`, or its structured pattern's syntax with each
+    `{name}` filled in from the settings. A slot's page, under its own name, shows the pattern of the classes that
+    define the slot, where they all give it the same one: `Input.path` and `AnalysisDeclaration.path` share a page."""
+    yaml = YAML(typ="safe", pure=True)
+    sources = [
+        yaml.load(module.read_text(encoding="utf-8"))
+        for module in sorted(SOURCES.glob("*.yaml"))
+    ]
+    settings = {}
+    for source in sources:
+        settings.update(source.get("settings") or {})
+    expected = {}
+    slots = defaultdict(list)
+    for source in sources:
+        for name, definition in (source.get("types") or {}).items():
+            structured = definition.get("structured_pattern") or {}
+            pattern = definition.get("pattern") or structured.get("syntax")
+            if pattern and structured.get("interpolated"):
+                for key, value in settings.items():
+                    pattern = pattern.replace("{" + key + "}", value)
+            if pattern:
+                expected[camelcase(name)] = [pattern]
+        for definition in (source.get("classes") or {}).values():
+            for name, slot in ((definition or {}).get("attributes") or {}).items():
+                slots[name].append((slot or {}).get("pattern"))
+    for name, patterns in slots.items():
+        if patterns[0] is not None and len(set(patterns)) == 1:
+            expected[name] = patterns[:1]
+    return expected
+
+
+def test_element_pages_show_their_patterns():
+    """Every Regex Pattern cell of the field reference shows its element's pattern exactly as the LinkML sources
+    write it, each `{name}` filled in, and every pattern they write has its cell, whatever backtick, `|`, `[^` or `^`
+    it holds.
+
+    The description of `FragmentSelector.value` lists characters one by one, `[`, `\\` and `]` among them: its page
+    shows it word for word, as markdown-it renders it."""
+    assert ELEMENTS.is_dir(), (
+        f"{ELEMENTS} is missing: build the site with `zensical build`"
+    )
+    assert shown_patterns() == schema_patterns()
+
+    yaml = YAML(typ="safe", pure=True)
+    source = yaml.load((SOURCES / "insight.yaml").read_text(encoding="utf-8"))
+    description = source["classes"]["FragmentSelector"]["attributes"]["value"][
+        "description"
+    ]
+    page = (ELEMENTS / "value" / "index.html").read_text(encoding="utf-8")
+    assert html_text(MarkdownIt("commonmark").renderInline(description)) in html_text(
+        page
+    )
+
+
+def sources() -> dict[str, dict[str, Any]]:
+    """Each LinkML module, keyed by its file's stem: `analysis`, `insight`, `provenance`, `types`."""
+    yaml = YAML(typ="safe", pure=True)
+    return {
+        module.stem: yaml.load(module.read_text(encoding="utf-8"))
+        for module in sorted(SOURCES.glob("*.yaml"))
+    }
+
+
+def classes_of(*stems: str) -> set[str]:
+    """The names of the classes the modules `stems` define."""
+    modules = sources()
+    return {name for stem in stems for name in modules[stem].get("classes") or {}}
+
+
+INDEX = ELEMENTS / "index.html"
+"""The field reference's index."""
+
+
+def index_tables() -> list[tuple[str, list[str], list[list[tuple[str, list[str]]]]]]:
+    parser = _Tables(("h1", "h2"))
+    parser.feed(INDEX.read_text(encoding="utf-8"))
+    parser.close()
+    return parser.tables
+
+
+def test_index_cuts_descriptions_short():
+    """Each description on the field reference's index is cut at the end of a sentence (`gen-doc` cuts it at its first
+    `.`, which can fall inside `astra.yaml` or a version), or of a word: the start of the element's description, in at
+    most 80 characters, ending with a `.`, `?` or `!` that ends it or is followed by white space, or with a word
+    followed by white space, or by a `,`, `;` or `:` the cut leaves out and white space, then `…`; or, where it has no
+    sentence end, the whole description. A slot shared by several classes shows one of theirs."""
+    descriptions = defaultdict(list)
+    for module in sources().values():
+        for name, definition in (module.get("classes") or {}).items():
+            descriptions[name].append(definition.get("description"))
+            for slot, attribute in (definition.get("attributes") or {}).items():
+                descriptions[slot].append((attribute or {}).get("description"))
+        for name, definition in (module.get("enums") or {}).items():
+            descriptions[name].append(definition.get("description"))
+        for name, definition in (module.get("types") or {}).items():
+            descriptions[camelcase(name)].append(definition.get("description"))
+    rows = [row for _, _, rows in index_tables() for row in rows]
+    shown = {row[0][0]: row[1][0] for row in rows if row[0][0] in descriptions}
+    assert set(shown) == set(descriptions)
+    cut = []
+    for name, text in shown.items():
+        whole = [
+            html_text(MarkdownIt("commonmark").renderInline(description))
+            for description in descriptions[name]
+            if description
+        ]
+        start = text.removesuffix("…")
+        word = start != text
+        if len(text) > 80 or not any(
+            full.startswith(start)
+            and (
+                re.match(r"[,;:]* ", full[len(start) :])
+                if word
+                else start == full
+                or start.endswith((".", "?", "!"))
+                and full[len(start) : len(start) + 1] in ("", " ")
+            )
+            for full in whole
+        ):
+            cut.append((name, text))
+    assert cut == []
+
+
+RANGE = {"Class", "Enum", "Type"}
+"""The kinds of element a range names."""
+
+LINKED = {
+    "Cardinality and Range": RANGE,
+    "Range": RANGE,
+    "used": RANGE,
+    "used in": {"Slot"},
+}
+"""Each column of a table of the field reference (or row, of a Property and Value table) that links to an element by
+name, with the kinds of element it links to: a class's slots' ranges, a slot's range, and the range a Usages table's
+slot is used with, then that slot."""
+
+
+def test_ranges_link_to_types():
+    """Each range in the field reference links to a class's, an enumeration's or a type's page, and each slot of a
+    Usages table to a slot's: `gen-doc` would link a range of the type `id` to the slot `id`, whose page is `id-slot`
+    (`tools/docgen.py`). A page's kind is the start of its title (`Type: Id`)."""
+    kinds = {}
+    for page in ELEMENTS.glob("*/index.html"):
+        title = re.search(r"<h1[^>]*>(\w+):", page.read_text(encoding="utf-8"))
+        kinds[page.parent.name] = title[1] if title else None
+    seen, wrong = set(), []
+    for page in sorted(ELEMENTS.glob("*/index.html")):
+        parser = _Tables(())
+        parser.feed(page.read_text(encoding="utf-8"))
+        parser.close()
+        for _, header, rows in parser.tables:
+            for row in rows:
+                for column, (_, links) in zip(header, row):
+                    if header == ["Property", "Value"] and column == "Value":
+                        column = row[0][0]
+                    for href in links if column in LINKED else []:
+                        seen.add(column)
+                        if kinds.get(href.split("/")[1]) not in LINKED[column]:
+                            wrong.append((page.parent.name, column, href))
+    assert (seen, wrong) == (set(LINKED), [])
+
+
+def test_descriptions_show_angle_brackets():
+    """A description is Markdown, which reads a `<` outside a code span as HTML: `command`'s writes `<entry>`, which its
+    page would hide. Its page shows the description, between its title and its first block, with each `<entry>` the
+    LinkML sources write (`tools/docgen.py`)."""
+    recipe = sources()["analysis"]["classes"]["Recipe"]
+    count = recipe["attributes"]["command"]["description"].count("<entry>")
+    page = (ELEMENTS / "command" / "index.html").read_text(encoding="utf-8")
+    shown = page.split("</h1>", 1)[1].split("<div", 1)[0]
+    assert count and html_text(shown).count("<entry>") == count
+
+
+def test_page_names_differ_by_more_than_case():
+    """No two pages of the field reference have names that differ only in case, which a case-insensitive file system
+    would keep one of (a slot's page takes `-slot` instead), and each link from one page to another reaches it."""
+    names = sorted(page.name for page in ELEMENTS.iterdir() if page.is_dir())
+    assert len({name.casefold() for name in names}) == len(names)
+    broken = set()
+    for page in ELEMENTS.glob("*/index.html"):
+        links = _Links()
+        links.feed(page.read_text(encoding="utf-8"))
+        links.close()
+        for href in links.hrefs:
+            target = href.split("#")[0]
+            if (
+                target.startswith("../")
+                and target.count("/") == 2
+                and not (ELEMENTS / target[3:-1]).is_dir()
+            ):
+                broken.add((page.parent.name, href))
+    assert broken == set()
+
+
+def test_index_lists_the_record_classes_apart():
+    """The field reference's index lists the classes of the analysis document under Classes, and those of the
+    provenance record under the record schema's own heading."""
+    record = sources()["provenance"]
+    tables = {
+        heading: {row[0][0] for row in rows}
+        for heading, header, rows in index_tables()
+        if header[:1] == ["Class"]
+    }
+    assert tables == {
+        "Classes": classes_of("analysis", "insight"),
+        record.get("title") or record["name"]: classes_of("provenance"),
+    }
+
+
+SCHEMA = SITE / "schema"
+"""The published schema files."""
+
+
+def test_merged_models_hold_every_class():
+    """The site publishes a merged LinkML model for each tree root: `astra.yaml` for the analysis document, with its
+    imports, and `provenance.yaml` for the record, each with its classes and one tree root."""
+    yaml = YAML(typ="safe", pure=True)
+    models = {
+        "astra.yaml": (classes_of("analysis", "insight"), "Analysis"),
+        "provenance.yaml": (classes_of("provenance"), "ProvenanceRecord"),
+    }
+    for file, (classes, root) in models.items():
+        model = yaml.load((SCHEMA / file).read_text(encoding="utf-8"))
+        roots = [name for name, c in model["classes"].items() if c.get("tree_root")]
+        assert (set(model["classes"]), roots) == (classes, [root]), file
+
+
+class _Tables(HTMLParser):
+    """The tables of a page, each with the text of the last heading of one of `levels` above it, its permalink left
+    out, its header, and for each body row the text of each cell and the `href` of each link in it."""
+
+    def __init__(self, levels: tuple[str, ...]) -> None:
+        super().__init__(convert_charrefs=True)
+        self.levels = levels
+        self.tables: list[tuple[str, list[str], list[list[tuple[str, list[str]]]]]] = []
+        self._section = ""
+        self._heading: list[str] | None = None
+        self._permalink = 0
+        self._table: tuple[str, list[str], list[list[tuple[str, list[str]]]]] | None = (
+            None
+        )
+        self._head = False
+        self._row: list[tuple[str, list[str]]] | None = None
+        self._cell: list[str] | None = None
+        self._links: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in self.levels:
+            self._heading = []
+        elif tag == "a" and self._heading is not None:
+            if (
+                self._permalink
+                or "headerlink" in (dict(attrs).get("class") or "").split()
+            ):
+                self._permalink += 1
+        elif tag == "a" and self._cell is not None:
+            self._links.append(dict(attrs).get("href") or "")
+        elif tag == "table":
+            self._table = (self._section, [], [])
+        elif tag == "thead":
+            self._head = True
+        elif tag == "tr":
+            self._row = []
+        elif tag in ("th", "td"):
+            self._cell, self._links = [], []
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in self.levels and self._heading is not None:
+            self._section = _words("".join(self._heading))
+            self._heading = None
+        elif tag == "a" and self._permalink:
+            self._permalink -= 1
+        elif tag in ("th", "td") and self._cell is not None and self._row is not None:
+            self._row.append((_words("".join(self._cell)), self._links))
+            self._cell = None
+        elif tag == "tr" and self._row is not None and self._table is not None:
+            if self._head:
+                self._table[1].extend(text for text, _ in self._row)
+            else:
+                self._table[2].append(self._row)
+            self._row = None
+        elif tag == "thead":
+            self._head = False
+        elif tag == "table" and self._table is not None:
+            self.tables.append(self._table)
+            self._table = None
+
+    def handle_data(self, data: str) -> None:
+        if self._heading is not None and not self._permalink:
+            self._heading.append(data)
+        if self._cell is not None:
+            self._cell.append(data)

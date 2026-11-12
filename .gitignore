@@ -1,16 +1,30 @@
 # generated part of documentation
 /docs/elements/*.md
-# generated schema artifacts (regenerated on every docs build and served from gh-pages)
+# published schema artifacts, written on every docs build and served from gh-pages:
+# the merged models (_gen-yaml), and the JSON Schemas, the record's JSON-LD
+# context and rules.json copied from the committed project/ folders (_add-artifacts)
 /docs/schema/*.yaml
 /docs/schema/*.json
 /docs/schema/*.jsonld
+# astra-tools' CLI reference and installation page, copied in on every docs
+# build from astra-tools, where they live (_docs-tools)
+/docs/cli.md
+/docs/installation.md
 # linkml-run-examples output (not useful to have in git in its current form)
 /examples/output/
 
-# Derived schemas, generated from the schema.yaml
+# Derived schemas, generated from the schema.yaml. tmp/ also holds the drift
+# check's fresh generation (tmp/generated-check/) and astra-tools' checkout for
+# its docs (tmp/astra-tools/).
 tmp/
-project/
+# project/'s folders are ignored, but for the contract `just gen-schema` writes
+# (committed, and shipped in the wheel): `project/*` rather than `project/`, so
+# that git looks inside for the folders it keeps.
+project/*
 !project/README.md
+!project/jsonschema/
+!project/jsonld/
+!project/rules/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

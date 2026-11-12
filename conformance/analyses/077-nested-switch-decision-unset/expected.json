@@ -1,0 +1,7 @@
+{
+  "about": "A universe whose outer switch takes the inner switch leaves the inner switch's decision unset.",
+  "valid": false,
+  "must_report": [
+    {"code": "MISSING_DECISION", "file": "astra.yaml"}
+  ]
+}

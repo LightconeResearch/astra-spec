@@ -1,0 +1,8 @@
+{
+  "about": "A case on an excluded option is never taken, but its output's decision counts as used on some branch, so setting it is a warning, not an error.",
+  "valid": true,
+  "must_report": [
+    {"code": "INACTIVE_DECISION", "file": "astra.yaml"}
+  ],
+  "must_not_report": ["UNUSED_DECISION"]
+}

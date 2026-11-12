@@ -1,0 +1,37 @@
+spec_version: "0.1.0"
+decisions:
+  decision0:
+    options: {x: {}, y: {}}
+  decision1:
+    options: {a: {}, b: {}}
+outputs:
+  output1:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py output1 '{output}'
+  output2:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py output2 '{output}'
+  output3:
+    type: data
+    format: csv
+    recipe:
+      command: python make.py output3 '{output}'
+  switch1:
+    switch: decision1
+    cases: {a: output1, b: output2}
+  report:
+    type: report
+    format: md
+    inputs: [switch1]
+    recipe:
+      command: python make.py '{inputs.switch1}' '{output}'
+  switch0:
+    switch: decision0
+    cases: {x: report, y: output3}
+universes:
+  v1:
+    decisions: {decision0: y}

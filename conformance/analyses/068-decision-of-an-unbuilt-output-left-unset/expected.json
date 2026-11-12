@@ -1,0 +1,5 @@
+{
+  "about": "Where a switch takes nothing, the output that reads it isn't built, so a universe there leaves unset the decision only that output lists.",
+  "valid": true,
+  "must_not_report": ["MISSING_DECISION", "INACTIVE_DECISION"]
+}

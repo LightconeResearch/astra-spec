@@ -14,8 +14,8 @@ process or governance changes.
 The full lifecycle, decision rights, and acceptance criteria are documented on
 the site:
 
-- **[RFC process](https://astra-spec.org/rfc-process/)** — how a proposal moves from idea to accepted.
-- **[Governance](https://astra-spec.org/governance/)** — who decides, and how that evolves toward v0.1.
+- **[RFC process](https://astra-spec.org/latest/rfc-process/)** — how a proposal moves from idea to accepted.
+- **[Governance](https://astra-spec.org/latest/governance/)** — who decides, and how that evolves toward v0.1.
 
 > **ASTRA is in alpha.** The process below is published as a *full-featured
 > draft*. Until ASTRA reaches **v0.1**, decisions rest with the Lightcone
@@ -31,7 +31,7 @@ the site:
 3. **Discuss and iterate** while the PR is a draft, until the proposal stabilizes.
 4. **Mark the PR ready for review** to open the decision window (`status: Active`).
    It is then **Accepted** or **Rejected** per the
-   [RFC process](https://astra-spec.org/rfc-process/). Both accepted *and*
+   [RFC process](https://astra-spec.org/latest/rfc-process/). Both accepted *and*
    rejected RFCs are merged, so the record is complete.
 
 The process uses GitHub's native draft / ready-for-review / merged states rather

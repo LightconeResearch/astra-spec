@@ -2,39 +2,38 @@
 
 ## Schema and Documentation
 
-The ASTRA schema is defined in LinkML files under `src/astra/schema/`. When modifying any schema file (`analysis.yaml`, `insight.yaml`, `universe.yaml`), you **must** also update the corresponding documentation:
+The ASTRA schema is defined in LinkML files under `src/astra/schema/`. Their descriptions define the fields: the field reference is generated from them, and the specification doesn't restate them. When modifying any schema file (`types.yaml`, `analysis.yaml`, `insight.yaml`, `provenance.yaml`), you **must** also update the corresponding documentation:
 
-- **`docs/specification.md`** — The human-readable specification. Update field tables, examples, and descriptions to reflect schema changes.
+- **`docs/specification.md`** — The specification: update its elements, examples and rules. Its codes table is extracted into `rules.json`, so keep its format.
 - **`docs/index.md`** — Landing page; update the quick "At a glance" example if the change affects it.
-- **`docs/cli.md`** — CLI reference; update if the schema change adds a new validation rule or command surface.
-- **`docs/llms.txt`** — Agent-facing briefing served at `/latest/llms.txt` ([llms.txt convention](https://llmstxt.org/)). Update its concept list, example, and validator-rules section if the change affects them. Also shipped inside the wheel as `astra/docs/llms.txt` (hatch force-include in pyproject.toml) so `astra guide` in astra-tools can print the copy matching the installed schema.
+- **`docs/llms.txt`** — Agent-facing briefing served at `/<version>/llms.txt` ([llms.txt convention](https://llmstxt.org/)). Update its concept list, example, and format rules if the change affects them. Also shipped in the wheel as `astra/docs/llms.txt`, which `astra guide` in astra-tools prints.
 - **`README.md`** — If the change affects the quick example or design principles, update the README too.
+- **`tests/data/` and `conformance/`** — Add or update a document or an analysis case for each rule the change adds or alters.
 
-Run `just gen-python` to regenerate Python datamodels and `just gen-doc` to regenerate the schema reference docs after any schema change.
+After any schema change, run `just gen-schema gen-python gen-doc` and commit `project/` and `src/astra/datamodel/` (`just check-generated` checks them).
+
+The CLI reference and installation page live in astra-tools; the docs build copies them in (`tools_ref` in `project.justfile`, or a local folder in `ASTRA_TOOLS_DOCS`). astra-tools pins a commit of this repository (`astra-spec.pin`): push here first, and after a squash-merge astra-tools re-pins to the commit on main.
 
 ## Documentation versioning (mike)
 
-The whole docs site is versioned with [mike](https://github.com/squidfunk/mike) — specifically squidfunk's fork, which Zensical's versioning provider depends on. Each release deploys a full copy of the site to a subdirectory of the `gh-pages` branch (`/0.0.9/`, `/latest/`, etc.). Mike is enabled via `[project.extra.version] provider = "mike"` in `zensical.toml`; the version dropdown in the header is rendered natively.
+The whole docs site is versioned with [mike](https://github.com/squidfunk/mike) (squidfunk's fork, which Zensical's versioning needs). Each release deploys a full copy of the site to a folder of the `gh-pages` branch (`/0.0.14/`, `/latest/`).
 
 Release flow:
 
-1. `just release X.Y.Z` — updates `CITATION.cff`, commits, and creates an annotated tag. Does not push. Schema YAMLs are *not* mutated; the version is injected at build time from the git tag.
-2. `git push && git push origin vX.Y.Z` — review then push. The `Deploy versioned docs on tag` GitHub Actions workflow runs `mike deploy --push --update-aliases X.Y.Z latest` automatically.
+1. `just release X.Y.Z` — regenerates the generated files with the version, updates `CITATION.cff`, commits, tags, then returns the generated files to `dev`. Does not push. Schema YAMLs keep `version: 0.0.0`.
+2. `git push --atomic origin HEAD vX.Y.Z` — review then push. The `Deploy versioned docs on tag` GitHub Actions workflow deploys `/X.Y.Z/` and moves the `X.Y` and `latest` aliases; a pre-release (`X.Y.ZrcN`) moves none.
 
-For a manual deploy (e.g. backfilling a tag), `just docs-deploy X.Y.Z` runs the same `mike deploy` locally.
+For a manual deploy (e.g. backfilling a tag), `just docs-deploy X.Y.Z X.Y latest`, at a checkout of the tag, runs the same `mike deploy` locally.
 
-First-time setup: after the first deploy, run `just docs-set-default latest` once so the bare site root redirects to `/latest/`.
-
-Hosting: mike pushes to `gh-pages`. The hosting platform (Cloudflare Pages, GitHub Pages, etc.) must be configured to serve from `gh-pages`, not `main`. Without this, `mike deploy` runs successfully but the site doesn't pick up versioned URLs in production.
-
-Schema artifacts (`docs/schema/*.{yaml,json,jsonld}`) are versioned along with the rest of the site: machine consumers should resolve them via the canonical `https://w3id.org/astra/...` URI (which redirects to a hosted location), or pin to `astra-spec.org/X.Y.Z/schema/...`.
+Schema artifacts (`docs/schema/`) are versioned with the site: machine consumers should resolve them via `https://w3id.org/astra/X.Y/...`, or pin to `astra-spec.org/X.Y.Z/schema/...`.
 
 ## Key Commands
 
 ```bash
 just test        # Run all tests
-just gen-python  # Regenerate Python datamodels from schema
-just gen-doc     # Regenerate schema reference documentation
+just gen-schema  # Regenerate the contract (project/)
+just gen-python  # Regenerate the datamodels
+just gen-doc     # Regenerate field reference documentation
 just lint        # Lint the schema
 just docs-serve  # Build and preview docs locally with live reload
 ```
@@ -42,12 +41,11 @@ just docs-serve  # Build and preview docs locally with live reload
 ## Repository Layout
 
 - `src/astra/schema/` — LinkML schema source files (edit these)
-- `src/astra/datamodel/` — Generated Python datamodel (do not edit directly)
+- `src/astra/datamodel/` — Generated Python datamodels (do not edit)
+- `project/` — Generated; `jsonschema/`, `jsonld/`, `rules/` committed
 - `docs/` — Documentation source (rendered with [Zensical](https://zensical.org/); config in `zensical.toml`)
-- `docs/index.md` — Landing page (clean, MCP-style with card grid nav)
-- `docs/getting-started.md` — Install + scaffold + validate tutorial
-- `docs/specification.md` — The ASTRA format specification
-- `docs/cli.md` — `astra` CLI reference (covers commands shipped by `astra-tools`)
-- `docs/elements/` — Auto-generated schema reference (regenerated by `just gen-doc`)
+- `docs/getting-started.md` — Scaffold + validate tutorial
+- `docs/elements/` — Auto-generated field reference (regenerated by `just gen-doc`)
 - `examples/` — Example ASTRA projects (iris, iris_pipeline)
-- `tests/data/` — Test fixtures (valid, invalid, problem)
+- `tests/data/` — Documents, valid and invalid, with the codes they break
+- `conformance/` — The conformance suite's analysis cases, with their expected verdicts
