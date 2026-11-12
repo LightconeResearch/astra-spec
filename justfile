@@ -166,9 +166,17 @@ gen-schema out="src/astra/schema/generated": _stage-versioned
   uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
   uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}{series}/provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
   uv run python tools/jsonld_context.py {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
+  uv run python tools/jsonschema_generator.py --root ValidationReport --id {{schema_namespace}}{series}/validation-report.schema.json {{staged_schema_dir}}/validation.yaml > {{out}}/validation-report.schema.json
+  uv run python tools/jsonschema_generator.py --root ResolvedAnalysis --id {{schema_namespace}}{series}/resolved-analysis.schema.json {{staged_schema_dir}}/resolved.yaml > {{out}}/resolved-analysis.schema.json
+  uv run python tools/jsonschema_generator.py --root Plan --id {{schema_namespace}}{series}/plan.schema.json {{staged_schema_dir}}/plan.yaml > {{out}}/plan.schema.json
+  uv run python tools/jsonschema_generator.py --root CheckReport --id {{schema_namespace}}{series}/check-report.schema.json {{staged_schema_dir}}/check.yaml > {{out}}/check-report.schema.json
   uv run python tools/rules.py docs/specification.md {{staged_schema_dir}}/analysis.yaml {{staged_schema_dir}}/provenance.yaml --schemas {{out}}/analysis.schema.json {{out}}/provenance.schema.json {{out}}/provenance.open.schema.json > {{out}}/rules.json
   uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.py
   uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.py
+  uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/validation.yaml > {{out}}/validation.py
+  uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/resolved.yaml > {{out}}/resolved.py
+  uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/plan.yaml > {{out}}/plan.py
+  uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/check.yaml > {{out}}/check.py
 
 # Check that the committed generated files are what `gen-schema` makes now.
 # The `__pycache__` Python writes on importing the Pydantic models (the tests

@@ -1,0 +1,125 @@
+---
+id: https://w3id.org/astra/plan
+name: plan
+description: |-
+  The plan: the planned results of an analysis, each with what a runner
+  needs to build it, in an order they can be built in.
+# Placeholder version. The real version is injected at build time from the
+# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
+license: https://creativecommons.org/licenses/by/4.0/
+
+prefixes:
+  astra: https://w3id.org/astra/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+  - results
+  - analysis
+
+enums:
+
+  NoteKind:
+    description: What a note of the plan is about.
+    permissible_values:
+      fallback_pin:
+        description: >-
+          A pin that names another analysis's universe only because its file
+          has no universe of that id.
+      two_names:
+        description: A result with two names.
+      unplanned:
+        description: An output with no planned result.
+      same_computation:
+        description: Results that are one computation in several universes.
+      outside_folder:
+        description: >-
+          A command that names a path outside its analysis's folder, or
+          inside an analysis below it.
+
+classes:
+
+  PlannedResult:
+    is_a: Result
+    description: A planned result, as a runner builds it.
+    attributes:
+      command:
+        required: true
+        description: The recipe's `command`, with its placeholders as written.
+      workdir:
+        required: true
+        description: >-
+          The folder the recipe runs in, its output's analysis's, as a path
+          from the top of the tree that analysis is read in.
+      read_only:
+        range: boolean
+        required: true
+        description: >-
+          Whether the result is one from a commit: never built, and read
+          through its record.
+      run_at:
+        range: commit_id
+        description: >-
+          For a result of a driven analysis from a commit, the full id of the
+          commit its recipe runs on.
+      resources:
+        range: Resources
+        inlined: true
+        description: What the recipe asks for.
+
+  Note:
+    description: >-
+      Something an author may want to tidy, which breaks no rule.
+    attributes:
+      kind:
+        range: NoteKind
+        required: true
+        description: What the note is about.
+      message:
+        required: true
+        description: The note, in a sentence.
+      location:
+        range: Location
+        inlined: true
+        description: The pin, the output or the command the note is about.
+      results:
+        range: integer
+        multivalued: true
+        required: true
+        description: >-
+          The planned results the note is about, as their indices in the
+          plan's `results`.
+      built:
+        range: boolean
+        required: true
+        description: Whether the note concerns what the driving analysis builds.
+
+  Plan:
+    tree_root: true
+    description: The planned results of an analysis, and the notes on them.
+    attributes:
+      shape:
+        required: true
+        equals_string: astra-plan/1
+        description: The name and version of this shape.
+      root:
+        required: true
+        description: >-
+          The driving analysis's `astra.yaml`, as a path from the top of the
+          repository that holds it.
+      results:
+        range: PlannedResult
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The planned results, each after every result it reads.
+      notes:
+        range: Note
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: What an author may want to tidy.

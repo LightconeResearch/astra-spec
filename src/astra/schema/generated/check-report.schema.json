@@ -1,0 +1,498 @@
+{
+  "$comment": "check schema version dev",
+  "$defs": {
+    "BytesStatus": {
+      "description": "What a checker finds of a planned result's bytes.",
+      "enum": [
+        "present",
+        "absent"
+      ],
+      "title": "BytesStatus",
+      "type": "string"
+    },
+    "CheckedEvidence": {
+      "additionalProperties": false,
+      "description": "An item of evidence that cites an output, and the status it gets.",
+      "properties": {
+        "artifact": {
+          "description": "The evidence's `artifact`, as written.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "cites": {
+          "description": "The addresses of the results whose status the evidence takes.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "location": {
+          "$ref": "#/$defs/Location",
+          "description": "The evidence's `artifact`, in the `astra.yaml` that holds it."
+        },
+        "reasons": {
+          "description": "The check rules the evidence breaks.",
+          "items": {
+            "$ref": "#/$defs/Reason"
+          },
+          "type": "array"
+        },
+        "record_status": {
+          "$ref": "#/$defs/RecordStatus",
+          "description": "The evidence's status, the worst of the results it cites."
+        }
+      },
+      "required": [
+        "location",
+        "artifact",
+        "cites",
+        "record_status",
+        "reasons"
+      ],
+      "title": "CheckedEvidence",
+      "type": "object"
+    },
+    "CheckedPlace": {
+      "additionalProperties": false,
+      "description": "A planned result's statuses at one of its places.",
+      "properties": {
+        "address": {
+          "description": "The name, then, for a result built in a universe, `#` and that universe's own id, such as `subanalysis.output1#u1`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "bytes": {
+          "description": "The default place of the result's bytes, as a path from the top of the tree its analysis is read in.",
+          "type": "string"
+        },
+        "bytes_status": {
+          "$ref": "#/$defs/BytesStatus",
+          "description": "The status of the bytes at the default place. Left out for a result from a commit that no recipe reads."
+        },
+        "committed": {
+          "description": "Whether git holds the record at the place as it is.",
+          "type": "boolean"
+        },
+        "environment": {
+          "description": "What each registered scheme says of the record's environment.",
+          "items": {
+            "$ref": "#/$defs/EnvironmentAnswer"
+          },
+          "type": "array"
+        },
+        "name": {
+          "description": "The result's name: its output's id after the ids of the driven declarations that lead to it from the analysis it belongs to, such as `subanalysis.output1`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "reasons": {
+          "description": "The check rules broken at the place.",
+          "items": {
+            "$ref": "#/$defs/Reason"
+          },
+          "type": "array"
+        },
+        "record": {
+          "description": "The place of the result's record, as a path from the top of the tree its analysis is read in.",
+          "type": "string"
+        },
+        "record_status": {
+          "$ref": "#/$defs/RecordStatus",
+          "description": "The status of the record at the place."
+        }
+      },
+      "required": [
+        "record_status",
+        "committed",
+        "reasons",
+        "environment",
+        "name",
+        "address",
+        "record",
+        "bytes"
+      ],
+      "title": "CheckedPlace",
+      "type": "object"
+    },
+    "CheckedResult": {
+      "additionalProperties": false,
+      "description": "A planned result, with its statuses at each of its places.",
+      "properties": {
+        "decisions": {
+          "description": "What the result is made with: one item for each entry of its output's `decisions`, in their order.",
+          "items": {
+            "$ref": "#/$defs/Selected"
+          },
+          "type": "array"
+        },
+        "inputs": {
+          "description": "What the result reads: one item for each entry of its output's `inputs`, in their order.",
+          "items": {
+            "$ref": "#/$defs/Read"
+          },
+          "type": "array"
+        },
+        "names": {
+          "description": "The result's names, one for each driven chain that reaches it.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "output": {
+          "$ref": "#/$defs/Element",
+          "description": "The output the result is of."
+        },
+        "owner": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis the result belongs to: the one whose universe builds it or, for an output built once, the one whose output it is."
+        },
+        "places": {
+          "description": "The result's places, one for each of its names, in their order.",
+          "items": {
+            "$ref": "#/$defs/CheckedPlace"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "universe": {
+          "description": "The id of the universe the result is built in, one of its owner's. Left out for an output built once.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "names",
+        "owner",
+        "output",
+        "places",
+        "inputs",
+        "decisions"
+      ],
+      "title": "CheckedResult",
+      "type": "object"
+    },
+    "Diagnostic": {
+      "additionalProperties": false,
+      "description": "A rule broken: its code, how it counts, and where.",
+      "properties": {
+        "code": {
+          "description": "The rule's code, one of the specification's codes table or one of the tool's own, such as `UNRESOLVED_ADDRESS`.",
+          "type": "string"
+        },
+        "level": {
+          "$ref": "#/$defs/Level",
+          "description": "How the broken rule counts."
+        },
+        "location": {
+          "$ref": "#/$defs/Location",
+          "description": "Where the rule is broken."
+        },
+        "message": {
+          "description": "What is wrong and what to do about it, in a sentence.",
+          "type": "string"
+        },
+        "related": {
+          "description": "Other places the diagnostic is about.",
+          "items": {
+            "$ref": "#/$defs/Location"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "code",
+        "level",
+        "message",
+        "location"
+      ],
+      "title": "Diagnostic",
+      "type": "object"
+    },
+    "Element": {
+      "additionalProperties": false,
+      "description": "An element of an analysis: what an address resolves to. Two addresses that resolve to one element are two spellings of it.",
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis the element is in."
+        },
+        "id": {
+          "description": "The element's id in its analysis.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ElementKind",
+          "description": "The kind of element."
+        }
+      },
+      "required": [
+        "analysis",
+        "kind",
+        "id"
+      ],
+      "title": "Element",
+      "type": "object"
+    },
+    "ElementKind": {
+      "description": "The kind of element an address resolves to.",
+      "enum": [
+        "input",
+        "output",
+        "decision",
+        "universe"
+      ],
+      "title": "ElementKind",
+      "type": "string"
+    },
+    "EnvironmentAnswer": {
+      "additionalProperties": false,
+      "description": "What a scheme a runner registers says of a recorded environment.",
+      "properties": {
+        "holds": {
+          "description": "What the environment holds, as the scheme words it.",
+          "type": "string"
+        },
+        "recreatable": {
+          "description": "Whether the scheme's runner can recreate the environment.",
+          "type": "boolean"
+        },
+        "scheme": {
+          "description": "The scheme's name.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scheme",
+        "holds",
+        "recreatable"
+      ],
+      "title": "EnvironmentAnswer",
+      "type": "object"
+    },
+    "Identity": {
+      "additionalProperties": false,
+      "description": "What an analysis is known by: its folder and the commit it is read at. One folder at one commit is one analysis however it is declared.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit the analysis is read at. Left out for an analysis read in the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "folder": {
+          "description": "The analysis's folder, as a path from the top of the repository it is read in or, read in the working tree, from the top of the driving analysis's working tree. The top itself is the empty string.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "folder"
+      ],
+      "title": "Identity",
+      "type": "object"
+    },
+    "Level": {
+      "description": "How a broken rule counts.",
+      "enum": [
+        "error",
+        "warning"
+      ],
+      "title": "Level",
+      "type": "string"
+    },
+    "Location": {
+      "additionalProperties": false,
+      "description": "Where a diagnostic is: a file, and a place in it.",
+      "properties": {
+        "column": {
+          "description": "The column of the place in its line, counted from 1.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "commit": {
+          "description": "The full id of the commit the file is read at. Left out for the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "file": {
+          "description": "The file's path from the top of the repository that holds it.",
+          "type": "string"
+        },
+        "key": {
+          "description": "The map key or field the diagnostic names at the place.",
+          "type": "string"
+        },
+        "line": {
+          "description": "The line of the place in the file, counted from 1.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "pointer": {
+          "description": "A JSON Pointer to the place in the file. The whole file is the empty string.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL of the remote the file is read from, if any.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "pointer"
+      ],
+      "title": "Location",
+      "type": "object"
+    },
+    "Read": {
+      "additionalProperties": false,
+      "description": "One entry of an output's `inputs`, and what a planned result reads through it: an input's file, or another planned result's bytes. An entry that names a switch reads what the case the switch takes names.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit `path` is read at. Left out for the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "entry": {
+          "description": "The entry exactly as the output's `inputs` lists it.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "path": {
+          "description": "The input's file, or the default place of the bytes of the result read, as a path from the top of the tree it is read in.",
+          "type": "string"
+        },
+        "result": {
+          "description": "The planned result read, as its index in the `results` that hold this one. Left out for an input.",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "entry",
+        "path"
+      ],
+      "title": "Read",
+      "type": "object"
+    },
+    "Reason": {
+      "additionalProperties": false,
+      "description": "A check rule broken, and what breaks it.",
+      "properties": {
+        "breaks": {
+          "description": "For a record that doesn't parse or meet its schema, the code of the parse or schema rule it breaks.",
+          "type": "string"
+        },
+        "code": {
+          "description": "The rule's code, such as `STALE_RESULT`.",
+          "type": "string"
+        },
+        "level": {
+          "$ref": "#/$defs/Level",
+          "description": "How the broken rule counts."
+        },
+        "location": {
+          "$ref": "#/$defs/Location",
+          "description": "The record, or the place in it; the default place of the bytes; or the evidence's `artifact`."
+        },
+        "message": {
+          "description": "What is wrong and what to do about it, in a sentence.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "level",
+        "message",
+        "location"
+      ],
+      "title": "Reason",
+      "type": "object"
+    },
+    "RecordStatus": {
+      "description": "What a checker finds of a planned result's record.",
+      "enum": [
+        "unchanged",
+        "stale",
+        "missing"
+      ],
+      "title": "RecordStatus",
+      "type": "string"
+    },
+    "Selected": {
+      "additionalProperties": false,
+      "description": "One entry of an output's `decisions`, and the option a planned result is made with for it.",
+      "properties": {
+        "entry": {
+          "description": "The entry exactly as the output's `decisions` lists it.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "option": {
+          "description": "The id of the option selected where the result is built. Left out where none is.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "entry"
+      ],
+      "title": "Selected",
+      "type": "object"
+    }
+  },
+  "$id": "https://w3id.org/astra/dev/check-report.schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": false,
+  "description": "What checking an analysis found.",
+  "properties": {
+    "at": {
+      "description": "What the analysis, its records and its bytes are read at: `worktree`, or the full id of a commit.",
+      "type": "string"
+    },
+    "errors": {
+      "description": "The `MUST`s the analysis breaks, as a validator finds them.",
+      "items": {
+        "$ref": "#/$defs/Diagnostic"
+      },
+      "type": "array"
+    },
+    "evidence": {
+      "description": "The evidence that cites an output, with its status.",
+      "items": {
+        "$ref": "#/$defs/CheckedEvidence"
+      },
+      "type": "array"
+    },
+    "results": {
+      "description": "The planned results, in the plan's order, with their statuses.",
+      "items": {
+        "$ref": "#/$defs/CheckedResult"
+      },
+      "type": "array"
+    },
+    "root": {
+      "description": "The driving analysis's `astra.yaml`, as a path from the top of the repository that holds it.",
+      "type": "string"
+    },
+    "shape": {
+      "const": "astra-check-report/1",
+      "description": "The name and version of this shape.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "shape",
+    "root",
+    "at",
+    "results",
+    "evidence",
+    "errors"
+  ],
+  "title": "check",
+  "type": "object"
+}

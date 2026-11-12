@@ -1,0 +1,1444 @@
+{
+  "$comment": "resolved schema version dev",
+  "$defs": {
+    "Analysis": {
+      "additionalProperties": false,
+      "description": "An analysis: the files it reads, the artefacts it makes and the decisions it makes along the way. It is the content of an `astra.yaml` file.",
+      "properties": {
+        "analyses": {
+          "additionalProperties": {
+            "$ref": "#/$defs/AnalysisDeclaration__identifier_optional"
+          },
+          "description": "The analyses this analysis uses, keyed by the id it addresses them by.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "decisions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Decision__identifier_optional"
+          },
+          "description": "The choices the analysis makes, keyed by id.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "description": {
+          "description": "What the analysis does, in free prose.",
+          "type": "string"
+        },
+        "findings": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Insight__identifier_optional"
+          },
+          "description": "What the analysis concludes, as insights keyed by id.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Input__identifier_optional"
+          },
+          "description": "The files the analysis reads, keyed by id.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "label": {
+          "description": "A short display name for the analysis.",
+          "type": "string"
+        },
+        "outputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Output__identifier_optional"
+          },
+          "description": "The artefacts the analysis makes, and its switches, keyed by id.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "prior_insights": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Insight__identifier_optional"
+          },
+          "description": "What earlier work establishes and the analysis builds on, as insights keyed by id. Options cite them in their `insights`.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "spec_version": {
+          "description": "The version of the ASTRA specification the document is written against, such as `0.1.0`.",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the analysis.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "universes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Universe__identifier_optional"
+          },
+          "description": "The universes of the analysis, and the universes of other analyses it imports, keyed by id. An import has an `analysis` and a `universe`.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "spec_version"
+      ],
+      "title": "Analysis",
+      "type": "object"
+    },
+    "AnalysisDeclaration__identifier_optional": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "path": {}
+                },
+                "required": [
+                  "path"
+                ]
+              },
+              {
+                "properties": {
+                  "url": {}
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "commit": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "commit": {}
+            },
+            "required": [
+              "commit"
+            ]
+          }
+        }
+      ],
+      "description": "An analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit the declared analysis is read at. A declaration with a `url` has one; with a `path`, it declares the analysis at that path as it was at that commit.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "path": {
+          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml`, with `/` between folders. It is non-empty and doesn't start with `/`.",
+          "pattern": "^[^/]",
+          "type": "string"
+        },
+        "url": {
+          "description": "Where git fetches another repository from, as a remote with no ASCII space or control character, in one of two forms: `scheme://` and at least one character, where the scheme is an ASCII letter followed by any ASCII letters, digits, `+`, `.` and `-`, such as `https://example.org/remote.git` or `file:///srv/remote.git`; or scp-like, `[user@]host:path`, where `host`, `path` and any `user` are non-empty, `user` and `host` hold no `/`, `@` or `:`, and the value doesn't start with a scheme and `://`, such as `git@example.org:remote.git`. The declared analysis is the one at the top level of that repository, at `commit`.",
+          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$",
+          "type": "string"
+        }
+      },
+      "title": "AnalysisDeclaration",
+      "type": "object"
+    },
+    "AnalysisEntry": {
+      "additionalProperties": false,
+      "description": "One analysis, the driving analysis or one it declares, directly or not: its file as written, and its addresses resolved.",
+      "properties": {
+        "address": {
+          "description": "The ids of the declarations by which the driving analysis first reaches the analysis, joined by `.`, such as `stage.inner`. The driving analysis's is the empty string.",
+          "type": "string"
+        },
+        "commit": {
+          "description": "The full id of the commit the analysis is read at. Left out for an analysis read in the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "fields": {
+          "$ref": "#/$defs/Analysis",
+          "description": "The content of the analysis's `astra.yaml`, as written."
+        },
+        "file": {
+          "description": "The analysis's `astra.yaml`, as a path from the top of the tree it is read in.",
+          "type": "string"
+        },
+        "folder": {
+          "description": "The analysis's folder, as a path from the top of the repository it is read in or, read in the working tree, from the top of the driving analysis's working tree. The top itself is the empty string.",
+          "type": "string"
+        },
+        "refs": {
+          "description": "Every address the file writes, in the order of their places.",
+          "items": {
+            "$ref": "#/$defs/ResolvedAddress"
+          },
+          "type": "array"
+        },
+        "url": {
+          "description": "The URL of the remote the analysis is read from, if any.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "address",
+        "fields",
+        "refs",
+        "folder"
+      ],
+      "title": "AnalysisEntry",
+      "type": "object"
+    },
+    "BuiltUniverse": {
+      "additionalProperties": false,
+      "description": "A universe in which results are built, and the analyses built in it as they are there.",
+      "properties": {
+        "analyses": {
+          "description": "The analyses built in the universe, its own first.",
+          "items": {
+            "$ref": "#/$defs/Identity"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "analysis": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis whose universe it is."
+        },
+        "decisions": {
+          "description": "Each decision of the analyses built in the universe.",
+          "items": {
+            "$ref": "#/$defs/DecisionState"
+          },
+          "type": "array"
+        },
+        "id": {
+          "description": "The universe's id in its analysis.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "outputs": {
+          "description": "Each output and switch of the analyses built in the universe.",
+          "items": {
+            "$ref": "#/$defs/OutputState"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "analysis",
+        "id",
+        "analyses",
+        "decisions",
+        "outputs"
+      ],
+      "title": "BuiltUniverse",
+      "type": "object"
+    },
+    "DecisionState": {
+      "additionalProperties": false,
+      "description": "A decision in a universe in which results are built.",
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis the decision is in."
+        },
+        "id": {
+          "description": "The decision's id.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "selected": {
+          "description": "The id of the option the universe's effective selection selects. Left out where it selects none.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "used": {
+          "description": "Whether the universe uses the decision: a result planned in it lists the decision, or a switch reached in it switches on it.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "analysis",
+        "id",
+        "used"
+      ],
+      "title": "DecisionState",
+      "type": "object"
+    },
+    "Decision__identifier_optional": {
+      "additionalProperties": false,
+      "description": "A choice the analysis makes between options, such as which method to use.",
+      "properties": {
+        "label": {
+          "description": "A short display name for the decision.",
+          "type": "string"
+        },
+        "options": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Option__identifier_optional"
+          },
+          "description": "The options the decision chooses between, keyed by id. There is at least one.",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "rationale": {
+          "description": "Why the analysis makes this decision, in free prose.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the decision.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "options"
+      ],
+      "title": "Decision",
+      "type": "object"
+    },
+    "Element": {
+      "additionalProperties": false,
+      "description": "An element of an analysis: what an address resolves to. Two addresses that resolve to one element are two spellings of it.",
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis the element is in."
+        },
+        "id": {
+          "description": "The element's id in its analysis.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ElementKind",
+          "description": "The kind of element."
+        }
+      },
+      "required": [
+        "analysis",
+        "kind",
+        "id"
+      ],
+      "title": "Element",
+      "type": "object"
+    },
+    "ElementKind": {
+      "description": "The kind of element an address resolves to.",
+      "enum": [
+        "input",
+        "output",
+        "decision",
+        "universe"
+      ],
+      "title": "ElementKind",
+      "type": "string"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "artifact": {
+                "type": "string"
+              },
+              "doi": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "doi": {}
+                },
+                "required": [
+                  "doi"
+                ]
+              },
+              {
+                "properties": {
+                  "artifact": {}
+                },
+                "required": [
+                  "artifact"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "doi": {}
+              },
+              "required": [
+                "doi"
+              ]
+            },
+            "properties": {
+              "doi": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "version": {}
+              },
+              "required": [
+                "version"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "What a claim rests on: a published work, cited by its `doi`, or an output, cited as an `artifact`. It has exactly one of the two, and a `version` only with a `doi`.",
+      "properties": {
+        "artifact": {
+          "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, the one the claim is about, such as `output1#u1`. A switch is cited as the case it takes, and each of its cases names an output other than a switch, or a switch like it.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "doi": {
+          "description": "The DOI name of the cited work, under the `10` directory: `10.`, the registrant code, `/` and a non-empty suffix, such as `10.5555/12345678`.",
+          "pattern": "^10\\.[0-9]+(\\.[0-9]+)*/(?!$)",
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/FragmentSelector",
+          "description": "The place in the cited work or output the claim rests on, such as `page=6`."
+        },
+        "quote": {
+          "$ref": "#/$defs/TextQuoteSelector",
+          "description": "The passage of the cited work or output the claim rests on. With a `location`, the passage is sought within that place."
+        },
+        "version": {
+          "description": "The version of the cited work, counted from 1, such as `2` for the second version of an arXiv paper.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "title": "Evidence",
+      "type": "object"
+    },
+    "FragmentSelector": {
+      "additionalProperties": false,
+      "description": "A place in the cited work or output, given as a fragment identifier in the syntax `conforms_to` names, such as `row=5-7` in a CSV (RFC 7111). Without `conforms_to`, it is a PDF fragment identifier (RFC 8118 \u00a73), such as `page=6`, with pages counted from 1.",
+      "properties": {
+        "conforms_to": {
+          "description": "The IRI of the specification of the fragment syntax `value` follows, as W3C Web Annotation gives it, such as `http://tools.ietf.org/rfc/rfc7111` for a CSV. Without it, `value` is a PDF fragment identifier (RFC 8118).",
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\\x22{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\\x22{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$",
+          "type": "string"
+        },
+        "value": {
+          "description": "The fragment identifier, without the leading `#`, such as `page=6`. It is non-empty, holds no ASCII space or control character and none of `\"`, `#`, `<`, `>`, `[`, the backslash, `]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before two hex digits.",
+          "pattern": "^([^\\x00-\\x20\\x7f\\x22#%<>\\[\\\\\\]^`{|}]|%[0-9A-Fa-f]{2})+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "FragmentSelector",
+      "type": "object"
+    },
+    "Identity": {
+      "additionalProperties": false,
+      "description": "What an analysis is known by: its folder and the commit it is read at. One folder at one commit is one analysis however it is declared.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit the analysis is read at. Left out for an analysis read in the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "folder": {
+          "description": "The analysis's folder, as a path from the top of the repository it is read in or, read in the working tree, from the top of the driving analysis's working tree. The top itself is the empty string.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "folder"
+      ],
+      "title": "Identity",
+      "type": "object"
+    },
+    "Input__identifier_optional": {
+      "additionalProperties": false,
+      "description": "A file the analysis reads, tracked in git with it and named by its path.",
+      "properties": {
+        "description": {
+          "description": "What the input's data is, in free prose.",
+          "type": "string"
+        },
+        "label": {
+          "description": "A short display name for the input.",
+          "type": "string"
+        },
+        "path": {
+          "description": "The path of the input's file, relative to the folder of the `astra.yaml`, with `/` between folders. It is non-empty and doesn't start with `/`.",
+          "pattern": "^[^/]",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the input.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "Input",
+      "type": "object"
+    },
+    "Insight__identifier_optional": {
+      "additionalProperties": false,
+      "description": "A claim backed by evidence: as a prior insight, what earlier work establishes and the analysis builds on; as a finding, what the analysis concludes.",
+      "properties": {
+        "claim": {
+          "description": "What the insight asserts.",
+          "type": "string"
+        },
+        "description": {
+          "description": "The reasoning behind the claim, in free prose.",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "What the claim rests on, as a list. There is at least one.",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "label": {
+          "description": "A short display name for the insight.",
+          "type": "string"
+        },
+        "scope": {
+          "description": "The conditions under which the claim holds, in free prose.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the insight.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "claim",
+        "evidence"
+      ],
+      "title": "Insight",
+      "type": "object"
+    },
+    "Option__identifier_optional": {
+      "additionalProperties": false,
+      "description": "One of the options a decision chooses between.",
+      "properties": {
+        "description": {
+          "description": "What the option is, in free prose.",
+          "type": "string"
+        },
+        "excluded": {
+          "description": "Why the option is ruled out. An option with a reason is excluded: no effective selection selects it.",
+          "type": "string"
+        },
+        "incompatible_with": {
+          "description": "The options that are never selected together with this option, among the decisions a universe uses.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "insights": {
+          "description": "The ids of the prior insights that support the option.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "label": {
+          "description": "A short display name for the option.",
+          "type": "string"
+        },
+        "requires": {
+          "description": "The options that are also selected wherever this option is, among the decisions a universe uses: a decision it doesn't use selects none.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the option.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "Option",
+      "type": "object"
+    },
+    "OutputState": {
+      "additionalProperties": false,
+      "description": "An output, or a switch, in a universe in which results are built.",
+      "properties": {
+        "analysis": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis the output is in."
+        },
+        "built": {
+          "description": "Whether the output is built in the universe. A switch is built where its decision selects an option with a case that names something built.",
+          "type": "boolean"
+        },
+        "id": {
+          "description": "The output's id.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "analysis",
+        "id",
+        "built"
+      ],
+      "title": "OutputState",
+      "type": "object"
+    },
+    "OutputType": {
+      "description": "The kind of artefact an output is.",
+      "enum": [
+        "metric",
+        "figure",
+        "table",
+        "data",
+        "report"
+      ],
+      "title": "OutputType",
+      "type": "string"
+    },
+    "Output__identifier_optional": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "switch": {}
+              },
+              "required": [
+                "switch"
+              ]
+            },
+            "properties": {
+              "format": {
+                "type": "string"
+              },
+              "recipe": {
+                "type": "object"
+              },
+              "switch": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "format": {},
+              "recipe": {},
+              "type": {}
+            },
+            "required": [
+              "type",
+              "format",
+              "recipe"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cases": {
+                "type": "object"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "cases": {}
+            },
+            "required": [
+              "cases"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cases": {
+                "type": "object"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "cases"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "switch": {}
+            },
+            "required": [
+              "switch"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "switch": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "type": {}
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "format": {
+                "type": "string"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "format": {}
+              },
+              "required": [
+                "format"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputs": {
+                "type": "array"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "inputs": {}
+              },
+              "required": [
+                "inputs"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decisions": {
+                "type": "array"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "decisions": {}
+              },
+              "required": [
+                "decisions"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recipe": {
+                "type": "object"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "recipe": {}
+              },
+              "required": [
+                "recipe"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "An entry of `outputs`: an artefact the analysis makes, such as a metric, a figure or a table, with what it is, what it is made from and how; or a switch, which has a `switch` and `cases`, makes nothing, and is read as the case it takes.",
+      "properties": {
+        "cases": {
+          "additionalProperties": {
+            "description": "A reference to the input, output or switch the switch is read as where the option is selected, written as an entry of an output's `inputs` is, such as `stage.output3` or `output1#u1`.",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+            "type": "string"
+          },
+          "description": "For a switch, what it is read as where its decision selects each option that has a case, as `<option>: <reference>`, such as `b: stage.output3`. There is at least one, and several options can name one reference. Where its decision selects an option with no case, the switch isn't built, nor is anything that reads it without a pin.",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "decisions": {
+          "description": "The addresses of the decisions whose option the output is made with directly, not through what it reads: a different option for any of them, in the universe being built, can give a different result.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "description": {
+          "description": "What the output is, in free prose.",
+          "type": "string"
+        },
+        "format": {
+          "description": "How the output's artefact is encoded, as a lowercase token: the extension of its results' files, without the leading dot, such as `png`, `csv` or `parquet`. Every output but a switch has one.",
+          "pattern": "^[a-z0-9][a-z0-9_.+-]*$",
+          "type": "string"
+        },
+        "inputs": {
+          "description": "What the output is made from, in order: references to inputs and outputs of the analysis or of analyses it declares, a switch read as the case it takes. A reference can be pinned to a universe with `#`.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "label": {
+          "description": "A short display name for the output.",
+          "type": "string"
+        },
+        "recipe": {
+          "$ref": "#/$defs/Recipe",
+          "description": "How the output is made. Every output but a switch has one."
+        },
+        "switch": {
+          "description": "For a switch, the address of the decision whose selected option picks the case it takes, such as `decision1` or `stage.decision2`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the output.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "type": {
+          "$ref": "#/$defs/OutputType",
+          "description": "The kind of artefact the output is. Every output but a switch has one."
+        }
+      },
+      "title": "Output",
+      "type": "object"
+    },
+    "Place": {
+      "additionalProperties": false,
+      "description": "Where one name of a planned result puts it, in the folder of the analysis the result belongs to.",
+      "properties": {
+        "address": {
+          "description": "The name, then, for a result built in a universe, `#` and that universe's own id, such as `subanalysis.output1#u1`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "bytes": {
+          "description": "The default place of the result's bytes, as a path from the top of the tree its analysis is read in.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The result's name: its output's id after the ids of the driven declarations that lead to it from the analysis it belongs to, such as `subanalysis.output1`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "record": {
+          "description": "The place of the result's record, as a path from the top of the tree its analysis is read in.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "address",
+        "record",
+        "bytes"
+      ],
+      "title": "Place",
+      "type": "object"
+    },
+    "Read": {
+      "additionalProperties": false,
+      "description": "One entry of an output's `inputs`, and what a planned result reads through it: an input's file, or another planned result's bytes. An entry that names a switch reads what the case the switch takes names.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit `path` is read at. Left out for the working tree.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "entry": {
+          "description": "The entry exactly as the output's `inputs` lists it.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "path": {
+          "description": "The input's file, or the default place of the bytes of the result read, as a path from the top of the tree it is read in.",
+          "type": "string"
+        },
+        "result": {
+          "description": "The planned result read, as its index in the `results` that hold this one. Left out for an input.",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "entry",
+        "path"
+      ],
+      "title": "Read",
+      "type": "object"
+    },
+    "Recipe": {
+      "additionalProperties": false,
+      "description": "How an output is made: a `command` and the compute `resources` it asks for. What the output is made from and the decisions it is made with are the output's `inputs` and `decisions`; the command reaches the inputs and decisions through its placeholders.",
+      "properties": {
+        "command": {
+          "description": "The POSIX shell command that makes the output, such as `python src/output1.py`. It is a template. Read from the left, `{{` stands for a literal `{` and `}}` for a literal `}`, and any other `{` opens a placeholder, which ends at the next `}`. A runner substitutes each placeholder, and each `{{` and `}}`, before running the command:\n\n  {inputs.<entry>}     the path of what an entry of the output's\n                       `inputs` names (for a switch, what the case\n                       it takes names), with <entry> written\n                       exactly as the entry is, dots and `#`\n                       included, as in\n                       {inputs.subanalysis.output1#u1}\n  {decisions.<entry>}  the id of the option selected for the\n                       decision an entry of the output's\n                       `decisions` names, with <entry> written\n                       exactly as the entry is, as in\n                       {decisions.subanalysis.decision1}\n  {inputs}             the paths of all the output's inputs, in\n                       the order of `inputs`, separated by spaces\n  {output}             the path the result is written to\n\nEvery brace belongs to a `{{`, a `}}` or a placeholder, every placeholder takes one of these forms, and the <entry> of an {inputs.<entry>} or {decisions.<entry>} is an entry of the output's `inputs` or `decisions`, exactly as written.",
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/Resources",
+          "description": "The compute resources the recipe asks for."
+        }
+      },
+      "required": [
+        "command"
+      ],
+      "title": "Recipe",
+      "type": "object"
+    },
+    "ResolvedAddress": {
+      "additionalProperties": false,
+      "description": "One address written in an `astra.yaml`, and what it resolves to.",
+      "properties": {
+        "element": {
+          "$ref": "#/$defs/Element",
+          "description": "The element the address names."
+        },
+        "option": {
+          "description": "The id of the option an option reference or a selection names.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "pin": {
+          "$ref": "#/$defs/Element",
+          "description": "The universe a reference's pin names."
+        },
+        "pointer": {
+          "description": "A JSON Pointer to where the address is written in the file: the value or, for a key of a universe's `decisions`, the entry.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pointer",
+        "element"
+      ],
+      "title": "ResolvedAddress",
+      "type": "object"
+    },
+    "Resources": {
+      "additionalProperties": false,
+      "description": "The compute resources a recipe asks for.",
+      "properties": {
+        "cpus": {
+          "description": "The number of CPU cores the recipe asks for, which may be fractional, such as 0.5.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "disk": {
+          "description": "The disk space the recipe asks for, as free text, such as `10GB`.",
+          "type": "string"
+        },
+        "gpus": {
+          "description": "The number of GPUs the recipe asks for.",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "memory": {
+          "description": "The memory the recipe asks for, as free text, such as `4GB`.",
+          "type": "string"
+        },
+        "time_limit": {
+          "description": "The longest the recipe may run, as free text, such as `2h`.",
+          "type": "string"
+        }
+      },
+      "title": "Resources",
+      "type": "object"
+    },
+    "Result": {
+      "additionalProperties": false,
+      "description": "A planned result: one output's, in the universe it is built in or, for an output built once, once.",
+      "properties": {
+        "decisions": {
+          "description": "What the result is made with: one item for each entry of its output's `decisions`, in their order.",
+          "items": {
+            "$ref": "#/$defs/Selected"
+          },
+          "type": "array"
+        },
+        "inputs": {
+          "description": "What the result reads: one item for each entry of its output's `inputs`, in their order.",
+          "items": {
+            "$ref": "#/$defs/Read"
+          },
+          "type": "array"
+        },
+        "names": {
+          "description": "The result's names, one for each driven chain that reaches it.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "output": {
+          "$ref": "#/$defs/Element",
+          "description": "The output the result is of."
+        },
+        "owner": {
+          "$ref": "#/$defs/Identity",
+          "description": "The analysis the result belongs to: the one whose universe builds it or, for an output built once, the one whose output it is."
+        },
+        "places": {
+          "description": "The result's places, one for each of its names, in their order.",
+          "items": {
+            "$ref": "#/$defs/Place"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "universe": {
+          "description": "The id of the universe the result is built in, one of its owner's. Left out for an output built once.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "names",
+        "owner",
+        "output",
+        "places",
+        "inputs",
+        "decisions"
+      ],
+      "title": "Result",
+      "type": "object"
+    },
+    "Selected": {
+      "additionalProperties": false,
+      "description": "One entry of an output's `decisions`, and the option a planned result is made with for it.",
+      "properties": {
+        "entry": {
+          "description": "The entry exactly as the output's `decisions` lists it.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "option": {
+          "description": "The id of the option selected where the result is built. Left out where none is.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "entry"
+      ],
+      "title": "Selected",
+      "type": "object"
+    },
+    "TextQuoteSelector": {
+      "additionalProperties": false,
+      "description": "A passage of the cited work or output, quoted exactly, with the text just before and after it to tell it apart where the same words occur more than once.",
+      "properties": {
+        "exact": {
+          "description": "The passage, exactly as the cited work or output writes it.",
+          "type": "string"
+        },
+        "prefix": {
+          "description": "The text that comes just before the passage.",
+          "type": "string"
+        },
+        "suffix": {
+          "description": "The text that comes just after the passage.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exact"
+      ],
+      "title": "TextQuoteSelector",
+      "type": "object"
+    },
+    "Universe__identifier_optional": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "universe": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "universe": {}
+            },
+            "required": [
+              "universe"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "decisions": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "decisions": {}
+              },
+              "required": [
+                "decisions"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "derived_from": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "derived_from": {}
+              },
+              "required": [
+                "derived_from"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "universe": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "universe"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "analysis": {}
+            },
+            "required": [
+              "analysis"
+            ]
+          }
+        }
+      ],
+      "description": "An entry of `universes`: a universe of the analysis, a selection of one option for every decision it uses of the analysis and of every analysis, declared directly or not, that the analysis's universes drive, or an import, which has an `analysis` and a `universe`, names one of another analysis's universes and selects nothing. A universe's effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` written over it decision by decision.",
+      "properties": {
+        "analysis": {
+          "description": "For an import, the address of the declaration that leads to the analysis whose universe it imports, through as many declarations as lead to it, such as `subanalysis` or `stage.inner`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "decisions": {
+          "additionalProperties": {
+            "description": "The id of the option selected for the decision.",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "description": "The options the universe selects, as `<decision>: <option>`, one key per decision. Each key is the id of a decision of the analysis or, for a decision of another analysis, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `subanalysis.decision1`, or another spelling of that address, through no declaration back to an analysis already on its chain.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+          },
+          "type": "object"
+        },
+        "derived_from": {
+          "description": "The id of another universe of the analysis, never an import, whose effective selection this universe's effective selection is built on, so that this universe gives only the decisions it changes. The universe inherits only that selection.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "description": {
+          "description": "What the universe is, in free prose.",
+          "type": "string"
+        },
+        "label": {
+          "description": "A short display name for the universe.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the universe.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "universe": {
+          "description": "For an import, the id of the universe it imports: a universe of the analysis that `analysis` leads to, never an import of that analysis.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "title": "Universe",
+      "type": "object"
+    }
+  },
+  "$id": "https://w3id.org/astra/dev/resolved-analysis.schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": false,
+  "description": "The driving analysis and every analysis it declares, directly or not, resolved.",
+  "properties": {
+    "analyses": {
+      "description": "The driving analysis, then every analysis it declares, directly or not, in the order they are reached.",
+      "items": {
+        "$ref": "#/$defs/AnalysisEntry"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "results": {
+      "description": "The planned results, each after every result it reads.",
+      "items": {
+        "$ref": "#/$defs/Result"
+      },
+      "type": "array"
+    },
+    "root": {
+      "description": "The driving analysis's `astra.yaml`, as a path from the top of the repository that holds it.",
+      "type": "string"
+    },
+    "shape": {
+      "const": "astra-resolved-analysis/1",
+      "description": "The name and version of this shape.",
+      "type": "string"
+    },
+    "universes": {
+      "description": "The universes in which results are built, the driving analysis's first.",
+      "items": {
+        "$ref": "#/$defs/BuiltUniverse"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "shape",
+    "root",
+    "analyses",
+    "universes",
+    "results"
+  ],
+  "title": "resolved",
+  "type": "object"
+}

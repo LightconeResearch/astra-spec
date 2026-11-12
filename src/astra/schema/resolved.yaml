@@ -1,0 +1,199 @@
+---
+id: https://w3id.org/astra/resolved
+name: resolved
+description: |-
+  The resolved analysis: an analysis and every analysis it declares, directly
+  or not, each as written, with every address resolved, the universes in
+  which results are built, and the planned results.
+# Placeholder version. The real version is injected at build time from the
+# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
+license: https://creativecommons.org/licenses/by/4.0/
+
+prefixes:
+  astra: https://w3id.org/astra/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+  - results
+  - analysis
+
+classes:
+
+  ResolvedAddress:
+    description: >-
+      One address written in an `astra.yaml`, and what it resolves to.
+    attributes:
+      pointer:
+        required: true
+        description: >-
+          A JSON Pointer to where the address is written in the file: the
+          value or, for a key of a universe's `decisions`, the entry.
+      element:
+        range: Element
+        inlined: true
+        required: true
+        description: The element the address names.
+      pin:
+        range: Element
+        inlined: true
+        description: The universe a reference's pin names.
+      option:
+        range: id
+        description: >-
+          The id of the option an option reference or a selection names.
+
+  AnalysisEntry:
+    is_a: Identity
+    description: >-
+      One analysis, the driving analysis or one it declares, directly or
+      not: its file as written, and its addresses resolved.
+    attributes:
+      url:
+        description: The URL of the remote the analysis is read from, if any.
+      file:
+        required: true
+        description: >-
+          The analysis's `astra.yaml`, as a path from the top of the tree it
+          is read in.
+      address:
+        required: true
+        description: >-
+          The ids of the declarations by which the driving analysis first
+          reaches the analysis, joined by `.`, such as `stage.inner`. The
+          driving analysis's is the empty string.
+      fields:
+        range: Analysis
+        inlined: true
+        required: true
+        description: The content of the analysis's `astra.yaml`, as written.
+      refs:
+        range: ResolvedAddress
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          Every address the file writes, in the order of their places.
+
+  DecisionState:
+    description: A decision in a universe in which results are built.
+    attributes:
+      analysis:
+        range: Identity
+        inlined: true
+        required: true
+        description: The analysis the decision is in.
+      id:
+        range: id
+        required: true
+        description: The decision's id.
+      selected:
+        range: id
+        description: >-
+          The id of the option the universe's effective selection selects.
+          Left out where it selects none.
+      used:
+        range: boolean
+        required: true
+        description: >-
+          Whether the universe uses the decision: a result planned in it
+          lists the decision, or a switch reached in it switches on it.
+
+  OutputState:
+    description: >-
+      An output, or a switch, in a universe in which results are built.
+    attributes:
+      analysis:
+        range: Identity
+        inlined: true
+        required: true
+        description: The analysis the output is in.
+      id:
+        range: id
+        required: true
+        description: The output's id.
+      built:
+        range: boolean
+        required: true
+        description: >-
+          Whether the output is built in the universe. A switch is built
+          where its decision selects an option with a case that names
+          something built.
+
+  BuiltUniverse:
+    description: >-
+      A universe in which results are built, and the analyses built in it
+      as they are there.
+    attributes:
+      analysis:
+        range: Identity
+        inlined: true
+        required: true
+        description: The analysis whose universe it is.
+      id:
+        range: id
+        required: true
+        description: The universe's id in its analysis.
+      analyses:
+        range: Identity
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: The analyses built in the universe, its own first.
+      decisions:
+        range: DecisionState
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: Each decision of the analyses built in the universe.
+      outputs:
+        range: OutputState
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          Each output and switch of the analyses built in the universe.
+
+  ResolvedAnalysis:
+    tree_root: true
+    description: >-
+      The driving analysis and every analysis it declares, directly or not,
+      resolved.
+    attributes:
+      shape:
+        required: true
+        equals_string: astra-resolved-analysis/1
+        description: The name and version of this shape.
+      root:
+        required: true
+        description: >-
+          The driving analysis's `astra.yaml`, as a path from the top of the
+          repository that holds it.
+      analyses:
+        range: AnalysisEntry
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        minimum_cardinality: 1
+        description: >-
+          The driving analysis, then every analysis it declares, directly or
+          not, in the order they are reached.
+      universes:
+        range: BuiltUniverse
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The universes in which results are built, the driving analysis's
+          first.
+      results:
+        range: Result
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The planned results, each after every result it reads.

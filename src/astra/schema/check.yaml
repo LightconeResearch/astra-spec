@@ -1,0 +1,193 @@
+---
+id: https://w3id.org/astra/check
+name: check
+description: |-
+  The check report: the record and bytes statuses a checker gives each
+  planned result of an analysis, and the status of the evidence that cites
+  them.
+# Placeholder version. The real version is injected at build time from the
+# latest git tag (or RELEASE_VERSION) — see `_stage-versioned` in the justfile.
+version: 0.0.0
+license: https://creativecommons.org/licenses/by/4.0/
+
+prefixes:
+  astra: https://w3id.org/astra/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: astra
+default_range: string
+
+imports:
+  - linkml:types
+  - results
+
+enums:
+
+  RecordStatus:
+    description: What a checker finds of a planned result's record.
+    permissible_values:
+      unchanged:
+        description: The record still describes the analysis.
+      stale:
+        description: >-
+          Something the result is made from has changed since the record's
+          commit.
+      missing:
+        description: There is no record that can be read as the result's.
+
+  BytesStatus:
+    description: What a checker finds of a planned result's bytes.
+    permissible_values:
+      present:
+        description: The result's default place holds the recorded bytes.
+      absent:
+        description: It doesn't.
+
+classes:
+
+  Reason:
+    description: A check rule broken, and what breaks it.
+    attributes:
+      code:
+        required: true
+        description: The rule's code, such as `STALE_RESULT`.
+      level:
+        range: Level
+        required: true
+        description: How the broken rule counts.
+      message:
+        required: true
+        description: What is wrong and what to do about it, in a sentence.
+      location:
+        range: Location
+        inlined: true
+        required: true
+        description: >-
+          The record, or the place in it; the default place of the bytes; or
+          the evidence's `artifact`.
+      breaks:
+        description: >-
+          For a record that doesn't parse or meet its schema, the code of the
+          parse or schema rule it breaks.
+
+  EnvironmentAnswer:
+    description: >-
+      What a scheme a runner registers says of a recorded environment.
+    attributes:
+      scheme:
+        required: true
+        description: The scheme's name.
+      holds:
+        required: true
+        description: What the environment holds, as the scheme words it.
+      recreatable:
+        range: boolean
+        required: true
+        description: Whether the scheme's runner can recreate the environment.
+
+  CheckedPlace:
+    is_a: Place
+    description: A planned result's statuses at one of its places.
+    attributes:
+      record_status:
+        range: RecordStatus
+        required: true
+        description: The status of the record at the place.
+      bytes_status:
+        range: BytesStatus
+        description: >-
+          The status of the bytes at the default place. Left out for a result
+          from a commit that no recipe reads.
+      committed:
+        range: boolean
+        required: true
+        description: Whether git holds the record at the place as it is.
+      reasons:
+        range: Reason
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The check rules broken at the place.
+      environment:
+        range: EnvironmentAnswer
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          What each registered scheme says of the record's environment.
+
+  CheckedResult:
+    is_a: Result
+    description: A planned result, with its statuses at each of its places.
+    slot_usage:
+      places:
+        range: CheckedPlace
+
+  CheckedEvidence:
+    description: >-
+      An item of evidence that cites an output, and the status it gets.
+    attributes:
+      location:
+        range: Location
+        inlined: true
+        required: true
+        description: >-
+          The evidence's `artifact`, in the `astra.yaml` that holds it.
+      artifact:
+        range: reference
+        required: true
+        description: The evidence's `artifact`, as written.
+      cites:
+        range: reference
+        multivalued: true
+        required: true
+        description: >-
+          The addresses of the results whose status the evidence takes.
+      record_status:
+        range: RecordStatus
+        required: true
+        description: The evidence's status, the worst of the results it cites.
+      reasons:
+        range: Reason
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The check rules the evidence breaks.
+
+  CheckReport:
+    tree_root: true
+    description: What checking an analysis found.
+    attributes:
+      shape:
+        required: true
+        equals_string: astra-check-report/1
+        description: The name and version of this shape.
+      root:
+        required: true
+        description: >-
+          The driving analysis's `astra.yaml`, as a path from the top of the
+          repository that holds it.
+      at:
+        required: true
+        description: >-
+          What the analysis, its records and its bytes are read at:
+          `worktree`, or the full id of a commit.
+      results:
+        range: CheckedResult
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: >-
+          The planned results, in the plan's order, with their statuses.
+      evidence:
+        range: CheckedEvidence
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The evidence that cites an output, with its status.
+      errors:
+        range: Diagnostic
+        multivalued: true
+        inlined_as_list: true
+        required: true
+        description: The `MUST`s the analysis breaks, as a validator finds them.

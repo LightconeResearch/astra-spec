@@ -1,0 +1,465 @@
+{
+  "shape": "astra-check-report/1",
+  "root": "astra.yaml",
+  "at": "worktree",
+  "results": [
+    {
+      "names": [
+        "stage.output3"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "u1",
+      "places": [
+        {
+          "name": "stage.output3",
+          "address": "stage.output3#u1",
+          "record": ".astra/records/u1/stage.output3.json",
+          "bytes": "results/u1/stage.output3.csv",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "no record is at .astra/records/u1/stage.output3.json: build `stage.output3#u1`, and record it there",
+              "location": {
+                "file": ".astra/records/u1/stage.output3.json",
+                "pointer": ""
+              }
+            }
+          ],
+          "environment": []
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "a"
+        }
+      ]
+    },
+    {
+      "names": [
+        "output4"
+      ],
+      "owner": {
+        "folder": "",
+        "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+      },
+      "output": {
+        "analysis": {
+          "folder": "",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+        },
+        "kind": "output",
+        "id": "output4"
+      },
+      "places": [
+        {
+          "name": "output4",
+          "address": "output4",
+          "record": ".astra/records/output4.json",
+          "bytes": "results/output4.json",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "no record is at .astra/records/output4.json: build `output4`, and record it there",
+              "location": {
+                "file": ".astra/records/output4.json",
+                "pointer": "",
+                "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+                "url": "https://example.org/upstream.git"
+              }
+            }
+          ],
+          "environment": []
+        }
+      ],
+      "inputs": [],
+      "decisions": []
+    },
+    {
+      "names": [
+        "output1"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output1"
+      },
+      "universe": "u1",
+      "places": [
+        {
+          "name": "output1",
+          "address": "output1#u1",
+          "record": ".astra/records/u1/output1.json",
+          "bytes": "results/u1/output1.json",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "no record is at .astra/records/u1/output1.json: build `output1#u1`, and record it there",
+              "location": {
+                "file": ".astra/records/u1/output1.json",
+                "pointer": ""
+              }
+            }
+          ],
+          "environment": []
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input1",
+          "path": "data/input1.csv"
+        },
+        {
+          "entry": "stage.output3",
+          "path": "results/u1/stage.output3.csv",
+          "result": 0
+        },
+        {
+          "entry": "upstream.output4",
+          "path": "results/output4.json",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+          "result": 1
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision1",
+          "option": "a"
+        }
+      ]
+    },
+    {
+      "names": [
+        "stage.output3"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "stage.output3",
+          "address": "stage.output3#u2",
+          "record": ".astra/records/u2/stage.output3.json",
+          "bytes": "results/u2/stage.output3.csv",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "no record is at .astra/records/u2/stage.output3.json: build `stage.output3#u2`, and record it there",
+              "location": {
+                "file": ".astra/records/u2/stage.output3.json",
+                "pointer": ""
+              }
+            }
+          ],
+          "environment": []
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "b"
+        }
+      ]
+    },
+    {
+      "names": [
+        "output1"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output1"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "output1",
+          "address": "output1#u2",
+          "record": ".astra/records/u2/output1.json",
+          "bytes": "results/u2/output1.json",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "no record is at .astra/records/u2/output1.json: build `output1#u2`, and record it there",
+              "location": {
+                "file": ".astra/records/u2/output1.json",
+                "pointer": ""
+              }
+            }
+          ],
+          "environment": []
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input1",
+          "path": "data/input1.csv"
+        },
+        {
+          "entry": "stage.output3",
+          "path": "results/u2/stage.output3.csv",
+          "result": 3
+        },
+        {
+          "entry": "upstream.output4",
+          "path": "results/output4.json",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+          "result": 1
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision1",
+          "option": "b"
+        }
+      ]
+    },
+    {
+      "names": [
+        "output3"
+      ],
+      "owner": {
+        "folder": "stage"
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "v1",
+      "places": [
+        {
+          "name": "output3",
+          "address": "output3#v1",
+          "record": "stage/.astra/records/v1/output3.json",
+          "bytes": "stage/results/v1/output3.csv",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "no record is at stage/.astra/records/v1/output3.json: build `output3#v1`, and record it there",
+              "location": {
+                "file": "stage/.astra/records/v1/output3.json",
+                "pointer": ""
+              }
+            }
+          ],
+          "environment": []
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "b"
+        }
+      ]
+    },
+    {
+      "names": [
+        "output2"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output2"
+      },
+      "places": [
+        {
+          "name": "output2",
+          "address": "output2",
+          "record": ".astra/records/output2.json",
+          "bytes": "results/output2.csv",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "no record is at .astra/records/output2.json: build `output2`, and record it there",
+              "location": {
+                "file": ".astra/records/output2.json",
+                "pointer": ""
+              }
+            }
+          ],
+          "environment": []
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "output1#u1",
+          "path": "results/u1/output1.json",
+          "result": 2
+        },
+        {
+          "entry": "output1#u2",
+          "path": "results/u2/output1.json",
+          "result": 4
+        },
+        {
+          "entry": "stage.output3#v1",
+          "path": "stage/results/v1/output3.csv",
+          "result": 5
+        }
+      ],
+      "decisions": []
+    },
+    {
+      "names": [
+        "output6"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output6"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "output6",
+          "address": "output6#u2",
+          "record": ".astra/records/u2/output6.json",
+          "bytes": "results/u2/output6.png",
+          "record_status": "missing",
+          "bytes_status": "absent",
+          "committed": false,
+          "reasons": [
+            {
+              "code": "MISSING_RECORD",
+              "level": "error",
+              "message": "no record is at .astra/records/u2/output6.json: build `output6#u2`, and record it there",
+              "location": {
+                "file": ".astra/records/u2/output6.json",
+                "pointer": ""
+              }
+            }
+          ],
+          "environment": []
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "switch1",
+          "path": "results/u2/stage.output3.csv",
+          "result": 3
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision3",
+          "option": "a"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "location": {
+        "file": "astra.yaml",
+        "pointer": "/findings/insight1/evidence/0/artifact",
+        "line": 51,
+        "column": 19
+      },
+      "artifact": "output2",
+      "cites": [
+        "output2"
+      ],
+      "record_status": "missing",
+      "reasons": [
+        {
+          "code": "STALE_EVIDENCE",
+          "level": "error",
+          "message": "`output2` cites `output2`, whose record is missing",
+          "location": {
+            "file": "astra.yaml",
+            "pointer": "/findings/insight1/evidence/0/artifact",
+            "line": 51,
+            "column": 19
+          }
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

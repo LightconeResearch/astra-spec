@@ -1,0 +1,930 @@
+{
+  "shape": "astra-resolved-analysis/1",
+  "root": "astra.yaml",
+  "analyses": [
+    {
+      "folder": "",
+      "file": "astra.yaml",
+      "address": "",
+      "fields": {
+        "spec_version": "0.1.0",
+        "label": "Example analysis",
+        "analyses": {
+          "stage": {
+            "path": "stage"
+          },
+          "upstream": {
+            "url": "https://example.org/upstream.git",
+            "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+          }
+        },
+        "inputs": {
+          "input1": {
+            "path": "data/input1.csv"
+          }
+        },
+        "decisions": {
+          "decision1": {
+            "rationale": "Both are reasonable, and they may give different results.",
+            "options": {
+              "a": {},
+              "b": {}
+            }
+          },
+          "decision3": {
+            "options": {
+              "a": {},
+              "b": {}
+            }
+          }
+        },
+        "outputs": {
+          "output1": {
+            "type": "metric",
+            "format": "json",
+            "inputs": [
+              "input1",
+              "stage.output3",
+              "upstream.output4"
+            ],
+            "decisions": [
+              "decision1"
+            ],
+            "recipe": {
+              "command": "python src/output1.py '{inputs.input1}' '{inputs.stage.output3}' '{inputs.upstream.output4}' '{decisions.decision1}' '{output}'"
+            }
+          },
+          "output2": {
+            "type": "table",
+            "format": "csv",
+            "inputs": [
+              "output1#u1",
+              "output1#u2",
+              "stage.output3#v1"
+            ],
+            "recipe": {
+              "command": "python src/output2.py '{inputs.output1#u1}' '{inputs.output1#u2}' '{inputs.stage.output3#v1}' '{output}'"
+            }
+          },
+          "switch1": {
+            "switch": "decision1",
+            "cases": {
+              "b": "stage.output3"
+            }
+          },
+          "output6": {
+            "type": "figure",
+            "format": "png",
+            "inputs": [
+              "switch1"
+            ],
+            "decisions": [
+              "decision3"
+            ],
+            "recipe": {
+              "command": "python src/output6.py '{inputs.switch1}' '{decisions.decision3}' '{output}'"
+            }
+          }
+        },
+        "universes": {
+          "u1": {
+            "decisions": {
+              "decision1": "a",
+              "stage.decision2": "a"
+            }
+          },
+          "u2": {
+            "decisions": {
+              "decision1": "b",
+              "stage.decision2": "b",
+              "decision3": "a"
+            }
+          }
+        },
+        "findings": {
+          "insight1": {
+            "claim": "The two universes give different results.",
+            "evidence": [
+              {
+                "artifact": "output2"
+              }
+            ]
+          }
+        }
+      },
+      "refs": [
+        {
+          "pointer": "/outputs/output1/inputs/0",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "input",
+            "id": "input1"
+          }
+        },
+        {
+          "pointer": "/outputs/output1/inputs/1",
+          "element": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "output",
+            "id": "output3"
+          }
+        },
+        {
+          "pointer": "/outputs/output1/inputs/2",
+          "element": {
+            "analysis": {
+              "folder": "",
+              "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+            },
+            "kind": "output",
+            "id": "output4"
+          }
+        },
+        {
+          "pointer": "/outputs/output1/decisions/0",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "decision",
+            "id": "decision1"
+          }
+        },
+        {
+          "pointer": "/outputs/output2/inputs/0",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "output",
+            "id": "output1"
+          },
+          "pin": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "universe",
+            "id": "u1"
+          }
+        },
+        {
+          "pointer": "/outputs/output2/inputs/1",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "output",
+            "id": "output1"
+          },
+          "pin": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "universe",
+            "id": "u2"
+          }
+        },
+        {
+          "pointer": "/outputs/output2/inputs/2",
+          "element": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "output",
+            "id": "output3"
+          },
+          "pin": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "universe",
+            "id": "v1"
+          }
+        },
+        {
+          "pointer": "/outputs/switch1/switch",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "decision",
+            "id": "decision1"
+          }
+        },
+        {
+          "pointer": "/outputs/switch1/cases/b",
+          "element": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "output",
+            "id": "output3"
+          }
+        },
+        {
+          "pointer": "/outputs/output6/inputs/0",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "output",
+            "id": "switch1"
+          }
+        },
+        {
+          "pointer": "/outputs/output6/decisions/0",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "decision",
+            "id": "decision3"
+          }
+        },
+        {
+          "pointer": "/universes/u1/decisions/decision1",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "decision",
+            "id": "decision1"
+          },
+          "option": "a"
+        },
+        {
+          "pointer": "/universes/u1/decisions/stage.decision2",
+          "element": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "decision",
+            "id": "decision2"
+          },
+          "option": "a"
+        },
+        {
+          "pointer": "/universes/u2/decisions/decision1",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "decision",
+            "id": "decision1"
+          },
+          "option": "b"
+        },
+        {
+          "pointer": "/universes/u2/decisions/stage.decision2",
+          "element": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "decision",
+            "id": "decision2"
+          },
+          "option": "b"
+        },
+        {
+          "pointer": "/universes/u2/decisions/decision3",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "decision",
+            "id": "decision3"
+          },
+          "option": "a"
+        },
+        {
+          "pointer": "/findings/insight1/evidence/0/artifact",
+          "element": {
+            "analysis": {
+              "folder": ""
+            },
+            "kind": "output",
+            "id": "output2"
+          }
+        }
+      ]
+    },
+    {
+      "folder": "stage",
+      "file": "stage/astra.yaml",
+      "address": "stage",
+      "fields": {
+        "spec_version": "0.1.0",
+        "inputs": {
+          "input2": {
+            "path": "data/input2.csv"
+          }
+        },
+        "decisions": {
+          "decision2": {
+            "options": {
+              "a": {},
+              "b": {}
+            }
+          }
+        },
+        "outputs": {
+          "output3": {
+            "type": "data",
+            "format": "csv",
+            "inputs": [
+              "input2"
+            ],
+            "decisions": [
+              "decision2"
+            ],
+            "recipe": {
+              "command": "python src/output3.py '{inputs.input2}' '{decisions.decision2}' '{output}'"
+            }
+          }
+        },
+        "universes": {
+          "v1": {
+            "decisions": {
+              "decision2": "b"
+            }
+          }
+        }
+      },
+      "refs": [
+        {
+          "pointer": "/outputs/output3/inputs/0",
+          "element": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "input",
+            "id": "input2"
+          }
+        },
+        {
+          "pointer": "/outputs/output3/decisions/0",
+          "element": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "decision",
+            "id": "decision2"
+          }
+        },
+        {
+          "pointer": "/universes/v1/decisions/decision2",
+          "element": {
+            "analysis": {
+              "folder": "stage"
+            },
+            "kind": "decision",
+            "id": "decision2"
+          },
+          "option": "b"
+        }
+      ]
+    },
+    {
+      "folder": "",
+      "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+      "url": "https://example.org/upstream.git",
+      "file": "astra.yaml",
+      "address": "upstream",
+      "fields": {
+        "spec_version": "0.1.0",
+        "outputs": {
+          "output4": {
+            "type": "metric",
+            "format": "json",
+            "recipe": {
+              "command": "python src/output4.py '{output}'"
+            }
+          }
+        }
+      },
+      "refs": []
+    }
+  ],
+  "universes": [
+    {
+      "analysis": {
+        "folder": ""
+      },
+      "id": "u1",
+      "decisions": [
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "decision1",
+          "selected": "a",
+          "used": true
+        },
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "decision3",
+          "used": false
+        },
+        {
+          "analysis": {
+            "folder": "stage"
+          },
+          "id": "decision2",
+          "selected": "a",
+          "used": true
+        }
+      ],
+      "outputs": [
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "output1",
+          "built": true
+        },
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "output2",
+          "built": true
+        },
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "switch1",
+          "built": false
+        },
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "output6",
+          "built": false
+        },
+        {
+          "analysis": {
+            "folder": "stage"
+          },
+          "id": "output3",
+          "built": true
+        },
+        {
+          "analysis": {
+            "folder": "",
+            "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+          },
+          "id": "output4",
+          "built": true
+        }
+      ],
+      "analyses": [
+        {
+          "folder": ""
+        },
+        {
+          "folder": "stage"
+        },
+        {
+          "folder": "",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+        }
+      ]
+    },
+    {
+      "analysis": {
+        "folder": ""
+      },
+      "id": "u2",
+      "decisions": [
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "decision1",
+          "selected": "b",
+          "used": true
+        },
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "decision3",
+          "selected": "a",
+          "used": true
+        },
+        {
+          "analysis": {
+            "folder": "stage"
+          },
+          "id": "decision2",
+          "selected": "b",
+          "used": true
+        }
+      ],
+      "outputs": [
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "output1",
+          "built": true
+        },
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "output2",
+          "built": true
+        },
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "switch1",
+          "built": true
+        },
+        {
+          "analysis": {
+            "folder": ""
+          },
+          "id": "output6",
+          "built": true
+        },
+        {
+          "analysis": {
+            "folder": "stage"
+          },
+          "id": "output3",
+          "built": true
+        },
+        {
+          "analysis": {
+            "folder": "",
+            "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+          },
+          "id": "output4",
+          "built": true
+        }
+      ],
+      "analyses": [
+        {
+          "folder": ""
+        },
+        {
+          "folder": "stage"
+        },
+        {
+          "folder": "",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+        }
+      ]
+    },
+    {
+      "analysis": {
+        "folder": "stage"
+      },
+      "id": "v1",
+      "decisions": [
+        {
+          "analysis": {
+            "folder": "stage"
+          },
+          "id": "decision2",
+          "selected": "b",
+          "used": true
+        }
+      ],
+      "outputs": [
+        {
+          "analysis": {
+            "folder": "stage"
+          },
+          "id": "output3",
+          "built": true
+        }
+      ],
+      "analyses": [
+        {
+          "folder": "stage"
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "names": [
+        "stage.output3"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "u1",
+      "places": [
+        {
+          "name": "stage.output3",
+          "address": "stage.output3#u1",
+          "record": ".astra/records/u1/stage.output3.json",
+          "bytes": "results/u1/stage.output3.csv"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "a"
+        }
+      ]
+    },
+    {
+      "names": [
+        "output4"
+      ],
+      "owner": {
+        "folder": "",
+        "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+      },
+      "output": {
+        "analysis": {
+          "folder": "",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef"
+        },
+        "kind": "output",
+        "id": "output4"
+      },
+      "places": [
+        {
+          "name": "output4",
+          "address": "output4",
+          "record": ".astra/records/output4.json",
+          "bytes": "results/output4.json"
+        }
+      ],
+      "inputs": [],
+      "decisions": []
+    },
+    {
+      "names": [
+        "output1"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output1"
+      },
+      "universe": "u1",
+      "places": [
+        {
+          "name": "output1",
+          "address": "output1#u1",
+          "record": ".astra/records/u1/output1.json",
+          "bytes": "results/u1/output1.json"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input1",
+          "path": "data/input1.csv"
+        },
+        {
+          "entry": "stage.output3",
+          "path": "results/u1/stage.output3.csv",
+          "result": 0
+        },
+        {
+          "entry": "upstream.output4",
+          "path": "results/output4.json",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+          "result": 1
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision1",
+          "option": "a"
+        }
+      ]
+    },
+    {
+      "names": [
+        "stage.output3"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "stage.output3",
+          "address": "stage.output3#u2",
+          "record": ".astra/records/u2/stage.output3.json",
+          "bytes": "results/u2/stage.output3.csv"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "b"
+        }
+      ]
+    },
+    {
+      "names": [
+        "output1"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output1"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "output1",
+          "address": "output1#u2",
+          "record": ".astra/records/u2/output1.json",
+          "bytes": "results/u2/output1.json"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input1",
+          "path": "data/input1.csv"
+        },
+        {
+          "entry": "stage.output3",
+          "path": "results/u2/stage.output3.csv",
+          "result": 3
+        },
+        {
+          "entry": "upstream.output4",
+          "path": "results/output4.json",
+          "commit": "767b3d2cd4415d9a75512a1bb15266b53d838fef",
+          "result": 1
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision1",
+          "option": "b"
+        }
+      ]
+    },
+    {
+      "names": [
+        "output3"
+      ],
+      "owner": {
+        "folder": "stage"
+      },
+      "output": {
+        "analysis": {
+          "folder": "stage"
+        },
+        "kind": "output",
+        "id": "output3"
+      },
+      "universe": "v1",
+      "places": [
+        {
+          "name": "output3",
+          "address": "output3#v1",
+          "record": "stage/.astra/records/v1/output3.json",
+          "bytes": "stage/results/v1/output3.csv"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "input2",
+          "path": "stage/data/input2.csv"
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision2",
+          "option": "b"
+        }
+      ]
+    },
+    {
+      "names": [
+        "output2"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output2"
+      },
+      "places": [
+        {
+          "name": "output2",
+          "address": "output2",
+          "record": ".astra/records/output2.json",
+          "bytes": "results/output2.csv"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "output1#u1",
+          "path": "results/u1/output1.json",
+          "result": 2
+        },
+        {
+          "entry": "output1#u2",
+          "path": "results/u2/output1.json",
+          "result": 4
+        },
+        {
+          "entry": "stage.output3#v1",
+          "path": "stage/results/v1/output3.csv",
+          "result": 5
+        }
+      ],
+      "decisions": []
+    },
+    {
+      "names": [
+        "output6"
+      ],
+      "owner": {
+        "folder": ""
+      },
+      "output": {
+        "analysis": {
+          "folder": ""
+        },
+        "kind": "output",
+        "id": "output6"
+      },
+      "universe": "u2",
+      "places": [
+        {
+          "name": "output6",
+          "address": "output6#u2",
+          "record": ".astra/records/u2/output6.json",
+          "bytes": "results/u2/output6.png"
+        }
+      ],
+      "inputs": [
+        {
+          "entry": "switch1",
+          "path": "results/u2/stage.output3.csv",
+          "result": 3
+        }
+      ],
+      "decisions": [
+        {
+          "entry": "decision3",
+          "option": "a"
+        }
+      ]
+    }
+  ]
+}

@@ -380,15 +380,22 @@ def series(version: str) -> str:
 
 
 def generate(
-    schema: str | Path, *, closed: bool = True, schema_id: str | None = None
+    schema: str | Path,
+    *,
+    closed: bool = True,
+    schema_id: str | None = None,
+    root: str | None = None,
 ) -> dict:
     """The JSON Schema for the LinkML `schema`: closed unless `closed` is false; optional fields reject null.
+
+    It is rooted at the class `root` if given, otherwise at the schema's tree root: a schema that imports another
+    with a tree root of its own, as the resolved analysis imports the analysis document, names its root.
 
     Its `$id` is `schema_id` if given, with `{series}` replaced by the series of the LinkML schema's version, otherwise
     the LinkML schema's own id, as LinkML sets it.
     """
     generator = AstraJsonSchemaGenerator(
-        str(schema), include_null=False, not_closed=not closed
+        str(schema), include_null=False, not_closed=not closed, top_class=root
     )
     result = json.loads(generator.serialize())
     if schema_id is not None:
@@ -415,10 +422,20 @@ def main(argv: list[str] | None = None) -> None:
         help="the `$id` of the JSON Schema, in which `{series}` stands for the series of the schema's version: X.Y "
         "for a release X.Y.Z, the whole version for a pre-release, `dev` for `dev` (default: the schema's id)",
     )
+    parser.add_argument(
+        "--root",
+        metavar="CLASS",
+        help="the class the JSON Schema is rooted at (default: the schema's tree root)",
+    )
     args = parser.parse_args(argv)
     print(
         json.dumps(
-            generate(args.schema, closed=not args.not_closed, schema_id=args.schema_id),
+            generate(
+                args.schema,
+                closed=not args.not_closed,
+                schema_id=args.schema_id,
+                root=args.root,
+            ),
             indent=2,
         )
     )
