@@ -1,4 +1,4 @@
-"""The built wheel ships exactly the schema artefacts (design D7), plus the generated Pydantic models."""
+"""The built wheel ships exactly the schema artefacts, plus the generated Pydantic models."""
 
 import shutil
 import subprocess
@@ -8,8 +8,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Every file the wheel ships outside its `*.dist-info/`: the LinkML sources,
-# the generated contract and Pydantic models, and the agent briefing (design
-# D7, CLAUDE.md).
+# the generated contract and Pydantic models, and the agent briefing
+# (CLAUDE.md).
 ARTEFACTS = frozenset(
     {
         "astra/schema/types.yaml",

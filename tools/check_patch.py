@@ -1,7 +1,7 @@
 """Check that a patch release leaves what is valid as an earlier release of its minor version has it.
 
-A patch release never changes what is valid (spec §5), so `just release` runs this before it commits a version whose
-minor version already has a release, against that minor version's greatest release `<tag>`. The regenerated files in
+A patch release never changes what is valid, so `just release` runs this before it commits a version whose minor
+version already has a release, against that minor version's greatest release `<tag>`. The regenerated files in
 `src/astra/schema/generated/` must match the tag's:
 
 - each of the three JSON Schemas, once every string-valued `description`, `title` and `$comment` is dropped;

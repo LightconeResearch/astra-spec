@@ -1,6 +1,6 @@
-"""Every fixture, through the committed JSON Schema: valid ones pass, invalid ones fail where they say, and why (design §9).
+"""Every fixture, through the committed JSON Schema: valid ones pass, invalid ones fail where they say, and why.
 
-Why is read from `rules.json`, as a tool reads it: each error's absolute keyword location maps to its code (D13).
+Why is read from `rules.json`, as a tool reads it: each error's absolute keyword location maps to its code.
 """
 
 from pathlib import Path
@@ -123,7 +123,7 @@ outputs:
 
 def test_a_file_without_spec_version_reports_every_schema_error():
     """A pre-0.1 file lacks `spec_version` (MISSING_FIELD) and has `version` and `name` (UNKNOWN_FIELD), both at the
-    document (spec §5). An invalid fixture names one code at each place, so this is a test of its own."""
+    document. An invalid fixture names one code at each place, so this is a test of its own."""
     document = load_yaml(_PRE_0_1)
     error_map = rules_catalogue()["errors"]
     found = errors(validator("Analysis"), document)
@@ -133,7 +133,7 @@ def test_a_file_without_spec_version_reports_every_schema_error():
 
 
 SUFFIXES = {"Analysis": ".yaml", "ProvenanceRecord": ".json"}
-"""The file suffix of each fixture root: an `astra.yaml` is YAML, a record JSON (spec Annex A)."""
+"""The file suffix of each fixture root: an `astra.yaml` is YAML, a record JSON."""
 
 
 def test_every_fixture_is_written_as_its_kind_of_file():
@@ -263,7 +263,7 @@ def test_check_accepts_the_second_error_its_also_line_declares(tmp_path):
 
 
 def test_fixture_header_reads_a_code_with_a_digit(tmp_path):
-    """A code is `[A-Z][A-Z0-9_]*`, as the specification's §3 and `tools/rules.py` write it."""
+    """A code is `[A-Z][A-Z0-9_]*`, as `tools/rules.py` writes it."""
     path = tmp_path / "Analysis-901-digit-code.yaml"
     path.write_text(
         "# rule: SHA256_MISMATCH\n"

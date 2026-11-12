@@ -1,4 +1,4 @@
-"""The JSON Schema generator extension, on scratch schemas: id-keyed maps, and class-level checks (design §3, D2, D3, D12)."""
+"""The JSON Schema generator extension, on scratch schemas: id-keyed maps, and class-level checks."""
 
 import json
 import subprocess
@@ -110,7 +110,7 @@ def test_schema_id_sets_the_id():
     ],
 )
 def test_the_series_of_a_version(version, expected):
-    """`X.Y` for a release `X.Y.Z` (spec Annex D), the whole version for a pre-release, and `dev` (CLAUDE.md)."""
+    """`X.Y` for a release `X.Y.Z` (Schema files), the whole version for a pre-release, and `dev` (CLAUDE.md)."""
     assert series(version) == expected
 
 

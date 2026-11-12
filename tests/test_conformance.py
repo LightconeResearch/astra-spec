@@ -147,8 +147,8 @@ def test_expected_json_follows_its_schema(case):
 @pytest.mark.parametrize("case", CASES, ids=name)
 def test_expected_json_names_rules(case):
     """Every code is a parse, schema or validator rule of `rules.json`; only a parse or schema code has a pointer,
-    since the specification places no other (Annex D); `valid` is false exactly when a code that must be reported is a
-    `MUST`; and no code is both reported and not."""
+    since the specification places no other (Schema files); `valid` is false exactly when a code that must be reported
+    is a `MUST`; and no code is both reported and not."""
     case_expected = expected(case)
     rules = {
         rule["code"]: rule

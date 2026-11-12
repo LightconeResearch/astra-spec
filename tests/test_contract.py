@@ -1,6 +1,6 @@
 """The shape of the generated contract, so that a LinkML upgrade or a schema edit can't quietly loosen it.
 
-Design §3 and §9, D3 and D12; the patterns, Rulings R5 and R7.
+Every map checks its keys, no field takes null, and every pattern reads alike in ECMA-262 and Python.
 """
 
 import copy
@@ -40,7 +40,7 @@ ROOTS = {
 CLOSED = ["analysis.schema.json", "provenance.schema.json"]
 
 NAMESPACE = "https://w3id.org/astra/"
-"""Where every artefact is published, under the series of its version and its own file name (design §3)."""
+"""Where every artefact is published, under the series of its version and its own file name."""
 
 VERSION = r"[0-9]+\.[0-9]+\.[0-9]+(?:(?:a|b|rc)[0-9]+)?|dev"
 """A version a generated file is stamped with: a release `X.Y.Z`, a pre-release (`0.1.0rc1`), or `dev`."""
@@ -214,7 +214,7 @@ TYPED = {
     ("RecordedInput", "content_hash"): "content_hash",
     ("Environment", "iri"): "iri",
 }
-"""The named type of each slot that takes one, a map's key aside (spec §6 and the field reference), written by hand."""
+"""The named type of each slot that takes one, a map's key aside (the field reference), written by hand."""
 
 KEY_TYPES = {("Universe", "decisions"): "address"}
 """The type of the keys of each map not keyed by an `id`: `Universe.decisions`, keyed by a decision's address."""
@@ -287,7 +287,7 @@ def test_every_typed_slot_is_in_the_contract():
 @pytest.mark.parametrize("name", ROOTS)
 def test_every_typed_slot_takes_its_types_pattern_and_code(name):
     """A slot of a named type checks its values with exactly the type's pattern, whose errors take the type's code:
-    no pattern or `rule` of its own (spec Annex C)."""
+    no pattern or `rule` of its own."""
     prefix = load(name)["$id"] + "#"
     error_map = rules_catalogue()["errors"]
     values = typed_values(name)
@@ -313,7 +313,7 @@ def test_every_typed_slot_takes_its_types_pattern_and_code(name):
 @pytest.mark.parametrize("name", ROOTS)
 def test_every_map_key_takes_its_types_pattern_and_is_an_id(name):
     """Every map's keys take `id`'s pattern, but those of `Universe.decisions`, which take `address`'s, and nothing
-    else, since a key is a string (spec Annex A); a bad key is `INVALID_ID` whatever its type (spec §6, Annex C)."""
+    else, since a key is a string; a bad key is `INVALID_ID` whatever its type."""
     schema = load(name)
     prefix = schema["$id"] + "#"
     error_map = rules_catalogue()["errors"]
@@ -477,7 +477,7 @@ def test_the_harness_refuses_what_ecma_262_reads_otherwise(pattern):
 
 
 def series(version: str) -> str:
-    """The series of a stamped `version`: `X.Y` for a release `X.Y.Z` (spec Annex D), else the whole version (CLAUDE.md)."""
+    """The series of a stamped `version`: `X.Y` for a release `X.Y.Z` (Schema files), else the whole version (CLAUDE.md)."""
     release = re.fullmatch(r"([0-9]+\.[0-9]+)\.[0-9]+", version)
     return release[1] if release else version
 
@@ -507,7 +507,7 @@ def test_top_level_holds_only_standard_keywords(name):
 @pytest.mark.parametrize("name", ROOTS)
 def test_two_minor_versions_are_held_side_by_side(name):
     """Copies of a schema stamped `0.1` and `0.2` go into one `referencing` registry, and each URI resolves to its own
-    copy: the `0.2` copy requires one more field, and only a `$ref` to it reports that field missing (spec Annex D)."""
+    copy: the `0.2` copy requires one more field, and only a `$ref` to it reports that field missing."""
     schema = load(name)
     copies = {}
     for minor, extra in (("0.1", []), ("0.2", ["added_in_0_2"])):
@@ -559,7 +559,7 @@ def test_lists_of_strings_hold_no_entry_twice(name):
 
 def test_no_list_of_strings_in_an_analysis_is_empty():
     """`minItems: 1` on every list of scalars of `astra.yaml` (`EMPTY_COLLECTION`): a field with nothing to list is
-    left out (spec §5)."""
+    left out."""
     schema = load("analysis.schema.json")
     minimum = {
         pointer: node.get("minItems")
@@ -599,7 +599,7 @@ def json_type(schema: dict, sub: dict) -> Any:
 def test_every_class_check_is_guarded_by_the_types_it_reads(name):
     """Each class-level check is an `allOf` member whose `if` requires an object and the type of each field it reads.
 
-    So a value of the wrong type is reported by its `type` alone, and no check adds a second code for it (F079, F119).
+    So a value of the wrong type is reported by its `type` alone, and no check adds a second code for it.
     """
     schema = load(name)
     classes = {"(root)": schema, **schema["$defs"]}

@@ -1,5 +1,4 @@
-"""The harness's loaders: an `astra.yaml` read by a stock YAML 1.2 parser under the core schema (spec Annex A), and a
-record as JSON (spec Annex A).
+"""The harness's loaders: an `astra.yaml` read by a stock YAML 1.2 parser under the core schema, and a record as JSON.
 
 These tests check ASTRA's rules. YAML's own grammar is the parser's to read, and isn't tested here.
 """
@@ -150,7 +149,7 @@ def test_a_core_schema_tag_is_read_as_the_core_schema_reads_it(load, text, value
 
 @pytest.mark.parametrize("version, valid", [("2.0", True), ("2.5", False)])
 def test_a_number_is_typed_as_json_schema_types_it(load, version, valid):
-    """Annex A: `2.0` is an integer, since JSON Schema counts a number with a zero fractional part as one."""
+    """`2.0` is an integer, since JSON Schema counts a number with a zero fractional part as one."""
     doc = load(
         'spec_version: "0.1.0"\n'
         "outputs:\n"
@@ -173,7 +172,7 @@ def test_text_the_parser_refuses_is_invalid_syntax(refused):
     assert refused("outputs: {result: {type: metric\n") == "INVALID_SYNTAX"
 
 
-# --- Records: JSON text (RFC 8259) in UTF-8, with distinct names (spec Annex A) ---
+# --- Records: JSON text (RFC 8259) in UTF-8, with distinct names ---
 
 
 @pytest.mark.parametrize(

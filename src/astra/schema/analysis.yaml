@@ -513,7 +513,7 @@ classes:
         key: true
         range: address
         # A map key that doesn't match its key's type is a bad id, whatever
-        # that type (§6), so this names its code over `address`'s.
+        # that type, so this names its code over `address`'s.
         annotations:
           rule: INVALID_ID
         description: >-

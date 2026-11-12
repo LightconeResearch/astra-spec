@@ -1,4 +1,4 @@
-"""The named types of types.yaml, through a harness with one field per type (design §4)."""
+"""The named types of types.yaml, through a harness with one field per type."""
 
 from pathlib import Path
 

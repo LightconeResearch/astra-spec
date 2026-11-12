@@ -1,4 +1,4 @@
-"""The patch guard of `just release` (`tools/check_patch.py`): a patch release changes nothing that is valid (spec §5).
+"""The patch guard of `just release` (`tools/check_patch.py`): a patch release changes nothing that is valid.
 
 It is tested on copies of the committed contract, stamped as releases of 0.1, and once through git, as `just release`
 runs it.

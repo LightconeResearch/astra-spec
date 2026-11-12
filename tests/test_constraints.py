@@ -1,4 +1,4 @@
-"""Every constraint of the contract, pinned by a negative case written by hand (design §9).
+"""Every constraint of the contract, pinned by a negative case written by hand.
 
 One invalid fixture per code leaves most constraints unchecked, since one code covers many keywords, and the drift
 check regenerates the contract from the LinkML sources: a constraint loosened there passes every test that reads the
@@ -742,8 +742,7 @@ def test_negative_case(case):
 
 @pytest.mark.parametrize("case", RECORD_CASES, ids=case_id)
 def test_negative_record_case_in_the_open_variant(case):
-    """The open variant checks every field it knows as the closed schema does, and takes a field it doesn't know
-    (spec Annex D)."""
+    """The open variant checks every field it knows as the closed schema does, and takes a field it doesn't know."""
     document = edited(case)
     if case.code == "UNKNOWN_FIELD":
         assert errors(validator(root_of(case), closed=False), document) == set()
@@ -762,8 +761,8 @@ SCHEMAS = {
 
 
 def reported_with(location: str) -> Iterator[str]:
-    """The keywords a validator that reports them reports with an error at `location` (spec Annex D): each `if` whose
-    `then` holds it, and each `propertyNames` that holds it. `jsonschema` reports neither, and Ajv both."""
+    """The keywords a validator that reports them reports with an error at `location`: each `if` whose `then` holds
+    it, and each `propertyNames` that holds it. `jsonschema` reports neither, and Ajv both."""
     schema_id, pointer = location.split("#", 1)
     for keyword, _, here in keyword_steps(pointer)[:-1]:
         if keyword == "then":

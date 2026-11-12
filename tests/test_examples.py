@@ -1,4 +1,4 @@
-"""Every `astra.yaml` under `examples/` is a valid analysis document (design §1, §9)."""
+"""Every `astra.yaml` under `examples/` is a valid analysis document."""
 
 from .conftest import REPO_ROOT, load_yaml, validator
 

@@ -1,4 +1,4 @@
-"""The rule catalogue, `rules.json`: derived from the specification and the schema, never written by hand (design D13).
+"""The rule catalogue, `rules.json`: derived from the specification and the schema, never written by hand.
 
 `rules.json` holds:
 

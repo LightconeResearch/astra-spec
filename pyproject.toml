@@ -72,7 +72,7 @@ dev = [
     "rdflib>=7",
     # tests/test_models.py loads documents into the generated Pydantic models.
     "pydantic>=2.11",
-    # Pinned: tests/test_rules.py reads its standard output formats to check spec §10's filter.
+    # Pinned: tests/test_rules.py reads its standard output formats to check which errors fail a file.
     "jschon==0.11.1",
 ]
 docs = [
