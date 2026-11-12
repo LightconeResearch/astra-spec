@@ -22,7 +22,8 @@ decisions:
       mlp_encoder:
         label: MLP Encoder
         description: Bottleneck layer of a small autoencoder (4-8-k-8-4)
-        incompatible_with: [n_components.three]
+        incompatible_with:
+          - n_components.three
 
   n_components:
     label: Number of Components
@@ -44,7 +45,7 @@ outputs:
     decisions: [method, n_components, iris.random_seed]
     recipe:
       command: >-
-        python src/extract.py --data {inputs.iris.iris_data}
+        python src/extract_features.py --data {inputs.iris.iris_data}
         --method {decisions.method}
         --components {decisions.n_components}
         --seed {decisions.iris.random_seed} --out {output}
@@ -55,4 +56,4 @@ outputs:
     description: Scatter plot of extracted features
     inputs: [features]
     recipe:
-      command: python src/plot.py --features {inputs.features} --out {output}
+      command: python src/plot_features.py --features {inputs.features} --out {output}

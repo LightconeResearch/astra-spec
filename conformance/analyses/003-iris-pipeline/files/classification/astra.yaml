@@ -1,11 +1,11 @@
 spec_version: "0.1.0"
 label: Classification
 description: |
-  Trains a classifier on the extracted features and evaluates its
-  accuracy on the held-out test set. The classifier algorithm (logistic
-  regression, SVM, or k-NN) is selectable. It reads its sibling's
-  features and the root's split in the universe being built, and emits
-  test-set predictions and an accuracy metric.
+  Train a classifier on the extracted features and evaluate
+  accuracy on the held-out test set. The classifier algorithm
+  (logistic regression, SVM, or k-NN) is selectable; the split is
+  the parent's `split` output, read as `iris.split`. Emits test-set
+  predictions and an accuracy metric.
 
 analyses:
   iris:

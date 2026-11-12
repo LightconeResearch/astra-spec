@@ -122,7 +122,7 @@ Universes are written in `astra.yaml`, under `universes:`: there is no default u
 ```yaml
 universes:
   baseline:
-    description: Baseline configuration using standard practices
+    description: Default configuration using standard practices
     decisions:
       example_method: option_a
 ```
