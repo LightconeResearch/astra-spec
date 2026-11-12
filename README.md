@@ -82,22 +82,22 @@ Full walk-through: **[Getting started →](https://astra-spec.org/latest/getting
 This repository (`astra-spec`) holds the LinkML schema and the documentation site.
 
 ```
-src/astra/schema/   # LinkML schema sources (edit these)
-  generated/        # JSON Schemas, JSON-LD context, rules.json and Pydantic models (generated, do not edit)
-docs/               # Documentation source, the specification included (Zensical → astra-spec.org)
-examples/           # Example analyses
-conformance/        # Conformance suite: astra.yaml files, records and analyses, with their verdicts
-tools/              # Generators and checks of the schema files and the docs
-linkml-templates/   # Templates for the generated field reference and Pydantic models
-rfcs/               # RFCs
+src/astra/
+  schema/       # LinkML schema source (edit these)
+  datamodel/    # Generated Python datamodel (do not edit directly)
+docs/           # Documentation source (Zensical → astra-spec.org)
+conformance/    # Conformance suite: astra.yaml files, records and analyses, with their verdicts
+project/        # Generated: JSON Schemas, JSON-LD context and rules.json (committed); TS, OWL, Java and more
+tools/          # Generators and checks of the schema files and the docs
+linkml-templates/  # Templates for the generated field reference and Pydantic models
 ```
 
-The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/). The `astra-spec` package holds the LinkML sources and the generated schema files, as the namespace package `astra.schema`, read through `importlib.resources`, and has no dependencies.
+The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/). The `astra-spec` package ships the LinkML sources and the generated JSON Schemas, JSON-LD context and `rules.json` under `astra.schema` (read them through `importlib.resources`), and the generated Python datamodels under `astra.datamodel`.
 
-It also ships Pydantic models of the two documents, generated from the LinkML sources, which need the `pydantic` extra (`pip install "astra-spec[pydantic]"`). They are a typed view of a document the JSON Schema accepted, not a validator: they don't check the patterns of the named types, the class rules or the maps' keys.
+The datamodels of the two documents are LinkML's dataclasses (`analysis`, `provenance`) and Pydantic models (`astra_pydantic`, `provenance_pydantic`). They are a typed view of a document the JSON Schema accepted, not a validator: they don't check the patterns of the named types, the class rules or the maps' keys.
 
 ```python
-from astra.schema.generated.analysis import Analysis
+from astra.datamodel.astra_pydantic import Analysis
 
 analysis = Analysis.model_validate(document)  # `document`: an astra.yaml the JSON Schema accepted
 analysis.outputs["result"].id                # "result": each entry takes its key as its id
@@ -114,9 +114,10 @@ uv sync --dev
 Requires Python 3.10+, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just/).
 
 ```bash
-just test         # Generated files current, pytest, schema lint
+just test         # Schema generation, Python datamodel, examples
 just lint         # LinkML schema lint
-just gen-schema   # Regenerate the JSON Schemas, JSON-LD context, rules.json and Pydantic models
+just gen-schema   # Regenerate the JSON Schemas, JSON-LD context and rules.json
+just gen-python   # Regenerate Python datamodels
 just gen-doc      # Regenerate the field reference docs
 just docs-serve   # Live-reload local preview of the docs site
 just --list       # Everything else
@@ -135,7 +136,7 @@ Both are permissive; commercial and academic use are unrestricted. Schema reuse 
 
 ## Citing
 
-If you use ASTRA, please cite the repository — the easiest way is the **"Cite this repository"** button on this page (it generates APA and BibTeX from [`CITATION.cff`](CITATION.cff)). Include the schema version you targeted; it is recorded in the `$id` and `$comment` of each generated JSON Schema.
+If you use ASTRA, please cite the repository — the easiest way is the **"Cite this repository"** button on this page (it generates APA and BibTeX from [`CITATION.cff`](CITATION.cff)). Include the schema version you targeted; it is recorded at the top of each LinkML source file and in every generated artefact.
 
 For the broader context, the [Lightcone Research position paper](https://github.com/LightconeResearch/astra-paper) is a separate citation, not a replacement.
 
