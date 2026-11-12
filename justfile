@@ -436,8 +436,14 @@ import "project.justfile"
 # ====== Override recipes from above with custom versions =======
 
 # Uncomment the following line to allow duplicate recipe names
-#set allow-duplicate-recipes
+set allow-duplicate-recipes
 
 # Overriding recipes from the root justfile by adding a recipe with the same
 # name in an imported file is not possible until a known issue in just is fixed,
 # https://github.com/casey/just/issues/2540 - So we need to override them here.
+
+# Run Python unit tests with pytest, on the datamodels and the contract both
+# made afresh: the tests read the contract (project/jsonschema, project/jsonld,
+# project/rules), which `just clean` removes with the rest of project/
+_test-python: gen-python gen-schema
+  uv run python -m pytest
