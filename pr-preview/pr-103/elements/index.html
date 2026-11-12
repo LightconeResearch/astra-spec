@@ -1041,7 +1041,7 @@ artefacts it makes, and the decisions it makes along the way.</p>
 </tr>
 <tr>
 <td><a href="Insight/">Insight</a></td>
-<td>A claim backed by evidence: as a prior insight, what earlier work establishes…</td>
+<td>A unit of scientific knowledge backed by evidence.</td>
 </tr>
 <tr>
 <td><a href="Option/">Option</a></td>
@@ -1057,7 +1057,7 @@ artefacts it makes, and the decisions it makes along the way.</p>
 </tr>
 <tr>
 <td><a href="Resources/">Resources</a></td>
-<td>The compute resources a recipe asks for.</td>
+<td>Compute resource requirements for a recipe.</td>
 </tr>
 <tr>
 <td><a href="SwitchCase/">SwitchCase</a></td>
@@ -1065,7 +1065,7 @@ artefacts it makes, and the decisions it makes along the way.</p>
 </tr>
 <tr>
 <td><a href="TextQuoteSelector/">TextQuoteSelector</a></td>
-<td>A passage of the cited work or output, quoted exactly, with the text just…</td>
+<td>W3C TextQuoteSelector for locating text in a document.</td>
 </tr>
 <tr>
 <td><a href="Universe/">Universe</a></td>
@@ -1164,7 +1164,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="cpus/">cpus</a></td>
-<td>The number of CPU cores the recipe asks for, which may be fractional, such as…</td>
+<td>CPU cores requested.</td>
 </tr>
 <tr>
 <td><a href="decision-slot/">decision</a></td>
@@ -1180,11 +1180,11 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="description/">description</a></td>
-<td>What the input's data is, in free prose.</td>
+<td>Free-prose description of this input.</td>
 </tr>
 <tr>
 <td><a href="disk/">disk</a></td>
-<td>The disk space the recipe asks for, as free text, such as <code>10GB</code>.</td>
+<td>Disk requirement as a string with units (e.g., '10Gi', '500Mi').</td>
 </tr>
 <tr>
 <td><a href="doi/">doi</a></td>
@@ -1228,7 +1228,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="gpus/">gpus</a></td>
-<td>The number of GPUs the recipe asks for.</td>
+<td>Number of GPUs</td>
 </tr>
 <tr>
 <td><a href="id-slot/">id</a></td>
@@ -1252,7 +1252,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="label/">label</a></td>
-<td>A short display name for the input.</td>
+<td>Short human-readable name for compact rendering (margin glyphs, breadcrumbs…</td>
 </tr>
 <tr>
 <td><a href="location/">location</a></td>
@@ -1260,7 +1260,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="memory/">memory</a></td>
-<td>The memory the recipe asks for, as free text, such as <code>4GB</code>.</td>
+<td>Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').</td>
 </tr>
 <tr>
 <td><a href="option-slot/">option</a></td>
@@ -1280,7 +1280,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="prefix/">prefix</a></td>
-<td>The text that comes just before the passage.</td>
+<td>~20-100 chars before for disambiguation</td>
 </tr>
 <tr>
 <td><a href="prior_insights/">prior_insights</a></td>
@@ -1292,7 +1292,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="rationale/">rationale</a></td>
-<td>Why the analysis makes this decision, in free prose.</td>
+<td>Why this decision exists</td>
 </tr>
 <tr>
 <td><a href="recipe-slot/">recipe</a></td>
@@ -1304,7 +1304,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="resources-slot/">resources</a></td>
-<td>The compute resources the recipe asks for.</td>
+<td>Compute resource requirements (cpus, memory, time_limit, …)</td>
 </tr>
 <tr>
 <td><a href="runner-slot/">runner</a></td>
@@ -1312,7 +1312,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="scope/">scope</a></td>
-<td>The conditions under which the claim holds, in free prose.</td>
+<td>Applicability conditions</td>
 </tr>
 <tr>
 <td><a href="size/">size</a></td>
@@ -1328,7 +1328,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="suffix/">suffix</a></td>
-<td>The text that comes just after the passage.</td>
+<td>~20-100 chars after for disambiguation</td>
 </tr>
 <tr>
 <td><a href="switch/">switch</a></td>
@@ -1344,7 +1344,7 @@ this schema a record maps onto W3C PROV-O.</p>
 </tr>
 <tr>
 <td><a href="time_limit/">time_limit</a></td>
-<td>The longest the recipe may run, as free text, such as <code>2h</code>.</td>
+<td>Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').</td>
 </tr>
 <tr>
 <td><a href="type/">type</a></td>

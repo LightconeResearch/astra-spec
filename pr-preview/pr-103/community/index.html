@@ -1069,7 +1069,7 @@
 <p>In alpha, three kinds of contribution are worth more than they will be later:</p>
 <ul>
 <li><strong>Real-analysis attempts.</strong> Take an analysis you actually ran and try to express it in ASTRA. Report what fits, what doesn't, and where the spec forced you to invent a workaround. These reports are the single best signal for what to fix at the schema level.</li>
-<li><strong>Schema review.</strong> Read the <a href="../specification/">specification</a> and the <a href="../elements/">field reference</a> with an adversarial eye. Ambiguity, missing constraints, and reserved-name collisions are easier to fix now than after the format has consumers.</li>
+<li><strong>Schema review.</strong> Read the <a href="../specification/">specification</a> and the <a href="../elements/">field reference</a> with an adversarial eye. Ambiguity, missing constraints, and clashing names are easier to fix now than after the format has consumers.</li>
 <li><strong>Downstream tooling experiments.</strong> Build something that consumes an ASTRA spec — a runner, a renderer, a retrieval index, a JSON-Schema-driven editor. Even a prototype tells the project what is awkward to consume, which is information the spec authors otherwise don't have.</li>
 </ul>
 <p>Documentation fixes, typo PRs, and tightening of error messages are also welcome and small enough to ship the same day.</p>
@@ -1080,7 +1080,7 @@
 <li><strong>Keep changes focused.</strong> A schema change, a doc change, and a tooling change are three separate pull requests.</li>
 <li>
 <p><strong>Run the project checks</strong> locally before pushing:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">          </span><span class="c1"># schema generation, fixtures, examples</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">          </span><span class="c1"># schema generation, Python datamodels, pytest, schema lint</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>just<span class="w"> </span>lint<span class="w">          </span><span class="c1"># LinkML schema lint</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>just<span class="w"> </span>docs-strict<span class="w">   </span><span class="c1"># build docs in strict mode</span>
 </span></code></pre></div>
@@ -1095,12 +1095,13 @@
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># For a rule: its row in its section&#39;s codes table in docs/specification.md, and,</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># for a schema-layer rule, its code on the constraint (annotations: {rule: CODE})</span>
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>just<span class="w"> </span>gen-schema<span class="w">    </span><span class="c1"># Regenerate src/astra/schema/generated/ (commit it)</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>just<span class="w"> </span>gen-doc<span class="w">       </span><span class="c1"># Regenerate the field reference docs (docs/elements/)</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>just<span class="w"> </span>lint<span class="w">          </span><span class="c1"># Lint the LinkML schema</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">          </span><span class="c1"># Run all tests</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>just<span class="w"> </span>gen-schema<span class="w">    </span><span class="c1"># Regenerate the contract in project/ (commit it)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>just<span class="w"> </span>gen-python<span class="w">    </span><span class="c1"># Regenerate Python datamodels</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>just<span class="w"> </span>gen-doc<span class="w">       </span><span class="c1"># Regenerate the field reference docs (docs/elements/)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>just<span class="w"> </span>lint<span class="w">          </span><span class="c1"># Lint the LinkML schema</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>just<span class="w"> </span><span class="nb">test</span><span class="w">          </span><span class="c1"># Run all tests</span>
 </span></code></pre></div>
-<p>Open a PR with the schema, generated artefacts, and any doc updates in a single commit so reviewers see the full picture. Every schema constraint needs a row in <code>NEGATIVE</code> (<code>tests/test_constraints.py</code>), and a new schema-layer code an invalid fixture in <code>conformance/documents/</code>.</p>
+<p>Open a PR with the schema, generated artefacts, and any doc updates in a single commit so reviewers see the full picture. Every schema constraint needs a row in <code>NEGATIVE</code> (<code>tests/test_constraints.py</code>), and a new schema-layer code an invalid fixture in <code>tests/data/invalid/</code>.</p>
 <h3 id="reporting-problems">Reporting problems<a class="headerlink" href="#reporting-problems" title="Permanent link">&para;</a></h3>
 <p>A useful issue includes:</p>
 <ul>
@@ -1109,7 +1110,7 @@
 <li>The full error output, copy-pasted from the terminal.</li>
 <li>What you expected to happen instead.</li>
 </ul>
-<p>Validation issues are easier to triage when accompanied by a fixture small enough to drop into <a href="https://github.com/LightconeResearch/astra-spec/tree/main/conformance/documents"><code>conformance/documents/</code></a> — usually a single decision and a single output is plenty.</p>
+<p>Validation issues are easier to triage when accompanied by a fixture small enough to drop into <a href="https://github.com/LightconeResearch/astra-spec/tree/main/tests/data"><code>tests/data/</code></a> — usually a single decision and a single output is plenty.</p>
 <h2 id="code-of-conduct">Code of Conduct<a class="headerlink" href="#code-of-conduct" title="Permanent link">&para;</a></h2>
 <p>We expect respectful, thoughtful collaboration in all project spaces — issues, pull requests, and discussions. Treat other contributors the way you would want to be treated; assume good faith; disagree with the idea, not the person. Conduct issues can be raised privately with the maintainers via GitHub.</p>
 <h2 id="citing-and-license">Citing and license<a class="headerlink" href="#citing-and-license" title="Permanent link">&para;</a></h2>

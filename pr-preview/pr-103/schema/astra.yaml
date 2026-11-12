@@ -447,24 +447,24 @@ enums:
     permissible_values:
       metric:
         text: metric
-        description: A metric or measurement.
+        description: A metric or measurement
       figure:
         text: figure
-        description: A figure or visualisation.
+        description: A figure or visualization
       table:
         text: table
-        description: A table of data.
+        description: A table of data
       data:
         text: data
-        description: A data file or dataset.
+        description: A data file or dataset
       report:
         text: report
-        description: A report or document.
+        description: A report or document
 slots:
   resources__cpus:
     name: resources__cpus
-    description: The number of CPU cores the recipe asks for, which may be fractional,
-      such as 0.5.
+    description: CPU cores requested. Fractional values are allowed (e.g., 0.5) for
+      runners that support CPU shares.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:cpus
     alias: cpus
@@ -475,7 +475,8 @@ slots:
     minimum_value: 0
   resources__memory:
     name: resources__memory
-    description: The memory the recipe asks for, as free text, such as `4GB`.
+    description: Memory requirement as a string with units (e.g., '16Gi', '512Mi',
+      '8GB').
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:memory
     alias: memory
@@ -485,7 +486,7 @@ slots:
     range: string
   resources__time_limit:
     name: resources__time_limit
-    description: The longest the recipe may run, as free text, such as `2h`.
+    description: Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:time_limit
     alias: time_limit
@@ -495,7 +496,7 @@ slots:
     range: string
   resources__disk:
     name: resources__disk
-    description: The disk space the recipe asks for, as free text, such as `10GB`.
+    description: Disk requirement as a string with units (e.g., '10Gi', '500Mi').
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:disk
     alias: disk
@@ -505,7 +506,7 @@ slots:
     range: string
   resources__gpus:
     name: resources__gpus
-    description: The number of GPUs the recipe asks for.
+    description: Number of GPUs
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:gpus
     alias: gpus
@@ -545,7 +546,7 @@ slots:
     required: true
   recipe__resources:
     name: recipe__resources
-    description: The compute resources the recipe asks for.
+    description: "Compute resource requirements (cpus, memory, time_limit, \u2026)"
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:resources
     alias: resources
@@ -569,7 +570,8 @@ slots:
     required: true
   input__label:
     name: input__label
-    description: A short display name for the input.
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:label
     alias: label
@@ -579,7 +581,7 @@ slots:
     range: string
   input__description:
     name: input__description
-    description: What the input's data is, in free prose.
+    description: Free-prose description of this input.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:description
     alias: description
@@ -630,7 +632,8 @@ slots:
     required: true
   output__label:
     name: output__label
-    description: A short display name for the output.
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:label
     alias: label
@@ -640,7 +643,7 @@ slots:
     range: string
   output__description:
     name: output__description
-    description: What the output is, in free prose.
+    description: Free-prose description of this output.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:description
     alias: description
@@ -783,66 +786,6 @@ slots:
     - SwitchCase
     range: reference
     required: true
-  decision__id:
-    name: decision__id
-    description: The decision's id, written as its key in `decisions`.
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:id
-    key: true
-    alias: id
-    owner: Decision
-    domain_of:
-    - Decision
-    range: id
-    required: true
-  decision__label:
-    name: decision__label
-    description: A short display name for the decision.
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:label
-    alias: label
-    owner: Decision
-    domain_of:
-    - Decision
-    range: string
-  decision__rationale:
-    name: decision__rationale
-    description: Why the analysis makes this decision, in free prose.
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:rationale
-    alias: rationale
-    owner: Decision
-    domain_of:
-    - Decision
-    range: string
-  decision__tags:
-    name: decision__tags
-    description: Keywords for grouping and finding the decision.
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:tags
-    alias: tags
-    owner: Decision
-    domain_of:
-    - Decision
-    range: string
-    multivalued: true
-    minimum_cardinality: 1
-  decision__options:
-    name: decision__options
-    description: The options the decision chooses between, keyed by id. There is at
-      least one.
-    from_schema: https://w3id.org/astra/analysis
-    slot_uri: astra:options
-    alias: options
-    owner: Decision
-    domain_of:
-    - Decision
-    range: Option
-    required: true
-    multivalued: true
-    inlined: true
-    inlined_as_list: false
-    minimum_cardinality: 1
   option__id:
     name: option__id
     description: The option's id, written as its key in `options`.
@@ -857,7 +800,7 @@ slots:
     required: true
   option__label:
     name: option__label
-    description: A short display name for the option.
+    description: Human-readable name for the option
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:label
     alias: label
@@ -867,7 +810,7 @@ slots:
     range: string
   option__description:
     name: option__description
-    description: What the option is, in free prose.
+    description: Free-prose description of this option.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:description
     alias: description
@@ -936,6 +879,66 @@ slots:
     domain_of:
     - Option
     range: string
+  decision__id:
+    name: decision__id
+    description: The decision's id, written as its key in `decisions`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:id
+    key: true
+    alias: id
+    owner: Decision
+    domain_of:
+    - Decision
+    range: id
+    required: true
+  decision__label:
+    name: decision__label
+    description: Human-readable name for the decision
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+  decision__rationale:
+    name: decision__rationale
+    description: Why this decision exists
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:rationale
+    alias: rationale
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+  decision__tags:
+    name: decision__tags
+    description: Tags for grouping and categorizing
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+    multivalued: true
+    minimum_cardinality: 1
+  decision__options:
+    name: decision__options
+    description: The options the decision chooses between, keyed by id. There is at
+      least one.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:options
+    alias: options
+    owner: Decision
+    domain_of:
+    - Decision
+    range: Option
+    required: true
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+    minimum_cardinality: 1
   universe__id:
     name: universe__id
     description: 'The entry''s id, written as its key in `universes`: for an import,
@@ -1141,7 +1144,7 @@ slots:
     required: true
   analysis__label:
     name: analysis__label
-    description: A short display name for the analysis.
+    description: Human-readable name for the analysis
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:label
     alias: label
@@ -1151,7 +1154,11 @@ slots:
     range: string
   analysis__description:
     name: analysis__description
-    description: What the analysis does, in free prose.
+    description: "Free-prose description of this analysis \u2014 the same optional\
+      \ field every other content object carries (Input, Output, Option, Universe).\
+      \ A short human orientation lives here; richer write-ups (figures, citations,\
+      \ multi-page reports) are authored externally and reference analysis elements\
+      \ by address rather than restating them."
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:description
     alias: description
@@ -1161,7 +1168,7 @@ slots:
     range: string
   analysis__tags:
     name: analysis__tags
-    description: Keywords for grouping and finding the analysis.
+    description: Tags for categorization
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:tags
     alias: tags
@@ -1187,7 +1194,6 @@ slots:
   analysis__outputs:
     name: analysis__outputs
     description: The artefacts the analysis makes, and its switches, keyed by id.
-      There is at least one.
     from_schema: https://w3id.org/astra/analysis
     slot_uri: astra:outputs
     alias: outputs
@@ -1195,11 +1201,9 @@ slots:
     domain_of:
     - Analysis
     range: Output
-    required: true
     multivalued: true
     inlined: true
     inlined_as_list: false
-    minimum_cardinality: 1
   analysis__decisions:
     name: analysis__decisions
     description: The choices the analysis makes, keyed by id.
@@ -1283,7 +1287,7 @@ slots:
     required: true
   textQuoteSelector__prefix:
     name: textQuoteSelector__prefix
-    description: The text that comes just before the passage.
+    description: ~20-100 chars before for disambiguation
     from_schema: https://w3id.org/astra/insight
     mappings:
     - oa:prefix
@@ -1295,7 +1299,7 @@ slots:
     range: string
   textQuoteSelector__suffix:
     name: textQuoteSelector__suffix
-    description: The text that comes just after the passage.
+    description: ~20-100 chars after for disambiguation
     from_schema: https://w3id.org/astra/insight
     mappings:
     - oa:suffix
@@ -1421,7 +1425,8 @@ slots:
     required: true
   insight__label:
     name: insight__label
-    description: A short display name for the insight.
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
     from_schema: https://w3id.org/astra/insight
     slot_uri: astra:label
     alias: label
@@ -1467,7 +1472,7 @@ slots:
     minimum_cardinality: 1
   insight__scope:
     name: insight__scope
-    description: The conditions under which the claim holds, in free prose.
+    description: Applicability conditions
     from_schema: https://w3id.org/astra/insight
     slot_uri: astra:scope
     alias: scope
@@ -1477,7 +1482,7 @@ slots:
     range: string
   insight__tags:
     name: insight__tags
-    description: Keywords for grouping and finding the insight.
+    description: Categorization tags
     from_schema: https://w3id.org/astra/insight
     slot_uri: astra:tags
     alias: tags
@@ -1491,7 +1496,9 @@ classes:
   Resources:
     name: Resources
     definition_uri: https://w3id.org/astra/Resources
-    description: The compute resources a recipe asks for.
+    description: Compute resource requirements for a recipe. Values follow cloud-native
+      conventions (string-with-units for sized quantities) so cluster executors can
+      consume them directly.
     from_schema: https://w3id.org/astra/analysis
     slots:
     - resources__cpus
@@ -1502,22 +1509,23 @@ classes:
     attributes:
       cpus:
         name: cpus
-        description: The number of CPU cores the recipe asks for, which may be fractional,
-          such as 0.5.
+        description: CPU cores requested. Fractional values are allowed (e.g., 0.5)
+          for runners that support CPU shares.
         range: float
         minimum_value: 0
       memory:
         name: memory
-        description: The memory the recipe asks for, as free text, such as `4GB`.
+        description: Memory requirement as a string with units (e.g., '16Gi', '512Mi',
+          '8GB').
       time_limit:
         name: time_limit
-        description: The longest the recipe may run, as free text, such as `2h`.
+        description: Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').
       disk:
         name: disk
-        description: The disk space the recipe asks for, as free text, such as `10GB`.
+        description: Disk requirement as a string with units (e.g., '10Gi', '500Mi').
       gpus:
         name: gpus
-        description: The number of GPUs the recipe asks for.
+        description: Number of GPUs
         range: integer
         minimum_value: 1
     class_uri: astra:Resources
@@ -1558,7 +1566,8 @@ classes:
         required: true
       resources:
         name: resources
-        description: The compute resources the recipe asks for.
+        description: "Compute resource requirements (cpus, memory, time_limit, \u2026\
+          )"
         range: Resources
         inlined: true
     class_uri: astra:Recipe
@@ -1582,10 +1591,11 @@ classes:
         range: id
       label:
         name: label
-        description: A short display name for the input.
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
       description:
         name: description
-        description: What the input's data is, in free prose.
+        description: Free-prose description of this input.
       tags:
         name: tags
         description: Keywords for grouping and finding the input.
@@ -1630,10 +1640,11 @@ classes:
         range: id
       label:
         name: label
-        description: A short display name for the output.
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
       description:
         name: description
-        description: What the output is, in free prose.
+        description: Free-prose description of this output.
       tags:
         name: tags
         description: Keywords for grouping and finding the output.
@@ -1843,45 +1854,6 @@ classes:
         range: reference
         required: true
     class_uri: astra:SwitchCase
-  Decision:
-    name: Decision
-    definition_uri: https://w3id.org/astra/Decision
-    description: A choice the analysis makes between options, such as which method
-      to use.
-    from_schema: https://w3id.org/astra/analysis
-    slots:
-    - decision__id
-    - decision__label
-    - decision__rationale
-    - decision__tags
-    - decision__options
-    attributes:
-      id:
-        name: id
-        description: The decision's id, written as its key in `decisions`.
-        key: true
-        range: id
-      label:
-        name: label
-        description: A short display name for the decision.
-      rationale:
-        name: rationale
-        description: Why the analysis makes this decision, in free prose.
-      tags:
-        name: tags
-        description: Keywords for grouping and finding the decision.
-        multivalued: true
-        minimum_cardinality: 1
-      options:
-        name: options
-        description: The options the decision chooses between, keyed by id. There
-          is at least one.
-        range: Option
-        required: true
-        multivalued: true
-        inlined: true
-        minimum_cardinality: 1
-    class_uri: astra:Decision
   Option:
     name: Option
     definition_uri: https://w3id.org/astra/Option
@@ -1904,10 +1876,10 @@ classes:
         range: id
       label:
         name: label
-        description: A short display name for the option.
+        description: Human-readable name for the option
       description:
         name: description
-        description: What the option is, in free prose.
+        description: Free-prose description of this option.
       tags:
         name: tags
         description: Keywords for grouping and finding the option.
@@ -1939,6 +1911,45 @@ classes:
         description: 'Why the option is ruled out. An option with a reason is excluded:
           no effective selection selects it.'
     class_uri: astra:Option
+  Decision:
+    name: Decision
+    definition_uri: https://w3id.org/astra/Decision
+    description: A choice the analysis makes between options, such as which method
+      to use.
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - decision__id
+    - decision__label
+    - decision__rationale
+    - decision__tags
+    - decision__options
+    attributes:
+      id:
+        name: id
+        description: The decision's id, written as its key in `decisions`.
+        key: true
+        range: id
+      label:
+        name: label
+        description: Human-readable name for the decision
+      rationale:
+        name: rationale
+        description: Why this decision exists
+      tags:
+        name: tags
+        description: Tags for grouping and categorizing
+        multivalued: true
+        minimum_cardinality: 1
+      options:
+        name: options
+        description: The options the decision chooses between, keyed by id. There
+          is at least one.
+        range: Option
+        required: true
+        multivalued: true
+        inlined: true
+        minimum_cardinality: 1
+    class_uri: astra:Decision
   Universe:
     name: Universe
     definition_uri: https://w3id.org/astra/Universe
@@ -2205,13 +2216,17 @@ classes:
         required: true
       label:
         name: label
-        description: A short display name for the analysis.
+        description: Human-readable name for the analysis
       description:
         name: description
-        description: What the analysis does, in free prose.
+        description: "Free-prose description of this analysis \u2014 the same optional\
+          \ field every other content object carries (Input, Output, Option, Universe).\
+          \ A short human orientation lives here; richer write-ups (figures, citations,\
+          \ multi-page reports) are authored externally and reference analysis elements\
+          \ by address rather than restating them."
       tags:
         name: tags
-        description: Keywords for grouping and finding the analysis.
+        description: Tags for categorization
         multivalued: true
         minimum_cardinality: 1
       inputs:
@@ -2223,12 +2238,10 @@ classes:
       outputs:
         name: outputs
         description: The artefacts the analysis makes, and its switches, keyed by
-          id. There is at least one.
+          id.
         range: Output
-        required: true
         multivalued: true
         inlined: true
-        minimum_cardinality: 1
       decisions:
         name: decisions
         description: The choices the analysis makes, keyed by id.
@@ -2267,9 +2280,8 @@ classes:
   TextQuoteSelector:
     name: TextQuoteSelector
     definition_uri: https://w3id.org/astra/TextQuoteSelector
-    description: A passage of the cited work or output, quoted exactly, with the text
-      just before and after it to tell it apart where the same words occur more than
-      once.
+    description: W3C TextQuoteSelector for locating text in a document. The authoritative
+      anchor for verification.
     from_schema: https://w3id.org/astra/insight
     exact_mappings:
     - oa:TextQuoteSelector
@@ -2285,11 +2297,11 @@ classes:
         required: true
       prefix:
         name: prefix
-        description: The text that comes just before the passage.
+        description: ~20-100 chars before for disambiguation
         slot_uri: oa:prefix
       suffix:
         name: suffix
-        description: The text that comes just after the passage.
+        description: ~20-100 chars after for disambiguation
         slot_uri: oa:suffix
     class_uri: oa:TextQuoteSelector
   FragmentSelector:
@@ -2412,8 +2424,8 @@ classes:
   Insight:
     name: Insight
     definition_uri: https://w3id.org/astra/Insight
-    description: 'A claim backed by evidence: as a prior insight, what earlier work
-      establishes and the analysis builds on; as a finding, what the analysis concludes.'
+    description: A unit of scientific knowledge backed by evidence. Used for both
+      prior_insights (informing decisions) and findings (conclusions from the analysis).
     from_schema: https://w3id.org/astra/insight
     slots:
     - insight__id
@@ -2431,7 +2443,8 @@ classes:
         range: id
       label:
         name: label
-        description: A short display name for the insight.
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
       claim:
         name: claim
         description: What the insight asserts.
@@ -2449,15 +2462,15 @@ classes:
         minimum_cardinality: 1
       scope:
         name: scope
-        description: The conditions under which the claim holds, in free prose.
+        description: Applicability conditions
       tags:
         name: tags
-        description: Keywords for grouping and finding the insight.
+        description: Categorization tags
         multivalued: true
         minimum_cardinality: 1
     class_uri: astra:Insight
 metamodel_version: 1.12.0
 source_file: analysis.yaml
-source_file_date: '2026-11-11T22:00:47'
-source_file_size: 23374
+source_file_date: '2026-11-12T17:08:04'
+source_file_size: 24367
 
