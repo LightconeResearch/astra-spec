@@ -20,7 +20,7 @@ from rdflib import RDF, XSD, BNode, Graph, Literal, Namespace, URIRef
 
 from .conftest import (
     DATA,
-    GENERATED,
+    PROJECT,
     REPO_ROOT,
     error_pointers,
     fixtures,
@@ -30,7 +30,7 @@ from .conftest import (
 from .test_specification import EXAMPLE_ROOTS, WHOLE_EXAMPLES
 
 SCHEMA = REPO_ROOT / "src" / "astra" / "schema" / "provenance.yaml"
-CONTEXT = GENERATED / "provenance.context.jsonld"
+CONTEXT = PROJECT / "jsonld" / "provenance.context.jsonld"
 PROV = Namespace("http://www.w3.org/ns/prov#")
 ASTRA = Namespace("https://w3id.org/astra/")
 SCHEMA_ORG = Namespace("http://schema.org/")

@@ -20,7 +20,11 @@ from ruamel.yaml.events import (
 from rules import json_pointer
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-GENERATED = REPO_ROOT / "src" / "astra" / "schema" / "generated"
+PROJECT = REPO_ROOT / "project"
+JSONSCHEMA = PROJECT / "jsonschema"
+"""The committed JSON Schemas of `just gen-schema`."""
+RULES_JSON = PROJECT / "rules" / "rules.json"
+"""The committed rule catalogue of `just gen-schema`."""
 DATA = REPO_ROOT / "conformance" / "documents"
 
 _SCHEMA_NAMES = {"Analysis": "analysis", "ProvenanceRecord": "provenance"}
@@ -359,7 +363,7 @@ def validator(root: str, *, closed: bool = True) -> Validator:
     """
     suffix = ".schema.json" if closed else ".open.schema.json"
     schema = json.loads(
-        (GENERATED / f"{_SCHEMA_NAMES[root]}{suffix}").read_text(encoding="utf-8")
+        (JSONSCHEMA / f"{_SCHEMA_NAMES[root]}{suffix}").read_text(encoding="utf-8")
     )
     Validator.check_schema(schema)
     return Validator(schema)
@@ -368,7 +372,7 @@ def validator(root: str, *, closed: bool = True) -> Validator:
 @functools.cache
 def rules_catalogue() -> dict[str, Any]:
     """The committed `rules.json`: the rules of the specification's codes table, and the error map of the JSON Schemas."""
-    return json.loads((GENERATED / "rules.json").read_text(encoding="utf-8"))
+    return json.loads(RULES_JSON.read_text(encoding="utf-8"))
 
 
 def _pointer(path) -> str:

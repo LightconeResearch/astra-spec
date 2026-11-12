@@ -16,7 +16,7 @@ maintainers = [
 ]
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<4.0"
 dynamic = ["version"]
 keywords = [
   "astra",
@@ -45,14 +45,13 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
 ]
 
-dependencies = []
-
-[project.optional-dependencies]
-# The Pydantic models of the two documents, astra.schema.generated.analysis
-# and astra.schema.generated.provenance.
-pydantic = ["pydantic>=2.11"]
+dependencies = [
+  "linkml-runtime >=1.9.4",
+]
 
 [project.urls]
 Homepage = "https://astra-spec.org"
@@ -70,8 +69,6 @@ dev = [
     "pytest>=8",
     "markdown-it-py>=3",
     "rdflib>=7",
-    # tests/test_models.py loads documents into the generated Pydantic models.
-    "pydantic>=2.11",
     # Pinned: tests/test_rules.py reads its standard output formats to check which errors fail a file.
     "jschon==0.11.1",
 ]
@@ -89,18 +86,24 @@ include = [
   "/pyproject.toml",
   "/LICENSE",
   "/docs/llms.txt",
+  "/project/jsonschema",
+  "/project/jsonld",
+  "/project/rules",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/astra"]
-# astra and astra.schema have no __init__.py (namespace packages), so an editable install needs
-# src on the path to expose them.
-dev-mode-dirs = ["src"]
 
 # Ship the agent briefing inside the package so tooling (e.g. `astra guide`
 # from astra-tools) can read the copy matching the installed schema.
+# Ship the contract `just gen-schema` commits under project/, each LinkML
+# generator's folder beside the LinkML sources in astra/schema/, where tools
+# read it through importlib.resources (`files("astra.schema")`).
 [tool.hatch.build.targets.wheel.force-include]
 "docs/llms.txt" = "astra/docs/llms.txt"
+"project/jsonschema" = "astra/schema/jsonschema"
+"project/jsonld" = "astra/schema/jsonld"
+"project/rules" = "astra/schema/rules"
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
@@ -127,6 +130,8 @@ skip = [
   "pyproject.toml",
   "uv.lock",
   "project/*",
+  "src/astra/datamodel/astra_pydantic.py",
+  "src/astra/datamodel/astra.py",
 ]
 
 # Reminder: words have to be lowercased for the ignore-words-list
@@ -142,4 +147,6 @@ extend-exclude = [
   "uv.lock",
   "pyproject.toml",
   "project/*",
+  "src/astra/datamodel/astra_pydantic.py",
+  "src/astra/datamodel/astra.py",
 ]

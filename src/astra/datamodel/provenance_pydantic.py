@@ -104,7 +104,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'astra',
                            'prefix_reference': 'http://www.w3.org/ns/prov#'},
                   'schema': {'prefix_prefix': 'schema',
                              'prefix_reference': 'http://schema.org/'}},
-     'source_file': 'tmp/schema/provenance.yaml'} )
+     'source_file': 'provenance.yaml'} )
 
 
 class ProvenanceRecord(ConfiguredBaseModel):

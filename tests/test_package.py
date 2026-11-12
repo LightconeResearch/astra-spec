@@ -1,4 +1,4 @@
-"""The built wheel ships exactly the schema artefacts, plus the generated Pydantic models."""
+"""The built wheel ships exactly the schema artefacts, the generated contract and the Python datamodels."""
 
 import shutil
 import subprocess
@@ -7,22 +7,28 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# Every file the wheel ships outside its `*.dist-info/`: the LinkML sources,
-# the generated contract and Pydantic models, and the agent briefing
-# (CLAUDE.md).
+# Every file the wheel ships outside its `*.dist-info/`: the LinkML sources and
+# their folder's README, the contract `just gen-schema` commits under project/
+# (force-included into astra/schema/, one folder per generator), the Python
+# datamodels, the version module, and the agent briefing (docs/llms.txt).
 ARTEFACTS = frozenset(
     {
+        "astra/_version.py",
+        "astra/schema/README.md",
         "astra/schema/types.yaml",
         "astra/schema/analysis.yaml",
         "astra/schema/insight.yaml",
         "astra/schema/provenance.yaml",
-        "astra/schema/generated/analysis.schema.json",
-        "astra/schema/generated/provenance.schema.json",
-        "astra/schema/generated/provenance.open.schema.json",
-        "astra/schema/generated/provenance.context.jsonld",
-        "astra/schema/generated/rules.json",
-        "astra/schema/generated/analysis.py",
-        "astra/schema/generated/provenance.py",
+        "astra/schema/jsonschema/analysis.schema.json",
+        "astra/schema/jsonschema/provenance.schema.json",
+        "astra/schema/jsonschema/provenance.open.schema.json",
+        "astra/schema/jsonld/provenance.context.jsonld",
+        "astra/schema/rules/rules.json",
+        "astra/datamodel/__init__.py",
+        "astra/datamodel/analysis.py",
+        "astra/datamodel/astra_pydantic.py",
+        "astra/datamodel/provenance.py",
+        "astra/datamodel/provenance_pydantic.py",
         "astra/docs/llms.txt",
     }
 )
@@ -57,13 +63,13 @@ def test_wheel_ships_exactly_the_artefacts(tmp_path):
     )
 
 
-def test_metadata_has_no_runtime_dependencies(tmp_path):
-    """The one dependency is the `pydantic` extra's, which only the generated models need."""
+def test_metadata_depends_on_linkml_runtime_only(tmp_path):
+    """The one dependency is linkml-runtime, which the generated datamodels import (and Pydantic through it)."""
     wheel = built_wheel(tmp_path)
     (metadata,) = [n for n in wheel.namelist() if n.endswith(".dist-info/METADATA")]
     lines = wheel.read(metadata).decode().splitlines()
     assert [line for line in lines if line.startswith("Requires-Dist:")] == [
-        "Requires-Dist: pydantic>=2.11; extra == 'pydantic'"
+        "Requires-Dist: linkml-runtime>=1.9.4"
     ]
-    assert "Provides-Extra: pydantic" in lines
-    assert "Requires-Python: >=3.10" in lines
+    assert not [line for line in lines if line.startswith("Provides-Extra:")]
+    assert "Requires-Python: <4.0,>=3.10" in lines

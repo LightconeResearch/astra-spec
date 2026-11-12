@@ -21,9 +21,21 @@ shebang := if os() == 'windows' {
 # Environment variables with defaults
 schema_name := env_var_or_default("LINKML_SCHEMA_NAME", "_no_schema_given_")
 source_schema_dir := env_var_or_default("LINKML_SCHEMA_SOURCE_DIR", "")
+config_yaml := if env_var_or_default("LINKML_GENERATORS_CONFIG_YAML", "") != "" {
+  "--config-file " + env_var_or_default("LINKML_GENERATORS_CONFIG_YAML", "")
+} else {
+  ""
+}
 gen_doc_args := env_var_or_default("LINKML_GENERATORS_DOC_ARGS", "")
+gen_java_args := env_var_or_default("LINKML_GENERATORS_JAVA_ARGS", "")
+gen_owl_args := env_var_or_default("LINKML_GENERATORS_OWL_ARGS", "")
+gen_pydantic_args := env_var_or_default("LINKML_GENERATORS_PYDANTIC_ARGS", "")
+gen_ts_args := env_var_or_default("LINKML_GENERATORS_TYPESCRIPT_ARGS", "")
 
 # Directory variables
+src := "src"
+dest := "project"
+pymodel := src / schema_name / "datamodel"
 schema_source_file := env_var_or_default("LINKML_SCHEMA_SOURCE_FILE", schema_name)
 source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 # Generators read from a staged copy under tmp/schema/ where the version is
@@ -32,18 +44,13 @@ source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 staged_schema_dir := "tmp/schema"
 staged_schema_path := staged_schema_dir / schema_source_file + ".yaml"
 docdir := "docs/elements"  # Directory for generated documentation
-# Each JSON Schema's $id is this, the series of the version it is generated
-# with (X.Y for a release X.Y.Z, a pre-release's whole version, or dev), `/`,
-# then its file name
-schema_namespace := "https://w3id.org/astra/"
+# The Pydantic models' base model (`linkml-templates/pydantic/`): gen-pydantic
+# runs from the staged dir, so the path is absolute
+pydantic_template := "--template-dir " + justfile_directory() / "linkml-templates" / "pydantic"
+# Every generated file that is committed: the contract (`gen-schema`) and the
+# Python datamodels (`gen-python`, all but `__init__.py`)
+generated_files := dest / "jsonschema" + " " + dest / "jsonld" + " " + dest / "rules" + " " + pymodel
 distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
-# The site shows astra-tools' CLI reference and installation page, which live
-# in astra-tools beside the code they describe (`_docs-tools`): taken from its
-# branch or tag `tools_ref` (v0.1-rebuild, astra-tools' v0.1 work, until it
-# reaches main), which ASTRA_TOOLS_REF overrides, or from the local folder
-# ASTRA_TOOLS_DOCS names, such as ../astra-tools/docs
-tools_ref := if env_var_or_default("ASTRA_TOOLS_REF", "") == "" { "v0.1-rebuild" } else { env_var("ASTRA_TOOLS_REF") }
-tools_docs := env_var_or_default("ASTRA_TOOLS_DOCS", "")
 
 # ============== Project recipes ==============
 
@@ -56,9 +63,13 @@ _default: _status
 setup: _check-config _git-init install _git-add && _setup_part2
   git commit -m "Initialise git with minimal project" -a || true
 
-_setup_part2: gen-doc
+_setup_part2: gen-project gen-doc
   @echo
   @echo '=== Setup completed! ==='
+  @echo 'Various model representations have been created under directory "project". By default'
+  @echo 'they are ignored by git. You decide whether you want to add them to git tracking or'
+  @echo 'continue to git-ignore them as they can be regenerated if needed.'
+  @echo 'For tracking specific subfolders, add !project/[foldername]/* line(s) to ".gitignore".'
 
 # Install project dependencies
 [group('project management')]
@@ -70,19 +81,19 @@ install:
 docs-install:
   uv sync --group docs
 
-# Update the LinkML package
+# Updates project template and LinkML package
 [group('project management')]
-update: _update-linkml
+update: _update-template _update-linkml
 
 # Clean all generated files
 [group('project management')]
-clean:
+clean: _clean_project
   rm -rf tmp
   rm -rf {{docdir}}/*.md
 
-# (Re-)Generate documentation locally
+# (Re-)Generate project and documentation locally
 [group('model development')]
-site: gen-doc
+site: gen-project gen-doc
 
 # Build docs site (output: site/)
 [group('documentation')]
@@ -129,72 +140,27 @@ docs-clean:
 # astra-tools' CLI reference and installation page (`_docs-tools`)
 _docs-prep: gen-doc docs-install _docs-tools
 
-# Copy astra-tools' docs/cli.md and docs/installation.md into docs/: from
-# astra-tools at `tools_ref`, or from the folder ASTRA_TOOLS_DOCS names
-_docs-tools:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  from="{{tools_docs}}"
-  if [[ -z "${from}" ]]; then
-    rm -rf tmp/astra-tools
-    git clone --quiet --depth 1 --branch "{{tools_ref}}" https://github.com/LightconeResearch/astra-tools.git tmp/astra-tools
-    from=tmp/astra-tools/docs
-  fi
-  cp "${from}/cli.md" "${from}/installation.md" docs/
-
-# Run all tests: the generated files are current, pytest, and the schema lints clean
+# Run all tests
 [group('model development')]
-test: check-generated _pytest lint
-
-# Generate the JSON Schemas of the analysis document and the provenance record
-# (closed, and open for fields it doesn't know), the record's JSON-LD context
-# (LinkML's, with every IRI in full and no term a prefix) and the rule
-# catalogue, into `out`, from the staged (versioned) schema. Each
-# JSON Schema's `$id` is the URI of its own file under its series (`{series}`,
-# filled in by the generator: `0.1` for every 0.1.x, a pre-release's whole
-# version, or `dev`), so the closed and open record schemas are distinct, and
-# so are two minor versions. `rules.json` holds the rules extracted from the
-# codes table of the specification's Rules section, and the code of each JSON
-# Schema keyword that can fail. Last, the Pydantic models of the two documents,
-# LinkML's `gen-pydantic` with the base model of `linkml-templates/pydantic/`,
-# whose one validator gives each entry of a map keyed by `id` its key as its
-# `id`: a typed view of a document the JSON Schema accepted, never a validator
-[group('model development')]
-gen-schema out="src/astra/schema/generated": _stage-versioned
-  mkdir -p {{out}}
-  uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/analysis.schema.json {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.schema.json
-  uv run python tools/jsonschema_generator.py --id {{schema_namespace}}{series}/provenance.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.schema.json
-  uv run python tools/jsonschema_generator.py --not-closed --id {{schema_namespace}}{series}/provenance.open.schema.json {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.open.schema.json
-  uv run python tools/jsonld_context.py {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.context.jsonld
-  uv run python tools/rules.py docs/specification.md {{staged_schema_dir}}/analysis.yaml {{staged_schema_dir}}/provenance.yaml --schemas {{out}}/analysis.schema.json {{out}}/provenance.schema.json {{out}}/provenance.open.schema.json > {{out}}/rules.json
-  uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/analysis.yaml > {{out}}/analysis.py
-  uv run gen-pydantic --template-dir linkml-templates/pydantic {{staged_schema_dir}}/provenance.yaml > {{out}}/provenance.py
-
-# Check that the committed generated files are what `gen-schema` makes now.
-# The `__pycache__` Python writes on importing the Pydantic models (the tests
-# do) is ignored by git, the wheel and this check
-[group('model development')]
-check-generated:
-  rm -rf tmp/generated-check
-  just gen-schema tmp/generated-check
-  diff -r -x __pycache__ tmp/generated-check src/astra/schema/generated
+test: _test-schema _test-python _test-examples
 
 # Run linting
 [group('model development')]
 lint:
   uv run linkml-lint {{source_schema_dir}}
 
-# Tag a new release: regenerates the generated schema artefacts with the new
-# version, updates CITATION.cff, commits both, and creates an annotated git
-# tag; then regenerates them as `dev` and commits that, so that only the
-# tagged commit holds the version. The version is X.Y.Z, or a pre-release:
-# X.Y.Z followed by aN, bN or rcN (PEP 440's normal form, which the wheel
-# takes from the tag). A patch release never changes what is valid, so when
-# the version's minor already has a release (from 0.1 on), the regenerated
-# files are compared with its greatest release (`tools/check_patch.py`) before
-# anything is committed. Schema YAMLs are not mutated — generators inject the
-# version from $RELEASE_VERSION at build time. After pushing the tag, the
-# `Deploy versioned docs on tag` workflow will publish the docs automatically.
+# Tag a new release: regenerates the contract (`gen-schema`) and the Python
+# datamodels (`gen-python`) with the new version, updates CITATION.cff, commits
+# them, and creates an annotated git tag; then regenerates them as `dev` and
+# commits that, so that only the tagged commit holds the version. The version
+# is X.Y.Z, or a pre-release: X.Y.Z followed by aN, bN or rcN (PEP 440's normal
+# form, which the wheel takes from the tag). A patch release never changes
+# what is valid, so when the version's minor already has a release (from 0.1
+# on), the regenerated contract is compared with its greatest release
+# (`tools/check_patch.py`) before anything is committed. Schema YAMLs are not
+# mutated — generators inject the version from $RELEASE_VERSION at build time.
+# After pushing the tag, the `Deploy versioned docs on tag` workflow will
+# publish the docs automatically.
 [group('model development')]
 release version:
   #!/usr/bin/env bash
@@ -216,24 +182,24 @@ release version:
     echo "Error: CITATION.cff is missing." >&2
     exit 1
   fi
-  RELEASE_VERSION="{{version}}" just gen-schema
+  RELEASE_VERSION="{{version}}" just gen-schema gen-python
   if [[ "${minor}" != "0.0" ]]; then
     previous=$(git tag --list "v${minor}.*" --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
     if [[ -n "${previous}" ]] && ! uv run python tools/check_patch.py "${previous}"; then
-      git checkout -- src/astra/schema/generated
+      git checkout -- {{generated_files}}
       echo "Error: v{{version}} changes what is valid since ${previous}; that waits for the next minor version." >&2
       exit 1
     fi
   fi
-  git add src/astra/schema/generated
+  git add {{generated_files}}
   today=$(date -u +%Y-%m-%d)
   sed -i "s/^version: .*/version: \"{{version}}\"/" CITATION.cff
   sed -i "s/^date-released: .*/date-released: \"${today}\"/" CITATION.cff
   git add CITATION.cff
   git commit -m "Release v{{version}}"
   git tag -a "v{{version}}" -m "Release v{{version}}"
-  RELEASE_VERSION=dev just gen-schema
-  git add src/astra/schema/generated
+  RELEASE_VERSION=dev just gen-schema gen-python
+  git add {{generated_files}}
   git commit -m "Back to dev after v{{version}}"
   echo
   echo "Created the tagged commit v{{version}}, then a commit back to dev. Next steps:"
@@ -243,21 +209,82 @@ release version:
 # Generate md documentation for the schema and add artifacts: both roots, the
 # analysis document and the provenance record, in one run (`--include`), so
 # that the slots the two share get one page each, rather than one run
-# overwriting the other's. The index, type and slot pages use the templates in
-# linkml-templates/. `tools/docgen.py` is `gen-doc` with each description in a
-# table cut at the end of its first sentence, or of its last word before 80
-# characters, each range linked to its type, each `<` and `&` of a
-# description shown as written, and a `-slot` suffix on a slot's page whose
-# name differs from another page's only in case. The pages of an
-# earlier build are removed first, so that none is left under an old name. Each
-# Regex Pattern cell is then written as HTML, every character but an ASCII
-# letter or digit as a character reference, so that the site shows the pattern
-# exactly (`tools/pattern_cells.py`)
+# overwriting the other's. The pages use the templates in linkml-templates/
+# (`--template-directory`, in config.public.mk). `tools/docgen.py` is `gen-doc`
+# with each range linked to its type and each `<` and `&` of a description
+# shown as written. Each Regex Pattern cell is then written as HTML, every
+# character but an ASCII letter or digit as a character reference, so that the
+# site shows the pattern exactly (`tools/pattern_cells.py`)
 [group('model development')]
 gen-doc: _stage-versioned _gen-yaml && _add-artifacts
-  rm -f {{docdir}}/*.md
-  uv run python tools/docgen.py {{gen_doc_args}} --template-directory linkml-templates --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
+  uv run python tools/docgen.py {{gen_doc_args}} --include {{staged_schema_dir}}/provenance.yaml -d {{docdir}} {{staged_schema_path}}
   uv run python tools/pattern_cells.py {{docdir}}
+
+# Generate the Python data models (dataclasses & pydantic) of both roots, the
+# analysis document and the provenance record
+gen-python: _stage-versioned
+  uv run gen-project -d  {{pymodel}} -I python {{staged_schema_path}}
+  uv run gen-project -d  {{pymodel}} -I python {{staged_schema_dir}}/provenance.yaml
+  @# Run gen-pydantic from the staged dir so the recorded source_file is just
+  @# the bare filename (e.g. "analysis.yaml") rather than the tmp/ build path.
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{pydantic_template}} {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{pydantic_template}} {{gen_pydantic_args}} provenance.yaml > {{justfile_directory()}}/{{pymodel}}/provenance_pydantic.py
+
+# Generate project files including Python data model
+[group('model development')]
+gen-project: _stage-versioned
+  uv run gen-project {{config_yaml}} -d {{dest}} {{staged_schema_path}}
+  uv run gen-project {{config_yaml}} -d {{dest}} {{staged_schema_dir}}/provenance.yaml
+  mv {{dest}}/*.py {{pymodel}}
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{pydantic_template}} {{gen_pydantic_args}} {{schema_source_file}}.yaml > {{justfile_directory()}}/{{pymodel}}/{{schema_name}}_pydantic.py
+  cd {{staged_schema_dir}} && uv run gen-pydantic {{pydantic_template}} {{gen_pydantic_args}} provenance.yaml > {{justfile_directory()}}/{{pymodel}}/provenance_pydantic.py
+
+  @# Some generators ignore config_yaml or cannot create directories, so we run them separately.
+  uv run gen-java {{gen_java_args}} --output-directory {{dest}}/java/ {{staged_schema_path}}
+  uv run gen-java {{gen_java_args}} --output-directory {{dest}}/java/ {{staged_schema_dir}}/provenance.yaml
+
+  @if [ ! -d "{{dest}}/typescript" ]; then \
+    mkdir -p {{dest}}/typescript ; \
+  fi
+  uv run gen-typescript {{gen_ts_args}} {{staged_schema_path}} > {{dest}}/typescript/{{schema_name}}.ts
+  uv run gen-typescript {{gen_ts_args}} {{staged_schema_dir}}/provenance.yaml > {{dest}}/typescript/provenance.ts
+
+  @if [ ! -d "{{dest}}/owl" ]; then \
+    mkdir -p {{dest}}/owl ; \
+  fi
+  uv run gen-owl {{gen_owl_args}} {{staged_schema_path}} > "{{dest}}/owl/{{schema_name}}.owl.ttl"
+  uv run gen-owl {{gen_owl_args}} {{staged_schema_dir}}/provenance.yaml > "{{dest}}/owl/provenance.owl.ttl"
+
+# ============== Migrations recipes for Copier ==============
+
+# Hidden command to adjust the directory layout on upgrading a project
+# created with linkml-project-copier v0.1.x to v0.2.0 or newer.
+# Use with care! - It may not work for customized projects.
+_post_upgrade_v020: && _post_upgrade_v020py
+  mv docs/*.md docs/elements
+
+_post_upgrade_v020py:
+    #!{{shebang}}
+    import subprocess
+    from pathlib import Path
+    # Git move files from folder src to folder dest
+    tasks = [
+        (Path("src/docs/files"), Path("docs")),
+        (Path("src/docs/templates"), Path("docs/templates-linkml")),
+        (Path("src/data/examples"), Path("tests/data/")),
+    ]
+    for src, dest in tasks:
+        for path_obj in src.rglob("*"):
+            if not path_obj.is_file():
+                continue
+            file_dest = dest / path_obj.relative_to(src)
+            if not file_dest.parent.exists():
+                file_dest.parent.mkdir(parents=True)
+            print(f"Moving {path_obj} --> {file_dest}")
+            subprocess.run(["git", "mv", str(path_obj), str(file_dest)])
+    print(
+        "Migration to v0.2.x completed! Check the changes carefully before committing."
+    )
 
 # ============== Hidden internal recipes ==============
 
@@ -276,21 +303,51 @@ _check-config:
         exit(1)
     print('Project-status: Ok')
 
+# Update project template
+_update-template:
+  copier update --trust --skip-answered
+
 # Update LinkML to latest version
 _update-linkml:
   uv add linkml --upgrade-package linkml
 
+# Test schema generation
+_test-schema: _stage-versioned
+  uv run gen-project {{config_yaml}} -d tmp {{staged_schema_path}} 2>/dev/null
+  uv run gen-project {{config_yaml}} -d tmp {{staged_schema_dir}}/provenance.yaml 2>/dev/null
+
 # Run Python unit tests with pytest
-_pytest:
+_test-python: gen-python
   uv run python -m pytest
+
+# Run example tests
+# NOTE: linkml-run-examples has known issues:
+# 1. "simple dict" detection bug for classes with an identifier + exactly
+#    one required field (e.g. Option).
+# 2. It reads one schema, so it stops at the first document of the
+#    provenance record (ProvenanceRecord-*.json), a class the analysis
+#    schema doesn't have.
+# 3. It judges documents with stock LinkML validation, not the contract
+#    (project/jsonschema/), which the pytest suite checks every document of
+#    conformance/documents against.
+# Allow this step to fail until the upstream issues are resolved.
+_test-examples: _stage-versioned _ensure_examples_output
+  -uv run linkml-run-examples \
+    --input-formats json \
+    --input-formats yaml \
+    --output-formats json \
+    --output-formats yaml \
+    --counter-example-input-directory conformance/documents/invalid \
+    --input-directory conformance/documents/valid \
+    --output-directory examples/output \
+    --schema {{staged_schema_path}} > examples/output/README.md
 
 # Stage a versioned copy of every schema YAML under tmp/schema/. The version
 # is injected at build time so source files keep a stable placeholder and are
-# never mutated by `gen-doc`. Uses $RELEASE_VERSION when set, otherwise the
-# tag at HEAD without its `v`, otherwise `dev`: between releases, and in a
-# clone without tags, the files are stamped `dev`. It must be X.Y.Z, X.Y.Z
-# followed by aN, bN or rcN, or dev. The directory is cleared first, so a
-# module that no longer exists isn't staged.
+# never mutated by `gen-doc`/`gen-python`/`gen-schema`. Uses $RELEASE_VERSION
+# when set, otherwise the tag at HEAD without its `v`, otherwise `dev`: between
+# releases, and in a clone without tags, the files are stamped `dev`. It must
+# be X.Y.Z, X.Y.Z followed by aN, bN or rcN, or dev.
 _stage-versioned:
   #!/usr/bin/env bash
   set -euo pipefail
@@ -305,7 +362,6 @@ _stage-versioned:
     echo "Error: the version must be X.Y.Z, X.Y.Z followed by aN, bN or rcN, or dev (got '${VERSION}')" >&2
     exit 1
   fi
-  rm -rf {{staged_schema_dir}}
   mkdir -p {{staged_schema_dir}}
   for f in {{source_schema_dir}}/*.yaml; do
     base=$(basename "$f")
@@ -316,15 +372,6 @@ _stage-versioned:
     fi
   done
 
-# Fail unless HEAD is the commit tagged v<version>.
-_at-tag version:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  if [[ "$(git rev-parse -q --verify "refs/tags/v{{version}}^{commit}")" != "$(git rev-parse HEAD)" ]]; then
-    echo "Error: HEAD is not at the tag v{{version}}. Deploy from a checkout of it: git checkout v{{version}}" >&2
-    exit 1
-  fi
-
 # Add the merged models to docs/schema, one for each tree root: the analysis
 # document's (`astra.yaml`) and the provenance record's (`provenance.yaml`).
 # A LinkML schema should have at most one tree root (the metamodel's note on
@@ -334,14 +381,15 @@ _gen-yaml:
   uv run gen-yaml {{staged_schema_path}} > {{distrib_schema_path}}/{{schema_name}}.yaml
   uv run gen-yaml {{staged_schema_dir}}/provenance.yaml > {{distrib_schema_path}}/provenance.yaml
 
-# Publish the committed contract, the JSON Schemas, the record's JSON-LD
-# context and `rules.json` of `gen-schema`, beside the merged model. Copied,
-# not regenerated: stock `gen-json-schema` would publish a second, weaker
-# schema. Any other .json or .jsonld there is removed, so only the contract is
-# published; the Pydantic models ship in the wheel, not on the site.
+# Publish the committed contract of `gen-schema` beside the merged models: the
+# JSON Schemas (project/jsonschema/), the record's JSON-LD context
+# (project/jsonld/) and `rules.json` (project/rules/). Copied, not
+# regenerated: stock `gen-json-schema` would publish a second, weaker schema.
+# Any other .json or .jsonld there is removed, so only the contract is
+# published.
 _add-artifacts:
   rm -f {{distrib_schema_path}}/*.json {{distrib_schema_path}}/*.jsonld
-  cp {{source_schema_dir}}/generated/*.json {{source_schema_dir}}/generated/*.jsonld {{distrib_schema_path}}/
+  cp {{dest}}/jsonschema/*.schema.json {{dest}}/jsonld/*.context.jsonld {{dest}}/rules/rules.json {{distrib_schema_path}}/
 
 # Initialize git repository
 _git-init:
@@ -358,3 +406,38 @@ _git-commit:
 # Show git status
 _git-status:
   git status
+
+_clean_project:
+    #!{{shebang}}
+    import shutil, pathlib
+    # remove the generated project files
+    for d in pathlib.Path("{{dest}}").iterdir():
+        if d.is_dir():
+            print(f'removing "{d}"')
+            shutil.rmtree(d, ignore_errors=True)
+    # remove the generated python data model
+    for d in pathlib.Path("{{pymodel}}").iterdir():
+        if d.name == "__init__.py":
+            continue
+        print(f'removing "{d}"')
+        if d.is_dir():
+            shutil.rmtree(d, ignore_errors=True)
+        else:
+            d.unlink()
+
+_ensure_examples_output:  # Ensure a clean examples/output directory exists
+  -mkdir -p examples/output
+  -rm -rf examples/output/*.*
+
+# ============== Include project-specific recipes ==============
+
+import "project.justfile"
+
+# ====== Override recipes from above with custom versions =======
+
+# Uncomment the following line to allow duplicate recipe names
+#set allow-duplicate-recipes
+
+# Overriding recipes from the root justfile by adding a recipe with the same
+# name in an imported file is not possible until a known issue in just is fixed,
+# https://github.com/casey/just/issues/2540 - So we need to override them here.

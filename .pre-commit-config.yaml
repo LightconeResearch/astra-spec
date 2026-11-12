@@ -12,10 +12,10 @@ repos:
       # Generated files are checked against a fresh generation instead
       # (`just check-generated`), so these hooks leave them as they are.
       - id: end-of-file-fixer
-        exclude: ^src/astra/schema/generated/
+        exclude: ^(project/|src/astra/datamodel/)
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: ^src/astra/schema/generated/
+        exclude: ^(project/|src/astra/datamodel/)
 
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.37.0
@@ -39,14 +39,14 @@ repos:
     # Ruff version.
     rev: v0.11.3
     hooks:
-      # Run the linter. The generated Pydantic models are LinkML's output,
+      # Run the linter. The generated datamodels are LinkML's output,
       # checked against a fresh generation instead, as above.
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-        exclude: ^src/astra/schema/generated/
+        exclude: ^(project/|src/astra/datamodel/)
       # Run the formatter.
       - id: ruff-format
-        exclude: ^src/astra/schema/generated/
+        exclude: ^(project/|src/astra/datamodel/)
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.

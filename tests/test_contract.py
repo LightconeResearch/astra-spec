@@ -19,7 +19,7 @@ from referencing.jsonschema import DRAFT201909
 
 from .conftest import (
     DATA,
-    GENERATED,
+    JSONSCHEMA,
     REPO_ROOT,
     ecma_262,
     load_fixture,
@@ -74,7 +74,7 @@ DEF_PREFIX = "#/$defs/"
 
 def load(name: str) -> dict[str, Any]:
     """The committed generated JSON Schema `name`."""
-    return json.loads((GENERATED / name).read_text(encoding="utf-8"))
+    return json.loads((JSONSCHEMA / name).read_text(encoding="utf-8"))
 
 
 def nodes(node: Any, pointer: str = "") -> Iterator[tuple[str, dict]]:

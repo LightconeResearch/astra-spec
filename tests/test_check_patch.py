@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from check_patch import RULES, SCHEMAS, differences, unversioned
+from check_patch import RULES, SCHEMAS, differences, location, unversioned
 
-from .conftest import GENERATED, REPO_ROOT
+from .conftest import PROJECT, REPO_ROOT
 
 CLI = REPO_ROOT / "tools" / "check_patch.py"
 NAMESPACE = "https://w3id.org/astra/"
@@ -25,7 +25,7 @@ def contract(series: str = "0.1", version: str = "0.1.0") -> dict[str, Any]:
     """The committed JSON Schemas and `rules.json`, parsed, with their ids under `series` and stamped `version`."""
     files = {}
     for name in (*SCHEMAS, RULES):
-        document = json.loads((GENERATED / name).read_text(encoding="utf-8"))
+        document = json.loads((PROJECT / location(name)).read_text(encoding="utf-8"))
         if name == RULES:
             document["errors"] = {
                 _restamp(key, series): code for key, code in document["errors"].items()
@@ -127,13 +127,13 @@ def git(cwd: Path, *args: str) -> None:
 
 def test_the_cli_compares_with_a_tag_through_git(tmp_path):
     """As `just release` runs it: the release's files come from the tag, the patch's from the working tree."""
-    directory = Path("src/astra/schema/generated")
-    generated = tmp_path / directory
-    generated.mkdir(parents=True)
+    project = tmp_path / "project"
 
     def write(files: dict[str, Any]) -> None:
         for name, text in texts(files).items():
-            (generated / name).write_text(text, encoding="utf-8")
+            path = project / location(name)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8")
 
     git(tmp_path, "init", "--quiet")
     git(tmp_path, "config", "user.name", "Test")

@@ -28,7 +28,7 @@ from rules import (
 )
 
 from .conftest import (
-    GENERATED,
+    JSONSCHEMA,
     REPO_ROOT,
     absolute_keyword_location,
     errors,
@@ -50,7 +50,7 @@ SCHEMAS = {
 
 
 def load(name: str) -> dict[str, Any]:
-    return json.loads((GENERATED / name).read_text(encoding="utf-8"))
+    return json.loads((JSONSCHEMA / name).read_text(encoding="utf-8"))
 
 
 ANALYSIS = load("analysis.schema.json")["$id"] + "#"

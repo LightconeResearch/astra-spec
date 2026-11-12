@@ -99,7 +99,7 @@ linkml_meta = LinkMLMeta({'default_prefix': 'astra',
                             'prefix_reference': 'https://w3id.org/astra/'},
                   'linkml': {'prefix_prefix': 'linkml',
                              'prefix_reference': 'https://w3id.org/linkml/'}},
-     'source_file': 'tmp/schema/analysis.yaml',
+     'source_file': 'analysis.yaml',
      'title': 'ASTRA'} )
 
 class OutputType(str, Enum):
