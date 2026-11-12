@@ -75,7 +75,7 @@ universes:
 
 - *Compatibility:* breaking, before v0.1's first release. Schema: `Decision.when`, `Output.when` and the `condition` type go; `Output.switch` and `Output.cases` come, and `type`, `format` and `recipe` are required only of an output that isn't a switch. Rules: `INPUT_NOT_BUILT` goes; `PIN_INACTIVE` becomes `PIN_NOT_BUILT`, with a second row; `UNUSED_DECISION` and `INVALID_SWITCH` are new; `INACTIVE_DECISION` becomes a warning with the meaning above; the wording of `MISSING_DECISION`, the two constraint rules and nine others follows. `rules.json` holds 64 rules.
 - *Landed* on astra-spec's `v0.1-schema` and astra-tools' `v0.1-rebuild` in two steps: first `when` went, a universe setting every decision of its analysis and of those its universes drive, so that only a file with `when` changed verdict; then switches came.
-- *Depends on* *Maps and ids*, *Universes from other analyses*, *Driving, defined once* and *Planned results*.
+- *Depends on* RFC 0008 (maps keyed by id, pins read in their own file, imports) and the drafts *Driving, defined once* and *Planned results*.
 - *Tools:* astra-tools' plan notes say, per universe, which output a switch leaves unbuilt and for which option. The specification says nothing about a missing case.
 - *Migration:*
   - an output's `when: [d.o]` becomes a switch `{switch: d, cases: {o: output}}`, and its readers read the switch; `~d.o` gives a case to every other option; a list of conditions nests switches, the guarding decision's outermost;
@@ -95,5 +95,5 @@ universes:
 ## References
 
 - [#93](https://github.com/LightconeResearch/astra-spec/issues/93), whose outcome this is; [#87](https://github.com/LightconeResearch/astra-spec/issues/87), the three holes; the draft *Using conditional elements*, which this replaces.
-- RFC 0003 §1, §2, *What validators check*; RFC 0004 §2, §3, *What validators check*; RFC 0005 §4.
+- RFC 0003 §1, §2, *What validators check*; RFC 0004 §2, §3, *What validators check*; RFC 0005 §4; RFC 0008.
 - The drafts *Driving, defined once* and *Planned results*; [#80](https://github.com/LightconeResearch/astra-spec/issues/80): a case on a planned option is never taken while the option can't be selected.
