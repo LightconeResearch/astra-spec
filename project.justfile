@@ -17,6 +17,10 @@ schema_namespace := "https://w3id.org/astra/"
 # ASTRA_TOOLS_DOCS names, such as ../astra-tools/docs
 tools_ref := if env_var_or_default("ASTRA_TOOLS_REF", "") == "" { "v0.1-rebuild" } else { env_var("ASTRA_TOOLS_REF") }
 tools_docs := env_var_or_default("ASTRA_TOOLS_DOCS", "")
+# Every generated file that is committed, which `release` regenerates and
+# commits: the contract (`gen-schema`) and the Python datamodels
+# (`gen-python`; their folder's `__init__.py` is written by hand)
+generated_files := dest / "jsonschema" + " " + dest / "jsonld" + " " + dest / "rules" + " " + pymodel
 
 # Generate the contract from the staged (versioned) schema, each file in the
 # folder of its LinkML generator under `dest` (project/): the JSON Schemas of

@@ -44,9 +44,6 @@ source_schema_path := source_schema_dir / schema_source_file + ".yaml"
 staged_schema_dir := "tmp/schema"
 staged_schema_path := staged_schema_dir / schema_source_file + ".yaml"
 docdir := "docs/elements"  # Directory for generated documentation
-# Every generated file that is committed: the contract (`gen-schema`) and the
-# Python datamodels (`gen-python`, all but `__init__.py`)
-generated_files := dest / "jsonschema" + " " + dest / "jsonld" + " " + dest / "rules" + " " + pymodel
 distrib_schema_path := "docs/schema"  # Directory for publishing schema artifacts
 
 # ============== Project recipes ==============
