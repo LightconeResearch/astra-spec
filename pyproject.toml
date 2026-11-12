@@ -114,6 +114,19 @@ vcs = "git"
 style = "pep440"
 fallback-version = "0.0.0"
 
+# Where a project installs astra-spec from a path (astra-tools does), uv
+# rebuilds it only when a cache key changes, and pyproject.toml alone is the
+# default. The wheel takes its version from git and copies in the
+# force-included files (project/'s contract, docs/llms.txt), even into an
+# editable install, so each of those is a key too.
+[tool.uv]
+cache-keys = [
+  { file = "pyproject.toml" },
+  { git = { commit = true, tags = true } },
+  { file = "project/**/*" },
+  { file = "docs/llms.txt" },
+]
+
 # Ref.: https://docs.pytest.org/en/stable/reference/reference.html#configuration-options
 [tool.pytest.ini_options]
 testpaths = ["tests"]
