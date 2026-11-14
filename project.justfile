@@ -75,7 +75,7 @@ _docs-tools:
   from="{{tools_docs}}"
   if [[ -z "${from}" ]]; then
     rm -rf tmp/astra-tools
-    git clone --quiet --depth 1 --branch "{{tools_ref}}" https://github.com/LightconeResearch/astra-tools.git tmp/astra-tools
+    git clone --quiet --depth 1 --branch "{{tools_ref}}" https://github.com/astra-project/astra-tools.git tmp/astra-tools
     from=tmp/astra-tools/docs
   fi
   cp "${from}/cli.md" "${from}/installation.md" docs/

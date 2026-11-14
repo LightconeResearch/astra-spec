@@ -21,7 +21,7 @@ and the PEP/Jupyter lineage behind it.
 
 You **do not** need an RFC for low-risk changes — typo and documentation fixes,
 tightened error messages, an obviously-missing enum value. Open an
-[issue](https://github.com/LightconeResearch/astra-spec/issues) or a pull
+[issue](https://github.com/astra-project/astra-spec/issues) or a pull
 request directly.
 
 You **do** want an RFC when a change is significant, contested, or worth
@@ -42,7 +42,7 @@ are working agreements that may be revised or superseded as ASTRA matures.
 
 ## Lifecycle
 
-RFCs live in the [`rfcs/`](https://github.com/LightconeResearch/astra-spec/tree/main/rfcs)
+RFCs live in the [`rfcs/`](https://github.com/astra-project/astra-spec/tree/main/rfcs)
 directory of the `astra-spec` repository, as numbered Markdown files. The process
 leans on GitHub's native pull-request signals rather than a custom set of labels:
 **a draft PR means the RFC is being worked on; marking it ready for review opens
@@ -53,7 +53,7 @@ record of where it ended up.
    (which carries the `rfc` label), so others can react and you get an early
    signal before investing in a full draft.
 2. **Open a draft pull request.** Add `rfcs/NNNN-short-slug.md`, copied from
-   [`0000-template.md`](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0000-template.md),
+   [`0000-template.md`](https://github.com/astra-project/astra-spec/blob/main/rfcs/0000-template.md),
    with `status: Draft`, and open the PR as a **GitHub draft**. The template's
    sections are **Context · Proposal · Examples · Implementation implications &
    migration · Questions or objections · References**.

@@ -10,7 +10,7 @@ abstract: >-
   explicit, traceable, and reproducible.
 type: software
 url: "https://astra-spec.org"
-repository-code: "https://github.com/LightconeResearch/astra-spec"
+repository-code: "https://github.com/astra-project/astra-spec"
 license: BSD-3-Clause
 version: "0.0.14"
 date-released: "2026-08-25"

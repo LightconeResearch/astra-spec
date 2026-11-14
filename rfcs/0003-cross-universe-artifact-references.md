@@ -8,7 +8,7 @@ authors:
   - Jacopo Teneggi (@JacopoTeneggi)
   - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-07-30
-tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/52
+tracking-issue: https://github.com/astra-project/astra-spec/issues/52
 superseded-by:
 ---
 
@@ -203,7 +203,7 @@ Semantics:
   consequently has no "current universe," so `{decisions.<id>}` placeholders
   are invalid there, and it **must declare its `format`**, so that its file is
   told apart from the per-universe results (where results are stored is left
-  to [#72](https://github.com/LightconeResearch/astra-spec/issues/72); for
+  to [#72](https://github.com/astra-project/astra-spec/issues/72); for
   other outputs `format` stays recommended until 0.1.0). Since pinning a
   reference to an output built once selects nothing, validators should flag it
   as redundant.
@@ -368,10 +368,10 @@ the draft PR resolves them.
   were taken out at this stage to reduce the scope, so that universes — which
   other work builds on — can be agreed, merged, and implemented first, and
   because how a set's members are stored depends on where results are stored
-  at all ([#72](https://github.com/LightconeResearch/astra-spec/issues/72)).
+  at all ([#72](https://github.com/astra-project/astra-spec/issues/72)).
   Sets, sweeps, and fan-out come in a later RFC. The multiverse design is
   carried forward in
-  [#82](https://github.com/LightconeResearch/astra-spec/issues/82), which
+  [#82](https://github.com/astra-project/astra-spec/issues/82), which
   links the original text.
 - **Should decision defaults define an implicit `baseline` universe? —
   resolved: no.** An earlier draft derived an implicit, spec-reserved
@@ -404,7 +404,7 @@ the draft PR resolves them.
   `format` is already scheduled to become required everywhere at 0.1.0; this
   RFC does not move that date.
 - **Where are outputs built once stored? — open, for
-  [#72](https://github.com/LightconeResearch/astra-spec/issues/72).** They
+  [#72](https://github.com/astra-project/astra-spec/issues/72).** They
   could sit directly in `results/`, or in a fixed folder that cannot be a
   universe id (`results/_/`).
 - **Pins name the root's universes — a known limitation.** A sub-analysis that
@@ -437,8 +437,8 @@ the draft PR resolves them.
   (Anthony Ozerov) — the working prototype this RFC is grounded in; see also
   [`astra-multiverse-example-steegen-2`](https://github.com/anthonyozerov/astra-multiverse-example-steegen-2),
   the cross-version specification-search demonstration.
-- [#72](https://github.com/LightconeResearch/astra-spec/issues/72) — where
+- [#72](https://github.com/astra-project/astra-spec/issues/72) — where
   results are stored.
-- Tracking issue: [#52](https://github.com/LightconeResearch/astra-spec/issues/52).
+- Tracking issue: [#52](https://github.com/astra-project/astra-spec/issues/52).
 - [RFC-0002](0002-decouple-reports.md) — establishes element addressing, which
   in-file universes join as addressable elements.

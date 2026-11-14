@@ -5,25 +5,25 @@ status: Accepted
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-10-28
-tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/86
+tracking-issue: https://github.com/astra-project/astra-spec/issues/86
 superseded-by:
 ---
 
 ## Context
 
-[RFC 0004](0004-composition.md) removed `type: analysis`, `ref`, `ref_version`, `use_outputs` and `from` from `Input`, since another analysis's elements are now read by address. That leaves an input with `id`, `label`, `description`, `type` and `source` ([#86](https://github.com/LightconeResearch/astra-spec/issues/86)).
+[RFC 0004](0004-composition.md) removed `type: analysis`, `ref`, `ref_version`, `use_outputs` and `from` from `Input`, since another analysis's elements are now read by address. That leaves an input with `id`, `label`, `description`, `type` and `source` ([#86](https://github.com/astra-project/astra-spec/issues/86)).
 
 `type` has one value left, `data`, so every input says the same thing.
 
 `source` is described as "URI or path to the data source" and the spec calls it descriptive rather than prescriptive. In practice it is used as a path (`data/catalog_data.csv` in the spec), a loader (`sklearn.datasets.load_iris` in RFC 0004's iris example) or a URI (`s3://…` in the tests). A runner can't tell which of these it has been given, what a path is relative to or how to read it. `source` is also optional, so an input can name nothing to read at all.
 
-Result provenance and layout ([#91](https://github.com/LightconeResearch/astra-spec/pull/91)) records the content hash of the file each input names, so every input has to name a file. [#58](https://github.com/LightconeResearch/astra-spec/pull/58) proposes the same rule for outputs' paths - relative to the folder of the `astra.yaml` and inside the workspace.
+Result provenance and layout ([#91](https://github.com/astra-project/astra-spec/pull/91)) records the content hash of the file each input names, so every input has to name a file. [#58](https://github.com/astra-project/astra-spec/pull/58) proposes the same rule for outputs' paths - relative to the folder of the `astra.yaml` and inside the workspace.
 
 ## Proposal
 
 This RFC proposes that an input is a file committed with the analysis that declares it, named by its path. Data from anywhere else comes in through an output's recipe, which astra already has.
 
-This RFC requires Result provenance and layout ([#91](https://github.com/LightconeResearch/astra-spec/pull/91)), which it refers to throughout: the record of each result holds the content hash of each input file it read.
+This RFC requires Result provenance and layout ([#91](https://github.com/astra-project/astra-spec/pull/91)), which it refers to throughout: the record of each result holds the content hash of each input file it read.
 
 The examples use RFC 0004's running example, whose root declares the input `data` that `subanalysis1.output1` reads as `root.data`.
 
@@ -126,15 +126,15 @@ An input and an output are read by address in the same way, so `split`'s `inputs
 
 ## Future possible RFCs
 
-- **Established data sources:** besides committed files, a standard way to name data from established sources such as Zenodo or Hugging Face (a record or dataset and its version), so tooling can fetch and check it without a recipe of its own ([#101](https://github.com/LightconeResearch/astra-spec/issues/101)).
-- **Fetching by content hash:** a project lists where the bytes of its inputs and results are kept (a git-annex remote, a bucket, a cache) and tooling fetches them from there by their content hash ([#66](https://github.com/LightconeResearch/astra-spec/issues/66)).
+- **Established data sources:** besides committed files, a standard way to name data from established sources such as Zenodo or Hugging Face (a record or dataset and its version), so tooling can fetch and check it without a recipe of its own ([#101](https://github.com/astra-project/astra-spec/issues/101)).
+- **Fetching by content hash:** a project lists where the bytes of its inputs and results are kept (a git-annex remote, a bucket, a cache) and tooling fetches them from there by their content hash ([#66](https://github.com/astra-project/astra-spec/issues/66)).
 - **Very large data:** data read where it is rather than copied, on a cluster or in a bucket (#66).
 - **Inputs of many files:** a dataset split over many files, or a format that is a folder such as Zarr.
 
 ## References
 
 - [RFC 0004](0004-composition.md): declared analyses and addresses (reading an input from another analysis)
-- Result provenance and layout ([#91](https://github.com/LightconeResearch/astra-spec/pull/91)): each result's record holds the content hash of every input file it read
-- [#86](https://github.com/LightconeResearch/astra-spec/issues/86): the review of `Input`'s fields
-- [#58](https://github.com/LightconeResearch/astra-spec/pull/58): `Output.target` and its rule for paths
-- [#66](https://github.com/LightconeResearch/astra-spec/issues/66): sharing input and output files so an analysis can be run on another machine
+- Result provenance and layout ([#91](https://github.com/astra-project/astra-spec/pull/91)): each result's record holds the content hash of every input file it read
+- [#86](https://github.com/astra-project/astra-spec/issues/86): the review of `Input`'s fields
+- [#58](https://github.com/astra-project/astra-spec/pull/58): `Output.target` and its rule for paths
+- [#66](https://github.com/astra-project/astra-spec/issues/66): sharing input and output files so an analysis can be run on another machine

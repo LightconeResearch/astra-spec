@@ -5,7 +5,7 @@ status: Accepted
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-10-20
-tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/84
+tracking-issue: https://github.com/astra-project/astra-spec/issues/84
 superseded-by:
 ---
 
@@ -688,16 +688,16 @@ iris_pipeline/
 - **Should setting the same decision under two spellings give a warning?** When one analysis is reached by two driven paths, its decisions can be set under either (`subanalysis1.subsubanalysis1.d` or `subsubanalysis1.d`). Two different options is an error but setting the same option under both is allowed. I'd say that whether that repetition should give at least a warning is open.
 
 ## Other RFCs that could spawn out of this RFC
-- **Remote analyses:** A `path` is local and inside the repository. Analyses in other repositories, with their revisions and fetching, would build on [#55](https://github.com/LightconeResearch/astra-spec/issues/55) and should now be relatively simple.
+- **Remote analyses:** A `path` is local and inside the repository. Analyses in other repositories, with their revisions and fetching, would build on [#55](https://github.com/astra-project/astra-spec/issues/55) and should now be relatively simple.
 - **Presets:** A driver sets every decision of the analyses it drives. Starting a driving universe from one of a driven analysis' own universes would need presets (like the `universe:` of a `Universe.analyses` entry in RFC-0003).
 - **Derived analyses:** Reusing an analysis you don't own with some of its inputs or its environment replaced.
 
 ## References
 
 - [RFC-0002](0002-decouple-reports.md): the `<sub>.<id>` addressing grammar, which addresses keep, with `<sub>` now the id of a declaration
-- RFC-0003 ([#52](https://github.com/LightconeResearch/astra-spec/issues/52), [#65](https://github.com/LightconeResearch/astra-spec/pull/65), reduced to universes in [#83](https://github.com/LightconeResearch/astra-spec/pull/83)): in-file universes, `derived_from` and pins, which this RFC extends across analyses
-- [#82](https://github.com/LightconeResearch/astra-spec/issues/82): multiverses, deferred from RFC-0003, which this RFC doesn't depend on
-- [#43](https://github.com/LightconeResearch/astra-spec/issues/43): an identity layer for addressing and resolving content across analyses
-- [#55](https://github.com/LightconeResearch/astra-spec/issues/55): cross-repository artifact references, which remote analyses would build on
-- [#72](https://github.com/LightconeResearch/astra-spec/issues/72): a canonical location for materialised outputs, which would settle the layout in 5
-- [#57](https://github.com/LightconeResearch/astra-spec/issues/57) (closed): validation not recursing into sub-analyses
+- RFC-0003 ([#52](https://github.com/astra-project/astra-spec/issues/52), [#65](https://github.com/astra-project/astra-spec/pull/65), reduced to universes in [#83](https://github.com/astra-project/astra-spec/pull/83)): in-file universes, `derived_from` and pins, which this RFC extends across analyses
+- [#82](https://github.com/astra-project/astra-spec/issues/82): multiverses, deferred from RFC-0003, which this RFC doesn't depend on
+- [#43](https://github.com/astra-project/astra-spec/issues/43): an identity layer for addressing and resolving content across analyses
+- [#55](https://github.com/astra-project/astra-spec/issues/55): cross-repository artifact references, which remote analyses would build on
+- [#72](https://github.com/astra-project/astra-spec/issues/72): a canonical location for materialised outputs, which would settle the layout in 5
+- [#57](https://github.com/astra-project/astra-spec/issues/57) (closed): validation not recursing into sub-analyses

@@ -5,7 +5,7 @@ status: Accepted
 authors:
   - Tom Charnock (@tomcharnock-lightcone)
 created: 2026-11-07
-tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/94
+tracking-issue: https://github.com/astra-project/astra-spec/issues/94
 superseded-by:
 ---
 
@@ -285,7 +285,7 @@ meaning. Optional labels, `tags` and `conforms_to` break no file.
 ## References
 
 - RFC 0003 §1; RFC 0004 §1, §3, §4, §5; RFC 0005 §2; RFC 0006 §1; RFC 0007 §1, §2, §7.
-- Tracking issue: [#94](https://github.com/LightconeResearch/astra-spec/issues/94).
+- Tracking issue: [#94](https://github.com/astra-project/astra-spec/issues/94).
 - [W3C Web Annotation](https://www.w3.org/TR/annotation-model/)
   (`FragmentSelector`, `conformsTo`), [RFC 8118](https://www.rfc-editor.org/rfc/rfc8118)
   (PDF fragments) and [RFC 7111](https://www.rfc-editor.org/rfc/rfc7111) (CSV
