@@ -131,9 +131,8 @@ docs-serve: _docs-prep
 docs-clean:
   rm -rf site
 
-# Prepare the docs: the field reference, the published schema files, and
-# astra-tools' CLI reference and installation page (`_docs-tools`)
-_docs-prep: gen-doc docs-install _docs-tools
+# Prepare the docs: the field reference and the published schema files
+_docs-prep: gen-doc docs-install
 
 # Run all tests
 [group('model development')]

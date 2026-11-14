@@ -10,13 +10,6 @@
 # with (X.Y for a release X.Y.Z, a pre-release's whole version, or dev), `/`,
 # then its file name
 schema_namespace := "https://w3id.org/astra/"
-# The site shows astra-tools' CLI reference and installation page, which live
-# in astra-tools beside the code they describe (`_docs-tools`): taken from its
-# branch or tag `tools_ref` (v0.1-rebuild, astra-tools' v0.1 work, until it
-# reaches main), which ASTRA_TOOLS_REF overrides, or from the local folder
-# ASTRA_TOOLS_DOCS names, such as ../astra-tools/docs
-tools_ref := if env_var_or_default("ASTRA_TOOLS_REF", "") == "" { "v0.1-rebuild" } else { env_var("ASTRA_TOOLS_REF") }
-tools_docs := env_var_or_default("ASTRA_TOOLS_DOCS", "")
 # Every generated file that is committed, which `release` regenerates and
 # commits: the contract (`gen-schema`) and the Python datamodels
 # (`gen-python`; their folder's `__init__.py` is written by hand)
@@ -67,15 +60,3 @@ _at-tag version:
     exit 1
   fi
 
-# Copy astra-tools' docs/cli.md and docs/installation.md into docs/: from
-# astra-tools at `tools_ref`, or from the folder ASTRA_TOOLS_DOCS names
-_docs-tools:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  from="{{tools_docs}}"
-  if [[ -z "${from}" ]]; then
-    rm -rf tmp/astra-tools
-    git clone --quiet --depth 1 --branch "{{tools_ref}}" https://github.com/astra-project/astra-tools.git tmp/astra-tools
-    from=tmp/astra-tools/docs
-  fi
-  cp "${from}/cli.md" "${from}/installation.md" docs/
