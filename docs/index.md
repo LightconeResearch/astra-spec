@@ -1,4 +1,13 @@
-# ASTRA
+---
+title: ASTRA
+---
+
+<h1 class="astra-hero">
+  <img class="astra-hero--light astra-hero--wide" src="assets/brand/astra-lockup-descriptor.svg" alt="ASTRA: Agentic Schema for Transparent Research Analysis">
+  <img class="astra-hero--dark astra-hero--wide" src="assets/brand/astra-lockup-descriptor-dark.svg" alt="ASTRA: Agentic Schema for Transparent Research Analysis">
+  <img class="astra-hero--light astra-hero--narrow" src="assets/brand/astra-lockup.svg" alt="ASTRA">
+  <img class="astra-hero--dark astra-hero--narrow" src="assets/brand/astra-lockup-dark.svg" alt="ASTRA">
+</h1>
 
 **Agentic Schema for Transparent Research Analysis** is a YAML specification for scientific analyses. Code captures execution, but not the full structure of an analysis: `astra.yaml` records the inputs, outputs, methodological choices, and evidence behind an experiment, making the work easier to reproduce and extend.
 

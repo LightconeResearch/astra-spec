@@ -9,6 +9,10 @@ copyright = "&copy; 2026 ASTRA Contributors"
 repo_url = "https://github.com/LightconeResearch/astra-spec"
 repo_name = "LightconeResearch/astra-spec"
 
+# The ASTRA brand (https://github.com/astra-project/brand): its logo, colours
+# and fonts are in docs/assets/, and the theme in docs/stylesheets/astra.css.
+extra_css = ["stylesheets/astra.css"]
+
 nav = [
   { "Documentation" = [
       { "Home" = "index.md" },
@@ -37,7 +41,11 @@ provider = "mike"
 [project.theme]
 
 variant = "modern"
+custom_dir = "overrides"
 favicon = "assets/favicon.svg"
+logo = "assets/brand/astra-compact.svg"
+# The brand's fonts are bundled (astra.css); don't load the theme's default.
+font = false
 
 features = [
   "announce.dismiss",
@@ -60,18 +68,19 @@ features = [
   "search.suggest",
 ]
 
-[project.theme.icon]
-logo = "lucide/sparkles"
-
 # Light/dark palettes with a manual toggle.
 [[project.theme.palette]]
 media = "(prefers-color-scheme: light)"
 scheme = "default"
+primary = "custom"
+accent = "custom"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
 [[project.theme.palette]]
 media = "(prefers-color-scheme: dark)"
 scheme = "slate"
+primary = "custom"
+accent = "custom"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
