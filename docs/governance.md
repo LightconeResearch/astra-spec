@@ -61,6 +61,6 @@ assume good faith; disagree with the idea, not the person.
 
 Governance and process changes are themselves made by RFC. The procedural
 baseline was established in
-[RFC 0001](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0001-establish-the-rfc-process.md);
+[RFC 0001](https://github.com/astra-project/astra-spec/blob/main/rfcs/0001-establish-the-rfc-process.md);
 amendments — including the composition of the Steering Council and the exact
 acceptance thresholds — follow the same path.

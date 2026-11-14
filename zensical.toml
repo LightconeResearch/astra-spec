@@ -6,8 +6,8 @@ site_author = "Lightcone Research"
 site_url = "https://astra-spec.org/"
 copyright = "&copy; 2026 ASTRA Contributors"
 
-repo_url = "https://github.com/LightconeResearch/astra-spec"
-repo_name = "LightconeResearch/astra-spec"
+repo_url = "https://github.com/astra-project/astra-spec"
+repo_name = "astra-project/astra-spec"
 
 # The ASTRA brand (https://github.com/astra-project/brand): its logo, colours
 # and fonts are in docs/assets/, and the theme in docs/stylesheets/astra.css.

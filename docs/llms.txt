@@ -135,6 +135,6 @@ Format rules (what any conforming validator enforces):
 
 Complete, valid ASTRA projects (raw YAML, fetchable directly):
 
-- [iris analysis](https://raw.githubusercontent.com/LightconeResearch/astra-spec/main/examples/iris/astra.yaml): single-level analysis with decisions and `requires` / `incompatible_with` constraints.
-- [iris baseline universe](https://raw.githubusercontent.com/LightconeResearch/astra-spec/main/examples/iris/universes/baseline.yaml): universe file selecting default options.
-- [iris_pipeline analysis](https://raw.githubusercontent.com/LightconeResearch/astra-spec/main/examples/iris_pipeline/astra.yaml): nested sub-analyses with cross-scope `from` aliases.
+- [iris analysis](https://raw.githubusercontent.com/astra-project/astra-spec/main/examples/iris/astra.yaml): single-level analysis with decisions and `requires` / `incompatible_with` constraints.
+- [iris baseline universe](https://raw.githubusercontent.com/astra-project/astra-spec/main/examples/iris/universes/baseline.yaml): universe file selecting default options.
+- [iris_pipeline analysis](https://raw.githubusercontent.com/astra-project/astra-spec/main/examples/iris_pipeline/astra.yaml): nested sub-analyses with cross-scope `from` aliases.

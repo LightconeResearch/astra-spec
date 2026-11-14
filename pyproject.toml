@@ -57,10 +57,10 @@ dependencies = [
 [project.urls]
 Homepage = "https://astra-spec.org"
 Documentation = "https://astra-spec.org"
-Repository = "https://github.com/LightconeResearch/astra-spec"
-Issues = "https://github.com/LightconeResearch/astra-spec/issues"
-Changelog = "https://github.com/LightconeResearch/astra-spec/releases"
-"Source Code" = "https://github.com/LightconeResearch/astra-spec"
+Repository = "https://github.com/astra-project/astra-spec"
+Issues = "https://github.com/astra-project/astra-spec/issues"
+Changelog = "https://github.com/astra-project/astra-spec/releases"
+"Source Code" = "https://github.com/astra-project/astra-spec"
 
 [dependency-groups]
 dev = [

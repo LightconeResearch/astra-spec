@@ -51,5 +51,5 @@ body:
     value: >
       If there's alignment here, the next step is a pull request adding
       `rfcs/NNNN-short-slug.md` from the
-      [template](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0000-template.md).
+      [template](https://github.com/astra-project/astra-spec/blob/main/rfcs/0000-template.md).
       Thanks for contributing 🎉!

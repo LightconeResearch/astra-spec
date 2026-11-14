@@ -2,13 +2,13 @@
 
 **Agentic Schema for Transparent Research Analysis** — a declarative YAML format for scientific analyses that separates *what* you want to learn from *how* to compute it.
 
-[![Build and test](https://github.com/LightconeResearch/astra-spec/actions/workflows/main.yaml/badge.svg)](https://github.com/LightconeResearch/astra-spec/actions/workflows/main.yaml)
+[![Build and test](https://github.com/astra-project/astra-spec/actions/workflows/main.yaml/badge.svg)](https://github.com/astra-project/astra-spec/actions/workflows/main.yaml)
 [![Docs](https://img.shields.io/badge/docs-astra--spec.org-334155.svg)](https://astra-spec.org)
 [![Schema license: CC BY 4.0](https://img.shields.io/badge/schema-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Code license: BSD 3-Clause](https://img.shields.io/badge/code-BSD_3--Clause-blue.svg)](https://opensource.org/license/bsd-3-clause)
 
 > [!WARNING]
-> ASTRA is in **early alpha**. Expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports from real-analysis attempts and design challenges are exactly what the project needs at this stage — please open an [issue](https://github.com/LightconeResearch/astra-spec/issues).
+> ASTRA is in **early alpha**. Expect breaking changes between minor versions, and pin the schema version in your analyses. Bug reports from real-analysis attempts and design challenges are exactly what the project needs at this stage — please open an [issue](https://github.com/astra-project/astra-spec/issues).
 
 ---
 
@@ -83,12 +83,12 @@ tests/data/    # Valid/invalid YAML fixtures
 project/        # Multi-language bindings (Python, TS, JSON Schema, JSON-LD, OWL, Java)
 ```
 
-The Python CLI and SDK (`astra-tools`) live in a separate repository: [`LightconeResearch/astra-tools`](https://github.com/LightconeResearch/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/).
+The Python CLI and SDK (`astra-tools`) live in a separate repository: [`astra-project/astra-tools`](https://github.com/astra-project/astra-tools). Both packages share the `astra.*` Python namespace via [PEP 420](https://peps.python.org/pep-0420/).
 
 ## Development
 
 ```bash
-git clone https://github.com/LightconeResearch/astra-spec.git
+git clone https://github.com/astra-project/astra-spec.git
 cd astra-spec
 uv sync --dev
 ```

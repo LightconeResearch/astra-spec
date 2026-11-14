@@ -79,7 +79,7 @@ description: |
   Fit a period-luminosity relation from a measurement catalog.
 ```
 
-`description` is a single optional free-prose field — the same field every other content object carries (`Input`, `Output`, `Option`, `Universe`). It gives readers a short orientation to the analysis. ASTRA deliberately keeps this lightweight: a richer write-up — with figures, citations, live numbers, and multi-page structure — is authored *outside* `astra.yaml` as a report that **references** the analysis's elements rather than restating them. ASTRA is not prescriptive about the authoring framework; [MySTRA](https://github.com/LightconeResearch/MySTRA) is one example — a MyST plugin that renders ASTRA components straight from `astra.yaml`. See [RFC-0002](https://github.com/LightconeResearch/astra-spec/blob/main/rfcs/0002-decouple-reports.md) for the rationale.
+`description` is a single optional free-prose field — the same field every other content object carries (`Input`, `Output`, `Option`, `Universe`). It gives readers a short orientation to the analysis. ASTRA deliberately keeps this lightweight: a richer write-up — with figures, citations, live numbers, and multi-page structure — is authored *outside* `astra.yaml` as a report that **references** the analysis's elements rather than restating them. ASTRA is not prescriptive about the authoring framework; [MySTRA](https://github.com/LightconeResearch/MySTRA) is one example — a MyST plugin that renders ASTRA components straight from `astra.yaml`. See [RFC-0002](https://github.com/astra-project/astra-spec/blob/main/rfcs/0002-decouple-reports.md) for the rationale.
 
 ### Inputs
 

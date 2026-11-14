@@ -10,7 +10,7 @@ ASTRA is developed by [**Lightcone Research**](https://github.com/LightconeResea
 
 The position paper that motivated ASTRA argues that the substrate for agentic-era scientific records cannot live behind a vendor wall. We agree, and we are committed to keeping ASTRA open in three concrete ways:
 
-- **Open licenses.** The schema is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and the code under [BSD 3-Clause](https://github.com/LightconeResearch/astra-spec/blob/main/LICENSE). Both permit unrestricted commercial and academic use.
+- **Open licenses.** The schema is released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and the code under [BSD 3-Clause](https://github.com/astra-project/astra-spec/blob/main/LICENSE). Both permit unrestricted commercial and academic use.
 - **Open development.** All work happens on public GitHub repositories — issues, discussions, and pull requests are visible from the first commit onward. There is no parallel private fork.
 - **Open governance, eventually.** As ASTRA stabilises beyond alpha, we will move it into a community-governed structure (steering group, public RFC process, version-decision protocol). The current Lightcone Research stewardship is a starting point, not the long-term home — see [Governance](governance.md) and the [RFC process](rfc-process.md) for the model we are growing into.
 
@@ -19,11 +19,11 @@ If you would like to help shape that trajectory — through code, schema review,
 ## License
 
 - **Schema** — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- **Code** — [BSD 3-Clause](https://github.com/LightconeResearch/astra-spec/blob/main/LICENSE)
+- **Code** — [BSD 3-Clause](https://github.com/astra-project/astra-spec/blob/main/LICENSE)
 
 ## Citing
 
-If you use ASTRA in your work, please cite the GitHub repository — the easiest way is the **"Cite this repository"** button on the [`astra-spec` GitHub page](https://github.com/LightconeResearch/astra-spec), which produces APA and BibTeX entries from the [`CITATION.cff`](https://github.com/LightconeResearch/astra-spec/blob/main/CITATION.cff) at the repo root. Include the schema version you targeted (it is recorded at the top of each LinkML source file and in every generated artefact).
+If you use ASTRA in your work, please cite the GitHub repository — the easiest way is the **"Cite this repository"** button on the [`astra-spec` GitHub page](https://github.com/astra-project/astra-spec), which produces APA and BibTeX entries from the [`CITATION.cff`](https://github.com/astra-project/astra-spec/blob/main/CITATION.cff) at the repo root. Include the schema version you targeted (it is recorded at the top of each LinkML source file and in every generated artefact).
 
 The canonical namespace for ASTRA is `https://w3id.org/astra/`.
 
