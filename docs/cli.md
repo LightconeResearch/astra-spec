@@ -1,6 +1,6 @@
 # CLI reference
 
-`astra` is the command line of [astra-tools](https://github.com/LightconeResearch/astra-tools). It
+`astra` is the command line of [astra-tools](https://github.com/astra-project/astra-tools). It
 validates ASTRA analyses, shows what they plan to build, and checks what was built against its
 records. It reads ASTRA 0.1 files; ASTRA 0.0.x files need the 0.2 line of astra-tools
 ([Installation](installation.md#which-astra-it-reads)).
