@@ -90,7 +90,6 @@ In ASTRA, an analysis declares the design space, a universe picks one option per
 
     astra validate
     astra info
-    astra plan
     ```
 
 ---

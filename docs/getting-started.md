@@ -17,14 +17,15 @@ This produces:
 
 ```
 my-analysis/
+├── .gitignore
 └── astra.yaml              # Analysis specification (source of truth)
 ```
 
-The scaffolded `astra.yaml` is a complete, valid analysis: a `spec_version` and one output, `result`, a JSON metric made by `python src/result.py '{output}'`. It validates as-is — you can edit incrementally rather than rewriting from scratch.
+The scaffolded `astra.yaml` is an empty, valid analysis: a `spec_version` and a `label`. It validates as-is — you can edit incrementally rather than rewriting from scratch.
 
-> **Tip:** Where no git repository holds the new directory, `astra init` runs `git init` in it. It makes no commit.
+> **Tip:** Where no git repository holds the new directory, `astra init` runs `git init` in it and makes a first commit.
 
-`astra init` never overwrites existing files, so it is safe to run in a directory that already has content; where the directory already has an `astra.yaml`, it stops with an error and leaves it untouched.
+`astra init` never overwrites existing files, so it is safe to run in a directory that already has content, and to run again: it creates only what is missing, and a directory that already has an `astra.yaml` keeps it.
 
 ## Edit the analysis
 
@@ -98,20 +99,43 @@ Non-blocking warnings print in yellow: the validator still returns success but s
 
 ## Inspect
 
-[`astra info`](cli.md#astra-info) prints a Rich-rendered summary: the analysis label, and its declarations, inputs, outputs, decisions and universes, followed by the same for each analysis it declares, if any.
+[`astra info`](cli.md#astra-info) prints a Rich-rendered summary: the analysis's label and description, then its inputs, outputs, decisions and universes, followed by the same for each analysis it declares, if any.
 
 ```bash
 astra info
 ```
 
 ```text
-astra.yaml  My Analysis
-  inputs    primary_data: data/primary.csv
-  outputs   main_result: metric, json
-  decisions example_method: option_a, option_b
+My Analysis
+Spec version: 0.1.0
+
+One paragraph describing the analysis.
+
+Inputs: 1 | Outputs: 1 | Decisions: 1 | Universes: 0
+
+Inputs:
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ ID           ┃ Path             ┃ Description    ┃
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│ primary_data │ data/primary.csv │ Source dataset │
+└──────────────┴──────────────────┴────────────────┘
+
+Outputs:
+┏━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ ID          ┃ Type   ┃ Recipe                                               ┃ Description    ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│ main_result │ metric │ python src/main.py --method                          │ Primary output │
+│             │        │ {decisions.example_method} --out {output}            │                │
+└─────────────┴────────┴──────────────────────────────────────────────────────┴────────────────┘
+
+Decisions:
+example_method: Example Method
+└── Options:
+    ├── option_a: Option A
+    └── option_b: Option B
 ```
 
-Once the analysis has universes (next section), [`astra universe list`](cli.md#astra-universe) and `astra universe show` name them and give each one's selection, and [`astra plan`](cli.md#astra-plan) lists the results they plan, with where each goes and its command.
+Once the analysis has universes (next section), `astra info` lists them, and [`astra view`](cli.md#astra-view) shows the analysis as it is in one of them: the option it selects for each decision, and each output's result with where it goes.
 
 ## Define universes
 
@@ -141,8 +165,7 @@ Validate, and inspect the universes:
 
 ```bash
 astra validate .              # full validation, universes included
-astra universe show alt       # the selection alt makes
-astra plan                    # the planned results and their commands
+astra view alt                # the selection alt makes, and the results it builds
 ```
 
 Universe validation enforces three rules, among others: every decision the universe uses, of the analysis and of the analyses it drives, has a selection; each selection names an option that exists on its decision; and no `requires:` / `incompatible_with:` constraint among the decisions it uses is violated. If the analysis says `model.svm requires scaling.standard`, a universe selecting `svm` must also select `standard` — the validator points to the offending pair.
@@ -187,15 +210,15 @@ decisions:
 
 The chain *option → insight → evidence → DOI* is what gives a decision an auditable trail back to the literature.
 
-[`astra paper verify`](cli.md#astra-paper) reads each evidence entry that cites a DOI, looks up the cached PDF for that DOI, and fuzzy-matches the `quote.exact` against the extracted text:
+[`astra validate --verify-evidence`](cli.md#astra-validate) reads each evidence entry that cites a DOI, looks up the cached PDF for that DOI, and fuzzy-matches the `quote.exact` against the extracted text; where the evidence has a `location` that gives a page, the quote must be on that page:
 
 ```bash
-astra paper verify .
+astra validate . --verify-evidence
 ```
 
-Papers are kept in a cache under `~/.cache/astra/papers/`. `astra paper add` puts one there, and `astra paper list` shows which cited papers the cache holds. A paper missing from the cache, or a quote not found, is a warning, never an error.
+Papers are kept in astra's cache (`~/.cache/astra/papers/` on Linux). [`astra paper add`](cli.md#astra-paper) puts one there: it downloads an arXiv paper, and takes any other from a PDF you give with `--pdf`. `astra paper list` shows the papers the cache holds, and `astra paper path` gives a cached PDF's path, to read the paper and copy a quote from it. A paper missing from the cache, or a quote not found, is an error of the validation report.
 
-Artifact-backed evidence (typical for `findings:`) cites an output's results rather than a paper: `astra paper verify` leaves it alone, and [`astra check`](cli.md#astra-check) gives it the status of the results it cites.
+Artifact-backed evidence (typical for `findings:`) cites an output's results rather than a paper: `--verify-evidence` counts it as skipped, and [`astra check`](cli.md#astra-check) gives it the status of the results it cites.
 
 ## What ASTRA doesn't run
 
