@@ -1,0 +1,2476 @@
+name: analysis
+description: 'Agentic Schema for Transparent Research Analysis.
+
+  The analysis document, `astra.yaml`: the files an analysis reads, the
+
+  artefacts it makes, and the decisions it makes along the way.'
+title: ASTRA
+id: https://w3id.org/astra/analysis
+version: 0.1.0rc1
+imports:
+- linkml:types
+- types
+- insight
+license: https://creativecommons.org/licenses/by/4.0/
+prefixes:
+  astra:
+    prefix_prefix: astra
+    prefix_reference: https://w3id.org/astra/
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+default_prefix: astra
+default_range: string
+types:
+  string:
+    name: string
+    definition_uri: https://w3id.org/linkml/String
+    description: A character string
+    notes:
+    - In RDF serializations, a slot with range of string is treated as a literal or
+      type xsd:string. If you are authoring schemas in LinkML YAML, the type is referenced
+      with the lower case "string".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Text
+    base: str
+    uri: xsd:string
+  integer:
+    name: integer
+    definition_uri: https://w3id.org/linkml/Integer
+    description: An integer
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "integer".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Integer
+    base: int
+    uri: xsd:integer
+  boolean:
+    name: boolean
+    definition_uri: https://w3id.org/linkml/Boolean
+    description: A binary (true or false) value
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "boolean".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Boolean
+    base: Bool
+    uri: xsd:boolean
+    repr: bool
+  float:
+    name: float
+    definition_uri: https://w3id.org/linkml/Float
+    description: A real number that conforms to the xsd:float specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "float".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Float
+    base: float
+    uri: xsd:float
+  double:
+    name: double
+    definition_uri: https://w3id.org/linkml/Double
+    description: A real number that conforms to the xsd:double specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "double".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    close_mappings:
+    - schema:Float
+    base: float
+    uri: xsd:double
+  decimal:
+    name: decimal
+    definition_uri: https://w3id.org/linkml/Decimal
+    description: A real number with arbitrary precision that conforms to the xsd:decimal
+      specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "decimal".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    broad_mappings:
+    - schema:Number
+    base: Decimal
+    uri: xsd:decimal
+  time:
+    name: time
+    definition_uri: https://w3id.org/linkml/Time
+    description: A time object represents a (local) time of day, independent of any
+      particular day
+    notes:
+    - URI is dateTime because OWL reasoners do not work with straight date or time
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "time".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Time
+    base: XSDTime
+    uri: xsd:time
+    repr: str
+  date:
+    name: date
+    definition_uri: https://w3id.org/linkml/Date
+    description: a date (year, month and day) in an idealized calendar
+    notes:
+    - URI is dateTime because OWL reasoners don't work with straight date or time
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "date".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Date
+    base: XSDDate
+    uri: xsd:date
+    repr: str
+  datetime:
+    name: datetime
+    definition_uri: https://w3id.org/linkml/Datetime
+    description: The combination of a date and time
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "datetime".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:DateTime
+    base: XSDDateTime
+    uri: xsd:dateTime
+    repr: str
+  date_or_datetime:
+    name: date_or_datetime
+    definition_uri: https://w3id.org/linkml/DateOrDatetime
+    description: Either a date or a datetime
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "date_or_datetime".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: linkml:DateOrDatetime
+    repr: str
+  uriorcurie:
+    name: uriorcurie
+    definition_uri: https://w3id.org/linkml/Uriorcurie
+    description: a URI or a CURIE
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "uriorcurie".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: URIorCURIE
+    uri: xsd:anyURI
+    repr: str
+  curie:
+    name: curie
+    definition_uri: https://w3id.org/linkml/Curie
+    conforms_to: https://www.w3.org/TR/curie/
+    description: a compact URI
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "curie".
+    comments:
+    - in RDF serializations this MUST be expanded to a URI
+    - in non-RDF serializations MAY be serialized as the compact representation
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: Curie
+    uri: xsd:string
+    repr: str
+  uri:
+    name: uri
+    definition_uri: https://w3id.org/linkml/Uri
+    conforms_to: https://www.ietf.org/rfc/rfc3987.txt
+    description: a complete URI
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "uri".
+    comments:
+    - in RDF serializations a slot with range of uri is treated as a literal or type
+      xsd:anyURI unless it is an identifier or a reference to an identifier, in which
+      case it is translated directly to a node
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    close_mappings:
+    - schema:URL
+    base: URI
+    uri: xsd:anyURI
+    repr: str
+  ncname:
+    name: ncname
+    definition_uri: https://w3id.org/linkml/Ncname
+    description: Prefix part of CURIE
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "ncname".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: NCName
+    uri: xsd:string
+    repr: str
+  objectidentifier:
+    name: objectidentifier
+    definition_uri: https://w3id.org/linkml/Objectidentifier
+    description: A URI or CURIE that represents an object in the model.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "objectidentifier".
+    comments:
+    - Used for inheritance and type checking
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: ElementIdentifier
+    uri: shex:iri
+    repr: str
+  nodeidentifier:
+    name: nodeidentifier
+    definition_uri: https://w3id.org/linkml/Nodeidentifier
+    description: A URI, CURIE or BNODE that represents a node in a model.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "nodeidentifier".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: NodeIdentifier
+    uri: shex:nonLiteral
+    repr: str
+  jsonpointer:
+    name: jsonpointer
+    definition_uri: https://w3id.org/linkml/Jsonpointer
+    conforms_to: https://datatracker.ietf.org/doc/html/rfc6901
+    description: A string encoding a JSON Pointer. The value of the string MUST conform
+      to JSON Point syntax and SHOULD dereference to a valid object within the current
+      instance document when encoded in tree form.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "jsonpointer".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+  jsonpath:
+    name: jsonpath
+    definition_uri: https://w3id.org/linkml/Jsonpath
+    conforms_to: https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html
+    description: A string encoding a JSON Path. The value of the string MUST conform
+      to JSON Point syntax and SHOULD dereference to zero or more valid objects within
+      the current instance document when encoded in tree form.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "jsonpath".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+  sparqlpath:
+    name: sparqlpath
+    definition_uri: https://w3id.org/linkml/Sparqlpath
+    conforms_to: https://www.w3.org/TR/sparql11-query/#propertypaths
+    description: A string encoding a SPARQL Property Path. The value of the string
+      MUST conform to SPARQL syntax and SHOULD dereference to zero or more valid objects
+      within the current instance document when encoded as RDF.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "sparqlpath".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+  id:
+    name: id
+    definition_uri: https://w3id.org/astra/Id
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_ID
+    description: "An id: a lowercase ASCII letter, then any number of lowercase ASCII\
+      \ letters, ASCII digits (`0`\u2013`9`) and underscores, such as `input1`."
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    structured_pattern:
+      syntax: ^{id}$
+      interpolated: true
+      partial_match: true
+  address:
+    name: address
+    definition_uri: https://w3id.org/astra/Address
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_REFERENCE
+    description: 'The address of an element: the ids of the declared analyses that
+      lead to it, if any, then the element''s own id, joined by `.`, such as `subanalysis.decision1`.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    structured_pattern:
+      syntax: ^{id}(\.{id})*$
+      interpolated: true
+      partial_match: true
+  reference:
+    name: reference
+    definition_uri: https://w3id.org/astra/Reference
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_REFERENCE
+    description: 'A reference to an element: its address, optionally followed by `#`
+      and a universe id, which pins the reference to that universe, such as `output1#u1`.
+      In an `astra.yaml`, the id is that of an entry of the file''s `universes` or,
+      where the file has no entry with that id, of a universe of the analysis whose
+      element the reference names.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    structured_pattern:
+      syntax: ^{id}(\.{id})*(#{id})?$
+      interpolated: true
+      partial_match: true
+  option_reference:
+    name: option_reference
+    definition_uri: https://w3id.org/astra/OptionReference
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_REFERENCE
+    description: 'A reference to an option: the address of its decision, then `.`
+      and the option''s id. The last segment is always the option, so `subanalysis.decision1.a`
+      is the option `a` of the decision `decision1` of the declared analysis `subanalysis`.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    structured_pattern:
+      syntax: ^{id}(\.{id})+$
+      interpolated: true
+      partial_match: true
+  commit_id:
+    name: commit_id
+    definition_uri: https://w3id.org/astra/CommitId
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_COMMIT
+    description: 'A full git commit id: 40 lowercase hexadecimal digits (SHA-1) or
+      64 (SHA-256).'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    pattern: ^([0-9a-f]{40}|[0-9a-f]{64})$
+  content_hash:
+    name: content_hash
+    definition_uri: https://w3id.org/astra/ContentHash
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: 'A SHA-256 digest of content: `sha256:` followed by 64 lowercase
+      hexadecimal digits.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    pattern: ^sha256:[0-9a-f]{64}$
+  spec_version:
+    name: spec_version
+    definition_uri: https://w3id.org/astra/SpecVersion
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: 'A version of the ASTRA specification, `MAJOR.MINOR.PATCH`: three
+      non-negative integers without leading zeros, joined by `.`, such as `0.1.0`.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    pattern: ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$
+  timestamp:
+    name: timestamp
+    definition_uri: https://w3id.org/astra/Timestamp
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: "A date and time in UTC to the millisecond, written `YYYY-MM-DDThh:mm:ss.sssZ`,\
+      \ with month 01\u201312, day 01\u201331, hour 00\u201323, and minute and second\
+      \ 00\u201359, such as `2026-10-26T14:00:00.000Z`."
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:dateTime
+    pattern: ^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\.[0-9]{3}Z$
+  iri:
+    name: iri
+    definition_uri: https://w3id.org/astra/Iri
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: "An IRI, never a CURIE: a scheme (an ASCII letter, then any ASCII\
+      \ letters, digits, `+`, `.` and `-`), `:`, at least one character other than\
+      \ `#`, then optionally `#` and any characters other than `#`, such as `http://tools.ietf.org/rfc/rfc7111`.\
+      \ None of these characters is an ASCII space or control, a C1 control, `<`,\
+      \ `>`, `\"`, `{`, `}`, the vertical bar, the backslash, `^`, the backtick or\
+      \ a bidi formatting character U+200E, U+200F or U+202A\u2013U+202E, and `%`\
+      \ comes only before two hex digits."
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    pattern: ^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$
+enums:
+  OutputType:
+    name: OutputType
+    definition_uri: https://w3id.org/astra/OutputType
+    description: The kind of artefact an output is.
+    from_schema: https://w3id.org/astra/analysis
+    permissible_values:
+      metric:
+        text: metric
+        description: A metric or measurement
+      figure:
+        text: figure
+        description: A figure or visualization
+      table:
+        text: table
+        description: A table of data
+      data:
+        text: data
+        description: A data file or dataset
+      report:
+        text: report
+        description: A report or document
+slots:
+  resources__cpus:
+    name: resources__cpus
+    description: CPU cores requested. Fractional values are allowed (e.g., 0.5) for
+      runners that support CPU shares.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:cpus
+    alias: cpus
+    owner: Resources
+    domain_of:
+    - Resources
+    range: float
+    minimum_value: 0
+  resources__memory:
+    name: resources__memory
+    description: Memory requirement as a string with units (e.g., '16Gi', '512Mi',
+      '8GB').
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:memory
+    alias: memory
+    owner: Resources
+    domain_of:
+    - Resources
+    range: string
+  resources__time_limit:
+    name: resources__time_limit
+    description: Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:time_limit
+    alias: time_limit
+    owner: Resources
+    domain_of:
+    - Resources
+    range: string
+  resources__disk:
+    name: resources__disk
+    description: Disk requirement as a string with units (e.g., '10Gi', '500Mi').
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:disk
+    alias: disk
+    owner: Resources
+    domain_of:
+    - Resources
+    range: string
+  resources__gpus:
+    name: resources__gpus
+    description: Number of GPUs
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:gpus
+    alias: gpus
+    owner: Resources
+    domain_of:
+    - Resources
+    range: integer
+    minimum_value: 1
+  recipe__command:
+    name: recipe__command
+    description: "The POSIX shell command that makes the output, such as `python src/output1.py`.\
+      \ It is a template. Read from the left, `{{` stands for a literal `{` and `}}`\
+      \ for a literal `}`, and any other `{` opens a placeholder, which ends at the\
+      \ next `}`. A runner substitutes each placeholder, and each `{{` and `}}`, before\
+      \ running the command:\n\n  {inputs.<entry>}     the path of what an entry of\
+      \ the output's\n                       `inputs` names (for a switch, what the\
+      \ case\n                       it takes names), with <entry> written\n     \
+      \                  exactly as the entry is, dots and `#`\n                 \
+      \      included, as in\n                       {inputs.subanalysis.output1#u1}\n\
+      \  {decisions.<entry>}  the id of the option selected for the\n            \
+      \           decision an entry of the output's\n                       `decisions`\
+      \ names, with <entry> written\n                       exactly as the entry is,\
+      \ as in\n                       {decisions.subanalysis.decision1}\n  {inputs}\
+      \             the paths of all the output's inputs, in\n                   \
+      \    the order of `inputs`, separated by spaces\n  {output}             the\
+      \ path the result is written to\n\nEvery brace belongs to a `{{`, a `}}` or\
+      \ a placeholder, every placeholder takes one of these forms, and the <entry>\
+      \ of an {inputs.<entry>} or {decisions.<entry>} is an entry of the output's\
+      \ `inputs` or `decisions`, exactly as written."
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:command
+    alias: command
+    owner: Recipe
+    domain_of:
+    - Recipe
+    range: string
+    required: true
+  recipe__resources:
+    name: recipe__resources
+    description: "Compute resource requirements (cpus, memory, time_limit, \u2026)"
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:resources
+    alias: resources
+    owner: Recipe
+    domain_of:
+    - Recipe
+    range: Resources
+    inlined: true
+    inlined_as_list: true
+  input__id:
+    name: input__id
+    description: The input's id, written as its key in `inputs`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:id
+    key: true
+    alias: id
+    owner: Input
+    domain_of:
+    - Input
+    range: id
+    required: true
+  input__label:
+    name: input__label
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+  input__description:
+    name: input__description
+    description: Free-prose description of this input.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+  input__tags:
+    name: input__tags
+    description: Keywords for grouping and finding the input.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+    multivalued: true
+    minimum_cardinality: 1
+  input__path:
+    name: input__path
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_PATH
+    description: The path of the input's file, relative to the folder of the `astra.yaml`,
+      with `/` between folders. It is non-empty and doesn't start with `/`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:path
+    alias: path
+    owner: Input
+    domain_of:
+    - Input
+    range: string
+    required: true
+    pattern: ^[^/]
+  output__id:
+    name: output__id
+    description: The output's id, written as its key in `outputs`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:id
+    key: true
+    alias: id
+    owner: Output
+    domain_of:
+    - Output
+    range: id
+    required: true
+  output__label:
+    name: output__label
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Output
+    domain_of:
+    - Output
+    range: string
+  output__description:
+    name: output__description
+    description: Free-prose description of this output.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Output
+    domain_of:
+    - Output
+    range: string
+  output__tags:
+    name: output__tags
+    description: Keywords for grouping and finding the output.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Output
+    domain_of:
+    - Output
+    range: string
+    multivalued: true
+    minimum_cardinality: 1
+  output__type:
+    name: output__type
+    description: The kind of artefact the output is. Every output but a switch has
+      one.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:type
+    alias: type
+    owner: Output
+    domain_of:
+    - Output
+    range: OutputType
+  output__format:
+    name: output__format
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: 'How the output''s artefact is encoded, as a lowercase token: the
+      extension of its results'' files, without the leading dot, such as `png`, `csv`
+      or `parquet`. Every output but a switch has one.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:format
+    alias: format
+    owner: Output
+    domain_of:
+    - Output
+    range: string
+    pattern: ^[a-z0-9][a-z0-9_.+-]*$
+  output__inputs:
+    name: output__inputs
+    description: 'What the output is made from, in order: references to inputs and
+      outputs of the analysis or of analyses it declares, a switch read as the case
+      it takes. A reference can be pinned to a universe with `#`.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:inputs
+    alias: inputs
+    owner: Output
+    domain_of:
+    - Output
+    range: reference
+    multivalued: true
+    minimum_cardinality: 1
+  output__decisions:
+    name: output__decisions
+    description: 'The addresses of the decisions whose option the output is made with
+      directly, not through what it reads: a different option for any of them, in
+      the universe being built, can give a different result.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:decisions
+    alias: decisions
+    owner: Output
+    domain_of:
+    - Output
+    range: address
+    multivalued: true
+    minimum_cardinality: 1
+  output__recipe:
+    name: output__recipe
+    description: How the output is made. Every output but a switch has one.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:recipe
+    alias: recipe
+    owner: Output
+    domain_of:
+    - Output
+    range: Recipe
+    inlined: true
+    inlined_as_list: true
+  output__switch:
+    name: output__switch
+    description: For a switch, the address of the decision whose selected option picks
+      the case it takes, such as `decision1` or `stage.decision2`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:switch
+    alias: switch
+    owner: Output
+    domain_of:
+    - Output
+    range: address
+  output__cases:
+    name: output__cases
+    description: 'For a switch, what it is read as where its decision selects each
+      option that has a case, as `<option>: <reference>`, such as `b: stage.output3`.
+      There is at least one, and several options can name one reference. Where its
+      decision selects an option with no case, the switch isn''t built, nor is anything
+      that reads it without a pin.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:cases
+    alias: cases
+    owner: Output
+    domain_of:
+    - Output
+    range: SwitchCase
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+    minimum_cardinality: 1
+  switchCase__case:
+    name: switchCase__case
+    description: The id of an option of the switch's decision, written as its key
+      in `cases`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:case
+    key: true
+    alias: case
+    owner: SwitchCase
+    domain_of:
+    - SwitchCase
+    range: id
+    required: true
+  switchCase__target:
+    name: switchCase__target
+    description: A reference to the input, output or switch the switch is read as
+      where the option is selected, written as an entry of an output's `inputs` is,
+      such as `stage.output3` or `output1#u1`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:target
+    alias: target
+    owner: SwitchCase
+    domain_of:
+    - SwitchCase
+    range: reference
+    required: true
+  option__id:
+    name: option__id
+    description: The option's id, written as its key in `options`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:id
+    key: true
+    alias: id
+    owner: Option
+    domain_of:
+    - Option
+    range: id
+    required: true
+  option__label:
+    name: option__label
+    description: Human-readable name for the option
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+  option__description:
+    name: option__description
+    description: Free-prose description of this option.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+  option__tags:
+    name: option__tags
+    description: Keywords for grouping and finding the option.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+    multivalued: true
+    minimum_cardinality: 1
+  option__insights:
+    name: option__insights
+    description: The ids of the prior insights that support the option.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:insights
+    alias: insights
+    owner: Option
+    domain_of:
+    - Option
+    range: id
+    multivalued: true
+    minimum_cardinality: 1
+  option__requires:
+    name: option__requires
+    description: 'The options that are also selected wherever this option is, among
+      the decisions a universe uses: a decision it doesn''t use selects none.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:requires
+    alias: requires
+    owner: Option
+    domain_of:
+    - Option
+    range: option_reference
+    multivalued: true
+    minimum_cardinality: 1
+  option__incompatible_with:
+    name: option__incompatible_with
+    description: The options that are never selected together with this option, among
+      the decisions a universe uses.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:incompatible_with
+    alias: incompatible_with
+    owner: Option
+    domain_of:
+    - Option
+    range: option_reference
+    multivalued: true
+    minimum_cardinality: 1
+  option__excluded:
+    name: option__excluded
+    description: 'Why the option is ruled out. An option with a reason is excluded:
+      no effective selection selects it.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:excluded
+    alias: excluded
+    owner: Option
+    domain_of:
+    - Option
+    range: string
+  decision__id:
+    name: decision__id
+    description: The decision's id, written as its key in `decisions`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:id
+    key: true
+    alias: id
+    owner: Decision
+    domain_of:
+    - Decision
+    range: id
+    required: true
+  decision__label:
+    name: decision__label
+    description: Human-readable name for the decision
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+  decision__rationale:
+    name: decision__rationale
+    description: Why this decision exists
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:rationale
+    alias: rationale
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+  decision__tags:
+    name: decision__tags
+    description: Tags for grouping and categorizing
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Decision
+    domain_of:
+    - Decision
+    range: string
+    multivalued: true
+    minimum_cardinality: 1
+  decision__options:
+    name: decision__options
+    description: The options the decision chooses between, keyed by id. There is at
+      least one.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:options
+    alias: options
+    owner: Decision
+    domain_of:
+    - Decision
+    range: Option
+    required: true
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+    minimum_cardinality: 1
+  universe__id:
+    name: universe__id
+    description: 'The entry''s id, written as its key in `universes`: for an import,
+      the id the analysis gives the universe it imports.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:id
+    key: true
+    alias: id
+    owner: Universe
+    domain_of:
+    - Universe
+    range: id
+    required: true
+  universe__label:
+    name: universe__label
+    description: A short display name for the universe.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Universe
+    domain_of:
+    - Universe
+    range: string
+  universe__description:
+    name: universe__description
+    description: What the universe is, in free prose.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Universe
+    domain_of:
+    - Universe
+    range: string
+  universe__tags:
+    name: universe__tags
+    description: Keywords for grouping and finding the universe.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Universe
+    domain_of:
+    - Universe
+    range: string
+    multivalued: true
+    minimum_cardinality: 1
+  universe__derived_from:
+    name: universe__derived_from
+    description: The id of another universe of the analysis, never an import, whose
+      effective selection this universe's effective selection is built on, so that
+      this universe gives only the decisions it changes. The universe inherits only
+      that selection.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:derived_from
+    alias: derived_from
+    owner: Universe
+    domain_of:
+    - Universe
+    range: id
+  universe__decisions:
+    name: universe__decisions
+    description: 'The options the universe selects, as `<decision>: <option>`, one
+      key per decision. Each key is the id of a decision of the analysis or, for a
+      decision of another analysis, a flat key: the decision''s address through the
+      declarations, `<declaration>.<decision>`, such as `subanalysis.decision1`, or
+      another spelling of that address, through no declaration back to an analysis
+      already on its chain.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:decisions
+    alias: decisions
+    owner: Universe
+    domain_of:
+    - Universe
+    range: DecisionSelection
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  universe__analysis:
+    name: universe__analysis
+    description: For an import, the address of the declaration that leads to the analysis
+      whose universe it imports, through as many declarations as lead to it, such
+      as `subanalysis` or `stage.inner`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:analysis
+    alias: analysis
+    owner: Universe
+    domain_of:
+    - Universe
+    range: address
+  universe__universe:
+    name: universe__universe
+    description: 'For an import, the id of the universe it imports: a universe of
+      the analysis that `analysis` leads to, never an import of that analysis.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:universe
+    alias: universe
+    owner: Universe
+    domain_of:
+    - Universe
+    range: id
+  decisionSelection__decision:
+    name: decisionSelection__decision
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_ID
+    description: The address of the decision, written as its key in the universe's
+      `decisions`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:decision
+    key: true
+    alias: decision
+    owner: DecisionSelection
+    domain_of:
+    - DecisionSelection
+    range: address
+    required: true
+  decisionSelection__option:
+    name: decisionSelection__option
+    description: The id of the option selected for the decision.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:option
+    alias: option
+    owner: DecisionSelection
+    domain_of:
+    - DecisionSelection
+    range: id
+    required: true
+  analysisDeclaration__id:
+    name: analysisDeclaration__id
+    description: The id this analysis addresses the declared analysis by, written
+      as its key in `analyses`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:id
+    key: true
+    alias: id
+    owner: AnalysisDeclaration
+    domain_of:
+    - AnalysisDeclaration
+    range: id
+    required: true
+  analysisDeclaration__path:
+    name: analysisDeclaration__path
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_PATH
+    description: The directory of the declared analysis's `astra.yaml`, relative to
+      the folder of this `astra.yaml`, with `/` between folders. It is non-empty and
+      doesn't start with `/`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:path
+    alias: path
+    owner: AnalysisDeclaration
+    domain_of:
+    - AnalysisDeclaration
+    range: string
+    pattern: ^[^/]
+  analysisDeclaration__url:
+    name: analysisDeclaration__url
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: 'Where git fetches another repository from, as a remote with no ASCII
+      space or control character, in one of two forms: `scheme://` and at least one
+      character, where the scheme is an ASCII letter followed by any ASCII letters,
+      digits, `+`, `.` and `-`, such as `https://example.org/remote.git` or `file:///srv/remote.git`;
+      or scp-like, `[user@]host:path`, where `host`, `path` and any `user` are non-empty,
+      `user` and `host` hold no `/`, `@` or `:`, and the value doesn''t start with
+      a scheme and `://`, such as `git@example.org:remote.git`. The declared analysis
+      is the one at the top level of that repository, at `commit`.'
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:url
+    alias: url
+    owner: AnalysisDeclaration
+    domain_of:
+    - AnalysisDeclaration
+    range: string
+    pattern: ^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$
+  analysisDeclaration__commit:
+    name: analysisDeclaration__commit
+    description: The full id of the commit the declared analysis is read at. A declaration
+      with a `url` has one; with a `path`, it declares the analysis at that path as
+      it was at that commit.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:commit
+    alias: commit
+    owner: AnalysisDeclaration
+    domain_of:
+    - AnalysisDeclaration
+    range: commit_id
+  analysis__spec_version:
+    name: analysis__spec_version
+    description: The version of the ASTRA specification the document is written against,
+      such as `0.1.0`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:spec_version
+    alias: spec_version
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: spec_version
+    required: true
+  analysis__label:
+    name: analysis__label
+    description: Human-readable name for the analysis
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:label
+    alias: label
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+  analysis__description:
+    name: analysis__description
+    description: "Free-prose description of this analysis \u2014 the same optional\
+      \ field every other content object carries (Input, Output, Option, Universe).\
+      \ A short human orientation lives here; richer write-ups (figures, citations,\
+      \ multi-page reports) are authored externally and reference analysis elements\
+      \ by address rather than restating them."
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:description
+    alias: description
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+  analysis__tags:
+    name: analysis__tags
+    description: Tags for categorization
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:tags
+    alias: tags
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: string
+    multivalued: true
+    minimum_cardinality: 1
+  analysis__inputs:
+    name: analysis__inputs
+    description: The files the analysis reads, keyed by id.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:inputs
+    alias: inputs
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Input
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__outputs:
+    name: analysis__outputs
+    description: The artefacts the analysis makes, and its switches, keyed by id.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:outputs
+    alias: outputs
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Output
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__decisions:
+    name: analysis__decisions
+    description: The choices the analysis makes, keyed by id.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:decisions
+    alias: decisions
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Decision
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__analyses:
+    name: analysis__analyses
+    description: The analyses this analysis uses, keyed by the id it addresses them
+      by.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:analyses
+    alias: analyses
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: AnalysisDeclaration
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__universes:
+    name: analysis__universes
+    description: The universes of the analysis, and the universes of other analyses
+      it imports, keyed by id. An import has an `analysis` and a `universe`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:universes
+    alias: universes
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Universe
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__prior_insights:
+    name: analysis__prior_insights
+    description: What earlier work establishes and the analysis builds on, as insights
+      keyed by id. Options cite them in their `insights`.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:prior_insights
+    alias: prior_insights
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Insight
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  analysis__findings:
+    name: analysis__findings
+    description: What the analysis concludes, as insights keyed by id.
+    from_schema: https://w3id.org/astra/analysis
+    slot_uri: astra:findings
+    alias: findings
+    owner: Analysis
+    domain_of:
+    - Analysis
+    range: Insight
+    multivalued: true
+    inlined: true
+    inlined_as_list: false
+  textQuoteSelector__exact:
+    name: textQuoteSelector__exact
+    description: The passage, exactly as the cited work or output writes it.
+    from_schema: https://w3id.org/astra/insight
+    mappings:
+    - oa:exact
+    slot_uri: oa:exact
+    alias: exact
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+    required: true
+  textQuoteSelector__prefix:
+    name: textQuoteSelector__prefix
+    description: ~20-100 chars before for disambiguation
+    from_schema: https://w3id.org/astra/insight
+    mappings:
+    - oa:prefix
+    slot_uri: oa:prefix
+    alias: prefix
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+  textQuoteSelector__suffix:
+    name: textQuoteSelector__suffix
+    description: ~20-100 chars after for disambiguation
+    from_schema: https://w3id.org/astra/insight
+    mappings:
+    - oa:suffix
+    slot_uri: oa:suffix
+    alias: suffix
+    owner: TextQuoteSelector
+    domain_of:
+    - TextQuoteSelector
+    range: string
+  fragmentSelector__value:
+    name: fragmentSelector__value
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: The fragment identifier, without the leading `#`, such as `page=6`.
+      It is non-empty, holds no ASCII space or control character and none of `"`,
+      `#`, `<`, `>`, `[`, the backslash, `]`, `^`, the backtick, `{`, `|` and `}`,
+      and has `%` only before two hex digits.
+    from_schema: https://w3id.org/astra/insight
+    mappings:
+    - rdf:value
+    slot_uri: rdf:value
+    alias: value
+    owner: FragmentSelector
+    domain_of:
+    - FragmentSelector
+    range: string
+    required: true
+    pattern: ^([^\x00-\x20\x7f\x22#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$
+  fragmentSelector__conforms_to:
+    name: fragmentSelector__conforms_to
+    description: The IRI of the specification of the fragment syntax `value` follows,
+      as W3C Web Annotation gives it, such as `http://tools.ietf.org/rfc/rfc7111`
+      for a CSV. Without it, `value` is a PDF fragment identifier (RFC 8118).
+    from_schema: https://w3id.org/astra/insight
+    mappings:
+    - dcterms:conformsTo
+    slot_uri: dcterms:conformsTo
+    alias: conforms_to
+    owner: FragmentSelector
+    domain_of:
+    - FragmentSelector
+    range: iri
+  evidence__doi:
+    name: evidence__doi
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: 'The DOI name of the cited work, under the `10` directory: `10.`,
+      the registrant code, `/` and a non-empty suffix, such as `10.5555/12345678`.'
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:doi
+    alias: doi
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: string
+    pattern: ^10\.[0-9]+(\.[0-9]+)*/(?!$)
+  evidence__artifact:
+    name: evidence__artifact
+    description: A reference to the cited output, written as in an output's `inputs`.
+      It may pin the output to a universe, the one the claim is about, such as `output1#u1`.
+      A switch is cited as the case it takes, and each of its cases names an output
+      other than a switch, or a switch like it.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:artifact
+    alias: artifact
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: reference
+  evidence__version:
+    name: evidence__version
+    description: The version of the cited work, counted from 1, such as `2` for the
+      second version of an arXiv paper.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:version
+    alias: version
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: integer
+    minimum_value: 1
+  evidence__quote:
+    name: evidence__quote
+    description: The passage of the cited work or output the claim rests on. With
+      a `location`, the passage is sought within that place.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:quote
+    alias: quote
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: TextQuoteSelector
+    inlined: true
+    inlined_as_list: true
+  evidence__location:
+    name: evidence__location
+    description: The place in the cited work or output the claim rests on, such as
+      `page=6`.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:location
+    alias: location
+    owner: Evidence
+    domain_of:
+    - Evidence
+    range: FragmentSelector
+    inlined: true
+    inlined_as_list: true
+  insight__id:
+    name: insight__id
+    description: The insight's id, written as its key in `prior_insights` or `findings`.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:id
+    key: true
+    alias: id
+    owner: Insight
+    domain_of:
+    - Insight
+    range: id
+    required: true
+  insight__label:
+    name: insight__label
+    description: Short human-readable name for compact rendering (margin glyphs, breadcrumbs,
+      card titles). Optional; tooling falls back to id when absent.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:label
+    alias: label
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+  insight__claim:
+    name: insight__claim
+    description: What the insight asserts.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:claim
+    alias: claim
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+    required: true
+  insight__description:
+    name: insight__description
+    description: The reasoning behind the claim, in free prose.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:description
+    alias: description
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+  insight__evidence:
+    name: insight__evidence
+    description: What the claim rests on, as a list. There is at least one.
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:evidence
+    alias: evidence
+    owner: Insight
+    domain_of:
+    - Insight
+    range: Evidence
+    required: true
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+    minimum_cardinality: 1
+  insight__scope:
+    name: insight__scope
+    description: Applicability conditions
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:scope
+    alias: scope
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+  insight__tags:
+    name: insight__tags
+    description: Categorization tags
+    from_schema: https://w3id.org/astra/insight
+    slot_uri: astra:tags
+    alias: tags
+    owner: Insight
+    domain_of:
+    - Insight
+    range: string
+    multivalued: true
+    minimum_cardinality: 1
+classes:
+  Resources:
+    name: Resources
+    definition_uri: https://w3id.org/astra/Resources
+    description: Compute resource requirements for a recipe. Values follow cloud-native
+      conventions (string-with-units for sized quantities) so cluster executors can
+      consume them directly.
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - resources__cpus
+    - resources__memory
+    - resources__time_limit
+    - resources__disk
+    - resources__gpus
+    attributes:
+      cpus:
+        name: cpus
+        description: CPU cores requested. Fractional values are allowed (e.g., 0.5)
+          for runners that support CPU shares.
+        range: float
+        minimum_value: 0
+      memory:
+        name: memory
+        description: Memory requirement as a string with units (e.g., '16Gi', '512Mi',
+          '8GB').
+      time_limit:
+        name: time_limit
+        description: Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').
+      disk:
+        name: disk
+        description: Disk requirement as a string with units (e.g., '10Gi', '500Mi').
+      gpus:
+        name: gpus
+        description: Number of GPUs
+        range: integer
+        minimum_value: 1
+    class_uri: astra:Resources
+  Recipe:
+    name: Recipe
+    definition_uri: https://w3id.org/astra/Recipe
+    description: 'How an output is made: a `command` and the compute `resources` it
+      asks for. What the output is made from and the decisions it is made with are
+      the output''s `inputs` and `decisions`; the command reaches the inputs and decisions
+      through its placeholders.'
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - recipe__command
+    - recipe__resources
+    attributes:
+      command:
+        name: command
+        description: "The POSIX shell command that makes the output, such as `python\
+          \ src/output1.py`. It is a template. Read from the left, `{{` stands for\
+          \ a literal `{` and `}}` for a literal `}`, and any other `{` opens a placeholder,\
+          \ which ends at the next `}`. A runner substitutes each placeholder, and\
+          \ each `{{` and `}}`, before running the command:\n\n  {inputs.<entry>}\
+          \     the path of what an entry of the output's\n                      \
+          \ `inputs` names (for a switch, what the case\n                       it\
+          \ takes names), with <entry> written\n                       exactly as\
+          \ the entry is, dots and `#`\n                       included, as in\n \
+          \                      {inputs.subanalysis.output1#u1}\n  {decisions.<entry>}\
+          \  the id of the option selected for the\n                       decision\
+          \ an entry of the output's\n                       `decisions` names, with\
+          \ <entry> written\n                       exactly as the entry is, as in\n\
+          \                       {decisions.subanalysis.decision1}\n  {inputs}  \
+          \           the paths of all the output's inputs, in\n                 \
+          \      the order of `inputs`, separated by spaces\n  {output}          \
+          \   the path the result is written to\n\nEvery brace belongs to a `{{`,\
+          \ a `}}` or a placeholder, every placeholder takes one of these forms, and\
+          \ the <entry> of an {inputs.<entry>} or {decisions.<entry>} is an entry\
+          \ of the output's `inputs` or `decisions`, exactly as written."
+        required: true
+      resources:
+        name: resources
+        description: "Compute resource requirements (cpus, memory, time_limit, \u2026\
+          )"
+        range: Resources
+        inlined: true
+    class_uri: astra:Recipe
+  Input:
+    name: Input
+    definition_uri: https://w3id.org/astra/Input
+    description: A file the analysis reads, tracked in git with it and named by its
+      path.
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - input__id
+    - input__label
+    - input__description
+    - input__tags
+    - input__path
+    attributes:
+      id:
+        name: id
+        description: The input's id, written as its key in `inputs`.
+        key: true
+        range: id
+      label:
+        name: label
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
+      description:
+        name: description
+        description: Free-prose description of this input.
+      tags:
+        name: tags
+        description: Keywords for grouping and finding the input.
+        multivalued: true
+        minimum_cardinality: 1
+      path:
+        name: path
+        annotations:
+          rule:
+            tag: rule
+            value: INVALID_PATH
+        description: The path of the input's file, relative to the folder of the `astra.yaml`,
+          with `/` between folders. It is non-empty and doesn't start with `/`.
+        required: true
+        pattern: ^[^/]
+    class_uri: astra:Input
+  Output:
+    name: Output
+    definition_uri: https://w3id.org/astra/Output
+    description: 'An entry of `outputs`: an artefact the analysis makes, such as a
+      metric, a figure or a table, with what it is, what it is made from and how;
+      or a switch, which has a `switch` and `cases`, makes nothing, and is read as
+      the case it takes.'
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - output__id
+    - output__label
+    - output__description
+    - output__tags
+    - output__type
+    - output__format
+    - output__inputs
+    - output__decisions
+    - output__recipe
+    - output__switch
+    - output__cases
+    attributes:
+      id:
+        name: id
+        description: The output's id, written as its key in `outputs`.
+        key: true
+        range: id
+      label:
+        name: label
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
+      description:
+        name: description
+        description: Free-prose description of this output.
+      tags:
+        name: tags
+        description: Keywords for grouping and finding the output.
+        multivalued: true
+        minimum_cardinality: 1
+      type:
+        name: type
+        description: The kind of artefact the output is. Every output but a switch
+          has one.
+        range: OutputType
+      format:
+        name: format
+        annotations:
+          rule:
+            tag: rule
+            value: INVALID_VALUE
+        description: 'How the output''s artefact is encoded, as a lowercase token:
+          the extension of its results'' files, without the leading dot, such as `png`,
+          `csv` or `parquet`. Every output but a switch has one.'
+        pattern: ^[a-z0-9][a-z0-9_.+-]*$
+      inputs:
+        name: inputs
+        description: 'What the output is made from, in order: references to inputs
+          and outputs of the analysis or of analyses it declares, a switch read as
+          the case it takes. A reference can be pinned to a universe with `#`.'
+        range: reference
+        multivalued: true
+        minimum_cardinality: 1
+      decisions:
+        name: decisions
+        description: 'The addresses of the decisions whose option the output is made
+          with directly, not through what it reads: a different option for any of
+          them, in the universe being built, can give a different result.'
+        range: address
+        multivalued: true
+        minimum_cardinality: 1
+      recipe:
+        name: recipe
+        description: How the output is made. Every output but a switch has one.
+        range: Recipe
+        inlined: true
+      switch:
+        name: switch
+        description: For a switch, the address of the decision whose selected option
+          picks the case it takes, such as `decision1` or `stage.decision2`.
+        range: address
+      cases:
+        name: cases
+        description: 'For a switch, what it is read as where its decision selects
+          each option that has a case, as `<option>: <reference>`, such as `b: stage.output3`.
+          There is at least one, and several options can name one reference. Where
+          its decision selects an option with no case, the switch isn''t built, nor
+          is anything that reads it without a pin.'
+        range: SwitchCase
+        multivalued: true
+        inlined: true
+        minimum_cardinality: 1
+    class_uri: astra:Output
+    rules:
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: ABSENT
+      postconditions:
+        slot_conditions:
+          type:
+            name: type
+            value_presence: PRESENT
+          format:
+            name: format
+            value_presence: PRESENT
+          recipe:
+            name: recipe
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: MISSING_FIELD
+      description: An output that isn't a switch has a `type`, a `format` and a `recipe`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          cases:
+            name: cases
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has `cases`.
+    - preconditions:
+        slot_conditions:
+          cases:
+            name: cases
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: An entry with `cases` has a `switch`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          type:
+            name: type
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `type`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          format:
+            name: format
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `format`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          inputs:
+            name: inputs
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `inputs`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          decisions:
+            name: decisions
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `decisions`.
+    - preconditions:
+        slot_conditions:
+          switch:
+            name: switch
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          recipe:
+            name: recipe
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_SWITCH
+      description: A switch has no `recipe`.
+  SwitchCase:
+    name: SwitchCase
+    definition_uri: https://w3id.org/astra/SwitchCase
+    description: 'What a switch is read as where its decision selects one option,
+      written in the switch''s `cases` as `<option>: <reference>`, such as `b: stage.output3`.'
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - switchCase__case
+    - switchCase__target
+    attributes:
+      case:
+        name: case
+        description: The id of an option of the switch's decision, written as its
+          key in `cases`.
+        key: true
+        range: id
+      target:
+        name: target
+        description: A reference to the input, output or switch the switch is read
+          as where the option is selected, written as an entry of an output's `inputs`
+          is, such as `stage.output3` or `output1#u1`.
+        range: reference
+        required: true
+    class_uri: astra:SwitchCase
+  Option:
+    name: Option
+    definition_uri: https://w3id.org/astra/Option
+    description: One of the options a decision chooses between.
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - option__id
+    - option__label
+    - option__description
+    - option__tags
+    - option__insights
+    - option__requires
+    - option__incompatible_with
+    - option__excluded
+    attributes:
+      id:
+        name: id
+        description: The option's id, written as its key in `options`.
+        key: true
+        range: id
+      label:
+        name: label
+        description: Human-readable name for the option
+      description:
+        name: description
+        description: Free-prose description of this option.
+      tags:
+        name: tags
+        description: Keywords for grouping and finding the option.
+        multivalued: true
+        minimum_cardinality: 1
+      insights:
+        name: insights
+        description: The ids of the prior insights that support the option.
+        range: id
+        multivalued: true
+        minimum_cardinality: 1
+      requires:
+        name: requires
+        description: 'The options that are also selected wherever this option is,
+          among the decisions a universe uses: a decision it doesn''t use selects
+          none.'
+        range: option_reference
+        multivalued: true
+        minimum_cardinality: 1
+      incompatible_with:
+        name: incompatible_with
+        description: The options that are never selected together with this option,
+          among the decisions a universe uses.
+        range: option_reference
+        multivalued: true
+        minimum_cardinality: 1
+      excluded:
+        name: excluded
+        description: 'Why the option is ruled out. An option with a reason is excluded:
+          no effective selection selects it.'
+    class_uri: astra:Option
+  Decision:
+    name: Decision
+    definition_uri: https://w3id.org/astra/Decision
+    description: A choice the analysis makes between options, such as which method
+      to use.
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - decision__id
+    - decision__label
+    - decision__rationale
+    - decision__tags
+    - decision__options
+    attributes:
+      id:
+        name: id
+        description: The decision's id, written as its key in `decisions`.
+        key: true
+        range: id
+      label:
+        name: label
+        description: Human-readable name for the decision
+      rationale:
+        name: rationale
+        description: Why this decision exists
+      tags:
+        name: tags
+        description: Tags for grouping and categorizing
+        multivalued: true
+        minimum_cardinality: 1
+      options:
+        name: options
+        description: The options the decision chooses between, keyed by id. There
+          is at least one.
+        range: Option
+        required: true
+        multivalued: true
+        inlined: true
+        minimum_cardinality: 1
+    class_uri: astra:Decision
+  Universe:
+    name: Universe
+    definition_uri: https://w3id.org/astra/Universe
+    description: 'An entry of `universes`: a universe of the analysis, a selection
+      of one option for every decision it uses of the analysis and of every analysis,
+      declared directly or not, that the analysis''s universes drive, or an import,
+      which has an `analysis` and a `universe`, names one of another analysis''s universes
+      and selects nothing. A universe''s effective selection is the effective selection
+      of the universe it is derived from, if any, with its own `decisions` written
+      over it decision by decision.'
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - universe__id
+    - universe__label
+    - universe__description
+    - universe__tags
+    - universe__derived_from
+    - universe__decisions
+    - universe__analysis
+    - universe__universe
+    attributes:
+      id:
+        name: id
+        description: 'The entry''s id, written as its key in `universes`: for an import,
+          the id the analysis gives the universe it imports.'
+        key: true
+        range: id
+      label:
+        name: label
+        description: A short display name for the universe.
+      description:
+        name: description
+        description: What the universe is, in free prose.
+      tags:
+        name: tags
+        description: Keywords for grouping and finding the universe.
+        multivalued: true
+        minimum_cardinality: 1
+      derived_from:
+        name: derived_from
+        description: The id of another universe of the analysis, never an import,
+          whose effective selection this universe's effective selection is built on,
+          so that this universe gives only the decisions it changes. The universe
+          inherits only that selection.
+        range: id
+      decisions:
+        name: decisions
+        description: 'The options the universe selects, as `<decision>: <option>`,
+          one key per decision. Each key is the id of a decision of the analysis or,
+          for a decision of another analysis, a flat key: the decision''s address
+          through the declarations, `<declaration>.<decision>`, such as `subanalysis.decision1`,
+          or another spelling of that address, through no declaration back to an analysis
+          already on its chain.'
+        range: DecisionSelection
+        multivalued: true
+        inlined: true
+      analysis:
+        name: analysis
+        description: For an import, the address of the declaration that leads to the
+          analysis whose universe it imports, through as many declarations as lead
+          to it, such as `subanalysis` or `stage.inner`.
+        range: address
+      universe:
+        name: universe
+        description: 'For an import, the id of the universe it imports: a universe
+          of the analysis that `analysis` leads to, never an import of that analysis.'
+        range: id
+    class_uri: astra:Universe
+    rules:
+    - preconditions:
+        slot_conditions:
+          analysis:
+            name: analysis
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          universe:
+            name: universe
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_IMPORT
+      description: An import has a `universe`.
+    - preconditions:
+        slot_conditions:
+          analysis:
+            name: analysis
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          decisions:
+            name: decisions
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_IMPORT
+      description: An import has no `decisions`.
+    - preconditions:
+        slot_conditions:
+          analysis:
+            name: analysis
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          derived_from:
+            name: derived_from
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_IMPORT
+      description: An import has no `derived_from`.
+    - preconditions:
+        slot_conditions:
+          universe:
+            name: universe
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          analysis:
+            name: analysis
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_IMPORT
+      description: An entry with a `universe` has an `analysis`.
+  DecisionSelection:
+    name: DecisionSelection
+    definition_uri: https://w3id.org/astra/DecisionSelection
+    description: 'The option a universe selects for one decision, written in the universe''s
+      `decisions` as `<decision>: <option>`, such as `decision1: a`.'
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - decisionSelection__decision
+    - decisionSelection__option
+    attributes:
+      decision:
+        name: decision
+        annotations:
+          rule:
+            tag: rule
+            value: INVALID_ID
+        description: The address of the decision, written as its key in the universe's
+          `decisions`.
+        key: true
+        range: address
+      option:
+        name: option
+        description: The id of the option selected for the decision.
+        range: id
+        required: true
+    class_uri: astra:DecisionSelection
+  AnalysisDeclaration:
+    name: AnalysisDeclaration
+    definition_uri: https://w3id.org/astra/AnalysisDeclaration
+    description: An analysis that this analysis uses, found by exactly one of `path`
+      and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - analysisDeclaration__id
+    - analysisDeclaration__path
+    - analysisDeclaration__url
+    - analysisDeclaration__commit
+    attributes:
+      id:
+        name: id
+        description: The id this analysis addresses the declared analysis by, written
+          as its key in `analyses`.
+        key: true
+        range: id
+      path:
+        name: path
+        annotations:
+          rule:
+            tag: rule
+            value: INVALID_PATH
+        description: The directory of the declared analysis's `astra.yaml`, relative
+          to the folder of this `astra.yaml`, with `/` between folders. It is non-empty
+          and doesn't start with `/`.
+        pattern: ^[^/]
+      url:
+        name: url
+        annotations:
+          rule:
+            tag: rule
+            value: INVALID_VALUE
+        description: 'Where git fetches another repository from, as a remote with
+          no ASCII space or control character, in one of two forms: `scheme://` and
+          at least one character, where the scheme is an ASCII letter followed by
+          any ASCII letters, digits, `+`, `.` and `-`, such as `https://example.org/remote.git`
+          or `file:///srv/remote.git`; or scp-like, `[user@]host:path`, where `host`,
+          `path` and any `user` are non-empty, `user` and `host` hold no `/`, `@`
+          or `:`, and the value doesn''t start with a scheme and `://`, such as `git@example.org:remote.git`.
+          The declared analysis is the one at the top level of that repository, at
+          `commit`.'
+        pattern: ^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\x00-\x20\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\x00-\x20\x7f/@:]+@)?[^\x00-\x20\x7f/@:]+:[^\x00-\x20\x7f]+)$
+      commit:
+        name: commit
+        description: The full id of the commit the declared analysis is read at. A
+          declaration with a `url` has one; with a `path`, it declares the analysis
+          at that path as it was at that commit.
+        range: commit_id
+    class_uri: astra:AnalysisDeclaration
+    rules:
+    - preconditions:
+        slot_conditions:
+          url:
+            name: url
+            value_presence: PRESENT
+      postconditions:
+        slot_conditions:
+          commit:
+            name: commit
+            value_presence: PRESENT
+      annotations:
+        rule:
+          tag: rule
+          value: URL_WITHOUT_COMMIT
+      description: A declaration with a `url` has a `commit`.
+    exactly_one_of:
+    - annotations:
+        rule:
+          tag: rule
+          value: INVALID_DECLARATION_SOURCE
+      slot_conditions:
+        path:
+          name: path
+          required: true
+    - annotations:
+        rule:
+          tag: rule
+          value: INVALID_DECLARATION_SOURCE
+      slot_conditions:
+        url:
+          name: url
+          required: true
+  Analysis:
+    name: Analysis
+    definition_uri: https://w3id.org/astra/Analysis
+    description: 'An analysis: the files it reads, the artefacts it makes and the
+      decisions it makes along the way. It is the content of an `astra.yaml` file.'
+    from_schema: https://w3id.org/astra/analysis
+    slots:
+    - analysis__spec_version
+    - analysis__label
+    - analysis__description
+    - analysis__tags
+    - analysis__inputs
+    - analysis__outputs
+    - analysis__decisions
+    - analysis__analyses
+    - analysis__universes
+    - analysis__prior_insights
+    - analysis__findings
+    attributes:
+      spec_version:
+        name: spec_version
+        description: The version of the ASTRA specification the document is written
+          against, such as `0.1.0`.
+        range: spec_version
+        required: true
+      label:
+        name: label
+        description: Human-readable name for the analysis
+      description:
+        name: description
+        description: "Free-prose description of this analysis \u2014 the same optional\
+          \ field every other content object carries (Input, Output, Option, Universe).\
+          \ A short human orientation lives here; richer write-ups (figures, citations,\
+          \ multi-page reports) are authored externally and reference analysis elements\
+          \ by address rather than restating them."
+      tags:
+        name: tags
+        description: Tags for categorization
+        multivalued: true
+        minimum_cardinality: 1
+      inputs:
+        name: inputs
+        description: The files the analysis reads, keyed by id.
+        range: Input
+        multivalued: true
+        inlined: true
+      outputs:
+        name: outputs
+        description: The artefacts the analysis makes, and its switches, keyed by
+          id.
+        range: Output
+        multivalued: true
+        inlined: true
+      decisions:
+        name: decisions
+        description: The choices the analysis makes, keyed by id.
+        range: Decision
+        multivalued: true
+        inlined: true
+      analyses:
+        name: analyses
+        description: The analyses this analysis uses, keyed by the id it addresses
+          them by.
+        range: AnalysisDeclaration
+        multivalued: true
+        inlined: true
+      universes:
+        name: universes
+        description: The universes of the analysis, and the universes of other analyses
+          it imports, keyed by id. An import has an `analysis` and a `universe`.
+        range: Universe
+        multivalued: true
+        inlined: true
+      prior_insights:
+        name: prior_insights
+        description: What earlier work establishes and the analysis builds on, as
+          insights keyed by id. Options cite them in their `insights`.
+        range: Insight
+        multivalued: true
+        inlined: true
+      findings:
+        name: findings
+        description: What the analysis concludes, as insights keyed by id.
+        range: Insight
+        multivalued: true
+        inlined: true
+    class_uri: astra:Analysis
+    tree_root: true
+  TextQuoteSelector:
+    name: TextQuoteSelector
+    definition_uri: https://w3id.org/astra/TextQuoteSelector
+    description: W3C TextQuoteSelector for locating text in a document. The authoritative
+      anchor for verification.
+    from_schema: https://w3id.org/astra/insight
+    exact_mappings:
+    - oa:TextQuoteSelector
+    slots:
+    - textQuoteSelector__exact
+    - textQuoteSelector__prefix
+    - textQuoteSelector__suffix
+    attributes:
+      exact:
+        name: exact
+        description: The passage, exactly as the cited work or output writes it.
+        slot_uri: oa:exact
+        required: true
+      prefix:
+        name: prefix
+        description: ~20-100 chars before for disambiguation
+        slot_uri: oa:prefix
+      suffix:
+        name: suffix
+        description: ~20-100 chars after for disambiguation
+        slot_uri: oa:suffix
+    class_uri: oa:TextQuoteSelector
+  FragmentSelector:
+    name: FragmentSelector
+    definition_uri: https://w3id.org/astra/FragmentSelector
+    description: "A place in the cited work or output, given as a fragment identifier\
+      \ in the syntax `conforms_to` names, such as `row=5-7` in a CSV (RFC 7111).\
+      \ Without `conforms_to`, it is a PDF fragment identifier (RFC 8118 \xA73), such\
+      \ as `page=6`, with pages counted from 1."
+    from_schema: https://w3id.org/astra/insight
+    exact_mappings:
+    - oa:FragmentSelector
+    slots:
+    - fragmentSelector__value
+    - fragmentSelector__conforms_to
+    attributes:
+      value:
+        name: value
+        annotations:
+          rule:
+            tag: rule
+            value: INVALID_VALUE
+        description: The fragment identifier, without the leading `#`, such as `page=6`.
+          It is non-empty, holds no ASCII space or control character and none of `"`,
+          `#`, `<`, `>`, `[`, the backslash, `]`, `^`, the backtick, `{`, `|` and
+          `}`, and has `%` only before two hex digits.
+        slot_uri: rdf:value
+        required: true
+        pattern: ^([^\x00-\x20\x7f\x22#%<>\[\\\]^`{|}]|%[0-9A-Fa-f]{2})+$
+      conforms_to:
+        name: conforms_to
+        description: The IRI of the specification of the fragment syntax `value` follows,
+          as W3C Web Annotation gives it, such as `http://tools.ietf.org/rfc/rfc7111`
+          for a CSV. Without it, `value` is a PDF fragment identifier (RFC 8118).
+        slot_uri: dcterms:conformsTo
+        range: iri
+    class_uri: oa:FragmentSelector
+  Evidence:
+    name: Evidence
+    definition_uri: https://w3id.org/astra/Evidence
+    description: 'What a claim rests on: a published work, cited by its `doi`, or
+      an output, cited as an `artifact`. It has exactly one of the two, and a `version`
+      only with a `doi`.'
+    from_schema: https://w3id.org/astra/insight
+    slots:
+    - evidence__doi
+    - evidence__artifact
+    - evidence__version
+    - evidence__quote
+    - evidence__location
+    attributes:
+      doi:
+        name: doi
+        annotations:
+          rule:
+            tag: rule
+            value: INVALID_VALUE
+        description: 'The DOI name of the cited work, under the `10` directory: `10.`,
+          the registrant code, `/` and a non-empty suffix, such as `10.5555/12345678`.'
+        pattern: ^10\.[0-9]+(\.[0-9]+)*/(?!$)
+      artifact:
+        name: artifact
+        description: A reference to the cited output, written as in an output's `inputs`.
+          It may pin the output to a universe, the one the claim is about, such as
+          `output1#u1`. A switch is cited as the case it takes, and each of its cases
+          names an output other than a switch, or a switch like it.
+        range: reference
+      version:
+        name: version
+        description: The version of the cited work, counted from 1, such as `2` for
+          the second version of an arXiv paper.
+        range: integer
+        minimum_value: 1
+      quote:
+        name: quote
+        description: The passage of the cited work or output the claim rests on. With
+          a `location`, the passage is sought within that place.
+        range: TextQuoteSelector
+        inlined: true
+      location:
+        name: location
+        description: The place in the cited work or output the claim rests on, such
+          as `page=6`.
+        range: FragmentSelector
+        inlined: true
+    class_uri: astra:Evidence
+    rules:
+    - preconditions:
+        slot_conditions:
+          doi:
+            name: doi
+            value_presence: ABSENT
+      postconditions:
+        slot_conditions:
+          version:
+            name: version
+            value_presence: ABSENT
+      annotations:
+        rule:
+          tag: rule
+          value: INVALID_EVIDENCE_SOURCE
+      description: Evidence without a `doi` has no `version`.
+    exactly_one_of:
+    - annotations:
+        rule:
+          tag: rule
+          value: INVALID_EVIDENCE_SOURCE
+      slot_conditions:
+        doi:
+          name: doi
+          required: true
+    - annotations:
+        rule:
+          tag: rule
+          value: INVALID_EVIDENCE_SOURCE
+      slot_conditions:
+        artifact:
+          name: artifact
+          required: true
+  Insight:
+    name: Insight
+    definition_uri: https://w3id.org/astra/Insight
+    description: A unit of scientific knowledge backed by evidence. Used for both
+      prior_insights (informing decisions) and findings (conclusions from the analysis).
+    from_schema: https://w3id.org/astra/insight
+    slots:
+    - insight__id
+    - insight__label
+    - insight__claim
+    - insight__description
+    - insight__evidence
+    - insight__scope
+    - insight__tags
+    attributes:
+      id:
+        name: id
+        description: The insight's id, written as its key in `prior_insights` or `findings`.
+        key: true
+        range: id
+      label:
+        name: label
+        description: Short human-readable name for compact rendering (margin glyphs,
+          breadcrumbs, card titles). Optional; tooling falls back to id when absent.
+      claim:
+        name: claim
+        description: What the insight asserts.
+        required: true
+      description:
+        name: description
+        description: The reasoning behind the claim, in free prose.
+      evidence:
+        name: evidence
+        description: What the claim rests on, as a list. There is at least one.
+        range: Evidence
+        required: true
+        multivalued: true
+        inlined_as_list: true
+        minimum_cardinality: 1
+      scope:
+        name: scope
+        description: Applicability conditions
+      tags:
+        name: tags
+        description: Categorization tags
+        multivalued: true
+        minimum_cardinality: 1
+    class_uri: astra:Insight
+metamodel_version: 1.12.0
+source_file: analysis.yaml
+source_file_date: '2026-11-14T09:25:28'
+source_file_size: 24372
+
