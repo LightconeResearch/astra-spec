@@ -30,7 +30,7 @@ from .conftest import (
 )
 
 SPECIFICATION = REPO_ROOT / "docs" / "specification.md"
-LAYERS = ["parse", "schema", "validator", "check", "runner"]
+LAYERS = ["parse", "schema", "validator", "check", "evidence", "runner"]
 _REFERENCE_LINK = re.compile(r"\]\(elements/([^)#]+)\.md(?:#[^)]*)?\)")
 EXAMPLE_ROOTS = {"yaml": "Analysis", "json": "ProvenanceRecord"}
 """The document a whole example in each language is: an `astra.yaml` in YAML, a record in JSON."""

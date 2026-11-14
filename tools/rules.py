@@ -12,7 +12,7 @@
     are not read.
   - **Layer rows.** A row whose Code cell is text in strong emphasis (``**parse**``, ``***validator, in each universe
     the driving analysis reaches***``), and whose Level and Rule cells are empty, sets the layer of the rows below it,
-    up to the next layer row: its first word, ``parse``, ``schema``, ``validator``, ``check`` or ``runner``. The table
+    up to the next layer row: its first word, ``parse``, ``schema``, ``validator``, ``check``, ``evidence`` or ``runner``. The table
     starts with one.
   - **Rule rows.** Every other row is a case of a rule, with one cell per column (counted on its source line,
     blockquote markers aside) and none empty. Its Code is one code span holding a capital letter, then capitals, digits
@@ -64,7 +64,7 @@ RULES = "Rules"
 COLUMNS = ["Code", "Level", "Rule"]
 """The columns of the codes table, in order."""
 
-LAYERS = ["parse", "schema", "validator", "check", "runner"]
+LAYERS = ["parse", "schema", "validator", "check", "evidence", "runner"]
 """The layers a layer row of the codes table names, in order."""
 
 STATUS = "→"

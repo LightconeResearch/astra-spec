@@ -208,7 +208,7 @@ MALFORMED = {
         "| **check** |",
         "| **checker** |",
         r"^line 21, row \*\*checker\*\*: unknown layer 'checker': a layer row's first word is parse, schema,"
-        r" validator, check or runner$",
+        r" validator, check, evidence or runner$",
     ),
     "a layer word with a digit": (
         "| **check** |",

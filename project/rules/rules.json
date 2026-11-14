@@ -630,6 +630,12 @@
       "status": "the result's record status"
     },
     {
+      "code": "QUOTE_NOT_FOUND",
+      "layer": "evidence",
+      "level": "MUST",
+      "statement": "A `quote`'s `exact`, in evidence citing a `doi`, is in that work's text, within the place its `location` gives, if any"
+    },
+    {
       "code": "UNRECORDED_RESULT",
       "layer": "runner",
       "level": "MUST",
