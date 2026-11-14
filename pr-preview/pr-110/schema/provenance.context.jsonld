@@ -1,0 +1,71 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://w3id.org/astra/",
+    "iri": "@id",
+    "commit": {
+      "@id": "https://w3id.org/astra/commit"
+    },
+    "environment": {
+      "@type": "@id",
+      "@id": "http://www.w3.org/ns/prov#used"
+    },
+    "finished": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime",
+      "@id": "http://www.w3.org/ns/prov#endedAtTime"
+    },
+    "inputs": {
+      "@type": "@id",
+      "@id": "http://www.w3.org/ns/prov#used"
+    },
+    "runner": {
+      "@type": "@id",
+      "@id": "http://www.w3.org/ns/prov#wasAssociatedWith"
+    },
+    "started": {
+      "@type": "http://www.w3.org/2001/XMLSchema#dateTime",
+      "@id": "http://www.w3.org/ns/prov#startedAtTime"
+    },
+    "address": {
+      "@id": "https://w3id.org/astra/address"
+    },
+    "content_hash": {
+      "@id": "https://w3id.org/astra/content_hash"
+    },
+    "generated_by": {
+      "@type": "@id",
+      "@id": "http://www.w3.org/ns/prov#wasGeneratedBy"
+    },
+    "size": {
+      "@type": "http://www.w3.org/2001/XMLSchema#integer",
+      "@id": "https://w3id.org/astra/size"
+    },
+    "spec_version": {
+      "@id": "https://w3id.org/astra/spec_version"
+    },
+    "entry": {
+      "@id": "https://w3id.org/astra/entry"
+    },
+    "id": {
+      "@id": "https://w3id.org/astra/id"
+    },
+    "version": {
+      "@id": "http://schema.org/softwareVersion"
+    },
+    "Environment": {
+      "@id": "http://www.w3.org/ns/prov#Entity"
+    },
+    "Generation": {
+      "@id": "http://www.w3.org/ns/prov#Activity"
+    },
+    "ProvenanceRecord": {
+      "@id": "http://www.w3.org/ns/prov#Entity"
+    },
+    "RecordedInput": {
+      "@id": "http://www.w3.org/ns/prov#Entity"
+    },
+    "Runner": {
+      "@id": "http://www.w3.org/ns/prov#SoftwareAgent"
+    }
+  }
+}
