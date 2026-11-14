@@ -1,0 +1,1285 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="ASTRA — Agentic Schema for Transparent Research Analysis.">
+      
+      
+        <meta name="author" content="Lightcone Research">
+      
+      
+        <link rel="canonical" href="https://astra-spec.org/getting-started/">
+      
+      
+        <link rel="prev" href="../installation/">
+      
+      
+        <link rel="next" href="../cli/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/favicon.svg">
+      <meta name="generator" content="zensical-0.0.40">
+    
+    
+      
+        <title>Getting started - ASTRA</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.fba56155.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/astra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  
+  <link rel="icon" href="../assets/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <meta name="theme-color" content="#F8F7F3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#221F20" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ASTRA">
+  <meta property="og:title" content="Getting started - ASTRA">
+  <meta property="og:description" content="ASTRA — Agentic Schema for Transparent Research Analysis.">
+  <meta property="og:image" content="https://astra-spec.org/latest/assets/brand/astra-social-card-1280x640.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta name="twitter:card" content="summary_large_image">
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#getting-started" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="ASTRA" class="md-header__button md-logo" aria-label="ASTRA" data-md-component="logo">
+      
+  <img src="../assets/brand/astra-compact.svg" alt="ASTRA">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ASTRA
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Getting started
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/astra-project/astra-spec" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    astra-project/astra-spec
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./.." class="md-tabs__link">
+          
+  
+  Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../specification/" class="md-tabs__link">
+          
+  
+  Specification
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../community/" class="md-tabs__link">
+          
+  
+  Community
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="ASTRA" class="md-nav__button md-logo" aria-label="ASTRA" data-md-component="logo">
+      
+  <img src="../assets/brand/astra-compact.svg" alt="ASTRA">
+
+    </a>
+    ASTRA
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/astra-project/astra-spec" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    astra-project/astra-spec
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Documentation
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Documentation
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Installation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#scaffold-a-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scaffold a project
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edit-the-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Edit the analysis
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Validate
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inspect" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Inspect
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-universes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Define universes
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#add-evidence-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Add evidence (optional)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-astra-doesnt-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What ASTRA doesn't run
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  CLI reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  About
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Specification
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Specification
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../specification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Format reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../elements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Field reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Community
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Community
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../community/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Overview
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rfc-process/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  RFC process
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Governance
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#scaffold-a-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Scaffold a project
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edit-the-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Edit the analysis
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Validate
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inspect" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Inspect
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#define-universes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Define universes
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#add-evidence-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Add evidence (optional)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-astra-doesnt-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What ASTRA doesn't run
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
+<p>A self-contained tour of the ASTRA format: scaffold a project, edit the analysis, validate it, inspect it, define universes, and attach evidence. It assumes the <code>astra</code> CLI is already installed — see <a href="../installation/">installation</a>.</p>
+<p>If you'd rather see the schema first, jump to the <a href="../specification/">specification</a>.</p>
+<h2 id="scaffold-a-project">Scaffold a project<a class="headerlink" href="#scaffold-a-project" title="Permanent link">&para;</a></h2>
+<p>Use <a href="../cli/#astra-init"><code>astra init</code></a> to create a minimal project layout:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>astra<span class="w"> </span>init<span class="w"> </span>my-analysis
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>my-analysis
+</span></code></pre></div>
+<p>This produces:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>my-analysis/
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>└── astra.yaml              # Analysis specification (source of truth)
+</span></code></pre></div>
+<p>The scaffolded <code>astra.yaml</code> is a complete, valid analysis: a <code>spec_version</code> and one output, <code>result</code>, a JSON metric made by <code>python src/result.py '{output}'</code>. It validates as-is — you can edit incrementally rather than rewriting from scratch.</p>
+<blockquote>
+<p><strong>Tip:</strong> Where no git repository holds the new directory, <code>astra init</code> runs <code>git init</code> in it. It makes no commit.</p>
+</blockquote>
+<p><code>astra init</code> never overwrites existing files, so it is safe to run in a directory that already has content; where the directory already has an <code>astra.yaml</code>, it stops with an error and leaves it untouched.</p>
+<h2 id="edit-the-analysis">Edit the analysis<a class="headerlink" href="#edit-the-analysis" title="Permanent link">&para;</a></h2>
+<p>The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis states its <strong><code>spec_version</code></strong> and usually declares its <strong><code>outputs:</code></strong>, with <strong><code>inputs:</code></strong> and <strong><code>decisions:</code></strong> — plus optional metadata (<code>label</code>, <code>description</code>, <code>tags</code>).</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">spec_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">My Analysis</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="w">                    </span><span class="c1"># short free-prose orientation</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="no">One paragraph describing the analysis.</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nt">inputs</span><span class="p">:</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">primary_data</span><span class="p">:</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">data/primary.csv</span><span class="w">        </span><span class="c1"># a file tracked in git with the analysis</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Source</span><span class="nv"> </span><span class="s">dataset&quot;</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="nt">outputs</span><span class="p">:</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="nt">main_result</span><span class="p">:</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metric</span><span class="w">                  </span><span class="c1"># metric | figure | table | data | report</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json</span><span class="w">                  </span><span class="c1"># file extension, no dot; required from 0.1.0</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Primary</span><span class="nv"> </span><span class="s">output&quot;</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">example_method</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># contract: only these decisions are visible to the recipe</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="nt">recipe</span><span class="p">:</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">      </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python src/main.py --method {decisions.example_method} --out {output}</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="nt">example_method</span><span class="p">:</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Example</span><span class="nv"> </span><span class="s">Method&quot;</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">      </span><span class="nt">option_a</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Option</span><span class="nv"> </span><span class="s">A&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">      </span><span class="nt">option_b</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Option</span><span class="nv"> </span><span class="s">B&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+</span></code></pre></div>
+<p>A few things worth noting:</p>
+<ul>
+<li><strong>Decisions parameterize outputs.</strong> <code>Output.decisions</code> declares the contract — only the listed decisions resolve inside <code>recipe.command</code>. The validator rejects <code>{decisions.foo}</code> if <code>foo</code> isn't in the list.</li>
+<li><strong>Recipe placeholders.</strong> Four forms are legal: <code>{inputs}</code> (all declared inputs, space-separated), <code>{inputs.&lt;id&gt;}</code> (one declared input), <code>{decisions.&lt;id&gt;}</code> (one declared decision), and <code>{output}</code> (where to write). <code>{{</code> and <code>}}</code> are literal braces.</li>
+<li><strong>Rich reports live alongside <code>astra.yaml</code>.</strong> The spec keeps a single optional <code>description</code>; a fuller write-up — figures, citations, multi-page structure — is built next to the analysis and references its elements rather than restating them. <a href="https://github.com/LightconeResearch/MySTRA">MySTRA</a> is one framework that does this.</li>
+<li><strong>Constraints between options.</strong> <code>requires:</code> and <code>incompatible_with:</code> (format: <code>decision.option</code>) gate which option combinations are valid. They are checked against each universe when you validate the analysis.</li>
+</ul>
+<h2 id="validate">Validate<a class="headerlink" href="#validate" title="Permanent link">&para;</a></h2>
+<p>Run <a href="../cli/#astra-validate"><code>astra validate</code></a> on the analysis's folder:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>.
+</span></code></pre></div>
+<p>Validation runs in three stages, each gating the next:</p>
+<ol>
+<li><strong>Parsing</strong> — the file is YAML 1.2 whose content is a map, with no key twice.</li>
+<li><strong>Schema validation</strong> — the JSON Schema (generated from the LinkML schema) checks types, required fields, and format patterns (ID pattern, version pattern, DOI pattern, …).</li>
+<li><strong>Semantic validation</strong> — clashing IDs, input files exist and are tracked in git, declared analyses and addresses resolve, recipe template placeholders match <code>Output.inputs</code> / <code>Output.decisions</code>, output dependency graph has no cycles, constraint references resolve, universes are complete and consistent.</li>
+</ol>
+<p>A clean run prints:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>astra.yaml: valid, 0 error(s), 0 warning(s)
+</span></code></pre></div>
+<p>When something is wrong, errors print by file, as <code>line:col level CODE message</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>astra.yaml
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  20:16 error UNDECLARED_TEMPLATE_REF `{decisions.foo}` isn&#39;t a placeholder of this output: it takes `{inputs}`, `{output}`, and `{inputs.&lt;entry&gt;}` and `{decisions.&lt;entry&gt;}` for an entry of its `inputs` or `decisions` as written; `{{` and `}}` are literal braces
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>astra.yaml: invalid, 1 error(s), 0 warning(s)
+</span></code></pre></div>
+<p>Non-blocking warnings print in yellow: the validator still returns success but surfaces them so authors can clean the record up.</p>
+<h2 id="inspect">Inspect<a class="headerlink" href="#inspect" title="Permanent link">&para;</a></h2>
+<p><a href="../cli/#astra-info"><code>astra info</code></a> prints a Rich-rendered summary: the analysis label, and its declarations, inputs, outputs, decisions and universes, followed by the same for each analysis it declares, if any.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>astra<span class="w"> </span>info
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>astra.yaml  My Analysis
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  inputs    primary_data: data/primary.csv
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  outputs   main_result: metric, json
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  decisions example_method: option_a, option_b
+</span></code></pre></div>
+<p>Once the analysis has universes (next section), <a href="../cli/#astra-universe"><code>astra universe list</code></a> and <code>astra universe show</code> name them and give each one's selection, and <a href="../cli/#astra-plan"><code>astra plan</code></a> lists the results they plan, with where each goes and its command.</p>
+<h2 id="define-universes">Define universes<a class="headerlink" href="#define-universes" title="Permanent link">&para;</a></h2>
+<p>A <em>universe</em> is one complete set of decision selections — one option per decision it uses, of the analysis and of the analyses it drives. Each universe yields one set of results; the same analysis can carry many of them.</p>
+<p>Universes are written in <code>astra.yaml</code>, under <code>universes:</code>: there is no default universe or option (<a href="../specification/#elements">Elements</a>).</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">baseline</span><span class="p">:</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Default configuration using standard practices</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">      </span><span class="nt">example_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">option_a</span>
+</span></code></pre></div>
+<p>Add a second universe by hand, next to <code>baseline</code>, to flex an alternative path:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">alt</span><span class="p">:</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Alternative method choice</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">      </span><span class="nt">example_method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">option_b</span>
+</span></code></pre></div>
+<p>Validate, and inspect the universes:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>.<span class="w">              </span><span class="c1"># full validation, universes included</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>astra<span class="w"> </span>universe<span class="w"> </span>show<span class="w"> </span>alt<span class="w">       </span><span class="c1"># the selection alt makes</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>astra<span class="w"> </span>plan<span class="w">                    </span><span class="c1"># the planned results and their commands</span>
+</span></code></pre></div>
+<p>Universe validation enforces three rules, among others: every decision the universe uses, of the analysis and of the analyses it drives, has a selection; each selection names an option that exists on its decision; and no <code>requires:</code> / <code>incompatible_with:</code> constraint among the decisions it uses is violated. If the analysis says <code>model.svm requires scaling.standard</code>, a universe selecting <code>svm</code> must also select <code>standard</code> — the validator points to the offending pair.</p>
+<p>For declared analyses, the universe sets their decisions by address (<a href="../specification/#elements">Elements</a>):</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">analyses</span><span class="p">:</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">feature_extraction</span><span class="p">:</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">feature_extraction</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="nt">universes</span><span class="p">:</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="nt">baseline</span><span class="p">:</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">      </span><span class="nt">random_seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">seed_42</span><span class="w">              </span><span class="c1"># root decision</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">      </span><span class="nt">feature_extraction.method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pca</span><span class="w">    </span><span class="c1"># selection inside a sub-analysis</span>
+</span></code></pre></div>
+<h2 id="add-evidence-optional">Add evidence (optional)<a class="headerlink" href="#add-evidence-optional" title="Permanent link">&para;</a></h2>
+<p>ASTRA decisions can cite literature. You author the citation in <code>astra.yaml</code> — a <code>prior_insight</code> with a claim, the source DOI, and the quoted text that supports it — and link the insight to the decision option it justifies:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nt">prior_insights</span><span class="p">:</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">attention_scales</span><span class="p">:</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">claim</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Self-attention</span><span class="nv"> </span><span class="s">scales</span><span class="nv"> </span><span class="s">better</span><span class="nv"> </span><span class="s">than</span><span class="nv"> </span><span class="s">recurrence.&quot;</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">doi</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10.48550/arXiv.1706.03762&quot;</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">        </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">7</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">        </span><span class="nt">quote</span><span class="p">:</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">          </span><span class="nt">exact</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Attention</span><span class="nv"> </span><span class="s">Is</span><span class="nv"> </span><span class="s">All</span><span class="nv"> </span><span class="s">You</span><span class="nv"> </span><span class="s">Need&quot;</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="nt">decisions</span><span class="p">:</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">  </span><span class="nt">architecture</span><span class="p">:</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">    </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Architecture&quot;</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="nt">options</span><span class="p">:</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">      </span><span class="nt">transformer</span><span class="p">:</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Transformer&quot;</span>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">        </span><span class="nt">insights</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">attention_scales</span><span class="p p-Indicator">]</span><span class="w">   </span><span class="c1"># link the option to the insight</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">      </span><span class="nt">rnn</span><span class="p">:</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;RNN&quot;</span>
+</span></code></pre></div>
+<p>The chain <em>option → insight → evidence → DOI</em> is what gives a decision an auditable trail back to the literature.</p>
+<p><a href="../cli/#astra-paper"><code>astra paper verify</code></a> reads each evidence entry that cites a DOI, looks up the cached PDF for that DOI, and fuzzy-matches the <code>quote.exact</code> against the extracted text:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify<span class="w"> </span>.
+</span></code></pre></div>
+<p>Papers are kept in a cache under <code>~/.cache/astra/papers/</code>. <code>astra paper add</code> puts one there, and <code>astra paper list</code> shows which cited papers the cache holds. A paper missing from the cache, or a quote not found, is a warning, never an error.</p>
+<p>Artifact-backed evidence (typical for <code>findings:</code>) cites an output's results rather than a paper: <code>astra paper verify</code> leaves it alone, and <a href="../cli/#astra-check"><code>astra check</code></a> gives it the status of the results it cites.</p>
+<h2 id="what-astra-doesnt-run">What ASTRA doesn't run<a class="headerlink" href="#what-astra-doesnt-run" title="Permanent link">&para;</a></h2>
+<p>The CLI validates and inspects analyses, and checks results against their records; it does <strong>not</strong> execute recipes. Each <code>recipe.command</code> is a POSIX shell command that a runner — an agent, a workflow runner, a notebook, or you on the command line — reads and invokes (<a href="../specification/#results">Results</a>). The runner materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the <code>{inputs.&lt;id&gt;}</code> / <code>{inputs}</code> / <code>{decisions.&lt;id&gt;}</code> / <code>{output}</code> placeholders against the universe being built, runs the resulting command, and writes the result with a record of the run, which <a href="../cli/#astra-check"><code>astra check</code></a> later compares with the analysis.</p>
+<p>This separation is intentional: the spec stays stable as the agent and execution layer evolves. ASTRA's job is to make every analytical choice explicit, traceable, and verifiable; the choice of <em>runner</em> is yours.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Installation
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../cli/" class="md-footer__link md-footer__link--next" aria-label="Next: CLI reference">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                CLI reference
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      &copy; 2026 ASTRA Contributors
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.code.select","content.tabs.link","content.tooltips","navigation.footer","navigation.instant","navigation.instant.prefetch","navigation.instant.progress","navigation.path","navigation.sections","navigation.tabs","navigation.tabs.sticky","navigation.top","navigation.tracking","search.highlight","search.suggest"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.dbc0afdc.min.js"></script>
+      
+    
+  </body>
+</html>
