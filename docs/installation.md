@@ -19,8 +19,7 @@ pip install astra-tools
 ```
 
 While astra-tools for ASTRA 0.1 has only release candidates, uv and pip skip them. Ask for them
-with `uv tool install --prerelease allow astra-tools`, or `pip install --pre astra-tools`. The
-extra's line below takes the same option.
+with `uv tool install --prerelease allow astra-tools`, or `pip install --pre astra-tools`.
 
 To run it once without installing it, name the version:
 
@@ -33,18 +32,6 @@ Check that it works:
 ```bash
 astra --version
 astra --help
-```
-
-## Extras
-
-One command needs more libraries, which an extra brings:
-
-| Extra | For | Brings |
-|---|---|---|
-| `reference` | [`astra spec`](cli.md#astra-spec) | linkml-runtime |
-
-```bash
-uv tool install 'astra-tools[reference]'
 ```
 
 ## Which ASTRA it reads

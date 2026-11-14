@@ -17,8 +17,8 @@ records, and `astra` reads them.
     - 0 when the command answers;
     - 1 when the analysis breaks a `MUST`, a planned result isn't `unchanged`, or what was
       asked for isn't there;
-    - 2 for a usage error, an analysis that can't be read, a broken environment (an extra not
-      installed, a paper that can't be got, a folder that can't be written, git or the cache
+    - 2 for a usage error, an analysis that can't be read, a broken environment (a paper that
+      can't be got, a folder that can't be written, git or the cache
       unusable), or an internal error.
 - **Output.** Problems are grouped by file, one per line, as `line:col level CODE message`. Each
   code is a rule of the specification, listed under [Rules](https://astra-spec.org/0.1/specification/#rules),
@@ -350,8 +350,7 @@ astra spec [TERM]
 
 Describes the fields of ASTRA files, from the specification's schema. Without TERM, it lists
 every class, enum and type with its first sentence. With TERM, in any case, it shows a class,
-enum or type in full, a field of every class that has it, or one field as `Class.field`. Needs
-the `[reference]` extra ([Installation](installation.md#extras)).
+enum or type in full, a field of every class that has it, or one field as `Class.field`.
 
 ## `astra schema`
 
