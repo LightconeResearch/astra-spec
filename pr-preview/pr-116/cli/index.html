@@ -572,28 +572,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#astra-universe" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra universe</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#astra-plan" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra plan</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#astra-view" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -620,17 +598,6 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code>astra history</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#astra-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra rules</code>
       </span>
     </span>
   </a>
@@ -675,28 +642,6 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code>astra paper</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#astra-cache" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra cache</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#astra-completion" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra completion</code>
       </span>
     </span>
   </a>
@@ -1091,28 +1036,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#astra-universe" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra universe</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#astra-plan" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra plan</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#astra-view" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1139,17 +1062,6 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code>astra history</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#astra-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra rules</code>
       </span>
     </span>
   </a>
@@ -1200,28 +1112,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#astra-cache" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra cache</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#astra-completion" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        <code>astra completion</code>
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1248,39 +1138,40 @@
 
 <h1 id="cli-reference">CLI reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
 <p><code>astra</code> is the command line of <a href="https://github.com/astra-project/astra-tools">astra-tools</a>. It
-validates ASTRA analyses, shows what they plan to build, and checks what was built against its
+validates ASTRA analyses, shows what they resolve to, and checks what was built against its
 records. It reads ASTRA 0.1 files; ASTRA 0.0.x files need the 0.2 line of astra-tools
 (<a href="../installation/#which-astra-it-reads">Installation</a>).</p>
 <p><code>astra</code> runs no recipe. A runner, such as lightcone-cli, builds the results and writes their
 records, and <code>astra</code> reads them.</p>
 <h2 id="conventions">Conventions<a class="headerlink" href="#conventions" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>PATH</strong> is an analysis's folder, the current folder by default. Nothing is searched for: the
-  analysis is the <code>astra.yaml</code> in that folder, the root of its
-  <a href="https://astra-spec.org/0.1/specification/#rules">stack</a>. <code>validate</code> takes an <code>astra.yaml</code> or
-  its folder, and <code>info -f</code> an <code>astra.yaml</code>, found in the current folder or above by default.</li>
+<li><strong>The analysis</strong> a command reads is an <code>astra.yaml</code>, the root of its
+  <a href="https://astra-spec.org/0.1/specification/#rules">stack</a>. <code>validate</code> takes the file or its
+  folder, and with none validates every analysis under the current folder. <code>info</code> takes the
+  file with <code>-f</code>, and by default finds the <code>astra.yaml</code> in the current folder or the nearest
+  one above. <code>view</code>, <code>check</code> and <code>history</code> take <strong>PATH</strong>, the analysis's folder, the current
+  folder by default.</li>
 <li><strong>Exit codes:</strong><ul>
 <li>0 when the command answers;</li>
-<li>1 when the analysis breaks a <code>MUST</code>, a planned result isn't <code>unchanged</code>, or what was
-  asked for isn't there;</li>
-<li>2 for a usage error, an analysis that can't be read, a broken environment (a paper that
-  can't be got, a folder that can't be written, git or the cache
-  unusable), or an internal error.</li>
+<li>1 when the analysis breaks a <code>MUST</code>, a quote isn't verified, a planned result isn't
+  <code>unchanged</code>, or what was asked for isn't there;</li>
+<li>2 for a usage error, an analysis that can't be read, a broken environment (git or the
+  cache unusable, a folder that can't be written), or an internal error.</li>
 </ul>
 </li>
 <li><strong>Output.</strong> Problems are grouped by file, one per line, as <code>line:col level CODE message</code>. Each
-  code is a rule of the specification, listed under <a href="https://astra-spec.org/0.1/specification/#rules">Rules</a>,
-  or one of astra-tools' own three, which <code>astra rules</code> lists. <code>astra paper verify</code> adds two
-  warnings of its own. <code>NO_COLOR</code> turns colour off.</li>
-<li><strong>JSON.</strong> <code>plan</code>, <code>view</code> and <code>check</code> take <code>--json</code>. Each JSON document names its shape, such
-  as <code>astra-plan/1</code>, and a shape changes only under a new name. <code>validate --json</code> and <code>info
-  --json</code> print their text as one JSON-encoded string, with no ANSI escape, safe to embed in any
-  JSON document; <code>init --json</code> prints its convergence report, and <code>paper verify-quotes</code> reads
-  and writes JSON.</li>
+  code is a rule of the specification, listed under
+  <a href="https://astra-spec.org/0.1/specification/#rules">Rules</a>, or one of astra-tools' own:
+  <code>UNSUPPORTED_SPEC_VERSION</code>, <code>REMOTE_UNREACHABLE</code> and <code>COMMIT_NOT_ANCESTOR</code>, and, with
+  <code>validate --verify-evidence</code>, <code>EVIDENCE_PAPER_MISSING</code>, <code>EVIDENCE_PAPER_UNREADABLE</code> and
+  <code>EVIDENCE_QUOTE_NOT_FOUND</code>. <code>NO_COLOR</code> turns colour off.</li>
+<li><strong>JSON.</strong> <code>validate</code>, <code>info</code>, <code>view</code> and <code>check</code> take <code>--json</code>. Each JSON document names its
+  shape, such as <code>astra-validation-reports/1</code>, and a shape changes only under a new name.
+  <code>init --json</code> prints its convergence report, and <code>paper verify-quotes</code> reads and writes JSON.</li>
 <li><strong>The cache</strong> keeps the commits fetched from remotes, the validity of analyses from a commit,
-  the hashes of files, the checkouts runners make for their runs, and papers. It sits outside
-  every repository, and everything in it is safe to delete. <code>ASTRA_CACHE_DIR</code>, an absolute
-  path, moves it.</li>
+  the hashes of files, and papers with their extracted text and verified quotes. It sits outside
+  every repository, and everything in it is safe to delete. It is <code>~/.cache/astra</code> on Linux and
+  <code>~/Library/Caches/astra</code> on macOS; <code>ASTRA_CACHE_DIR</code>, an absolute path, moves it.</li>
 <li><code>astra --help</code>, and <code>--help</code> after any command, give each command's options.
   <code>astra --version</code> gives astra-tools' version.</li>
 </ul>
@@ -1298,7 +1189,7 @@ a commit, and fits a line to noisy-line's points two ways: by least squares, in 
 <tbody>
 <tr>
 <td><a href="#astra-init"><code>astra init</code></a></td>
-<td>Make a minimal analysis</td>
+<td>Make a minimal analysis, or complete one</td>
 </tr>
 <tr>
 <td><a href="#astra-validate"><code>astra validate</code></a></td>
@@ -1306,15 +1197,7 @@ a commit, and fits a line to noisy-line's points two ways: by least squares, in 
 </tr>
 <tr>
 <td><a href="#astra-info"><code>astra info</code></a></td>
-<td>Show the stack in brief</td>
-</tr>
-<tr>
-<td><a href="#astra-universe"><code>astra universe</code></a></td>
-<td>List the universes, or show one's selection</td>
-</tr>
-<tr>
-<td><a href="#astra-plan"><code>astra plan</code></a></td>
-<td>Show the planned results, their places and commands</td>
+<td>Show an analysis and its stack in brief</td>
 </tr>
 <tr>
 <td><a href="#astra-view"><code>astra view</code></a></td>
@@ -1329,16 +1212,12 @@ a commit, and fits a line to noisy-line's points two ways: by least squares, in 
 <td>Show what git holds of a result's records over time</td>
 </tr>
 <tr>
-<td><a href="#astra-rules"><code>astra rules</code></a></td>
-<td>List the rules, or show one</td>
-</tr>
-<tr>
 <td><a href="#astra-spec"><code>astra spec</code></a></td>
 <td>Describe the fields of ASTRA files</td>
 </tr>
 <tr>
 <td><a href="#astra-schema"><code>astra schema</code></a></td>
-<td>Show or export the JSON Schemas</td>
+<td>Show or export the LinkML schemas</td>
 </tr>
 <tr>
 <td><a href="#astra-guide"><code>astra guide</code></a></td>
@@ -1348,25 +1227,17 @@ a commit, and fits a line to noisy-line's points two ways: by least squares, in 
 <td><a href="#astra-paper"><code>astra paper</code></a></td>
 <td>Keep papers by DOI, and verify quotes in them</td>
 </tr>
-<tr>
-<td><a href="#astra-cache"><code>astra cache</code></a></td>
-<td>Show or clear the cache</td>
-</tr>
-<tr>
-<td><a href="#astra-completion"><code>astra completion</code></a></td>
-<td>Print a shell completion script</td>
-</tr>
 </tbody>
 </table>
 <h2 id="astra-init"><code>astra init</code><a class="headerlink" href="#astra-init" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>astra init [DIRECTORY] [--no-git] [--check] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>astra init [DIRECTORY] [--check] [--json]
 </span></code></pre></div>
 <p>Converges DIRECTORY, the current folder by default, into a minimal analysis. It creates whatever
-is missing (an <code>astra.yaml</code> with a <code>spec_version</code> and one output, a <code>.gitignore</code>, and a git
+is missing (an <code>astra.yaml</code> with a <code>spec_version</code> and a label, a <code>.gitignore</code>, and a git
 repository with a first commit) and never overwrites a file, so it is safe to run again; a
 folder that already holds an <code>astra.yaml</code>, or any other file, is adopted. Where a git repository
-already holds DIRECTORY, no new one is made inside it. Universes, if any, are written in
-<code>astra.yaml</code>.</p>
+already holds DIRECTORY, no new one is made inside it. Where git knows no user name and email,
+the new repository gets no first commit.</p>
 <table>
 <thead>
 <tr>
@@ -1375,10 +1246,6 @@ already holds DIRECTORY, no new one is made inside it. Universes, if any, are wr
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code>--no-git</code></td>
-<td>Make no git repository</td>
-</tr>
 <tr>
 <td><code>--check</code></td>
 <td>Write nothing: say what would be created, and exit 1 if anything would</td>
@@ -1395,13 +1262,12 @@ already holds DIRECTORY, no new one is made inside it. Universes, if any, are wr
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="go">✓ created .git</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="go">✓ Converged ASTRA analysis scaffold: my-analysis</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="gp">$ </span>cat<span class="w"> </span>my-analysis/astra.yaml
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="go">spec_version: &quot;0.1.0&quot;</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="go">outputs:</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="go">  result:</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="go">    type: metric</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="go">    format: json</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="go">    recipe:</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="go">      command: python src/result.py &#39;{output}&#39;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="gp"># </span>ASTRA<span class="w"> </span>Analysis<span class="w"> </span>Specification
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="go">spec_version: &quot;0.1.0&quot;</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="go">label: &quot;my-analysis&quot;</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="gp">$ </span>astra<span class="w"> </span>init<span class="w"> </span>my-analysis
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="go">✓ my-analysis already converged</span>
 </span></code></pre></div>
 <h2 id="astra-validate"><code>astra validate</code><a class="headerlink" href="#astra-validate" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>astra validate [FILE] [-e|--verify-evidence] [--skip-evidence] [--json] [--offline]
@@ -1410,9 +1276,9 @@ already holds DIRECTORY, no new one is made inside it. Universes, if any, are wr
 (<a href="https://astra-spec.org/0.1/specification/#rules">Rules</a>) over the whole stack: the analysis
 FILE names, an <code>astra.yaml</code> or its folder, and every analysis it declares, at their commits.
 With no FILE, it validates every root analysis under the current folder: each <code>astra.yaml</code> that
-no other one declares, hidden, vendored and <code>results/</code> folders skipped, and ends with a summary.
-It reads no results; <code>astra check</code> does. Exits 0 when every analysis is valid and 1 when one
-breaks a <code>MUST</code>. A <code>SHOULD</code> that is broken is a warning and doesn't change the exit code.</p>
+no other one declares, hidden, vendored and <code>results/</code> folders skipped, and ends with a summary
+line. It reads no results; <code>astra check</code> does. Exits 0 when every analysis is valid and 1 when
+one breaks a <code>MUST</code>. A <code>SHOULD</code> that is broken is a warning and doesn't change the exit code.</p>
 <table>
 <thead>
 <tr>
@@ -1423,15 +1289,15 @@ breaks a <code>MUST</code>. A <code>SHOULD</code> that is broken is a warning an
 <tbody>
 <tr>
 <td><code>-e</code>, <code>--verify-evidence</code></td>
-<td>Also seek each quote the evidence takes from a paper, as <a href="#astra-paper"><code>astra paper verify</code></a> does; the papers must be in the cache</td>
+<td>Also verify each quote the evidence takes from a paper cited by DOI, in the paper the cache holds (<a href="#astra-paper"><code>astra paper add</code></a>)</td>
 </tr>
 <tr>
 <td><code>--skip-evidence</code></td>
-<td>Say nothing of the evidence: without it, an analysis whose evidence quotes papers gets a note to run with <code>--verify-evidence</code></td>
+<td>Say nothing of the evidence: without it, an analysis that has evidence gets a note to run with <code>--verify-evidence</code></td>
 </tr>
 <tr>
 <td><code>--json</code></td>
-<td>Print the report as one JSON-encoded string; the exit code is unchanged</td>
+<td>Print the reports as JSON (<code>astra-validation-reports/1</code>)</td>
 </tr>
 <tr>
 <td><code>--offline</code></td>
@@ -1446,111 +1312,114 @@ breaks a <code>MUST</code>. A <code>SHOULD</code> that is broken is a warning an
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="go">  10:17 error UNRESOLVED_ADDRESS `method` names nothing: this analysis has no decision `method`</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="go">astra.yaml: invalid, 2 error(s), 0 warning(s)</span>
 </span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="go">1/1 analysis(es) failed validation: astra.yaml</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="go">1/1 file(s) failed validation: astra.yaml</span>
+</span></code></pre></div>
+<p>With <code>--verify-evidence</code>, a quote that isn't verified is an error of the report, at its place in
+<code>astra.yaml</code>, and the command exits 1:</p>
+<ul>
+<li><code>EVIDENCE_PAPER_MISSING</code>, at the <code>doi</code>: the paper isn't in the cache;</li>
+<li><code>EVIDENCE_PAPER_UNREADABLE</code>, at the <code>doi</code>: the text of the paper in the cache can't be read;</li>
+<li><code>EVIDENCE_QUOTE_NOT_FOUND</code>, at the <code>quote</code>: the quote isn't in the paper. Where the evidence
+  has a <code>location</code> that gives a page (<code>page=6</code>), the quote must be on that page; with none, it
+  is found on any page.</li>
+</ul>
+<p>Evidence that cites an output, as an <code>artifact</code>, is counted as skipped: <code>astra check</code> gives it
+the status of the result it cites. A line sums up each of <code>prior_insights</code> and <code>findings</code>.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gp">$ </span>astra<span class="w"> </span>validate<span class="w"> </span>-e
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="go">astra.yaml</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="go">  41:14 error EVIDENCE_PAPER_MISSING the paper of 10.1214/aoms/1177703732 isn&#39;t in the cache, so its quote isn&#39;t verified: run `astra paper add 10.1214/aoms/1177703732`</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="go">astra.yaml: invalid, 1 error(s), 0 warning(s)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="go">Evidence (prior_insights): 0/1 verified, 1 failed</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="go">1/1 file(s) failed validation: astra.yaml</span>
+</span></code></pre></div>
+<p><code>--json</code> prints one document, with FILE or without: whether every analysis is valid, and each
+analysis's report, whose <code>diagnostics</code> hold the evidence's errors too.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp">$ </span>astra<span class="w"> </span>validate<span class="w"> </span>--json
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="go">{</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="go">  &quot;shape&quot;: &quot;astra-validation-reports/1&quot;,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="go">  &quot;valid&quot;: true,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="go">  &quot;reports&quot;: [</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="go">    {</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="go">      &quot;shape&quot;: &quot;astra-validation-report/1&quot;,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="go">      &quot;root&quot;: &quot;astra.yaml&quot;,</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="go">      &quot;valid&quot;: true,</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="go">      &quot;diagnostics&quot;: [],</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="go">      &quot;unchecked&quot;: []</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="go">    }</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="go">  ]</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="go">}</span>
 </span></code></pre></div>
 <h2 id="astra-info"><code>astra info</code><a class="headerlink" href="#astra-info" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>astra info [-f FILE] [-d] [-i] [-o] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>astra info [-f FILE] [-d] [-i] [-o] [--json]
 </span></code></pre></div>
-<p>Shows each analysis of the stack of FILE, by default the <code>astra.yaml</code> in the current folder or
-the nearest folder above, the root first, with its declarations, inputs, outputs, decisions and
-universes; with <code>-d</code> (<code>--decisions</code>), <code>-i</code> (<code>--inputs</code>) or <code>-o</code> (<code>--outputs</code>), only those rows.
-A switch shows the decision it switches on and its cases. It checks nothing. <code>--json</code> prints the
-text as one JSON-encoded string. Exits 1 where there is no <code>astra.yaml</code>, or no stack to show.</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gp">$ </span>astra<span class="w"> </span>info
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="go">astra.yaml</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="go">  analyses  noisy: astra.yaml at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d from file:///…/noisy-line</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="go">  outputs   fit: table, json</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="go">            comparison: table, json</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="go">  decisions method: ols, huber</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="go">  universes ols</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="go">            huber</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="go">astra.yaml at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d from file:///…/noisy-line</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="go">  inputs    config: config.json</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="go">  outputs   points: data, csv</span>
+<p>Shows the analysis in FILE, by default the <code>astra.yaml</code> in the current folder or the nearest
+folder above: its label and description, how many inputs, outputs, decisions and universes it
+has, then each of them. With <code>-d</code> (<code>--decisions</code>), <code>-i</code> (<code>--inputs</code>) or <code>-o</code> (<code>--outputs</code>), only
+those parts are shown. A switch shows the decision it switches on and its cases. Each other
+analysis of the stack follows, the same way, headed by the address that reaches it and its file,
+with its commit for one read at a commit. It checks nothing. <code>--json</code> prints every analysis of
+the stack as JSON (<code>astra-info/1</code>), the root first. Exits 1 where there is no <code>astra.yaml</code>, or
+no stack to show.</p>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="gp">$ </span>astra<span class="w"> </span>info
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="go">Line fit</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="go">Spec version: 0.1.0</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="go">Fit a line to noisy-line&#39;s points, by least squares and by the Huber loss.</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="go">Inputs: 0 | Outputs: 2 | Decisions: 1 | Universes: 2</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="go">Layout: 1 sub-analysis</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="go">Inputs:</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="go">┏━━━━┳━━━━━━┳━━━━━━━━━━━━━┓</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="go">┃ ID ┃ Path ┃ Description ┃</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="go">┡━━━━╇━━━━━━╇━━━━━━━━━━━━━┩</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="go">└────┴──────┴─────────────┘</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="go">Outputs:</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="go">┏━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="go">┃ ID         ┃ Type  ┃ Recipe                                     ┃ Description                    ┃</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="go">┡━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="go">│ fit        │ table │ python3 src/fit.py {decisions.method}      │ The fitted slope and intercept │</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="go">│            │       │ {inputs.noisy.points} {output}             │                                │</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="go">│ comparison │ table │ python3 src/compare.py {inputs} {output}   │ Both fits, side by side        │</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="go">└────────────┴───────┴────────────────────────────────────────────┴────────────────────────────────┘</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="go">Decisions:</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="go">method: Fitting method</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="go">├── Rationale: Outliers pull a least-squares fit.</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="go">└── Options:</span>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="go">    ├── ols: Least squares</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="go">    └── huber: Huber loss</span>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="go">Universes:</span>
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="go">  ols</span>
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="go">  huber</span>
+</span><span id="__span-7-35"><a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a>
+</span><span id="__span-7-36"><a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="go">Analysis: noisy  astra.yaml at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d from file:///…/noisy-line</span>
+</span><span id="__span-7-37"><a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a><span class="go">Noisy line</span>
+</span><span id="__span-7-38"><a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="go">Spec version: 0.1.0</span>
+</span><span id="__span-7-39"><a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a>
+</span><span id="__span-7-40"><a id="__codelineno-7-40" name="__codelineno-7-40" href="#__codelineno-7-40"></a><span class="go">Inputs: 1 | Outputs: 1 | Decisions: 0 | Universes: 0</span>
+</span><span id="__span-7-41"><a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a>
+</span><span id="__span-7-42"><a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a><span class="go">Inputs:</span>
+</span><span id="__span-7-43"><a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a><span class="go">┏━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓</span>
+</span><span id="__span-7-44"><a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a><span class="go">┃ ID     ┃ Path        ┃ Description ┃</span>
+</span><span id="__span-7-45"><a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a><span class="go">┡━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩</span>
+</span><span id="__span-7-46"><a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a><span class="go">│ config │ config.json │             │</span>
+</span><span id="__span-7-47"><a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a><span class="go">└────────┴─────────────┴─────────────┘</span>
+</span><span id="__span-7-48"><a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a>
+</span><span id="__span-7-49"><a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a><span class="go">Outputs:</span>
+</span><span id="__span-7-50"><a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a><span class="go">┏━━━━━━━━┳━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓</span>
+</span><span id="__span-7-51"><a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a><span class="go">┃ ID     ┃ Type ┃ Recipe                                         ┃ Description ┃</span>
+</span><span id="__span-7-52"><a id="__codelineno-7-52" name="__codelineno-7-52" href="#__codelineno-7-52"></a><span class="go">┡━━━━━━━━╇━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩</span>
+</span><span id="__span-7-53"><a id="__codelineno-7-53" name="__codelineno-7-53" href="#__codelineno-7-53"></a><span class="go">│ points │ data │ python3 src/points.py {inputs.config} {output} │             │</span>
+</span><span id="__span-7-54"><a id="__codelineno-7-54" name="__codelineno-7-54" href="#__codelineno-7-54"></a><span class="go">└────────┴──────┴────────────────────────────────────────────────┴─────────────┘</span>
+</span><span id="__span-7-55"><a id="__codelineno-7-55" name="__codelineno-7-55" href="#__codelineno-7-55"></a>
+</span><span id="__span-7-56"><a id="__codelineno-7-56" name="__codelineno-7-56" href="#__codelineno-7-56"></a><span class="go">Decisions:</span>
 </span></code></pre></div>
-<h2 id="astra-universe"><code>astra universe</code><a class="headerlink" href="#astra-universe" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>astra universe list [PATH]
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>astra universe show UNIVERSE [PATH]
-</span></code></pre></div>
-<p><code>list</code> names the analysis's universes, and the universes it imports from other analyses.
-<code>show</code> gives a universe's effective selection
-(<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>): each decision with the option
-selected, and, where the option is inherited through <code>derived_from</code>, the universe it comes from.</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="gp">$ </span>astra<span class="w"> </span>universe<span class="w"> </span>show<span class="w"> </span>huber
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="go">huber</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="go">  method: huber</span>
-</span></code></pre></div>
-<h2 id="astra-plan"><code>astra plan</code><a class="headerlink" href="#astra-plan" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>astra plan [PATH] [--json] [--notes]
-</span></code></pre></div>
-<p>Lists every planned result, each after what it reads. For each result it shows where its record
-and its bytes go (<a href="https://astra-spec.org/0.1/specification/#results">Results</a>),
-the folder its recipe runs in, the resources the recipe asks for, if any, and its command with
-the placeholders filled in
-(<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>). A result that belongs to an
-analysis from a commit isn't built here: it is read through its record at that commit
-(<a href="https://astra-spec.org/0.1/specification/#results">Results</a>).</p>
-<table>
-<thead>
-<tr>
-<th>Option</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--json</code></td>
-<td>Print the plan as JSON (<code>astra-plan/1</code>), with every note</td>
-</tr>
-<tr>
-<td><code>--notes</code></td>
-<td>List each note, not only how many there are of each kind</td>
-</tr>
-</tbody>
-</table>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gp">$ </span>astra<span class="w"> </span>plan
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="go">points</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="go">  record    .astra/records/points.json at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="go">  bytes     results/points.csv at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="go">  read through its record at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="go">fit#ols</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="go">  record    .astra/records/ols/fit.json</span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="go">  bytes     results/ols/fit.json</span>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="go">  run in    .</span>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="go">  command   python3 src/fit.py ols 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d:results/points.csv results/ols/fit.json</span>
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="go">fit#huber</span>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="go">  record    .astra/records/huber/fit.json</span>
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="go">  bytes     results/huber/fit.json</span>
-</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="go">  run in    .</span>
-</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="go">  command   python3 src/fit.py huber 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d:results/points.csv results/huber/fit.json</span>
-</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="go">comparison</span>
-</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="go">  record    .astra/records/comparison.json</span>
-</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="go">  bytes     results/comparison.json</span>
-</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="go">  run in    .</span>
-</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="go">  command   python3 src/compare.py results/ols/fit.json results/huber/fit.json results/comparison.json</span>
-</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="go">4 planned result(s)</span>
-</span></code></pre></div>
-<p>A path written <code>&lt;commit&gt;:&lt;path&gt;</code> names a file in that commit, as git names it: the runner gets
-the bytes and gives the recipe a path to them.</p>
-<p>The notes point out things that are valid but easy to miss. None of them is a breach:</p>
-<ul>
-<li>a pin that names another analysis's universe only because its own file has no universe of
-  that id;</li>
-<li>a result with two names;</li>
-<li>an output with no planned result;</li>
-<li>an output that isn't built in some universe, because a switch it reads has no case there for
-  the option selected, and a switch that nothing reads with no such case
-  (<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>);</li>
-<li>results that are one computation in several universes;</li>
-<li>a command that names a path outside its analysis's folder, or inside a folder below it that
-  holds an analysis of its own.</li>
-</ul>
-<p>The text counts and lists only the pins, outputs and commands that concern what the analysis in
-PATH builds: a pin that a planned result reads through, and the outputs and commands of the
-analysis and of the analyses its universes drive. A line gives the whole stack's count where it
-is more.</p>
 <h2 id="astra-view"><code>astra view</code><a class="headerlink" href="#astra-view" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>astra view UNIVERSE [PATH] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>astra view UNIVERSE [PATH] [--json]
 </span></code></pre></div>
 <p>Shows the analysis as it is in UNIVERSE. For each analysis of the stack, it gives whether that
 analysis is built in UNIVERSE
@@ -1559,17 +1428,17 @@ decision, or that the universe doesn't use it
 (<a href="https://astra-spec.org/0.1/specification/#results">Results</a>); each output's result and where
 it goes, or why it has none; and the case each switch takes. <code>--json</code> prints it as
 <code>astra-universe-view/1</code>. Exits 2 where the analysis has no universe UNIVERSE.</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gp">$ </span>astra<span class="w"> </span>view<span class="w"> </span>huber
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="go">universe huber</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="go">astra.yaml  built</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="go">  method       huber</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="go">  fit          fit#huber  results/huber/fit.json</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="go">  comparison   comparison  results/comparison.json</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="go">astra.yaml at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d from file:///…/noisy-line  built</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="go">  points       points  results/points.csv at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gp">$ </span>astra<span class="w"> </span>view<span class="w"> </span>huber
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="go">universe huber</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="go">astra.yaml  built</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="go">  method       huber</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="go">  fit          fit#huber  results/huber/fit.json</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="go">  comparison   comparison  results/comparison.json</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="go">astra.yaml at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d from file:///…/noisy-line  built</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="go">  points       points  results/points.csv at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d</span>
 </span></code></pre></div>
 <h2 id="astra-check"><code>astra check</code><a class="headerlink" href="#astra-check" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>astra check [PATH] [--at REV] [--json]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>astra check [PATH] [--at REV] [--json]
 </span></code></pre></div>
 <p>Checks each planned result's record and bytes, at each of its places
 (<a href="https://astra-spec.org/0.1/specification/#results">Results</a>):</p>
@@ -1600,16 +1469,16 @@ otherwise.</p>
 </tbody>
 </table>
 <p>Here the <code>huber</code> universe has been edited to select <code>ols</code>, and nothing has been built since:</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gp">$ </span>astra<span class="w"> </span>check
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="go">.astra/records/points.json at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d  points  unchanged  present</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="go">.astra/records/ols/fit.json  fit#ols  unchanged  present</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="go">.astra/records/huber/fit.json  fit#huber  stale  present</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="go">  error STALE_RESULT `method` selects `ols` in `huber`, where it selected `huber` at 3b70b4352de6</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="go">.astra/records/comparison.json  comparison  stale  present</span>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="go">  error STALE_RESULT `fit#huber`, which it reads, is stale</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="go">astra.yaml</span>
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="go">  53:19 error STALE_EVIDENCE `comparison` cites `comparison`, whose record is stale</span>
-</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="go">astra.yaml: 4 place(s) of planned results, 2 unchanged, 2 stale, 0 missing; 0 absent</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gp">$ </span>astra<span class="w"> </span>check
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="go">.astra/records/points.json at 18cfe9d5695d7fc13a3d93bbbba2f6a644bd284d  points  unchanged  present</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="go">.astra/records/ols/fit.json  fit#ols  unchanged  present</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="go">.astra/records/huber/fit.json  fit#huber  stale  present</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="go">  error STALE_RESULT `method` selects `ols` in `huber`, where it selected `huber` at 3b70b4352de6</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="go">.astra/records/comparison.json  comparison  stale  present</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="go">  error STALE_RESULT `fit#huber`, which it reads, is stale</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="go">astra.yaml</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="go">  53:19 error STALE_EVIDENCE `comparison` cites `comparison`, whose record is stale</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="go">astra.yaml: 4 place(s) of planned results, 2 unchanged, 2 stale, 0 missing; 0 absent</span>
 </span></code></pre></div>
 <p>An input whose content is kept outside git, behind a stand-in
 (<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>), is compared by the hash the stand-in
@@ -1617,13 +1486,13 @@ gives. astra-tools recognises Git LFS pointers, git-annex links and DVC files, a
 of them. Other packages, a runner say, can add their own stand-ins through the entry-point group
 <code>astra.standins</code>.</p>
 <h2 id="astra-history"><code>astra history</code><a class="headerlink" href="#astra-history" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>astra history timeline ADDR [PATH]
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>astra history lineage ADDR [PATH] [--used-by]
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>astra history get ADDR@REV [PATH]
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>astra history find (--hash H | --environment IRI) [PATH]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>astra history timeline ADDR [PATH]
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>astra history lineage ADDR [PATH] [--used-by]
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>astra history get ADDR@REV [PATH]
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>astra history find (--hash H | --environment IRI) [PATH]
 </span></code></pre></div>
 <p>Reads a result's records over time, from git. ADDR is a result's address, as its record gives it
-(<code>fit#ols</code>, <code>comparison</code>), which <code>astra plan</code> lists. A record's versions are its file at each
+(<code>fit#ols</code>, <code>comparison</code>), which <code>astra check</code> lists. A record's versions are its file at each
 commit along HEAD's history that changed it. Exits 1 where the analysis breaks a <code>MUST</code> or what
 is asked for isn't in git, and 2 where ADDR names no planned result or REV names no commit.</p>
 <table>
@@ -1652,70 +1521,60 @@ is asked for isn't in git, and 2 where ADDR names no planned result or REV names
 </tr>
 </tbody>
 </table>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="gp">$ </span>astra<span class="w"> </span><span class="nb">history</span><span class="w"> </span>timeline<span class="w"> </span><span class="s1">&#39;fit#ols&#39;</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="go">fit#ols  .astra/records/ols/fit.json</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="go">  76e0a67ba81d46d58fb14ab6a24c4b5b285c6f42</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="go">    bytes        sha256:83a2d44052552a981f0bb7d48cfb46827494634183a606dcbf6a1ad6eaedac4f, 84 byte(s)</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="go">    made at      a1889b94c7b1625919f63acf9dd95347b10b45c9</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="go">    environment  urn:astra-examples:cpython-3.14</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="go">  40f49da033b761882429561e49160d3bb143ee92</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="go">    bytes        sha256:d266a39423ab53320599471891c4500987b46580e9e6546291e829d7d643e33f, 84 byte(s)</span>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="go">    made at      f0766da472d7b359f747994823af57a8491a32e0</span>
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="go">    environment  urn:astra-examples:cpython-3.14</span>
-</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="go">2 version(s)</span>
-</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="gp">$ </span>astra<span class="w"> </span><span class="nb">history</span><span class="w"> </span>get<span class="w"> </span><span class="s1">&#39;fit#ols@HEAD&#39;</span>
-</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="go">{</span>
-</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="go">  &quot;method&quot;: &quot;ols&quot;,</span>
-</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="go">  &quot;points&quot;: 60,</span>
-</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="go">  &quot;slope&quot;: 1.954668,</span>
-</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="go">  &quot;intercept&quot;: 1.766548</span>
-</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="go">}</span>
-</span></code></pre></div>
-<h2 id="astra-rules"><code>astra rules</code><a class="headerlink" href="#astra-rules" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>astra rules [CODE]
-</span></code></pre></div>
-<p>Without CODE, lists every rule of the specification by layer, with its code, level and
-statement, and then astra-tools' own three. With CODE, in any case, shows that rule, with its
-layer and level (and astra-tools, for astra-tools' own) and, for a check rule, its status when
-broken.</p>
-<div class="language-console highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="gp">$ </span>astra<span class="w"> </span>rules<span class="w"> </span>MISSING_INPUT_FILE
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="go">MISSING_INPUT_FILE</span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="go">validator, MUST</span>
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="go">An input&#39;s `path` names a file (no symlink, folder or gitlink) or a stand-in</span>
+<div class="language-console highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gp">$ </span>astra<span class="w"> </span><span class="nb">history</span><span class="w"> </span>timeline<span class="w"> </span><span class="s1">&#39;fit#ols&#39;</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="go">fit#ols  .astra/records/ols/fit.json</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="go">  76e0a67ba81d46d58fb14ab6a24c4b5b285c6f42</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="go">    bytes        sha256:83a2d44052552a981f0bb7d48cfb46827494634183a606dcbf6a1ad6eaedac4f, 84 byte(s)</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="go">    made at      a1889b94c7b1625919f63acf9dd95347b10b45c9</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="go">    environment  urn:astra-examples:cpython-3.14</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="go">  40f49da033b761882429561e49160d3bb143ee92</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="go">    bytes        sha256:d266a39423ab53320599471891c4500987b46580e9e6546291e829d7d643e33f, 84 byte(s)</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="go">    made at      f0766da472d7b359f747994823af57a8491a32e0</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="go">    environment  urn:astra-examples:cpython-3.14</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="go">2 version(s)</span>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="gp">$ </span>astra<span class="w"> </span><span class="nb">history</span><span class="w"> </span>get<span class="w"> </span><span class="s1">&#39;fit#ols@HEAD&#39;</span>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="go">{</span>
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="go">  &quot;method&quot;: &quot;ols&quot;,</span>
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="go">  &quot;points&quot;: 60,</span>
+</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="go">  &quot;slope&quot;: 1.954668,</span>
+</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="go">  &quot;intercept&quot;: 1.766548</span>
+</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="go">}</span>
 </span></code></pre></div>
 <h2 id="astra-spec"><code>astra spec</code><a class="headerlink" href="#astra-spec" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>astra spec [TERM] [--full]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>astra spec [TERM] [--full]
 </span></code></pre></div>
-<p>Describes the fields of ASTRA files, from the specification's schema. Without TERM, it lists
-every class, enum and type with its first sentence. With TERM, in any case, it shows a class,
-enum or type in full, a field of every class that has it, or one field as <code>Class.field</code>. <code>--full</code>
-shows every class, enum and type in full (long). A TERM that names nothing exits 1, with the
-valid terms.</p>
+<p>Describes the fields of ASTRA files, from the specification's schema. Without TERM, it lists the
+classes and enums of the analysis and insight schemas, each with its first sentence. With TERM,
+in any case, it shows that class or enum in full: its description and each of its fields.
+<code>--full</code> prints the list and then every entry in full (long). A TERM that names nothing exits 1,
+with the valid terms.</p>
 <h2 id="astra-schema"><code>astra schema</code><a class="headerlink" href="#astra-schema" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>astra schema show NAME
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>astra schema export FOLDER
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>astra schema show {analysis|insights|provenance|types}
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>astra schema export [-o DIRECTORY]
 </span></code></pre></div>
-<p>The JSON Schemas of ASTRA files, as astra-spec ships them: <code>analysis</code> for <code>astra.yaml</code>,
-<code>provenance</code> for a record, and <code>provenance.open</code> for a record of a later minor version. <code>show</code>
-prints one; <code>export</code> writes all three into FOLDER as <code>NAME.schema.json</code>.</p>
+<p>The LinkML schemas of ASTRA files, as astra-spec ships them. <code>show</code> prints one: <code>analysis</code> for
+<code>astra.yaml</code>, <code>insights</code> for insights and evidence, <code>provenance</code> for a record, and <code>types</code> for
+the types they share. <code>export</code> writes them all into DIRECTORY, <code>schemas/</code> by default.</p>
 <h2 id="astra-guide"><code>astra guide</code><a class="headerlink" href="#astra-guide" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>astra guide
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>astra guide
 </span></code></pre></div>
 <p>Prints astra-spec's guide for agents, <code>llms.txt</code>, as it is.</p>
 <h2 id="astra-paper"><code>astra paper</code><a class="headerlink" href="#astra-paper" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>astra paper add DOI [-v N] [--pdf PATH] [--email ADDRESS]
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>astra paper list
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>astra paper show DOI [-v N]
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>astra paper path DOI [-v N]
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>astra paper verify-quotes DOI [-v N]
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>astra paper verify [PATH]
-</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>astra paper seek DOI QUOTE... [--version N] [--page N]
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>astra paper add DOI [-v N] [--pdf FILE]
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>astra paper list
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>astra paper show DOI [-v N]
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>astra paper path DOI [-v N]
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>astra paper remove DOI [-v N]
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>astra paper fetch-metadata [DOI] [-v N] [--all]
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>astra paper verify-quotes DOI [-v N]
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>astra paper verify-quote DOI -q QUOTE [-v N] [-p PAGE] [--json]
 </span></code></pre></div>
-<p>Keeps papers in the cache, by DOI and version (<code>-v</code>, <code>--version</code>), and seeks quotes in them: the
-quotes an analysis's evidence takes from the works it cites
-(<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>), or quotes you give. For
-<code>verify</code>, a paper not in the cache (<code>EVIDENCE_PAPER_MISSING</code>), or a quote not found
-(<code>EVIDENCE_QUOTE_NOT_FOUND</code>), is a warning, never an error.</p>
+<p>Keeps papers in the cache, by DOI and version (<code>-v</code>, <code>--version</code>), and verifies quotes in them.
+<a href="#astra-validate"><code>astra validate --verify-evidence</code></a> verifies the quotes an analysis's evidence
+takes from the works it cites (<a href="https://astra-spec.org/0.1/specification/#elements">Elements</a>);
+<code>verify-quotes</code> and <code>verify-quote</code> verify quotes you give, with no analysis. A quote is matched
+against the paper's extracted text approximately, so that differences of spacing, ligatures and
+the like don't matter.</p>
 <table>
 <thead>
 <tr>
@@ -1726,7 +1585,7 @@ quotes an analysis's evidence takes from the works it cites
 <tbody>
 <tr>
 <td><code>add DOI</code></td>
-<td>Keeps the paper of DOI. An arXiv DOI (<code>10.48550/arXiv.&lt;id&gt;</code>) is fetched from arXiv, at <code>--version</code> where given; any other from the open-access copy Unpaywall knows, which asks for <code>--email</code>. <code>--pdf</code> keeps a PDF you have instead. A paper already in the cache is left as it is. Exits 2 where the paper can't be got or isn't a PDF</td>
+<td>Keeps the paper of DOI. An arXiv DOI (<code>10.48550/arXiv.&lt;id&gt;</code>) is fetched from arXiv, at <code>--version</code> where given. No other paper is downloaded: <code>--pdf</code> keeps a PDF you have. A paper already in the cache is left as it is. Exits 1 where the paper can't be got or isn't a PDF</td>
 </tr>
 <tr>
 <td><code>list</code></td>
@@ -1741,34 +1600,23 @@ quotes an analysis's evidence takes from the works it cites
 <td>Prints the path of a cached paper's PDF, for a tool or an agent that reads it. Exits 1 where it isn't in the cache</td>
 </tr>
 <tr>
+<td><code>remove DOI</code></td>
+<td>Removes a paper from the cache. Exits 1 where it isn't there</td>
+</tr>
+<tr>
+<td><code>fetch-metadata</code></td>
+<td>Gets the title and authors of a cached paper from doi.org, or of every cached paper that lacks them with <code>--all</code></td>
+</tr>
+<tr>
 <td><code>verify-quotes DOI</code></td>
-<td>Seeks quotes given as JSON on stdin, <code>{"quotes": [{"text": "…", "page": N, "prefix": "…", "suffix": "…"}]}</code>, in the whole text of the paper of DOI, and prints <code>{"doi", "version", "results", "summary"}</code>: each quote <code>verified</code>, with the pages it is found on, <code>not_found</code> or <code>error</code>. Exits 0 when every quote is verified, 1 when one isn't, and 2 where the paper isn't in the cache or the input isn't JSON</td>
+<td>Verifies quotes given as JSON on stdin, <code>{"quotes": [{"text": "…", "page": N, "prefix": "…", "suffix": "…"}]}</code>, in the paper of DOI, and prints <code>{"doi", "version", "results", "summary"}</code>: each quote <code>verified</code>, with the page it is found on, <code>not_found</code> or <code>error</code>. A <code>page</code> says where to look first, and the quote is found on any page. Exits 0 when every quote is verified, 1 when one isn't, and 2 where the paper isn't in the cache or the input isn't JSON</td>
 </tr>
 <tr>
-<td><code>verify</code></td>
-<td>Seeks each quote the analysis's evidence takes from a work it cites by DOI. Exits 0 whatever it finds</td>
-</tr>
-<tr>
-<td><code>seek DOI QUOTE...</code></td>
-<td>Seeks each QUOTE in the paper of DOI that <code>add</code> kept, as <code>verify</code> would, with no analysis: within <code>--page</code> where given, or in the whole text. Shows the pages each quote is found on, which a location such as <code>page=6</code> can give. Exits 1 when a quote isn't found, and 2 where the paper isn't in the cache or has no page <code>--page</code></td>
+<td><code>verify-quote DOI -q QUOTE</code></td>
+<td>Verifies one quote, with <code>--page</code> to say where to look first, and <code>--json</code> for the result as JSON. Exits 0 when it is verified, 1 when it isn't, and 2 where the paper isn't in the cache</td>
 </tr>
 </tbody>
 </table>
-<h2 id="astra-cache"><code>astra cache</code><a class="headerlink" href="#astra-cache" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>astra cache path
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>astra cache clear
-</span></code></pre></div>
-<p><code>path</code> prints the cache's folder. <code>clear</code> deletes what astra keeps there, and leaves anything
-else in that folder alone.</p>
-<h2 id="astra-completion"><code>astra completion</code><a class="headerlink" href="#astra-completion" title="Permanent link">&para;</a></h2>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>astra completion bash|zsh|fish
-</span></code></pre></div>
-<p>Prints the shell's completion script. Load it from the shell's startup file:</p>
-<ul>
-<li>bash, in <code>~/.bashrc</code>: <code>eval "$(astra completion bash)"</code></li>
-<li>zsh, in <code>~/.zshrc</code>: <code>eval "$(astra completion zsh)"</code></li>
-<li>fish, in <code>~/.config/fish/config.fish</code>: <code>astra completion fish | source</code></li>
-</ul>
 
 
 

@@ -1036,13 +1036,14 @@
 </span></code></pre></div>
 <p>This produces:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>my-analysis/
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>└── astra.yaml              # Analysis specification (source of truth)
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>├── .gitignore
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>└── astra.yaml              # Analysis specification (source of truth)
 </span></code></pre></div>
-<p>The scaffolded <code>astra.yaml</code> is a complete, valid analysis: a <code>spec_version</code> and one output, <code>result</code>, a JSON metric made by <code>python src/result.py '{output}'</code>. It validates as-is — you can edit incrementally rather than rewriting from scratch.</p>
+<p>The scaffolded <code>astra.yaml</code> is an empty, valid analysis: a <code>spec_version</code> and a <code>label</code>. It validates as-is — you can edit incrementally rather than rewriting from scratch.</p>
 <blockquote>
-<p><strong>Tip:</strong> Where no git repository holds the new directory, <code>astra init</code> runs <code>git init</code> in it. It makes no commit.</p>
+<p><strong>Tip:</strong> Where no git repository holds the new directory, <code>astra init</code> runs <code>git init</code> in it and makes a first commit.</p>
 </blockquote>
-<p><code>astra init</code> never overwrites existing files, so it is safe to run in a directory that already has content; where the directory already has an <code>astra.yaml</code>, it stops with an error and leaves it untouched.</p>
+<p><code>astra init</code> never overwrites existing files, so it is safe to run in a directory that already has content, and to run again: it creates only what is missing, and a directory that already has an <code>astra.yaml</code> keeps it.</p>
 <h2 id="edit-the-analysis">Edit the analysis<a class="headerlink" href="#edit-the-analysis" title="Permanent link">&para;</a></h2>
 <p>The scaffold gives you a working starting point; what follows is a boiled-down view of the structure you'll be editing. Every analysis states its <strong><code>spec_version</code></strong> and usually declares its <strong><code>outputs:</code></strong>, with <strong><code>inputs:</code></strong> and <strong><code>decisions:</code></strong> — plus optional metadata (<code>label</code>, <code>description</code>, <code>tags</code>).</p>
 <div class="language-yaml highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">spec_version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.1.0&quot;</span>
@@ -1099,15 +1100,38 @@
 </span></code></pre></div>
 <p>Non-blocking warnings print in yellow: the validator still returns success but surfaces them so authors can clean the record up.</p>
 <h2 id="inspect">Inspect<a class="headerlink" href="#inspect" title="Permanent link">&para;</a></h2>
-<p><a href="../cli/#astra-info"><code>astra info</code></a> prints a Rich-rendered summary: the analysis label, and its declarations, inputs, outputs, decisions and universes, followed by the same for each analysis it declares, if any.</p>
+<p><a href="../cli/#astra-info"><code>astra info</code></a> prints a Rich-rendered summary: the analysis's label and description, then its inputs, outputs, decisions and universes, followed by the same for each analysis it declares, if any.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>astra<span class="w"> </span>info
 </span></code></pre></div>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>astra.yaml  My Analysis
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  inputs    primary_data: data/primary.csv
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  outputs   main_result: metric, json
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  decisions example_method: option_a, option_b
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>My Analysis
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Spec version: 0.1.0
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>One paragraph describing the analysis.
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>Inputs: 1 | Outputs: 1 | Decisions: 1 | Universes: 0
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>Inputs:
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>┃ ID           ┃ Path             ┃ Description    ┃
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>┡━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│ primary_data │ data/primary.csv │ Source dataset │
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>└──────────────┴──────────────────┴────────────────┘
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>Outputs:
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>┏━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>┃ ID          ┃ Type   ┃ Recipe                                               ┃ Description    ┃
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>┡━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│ main_result │ metric │ python src/main.py --method                          │ Primary output │
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│             │        │ {decisions.example_method} --out {output}            │                │
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>└─────────────┴────────┴──────────────────────────────────────────────────────┴────────────────┘
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>Decisions:
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>example_method: Example Method
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>└── Options:
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>    ├── option_a: Option A
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>    └── option_b: Option B
 </span></code></pre></div>
-<p>Once the analysis has universes (next section), <a href="../cli/#astra-universe"><code>astra universe list</code></a> and <code>astra universe show</code> name them and give each one's selection, and <a href="../cli/#astra-plan"><code>astra plan</code></a> lists the results they plan, with where each goes and its command.</p>
+<p>Once the analysis has universes (next section), <code>astra info</code> lists them, and <a href="../cli/#astra-view"><code>astra view</code></a> shows the analysis as it is in one of them: the option it selects for each decision, and each output's result with where it goes.</p>
 <h2 id="define-universes">Define universes<a class="headerlink" href="#define-universes" title="Permanent link">&para;</a></h2>
 <p>A <em>universe</em> is one complete set of decision selections — one option per decision it uses, of the analysis and of the analyses it drives. Each universe yields one set of results; the same analysis can carry many of them.</p>
 <p>Universes are written in <code>astra.yaml</code>, under <code>universes:</code>: there is no default universe or option (<a href="../specification/#elements">Elements</a>).</p>
@@ -1126,8 +1150,7 @@
 </span></code></pre></div>
 <p>Validate, and inspect the universes:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>.<span class="w">              </span><span class="c1"># full validation, universes included</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>astra<span class="w"> </span>universe<span class="w"> </span>show<span class="w"> </span>alt<span class="w">       </span><span class="c1"># the selection alt makes</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>astra<span class="w"> </span>plan<span class="w">                    </span><span class="c1"># the planned results and their commands</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>astra<span class="w"> </span>view<span class="w"> </span>alt<span class="w">                </span><span class="c1"># the selection alt makes, and the results it builds</span>
 </span></code></pre></div>
 <p>Universe validation enforces three rules, among others: every decision the universe uses, of the analysis and of the analyses it drives, has a selection; each selection names an option that exists on its decision; and no <code>requires:</code> / <code>incompatible_with:</code> constraint among the decisions it uses is violated. If the analysis says <code>model.svm requires scaling.standard</code>, a universe selecting <code>svm</code> must also select <code>standard</code> — the validator points to the offending pair.</p>
 <p>For declared analyses, the universe sets their decisions by address (<a href="../specification/#elements">Elements</a>):</p>
@@ -1162,11 +1185,11 @@
 </span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">        </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;RNN&quot;</span>
 </span></code></pre></div>
 <p>The chain <em>option → insight → evidence → DOI</em> is what gives a decision an auditable trail back to the literature.</p>
-<p><a href="../cli/#astra-paper"><code>astra paper verify</code></a> reads each evidence entry that cites a DOI, looks up the cached PDF for that DOI, and fuzzy-matches the <code>quote.exact</code> against the extracted text:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>astra<span class="w"> </span>paper<span class="w"> </span>verify<span class="w"> </span>.
+<p><a href="../cli/#astra-validate"><code>astra validate --verify-evidence</code></a> reads each evidence entry that cites a DOI, looks up the cached PDF for that DOI, and fuzzy-matches the <code>quote.exact</code> against the extracted text; where the evidence has a <code>location</code> that gives a page, the quote must be on that page:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>astra<span class="w"> </span>validate<span class="w"> </span>.<span class="w"> </span>--verify-evidence
 </span></code></pre></div>
-<p>Papers are kept in a cache under <code>~/.cache/astra/papers/</code>. <code>astra paper add</code> puts one there, and <code>astra paper list</code> shows which cited papers the cache holds. A paper missing from the cache, or a quote not found, is a warning, never an error.</p>
-<p>Artifact-backed evidence (typical for <code>findings:</code>) cites an output's results rather than a paper: <code>astra paper verify</code> leaves it alone, and <a href="../cli/#astra-check"><code>astra check</code></a> gives it the status of the results it cites.</p>
+<p>Papers are kept in astra's cache (<code>~/.cache/astra/papers/</code> on Linux). <a href="../cli/#astra-paper"><code>astra paper add</code></a> puts one there: it downloads an arXiv paper, and takes any other from a PDF you give with <code>--pdf</code>. <code>astra paper list</code> shows the papers the cache holds, and <code>astra paper path</code> gives a cached PDF's path, to read the paper and copy a quote from it. A paper missing from the cache, or a quote not found, is an error of the validation report.</p>
+<p>Artifact-backed evidence (typical for <code>findings:</code>) cites an output's results rather than a paper: <code>--verify-evidence</code> counts it as skipped, and <a href="../cli/#astra-check"><code>astra check</code></a> gives it the status of the results it cites.</p>
 <h2 id="what-astra-doesnt-run">What ASTRA doesn't run<a class="headerlink" href="#what-astra-doesnt-run" title="Permanent link">&para;</a></h2>
 <p>The CLI validates and inspects analyses, and checks results against their records; it does <strong>not</strong> execute recipes. Each <code>recipe.command</code> is a POSIX shell command that a runner — an agent, a workflow runner, a notebook, or you on the command line — reads and invokes (<a href="../specification/#results">Results</a>). The runner materialises the declared inputs (giving each one a concrete on-disk path), picks an output path, expands the <code>{inputs.&lt;id&gt;}</code> / <code>{inputs}</code> / <code>{decisions.&lt;id&gt;}</code> / <code>{output}</code> placeholders against the universe being built, runs the resulting command, and writes the result with a record of the run, which <a href="../cli/#astra-check"><code>astra check</code></a> later compares with the analysis.</p>
 <p>This separation is intentional: the spec stays stable as the agent and execution layer evolves. ASTRA's job is to make every analytical choice explicit, traceable, and verifiable; the choice of <em>runner</em> is yours.</p>
