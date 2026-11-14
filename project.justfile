@@ -12,7 +12,7 @@
 schema_namespace := "https://w3id.org/astra/"
 # Every generated file that is committed, which `release` regenerates and
 # commits: the contract (`gen-schema`) and the Python datamodels
-# (`gen-python`; their folder's `__init__.py` is written by hand)
+# (`gen-python`; their folder's `__init__.py` and `py.typed` are written by hand)
 generated_files := dest / "jsonschema" + " " + dest / "jsonld" + " " + dest / "rules" + " " + pymodel
 
 # Generate the contract from the staged (versioned) schema, each file in the
@@ -49,7 +49,7 @@ check-generated:
   diff -r tmp/generated-check/project/jsonschema {{dest}}/jsonschema
   diff -r tmp/generated-check/project/jsonld {{dest}}/jsonld
   diff -r tmp/generated-check/project/rules {{dest}}/rules
-  diff -r -x __pycache__ -x __init__.py tmp/generated-check/datamodel {{pymodel}}
+  diff -r -x __pycache__ -x __init__.py -x py.typed tmp/generated-check/datamodel {{pymodel}}
 
 # Fail unless HEAD is the commit tagged v<version>.
 _at-tag version:
