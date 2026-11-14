@@ -6,16 +6,11 @@
 /docs/schema/*.yaml
 /docs/schema/*.json
 /docs/schema/*.jsonld
-# astra-tools' CLI reference and installation page, copied in on every docs
-# build from astra-tools, where they live (_docs-tools)
-/docs/cli.md
-/docs/installation.md
 # linkml-run-examples output (not useful to have in git in its current form)
 /examples/output/
 
 # Derived schemas, generated from the schema.yaml. tmp/ also holds the drift
-# check's fresh generation (tmp/generated-check/) and astra-tools' checkout for
-# its docs (tmp/astra-tools/).
+# check's fresh generation (tmp/generated-check/).
 tmp/
 # project/'s folders are ignored, but for the contract `just gen-schema` writes
 # (committed, and shipped in the wheel): `project/*` rather than `project/`, so

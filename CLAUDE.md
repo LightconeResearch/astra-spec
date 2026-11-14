@@ -12,7 +12,7 @@ The ASTRA schema is defined in LinkML files under `src/astra/schema/`. Their des
 
 After any schema change, run `just gen-schema gen-python gen-doc` and commit `project/` and `src/astra/datamodel/` (`just check-generated` checks them).
 
-The CLI reference and installation page live in astra-tools; the docs build copies them in (`tools_ref` in `project.justfile`, or a local folder in `ASTRA_TOOLS_DOCS`). astra-tools pins a commit of this repository (`astra-spec.pin`): push here first, and after a squash-merge astra-tools re-pins to the commit on main.
+The CLI reference (`docs/cli.md`) and installation page (`docs/installation.md`) describe astra-tools but are kept here, by hand, for now: when astra-tools' commands or installation change, update them. astra-tools pins a commit of this repository (`astra-spec.pin`): push here first, and after a squash-merge astra-tools re-pins to the commit on main.
 
 ## Documentation versioning (mike)
 
