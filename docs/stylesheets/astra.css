@@ -1,0 +1,484 @@
+/*
+ * ASTRA brand theme for the documentation site.
+ *
+ * Colours, type and logos come from the ASTRA brand repository
+ * (https://github.com/astra-project/brand): tokens/colors.css and the web
+ * guide's palette. Brand gold is kept for accents (hover, selection, marks):
+ * on parchment it is too light for body links, which use Blue Ink.
+ */
+
+/* IBM Plex Mono is the brand's code face; the brand loads it from Google Fonts. */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap");
+
+/* ---------- Fonts (bundled in assets/fonts, SIL OFL 1.1) ---------- */
+
+@font-face {
+  font-family: "Quattrocento";
+  src: url("../assets/fonts/Quattrocento-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Quattrocento";
+  src: url("../assets/fonts/Quattrocento-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Alegreya";
+  src: url("../assets/fonts/Alegreya-Variable.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("../assets/fonts/Newsreader-Variable.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("../assets/fonts/Newsreader-Italic.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------- Brand tokens ---------- */
+
+:root {
+  --astra-head: "Quattrocento", Georgia, "Times New Roman", serif;
+  --astra-ui: "Alegreya", "Palatino Linotype", Georgia, serif;
+  --md-text-font: "Newsreader";
+  --md-code-font: "IBM Plex Mono";
+}
+
+[data-md-color-scheme="default"] {
+  --astra-ink: #221F20;
+  --astra-link: #4E5A70;
+  --astra-gold: #A67C3C;
+  --astra-ground: #F8F7F3;
+  --astra-surface: #F1EFE9;
+  --astra-rule: #E4E1D7;
+  --astra-rule-strong: #D2CCBF;
+  --astra-eyebrow: #3F7280;
+  --astra-subtle: #7A6E63;
+  --astra-terracotta: #A45A43;
+}
+
+[data-md-color-scheme="slate"] {
+  --astra-ink: #F1EFE9;
+  --astra-link: #B4BDCD;
+  --astra-gold: #C2924A;
+  --astra-ground: #221F20;
+  --astra-surface: #2A2728;
+  --astra-rule: #3B3738;
+  --astra-rule-strong: #4C4747;
+  --astra-eyebrow: #7FA8B5;
+  --astra-subtle: #9C9085;
+  --astra-terracotta: #C97F66;
+}
+
+/* ---------- Map the tokens onto the theme ---------- */
+
+[data-md-color-scheme="default"] {
+  --md-default-fg-color: #221F20;
+  --md-default-fg-color--light: rgb(34 31 32 / 0.68);
+  --md-default-fg-color--lighter: rgb(34 31 32 / 0.36);
+  --md-default-fg-color--lightest: rgb(34 31 32 / 0.08);
+  --md-default-bg-color: #F8F7F3;
+  --md-default-bg-color--light: rgb(248 247 243 / 0.7);
+  --md-default-bg-color--lighter: rgb(248 247 243 / 0.3);
+  --md-default-bg-color--lightest: rgb(248 247 243 / 0.12);
+
+  --md-code-fg-color: #221F20;
+  --md-code-bg-color: #F1EFE9;
+  --md-code-bg-color--light: rgb(241 239 233 / 0.9);
+  --md-code-bg-color--lighter: rgb(241 239 233 / 0.54);
+  --md-code-hl-color: #A67C3C;
+  --md-code-hl-color--light: rgb(166 124 60 / 0.14);
+  --md-code-hl-keyword-color: #4E5A70;
+  --md-code-hl-string-color: #7D5A26;
+  --md-code-hl-number-color: #A45A43;
+  --md-code-hl-constant-color: #3F7280;
+  --md-code-hl-special-color: #A45A43;
+  --md-code-hl-function-color: #3F7280;
+  --md-code-hl-comment-color: #7A6E63;
+  --md-code-hl-generic-color: #7A6E63;
+  --md-code-hl-variable-color: #4E5A70;
+  --md-code-hl-operator-color: #7A6E63;
+  --md-code-hl-punctuation-color: #7A6E63;
+
+  --md-typeset-a-color: #4E5A70;
+  --md-typeset-mark-color: rgb(166 124 60 / 0.22);
+  --md-typeset-table-color: rgb(34 31 32 / 0.1);
+  --md-typeset-table-color--light: rgb(34 31 32 / 0.035);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 345;
+  --md-default-fg-color: #F1EFE9;
+  --md-default-fg-color--light: rgb(241 239 233 / 0.7);
+  --md-default-fg-color--lighter: rgb(241 239 233 / 0.38);
+  --md-default-fg-color--lightest: rgb(241 239 233 / 0.1);
+  --md-default-bg-color: #221F20;
+  --md-default-bg-color--light: rgb(34 31 32 / 0.7);
+  --md-default-bg-color--lighter: rgb(34 31 32 / 0.3);
+  --md-default-bg-color--lightest: rgb(34 31 32 / 0.12);
+
+  --md-code-fg-color: #F1EFE9;
+  --md-code-bg-color: #2A2728;
+  --md-code-bg-color--light: rgb(42 39 40 / 0.9);
+  --md-code-bg-color--lighter: rgb(42 39 40 / 0.54);
+  --md-code-hl-color: #C2924A;
+  --md-code-hl-color--light: rgb(194 146 74 / 0.16);
+  --md-code-hl-keyword-color: #B4BDCD;
+  --md-code-hl-string-color: #D4A867;
+  --md-code-hl-number-color: #C97F66;
+  --md-code-hl-constant-color: #7FA8B5;
+  --md-code-hl-special-color: #C97F66;
+  --md-code-hl-function-color: #7FA8B5;
+  --md-code-hl-comment-color: #9C9085;
+  --md-code-hl-generic-color: #9C9085;
+  --md-code-hl-variable-color: #B4BDCD;
+  --md-code-hl-operator-color: #9C9085;
+  --md-code-hl-punctuation-color: #9C9085;
+
+  --md-typeset-a-color: #B4BDCD;
+  --md-typeset-mark-color: rgb(194 146 74 / 0.3);
+  --md-typeset-table-color: rgb(241 239 233 / 0.12);
+  --md-typeset-table-color--light: rgb(241 239 233 / 0.04);
+}
+
+/* Primary: Blue Ink for links, active navigation and the primary button. */
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: var(--astra-link);
+  --md-primary-fg-color--light: var(--astra-link);
+  --md-primary-fg-color--dark: var(--astra-ink);
+  --md-primary-bg-color: var(--astra-ground);
+  --md-primary-bg-color--light: var(--astra-ground);
+}
+
+/* Accent: Antique Gold for hover and focus. */
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color: var(--astra-gold);
+  --md-accent-fg-color--transparent: rgb(166 124 60 / 0.12);
+  --md-accent-bg-color: var(--astra-ground);
+  --md-accent-bg-color--light: var(--astra-ground);
+}
+[data-md-color-scheme="slate"][data-md-color-accent="custom"] {
+  --md-accent-fg-color--transparent: rgb(194 146 74 / 0.14);
+}
+
+::selection {
+  background-color: rgb(166 124 60 / 0.28);
+}
+
+/* ---------- Type ---------- */
+
+.md-typeset {
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  font-family: var(--astra-head);
+  color: var(--astra-ink);
+  text-wrap: balance;
+}
+.md-typeset h1 {
+  font-weight: 400;
+  font-size: 2.2em;
+  letter-spacing: 0.01em;
+}
+.md-typeset h2 {
+  font-weight: 400;
+  font-size: 1.6em;
+  padding-top: 0.9em;
+  border-top: 1px solid var(--astra-rule-strong);
+}
+.md-typeset h1 + h2,
+.md-typeset h1 + p + h2 {
+  border-top: 0;
+}
+.md-typeset h3 {
+  font-weight: 700;
+  font-size: 1.2em;
+}
+.md-typeset h4 {
+  font-weight: 700;
+}
+
+.md-typeset a {
+  text-decoration: underline;
+  text-decoration-color: var(--md-default-fg-color--lighter);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+.md-typeset a:hover,
+.md-typeset a:focus {
+  color: var(--astra-gold);
+  text-decoration-color: currentColor;
+}
+.md-typeset a.headerlink,
+.md-typeset a.md-button,
+.md-typeset .tabbed-labels a {
+  text-decoration: none;
+}
+
+.md-typeset code,
+.md-typeset kbd,
+.md-typeset pre {
+  font-feature-settings: normal;
+}
+.md-typeset code {
+  font-size: 0.82em;
+}
+.md-typeset pre > code {
+  border: 1px solid var(--astra-rule);
+  border-radius: 3px;
+}
+
+/* Small caps labels (Alegreya), as on the brand's eyebrows. */
+.md-tabs__link,
+.md-nav__title,
+.md-nav--secondary .md-nav__title,
+.md-nav__item--section > .md-nav__link,
+.md-typeset .admonition-title,
+.md-typeset summary,
+.md-typeset .tabbed-labels > label,
+.md-typeset table:not([class]) th,
+.md-typeset .md-button,
+.md-footer__direction,
+.md-version__current {
+  font-family: var(--astra-ui);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.08em;
+}
+.md-tabs__link {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.md-nav__item--section > .md-nav__link,
+.md-nav--secondary .md-nav__title {
+  color: var(--astra-eyebrow);
+  font-weight: 500;
+  font-size: 0.82rem;
+}
+.md-typeset table:not([class]) th {
+  font-weight: 600;
+  font-size: 0.95em;
+  color: var(--astra-subtle);
+}
+
+/* ---------- Header and logo ---------- */
+
+.md-header {
+  background-color: var(--md-default-bg-color);
+  color: var(--astra-ink);
+  border-bottom: 1px solid var(--astra-rule-strong);
+  box-shadow: none;
+}
+.md-header__title {
+  font-family: var(--astra-head);
+  font-weight: 400;
+}
+/* The site name is set like the wordmark; the page title isn't. */
+.md-header__topic:first-child {
+  letter-spacing: 0.15em;
+}
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg,
+.md-nav__button.md-logo img {
+  height: 1.6rem;
+  width: auto;
+}
+/* The compact mark has a dark variant for dark grounds. */
+[data-md-color-scheme="slate"] .md-logo img {
+  content: url("../assets/brand/astra-compact-dark.svg");
+}
+
+.md-tabs {
+  background-color: var(--md-default-bg-color);
+  color: var(--astra-ink);
+  border-bottom: 1px solid var(--astra-rule);
+}
+
+.md-search__form {
+  background-color: var(--astra-surface);
+}
+
+/* ---------- Navigation ---------- */
+
+/* The current page: ink on a gold tint, gold being the selected option. */
+.md-nav--primary .md-nav__item .md-nav__link--active,
+.md-nav--primary .md-nav__item .md-nav__link--active:hover {
+  color: var(--astra-ink);
+  box-shadow: inset 2px 0 0 var(--astra-gold);
+}
+.md-nav--secondary .md-nav__link--active {
+  color: var(--astra-ink);
+}
+.md-nav__link:hover,
+.md-nav__link:focus {
+  color: var(--astra-gold);
+}
+
+/* ---------- Components ---------- */
+
+.md-typeset .md-button {
+  background-color: transparent;
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: 3px;
+  color: var(--astra-ink);
+  font-weight: 600;
+  font-size: 0.95em;
+  opacity: 1;
+}
+.md-typeset .md-button--primary {
+  background-color: var(--astra-ink);
+  border-color: var(--astra-ink);
+  color: var(--astra-ground);
+}
+.md-typeset .md-button:hover,
+.md-typeset .md-button:focus,
+.md-typeset .md-button--primary:hover,
+.md-typeset .md-button--primary:focus {
+  background-color: var(--astra-gold);
+  border-color: var(--astra-gold);
+  color: var(--astra-ground);
+  opacity: 1;
+}
+
+/* Admonitions: a surface panel with a rule in the colour of its kind. */
+.md-typeset :is(.admonition, details)[class] {
+  --astra-kind: var(--astra-link);
+  background-color: var(--astra-surface);
+  border: 1px solid var(--astra-rule);
+  border-left: 3px solid var(--astra-kind);
+  border-radius: 3px;
+  font-size: 0.86rem;
+  box-shadow: none;
+}
+.md-typeset .admonition > .admonition-title::before,
+.md-typeset details > summary::before {
+  background-color: var(--astra-kind);
+}
+.md-typeset .admonition > .admonition-title::after,
+.md-typeset details > summary::after {
+  color: var(--astra-kind);
+}
+.md-typeset :is(.admonition, details):is(.tip, .hint, .important, .success, .check, .done, .example) {
+  --astra-kind: var(--astra-eyebrow);
+}
+.md-typeset :is(.admonition, details):is(.warning, .caution, .attention) {
+  --astra-kind: var(--astra-gold);
+}
+.md-typeset :is(.admonition, details):is(.danger, .error, .failure, .fail, .missing, .bug) {
+  --astra-kind: var(--astra-terracotta);
+}
+.md-typeset .admonition-title,
+.md-typeset summary {
+  font-weight: 600;
+}
+
+.md-typeset .tabbed-set {
+  border-radius: 3px;
+}
+.md-typeset .tabbed-labels > label {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.md-typeset table:not([class]) {
+  border: 1px solid var(--astra-rule);
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+.md-typeset hr {
+  border-bottom-color: var(--astra-rule-strong);
+}
+
+/* ---------- Footer ---------- */
+
+.md-footer {
+  background-color: var(--astra-surface);
+  color: var(--astra-ink);
+  border-top: 1px solid var(--astra-rule-strong);
+}
+.md-footer__link:hover,
+.md-footer__link:focus {
+  color: var(--astra-gold);
+}
+.md-footer-meta {
+  background-color: var(--md-default-bg-color);
+  border-top: 1px solid var(--astra-rule);
+}
+.md-footer-meta,
+.md-footer-meta__inner a,
+.md-copyright {
+  color: var(--md-default-fg-color--light);
+}
+
+/* ---------- Landing page hero ---------- */
+
+.md-typeset h1.astra-hero {
+  margin: 0.4em 0 1.4em;
+  line-height: 0;
+}
+.astra-hero img {
+  width: min(100%, 34rem);
+  height: auto;
+}
+.astra-hero .astra-hero--narrow {
+  width: min(100%, 16rem);
+}
+/*
+ * One of four logos shows: the lockup with its descriptor where it can be
+ * 400px wide (the brand's minimum), else the plain lockup; each in the
+ * version for the colour scheme.
+ */
+.astra-hero img,
+[data-md-color-scheme="default"] .astra-hero .astra-hero--dark,
+[data-md-color-scheme="slate"] .astra-hero .astra-hero--light {
+  display: none;
+}
+[data-md-color-scheme="default"] .astra-hero .astra-hero--light.astra-hero--wide,
+[data-md-color-scheme="slate"] .astra-hero .astra-hero--dark.astra-hero--wide {
+  display: inline;
+}
+@media screen and (max-width: 29.99em) {
+  [data-md-color-scheme] .astra-hero .astra-hero--wide:is(.astra-hero--light, .astra-hero--dark) {
+    display: none;
+  }
+  [data-md-color-scheme="default"] .astra-hero .astra-hero--light.astra-hero--narrow,
+  [data-md-color-scheme="slate"] .astra-hero .astra-hero--dark.astra-hero--narrow {
+    display: inline;
+  }
+}
+
+/* ---------- Details ---------- */
+
+/* YAML keys in Blue Ink, as in the brand guide's specimen. */
+.md-typeset .highlight .nt {
+  color: var(--md-code-hl-keyword-color);
+}
+
+/* Code keeps its case inside small-caps labels. */
+.md-typeset .tabbed-labels > label code,
+.md-typeset .md-button code,
+.md-typeset .admonition-title code,
+.md-typeset summary code,
+.md-typeset th code,
+.md-nav__link code {
+  font-variant-caps: normal;
+  letter-spacing: 0;
+}
