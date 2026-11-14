@@ -385,8 +385,7 @@ Keeps the papers that an analysis's evidence cites by DOI in the cache, and seek
 them ([Elements](https://astra-spec.org/0.1/specification/#elements)), or quotes you give. A
 quote is sought within the page its location gives (`page=6`), or in the whole text. For
 `verify`, a paper not in the cache (`EVIDENCE_PAPER_MISSING`), or a quote not found
-(`EVIDENCE_QUOTE_NOT_FOUND`), is a warning, never an error. Needs the `[evidence]` extra
-([Installation](installation.md#extras)).
+(`EVIDENCE_QUOTE_NOT_FOUND`), is a warning, never an error.
 
 | Command | What it does |
 |---|---|
