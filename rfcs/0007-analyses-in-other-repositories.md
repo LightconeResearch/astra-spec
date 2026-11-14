@@ -6,13 +6,13 @@ authors:
   - Tom Charnock (@tomcharnock-lightcone)
   - Francois Lanusse (@eiffl)
 created: 2026-10-26
-tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/88
+tracking-issue: https://github.com/astra-project/astra-spec/issues/88
 superseded-by:
 ---
 
 ## Context
 
-[RFC 0004](0004-composition.md) made every analysis a directory with its own `astra.yaml`, declared by another analysis with `{ id, path }` and used through addresses (`<id>.<element>`). To keep that RFC short, a declared `path` had to be relative and inside the repository of a top-level analysis. Anything outside that repository was left for a later RFC building on [#55](https://github.com/LightconeResearch/astra-spec/issues/55).
+[RFC 0004](0004-composition.md) made every analysis a directory with its own `astra.yaml`, declared by another analysis with `{ id, path }` and used through addresses (`<id>.<element>`). To keep that RFC short, a declared `path` had to be relative and inside the repository of a top-level analysis. Anything outside that repository was left for a later RFC building on [#55](https://github.com/astra-project/astra-spec/issues/55).
 
 Leaving out anything outside the top-level repository cuts new work off from the work it builds on, e.g.
 
@@ -20,17 +20,17 @@ Leaving out anything outside the top-level repository cuts new work off from the
 - using the upstream repository of a fork
 - reusing another astra analysis in a different repository altogether
 
-With [Result provenance and layout](https://github.com/LightconeResearch/astra-spec/pull/91) each result has a record committed with its analysis. The record holds the result's content hash, its size and the commit its recipe ran from. Whether a result is unchanged can then be told without having to rematerialise it. With [Data inputs](https://github.com/LightconeResearch/astra-spec/pull/92) every input is a file committed with its analysis. One commit of an analysis's repository therefore fixes its code, its inputs and the records of its results.
+With [Result provenance and layout](https://github.com/astra-project/astra-spec/pull/91) each result has a record committed with its analysis. The record holds the result's content hash, its size and the commit its recipe ran from. Whether a result is unchanged can then be told without having to rematerialise it. With [Data inputs](https://github.com/astra-project/astra-spec/pull/92) every input is a file committed with its analysis. One commit of an analysis's repository therefore fixes its code, its inputs and the records of its results.
 
 So far, though, all of this only works for an analysis declared by `path`. An analysis in another repository has to be copied in or added as a git submodule. Either way the whole analysis is required even when only one of its results is read. `astra.yaml` can't say which repository and commit the analysis comes from either.
 
-#55 asked to "refer to static, immutable artifacts when validating a new analysis, without the need to rerun previous analyses". It proposed putting the repository and its revision into each reference, first as `OWNER/REPO@REF.ARTIFACT` and then as `source@ref:subanalysis:output#universe` with the sources declared in their own `sources:` block. [#43](https://github.com/LightconeResearch/astra-spec/issues/43) similarly asks for one pointer to another analysis that fixes its revision.
+#55 asked to "refer to static, immutable artifacts when validating a new analysis, without the need to rerun previous analyses". It proposed putting the repository and its revision into each reference, first as `OWNER/REPO@REF.ARTIFACT` and then as `source@ref:subanalysis:output#universe` with the sources declared in their own `sources:` block. [#43](https://github.com/astra-project/astra-spec/issues/43) similarly asks for one pointer to another analysis that fixes its revision.
 
 ## Proposal
 
 This RFC proposes that a declaration names either a `path` or a `url` and may name a `commit`. A `path` names an analysis within the top-level analysis's repository as in RFC 0004 and a `url` names another repository (a remote), whose top-level analysis is the one declared. With a `commit` (required for `url`) the declaration names an analysis from a commit - the analysis as it was at that commit. An analysis from a commit is read from git at that commit and reading it doesn't need a checkout - only the `astra.yaml` files, the records of its results and the bytes that a recipe reads are required. Whilst this is enough for using results that other analyses have already materialised, it may also be desirable to *drive* an analysis from a commit, in which case the tool gets its files at that commit and it's driven like any other declared analysis (section 7).
 
-This RFC requires *Result provenance and layout* ([#91](https://github.com/LightconeResearch/astra-spec/pull/91)) and *Data inputs* ([#92](https://github.com/LightconeResearch/astra-spec/pull/92)), which it refers to throughout: the results of an analysis from a commit are read through *Result provenance and layout*'s records and *Data inputs* makes every input a file committed with its analysis.
+This RFC requires *Result provenance and layout* ([#91](https://github.com/astra-project/astra-spec/pull/91)) and *Data inputs* ([#92](https://github.com/astra-project/astra-spec/pull/92)), which it refers to throughout: the results of an analysis from a commit are read through *Result provenance and layout*'s records and *Data inputs* makes every input a file committed with its analysis.
 
 ### Modifications
 
@@ -255,9 +255,9 @@ universes:
 ## References
 
 - [RFC 0004](0004-composition.md): declared analyses, addresses, driving and pins, which this RFC extends to analyses in other repositories
-- [RFC 0003](0003-cross-universe-artifact-references.md) ([#52](https://github.com/LightconeResearch/astra-spec/issues/52), [#65](https://github.com/LightconeResearch/astra-spec/pull/65), reduced to universes in [#83](https://github.com/LightconeResearch/astra-spec/pull/83)): in-file universes and pins
-- [Result provenance and layout](https://github.com/LightconeResearch/astra-spec/pull/91) (tracked in [#90](https://github.com/LightconeResearch/astra-spec/issues/90)): the records a declared analysis's results are read through
-- [Data inputs](https://github.com/LightconeResearch/astra-spec/pull/92) (tracked in [#86](https://github.com/LightconeResearch/astra-spec/issues/86)): an input names a file committed with its analysis, so the declared commit fixes it
-- [#55](https://github.com/LightconeResearch/astra-spec/issues/55): cross-repository artifact references, which this RFC is based on
-- [#43](https://github.com/LightconeResearch/astra-spec/issues/43): an identity layer for addressing and resolving content across analyses
-- [#66](https://github.com/LightconeResearch/astra-spec/issues/66): re-running and extending an analysis on other machines
+- [RFC 0003](0003-cross-universe-artifact-references.md) ([#52](https://github.com/astra-project/astra-spec/issues/52), [#65](https://github.com/astra-project/astra-spec/pull/65), reduced to universes in [#83](https://github.com/astra-project/astra-spec/pull/83)): in-file universes and pins
+- [Result provenance and layout](https://github.com/astra-project/astra-spec/pull/91) (tracked in [#90](https://github.com/astra-project/astra-spec/issues/90)): the records a declared analysis's results are read through
+- [Data inputs](https://github.com/astra-project/astra-spec/pull/92) (tracked in [#86](https://github.com/astra-project/astra-spec/issues/86)): an input names a file committed with its analysis, so the declared commit fixes it
+- [#55](https://github.com/astra-project/astra-spec/issues/55): cross-repository artifact references, which this RFC is based on
+- [#43](https://github.com/astra-project/astra-spec/issues/43): an identity layer for addressing and resolving content across analyses
+- [#66](https://github.com/astra-project/astra-spec/issues/66): re-running and extending an analysis on other machines

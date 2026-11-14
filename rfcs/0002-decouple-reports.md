@@ -5,7 +5,7 @@ status: Accepted # Draft | Active | Accepted | Rejected | Superseded
 authors:
   - Francois Lanusse (@eiffl)
 created: 2026-06-20
-tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/41
+tracking-issue: https://github.com/astra-project/astra-spec/issues/41
 superseded-by:
 ---
 
@@ -271,4 +271,4 @@ recorded here as open, not decided.
   prototype: a MyST plugin that renders ASTRA components from `astra.yaml`.
 - [RFC-0001](0001-establish-the-rfc-process.md) — establishes the process this
   RFC follows; also modelled on the MyST/MEP lineage.
-- Tracking issue: [#41](https://github.com/LightconeResearch/astra-spec/issues/41).
+- Tracking issue: [#41](https://github.com/astra-project/astra-spec/issues/41).

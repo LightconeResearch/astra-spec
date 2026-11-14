@@ -8,13 +8,13 @@ If you find ASTRA useful, awkward, surprising, missing something, or just adjace
 
 | Channel | Use it for |
 |---------|-----------|
-| [`astra-spec` issues](https://github.com/LightconeResearch/astra-spec/issues) | Schema bugs, proposed schema changes, doc issues. |
-| [`astra-tools` issues](https://github.com/LightconeResearch/astra-tools/issues) | CLI bugs, validator issues, paper-cache problems. |
-| [GitHub Discussions](https://github.com/LightconeResearch/astra-spec/discussions) | Open-ended questions, design conversations, "is this the right approach?" threads. |
+| [`astra-spec` issues](https://github.com/astra-project/astra-spec/issues) | Schema bugs, proposed schema changes, doc issues. |
+| [`astra-tools` issues](https://github.com/astra-project/astra-tools/issues) | CLI bugs, validator issues, paper-cache problems. |
+| [GitHub Discussions](https://github.com/astra-project/astra-spec/discussions) | Open-ended questions, design conversations, "is this the right approach?" threads. |
 | [RFCs](rfc-process.md) | Significant or contested changes — new schema concepts, breaking changes, versioning rules, conventions. |
 | Pull requests | Code, schema, and documentation changes — for both repositories. |
 
-When in doubt about which repo to file an issue in: schema or specification questions go to `astra-spec`; CLI / validator / paper-tool questions go to [`astra-tools`](https://github.com/LightconeResearch/astra-tools).
+When in doubt about which repo to file an issue in: schema or specification questions go to `astra-spec`; CLI / validator / paper-tool questions go to [`astra-tools`](https://github.com/astra-project/astra-tools).
 
 ## What's most useful right now
 
@@ -28,7 +28,7 @@ Documentation fixes, typo PRs, and tightening of error messages are also welcome
 
 ## Contributing
 
-The full guide is in [`CONTRIBUTING.md`](https://github.com/LightconeResearch/astra-spec/blob/main/CONTRIBUTING.md). The short version:
+The full guide is in [`CONTRIBUTING.md`](https://github.com/astra-project/astra-spec/blob/main/CONTRIBUTING.md). The short version:
 
 1. **Open an issue first** for anything non-trivial. It gives reviewers context and avoids parallel work. For significant or contested changes, that issue is also the first step of the [RFC process](rfc-process.md).
 2. **Keep changes focused.** A schema change, a doc change, and a tooling change are three separate pull requests.
@@ -69,7 +69,7 @@ A useful issue includes:
 - The full error output, copy-pasted from the terminal.
 - What you expected to happen instead.
 
-Validation issues are easier to triage when accompanied by a fixture small enough to drop into [`tests/data/`](https://github.com/LightconeResearch/astra-spec/tree/main/tests/data) — usually a single decision and a single output is plenty.
+Validation issues are easier to triage when accompanied by a fixture small enough to drop into [`tests/data/`](https://github.com/astra-project/astra-spec/tree/main/tests/data) — usually a single decision and a single output is plenty.
 
 ## Code of Conduct
 

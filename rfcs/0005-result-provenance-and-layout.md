@@ -6,7 +6,7 @@ authors:
   - Tom Charnock (@tomcharnock-lightcone)
   - Francois Lanusse (@eiffl)
 created: 2026-10-26
-tracking-issue: https://github.com/LightconeResearch/astra-spec/issues/90
+tracking-issue: https://github.com/astra-project/astra-spec/issues/90
 superseded-by:
 ---
 
@@ -14,9 +14,9 @@ superseded-by:
 
 [RFC 0004](0004-composition.md) says which analysis a result belongs to, but not where the result is or what made it. Currently a result is a file wherever a runner puts it, which leaves
 
-- [#72](https://github.com/LightconeResearch/astra-spec/issues/72): no canonical location, so runners aren't interchangeable and evidence citing a result can't be checked mechanically
-- [#43](https://github.com/LightconeResearch/astra-spec/issues/43) (its fourth point): no recorded provenance - nothing says what went into a result or which bytes came out
-- [#66](https://github.com/LightconeResearch/astra-spec/issues/66): no way to share results across machines
+- [#72](https://github.com/astra-project/astra-spec/issues/72): no canonical location, so runners aren't interchangeable and evidence citing a result can't be checked mechanically
+- [#43](https://github.com/astra-project/astra-spec/issues/43) (its fourth point): no recorded provenance - nothing says what went into a result or which bytes came out
+- [#66](https://github.com/astra-project/astra-spec/issues/66): no way to share results across machines
 
 A path alone says a file exists but not what the file looks like or what made it. This RFC gives every result a record of its provenance and a default place for its actual bytes, so that results can be checked without running anything.
 
@@ -255,14 +255,14 @@ If other bytes were put at that place, say `mlp_svm`'s accuracy (also 732 bytes)
 
 ## Possible future RFCs
 
-- **Result identity:** a key computed from what goes into a result, the code each result uses included, so that a change of code can be detected and records and results can be kept by hash ([#43](https://github.com/LightconeResearch/astra-spec/issues/43)).
-- **Fetching by content hash:** stores a project lists, asked by content hash, for inputs and results ([#66](https://github.com/LightconeResearch/astra-spec/issues/66)). As with git-annex today (section 1), a store could become the natural home of results, with the default place as its view.
+- **Result identity:** a key computed from what goes into a result, the code each result uses included, so that a change of code can be detected and records and results can be kept by hash ([#43](https://github.com/astra-project/astra-spec/issues/43)).
+- **Fetching by content hash:** stores a project lists, asked by content hash, for inputs and results ([#66](https://github.com/astra-project/astra-spec/issues/66)). As with git-annex today (section 1), a store could become the natural home of results, with the default place as its view.
 - **Signed records:** a record is its runner's claim, and anyone could edit it. Signing records, as in-toto and SLSA sign build provenance, would let a reader trust a record as far as they trust its runner - and runners could be certified by re-running their records.
 
 ## References
 
 - [RFC 0004](0004-composition.md): declared analyses, addresses and where results belong
-- [#72](https://github.com/LightconeResearch/astra-spec/issues/72), [#43](https://github.com/LightconeResearch/astra-spec/issues/43), [#66](https://github.com/LightconeResearch/astra-spec/issues/66)
+- [#72](https://github.com/astra-project/astra-spec/issues/72), [#43](https://github.com/astra-project/astra-spec/issues/43), [#66](https://github.com/astra-project/astra-spec/issues/66)
 - [W3C PROV](https://www.w3.org/TR/prov-overview/)
 - [in-toto attestations](https://github.com/in-toto/attestation) and [SLSA build provenance](https://slsa.dev/spec/v1.0/provenance): signed provenance, and trust in the builders that make it
 - git-annex's `SHA256E` keys and the [Git LFS pointer specification](https://github.com/git-lfs/git-lfs/blob/main/docs/spec.md)
