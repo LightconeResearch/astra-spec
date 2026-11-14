@@ -60,7 +60,7 @@ from rdflib import (
 from linkml_runtime.linkml_model.types import Float, Integer, String
 
 metamodel_version = "1.12.0"
-version = "0.1.0rc1"
+version = "dev"
 
 # Namespaces
 ASTRA = CurieNamespace('astra', 'https://w3id.org/astra/')

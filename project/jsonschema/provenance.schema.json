@@ -1,5 +1,5 @@
 {
-  "$comment": "provenance schema version 0.1.0rc1",
+  "$comment": "provenance schema version dev",
   "$defs": {
     "Environment": {
       "additionalProperties": false,
@@ -109,7 +109,7 @@
       "type": "object"
     }
   },
-  "$id": "https://w3id.org/astra/0.1.0rc1/provenance.schema.json",
+  "$id": "https://w3id.org/astra/dev/provenance.schema.json",
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "additionalProperties": false,
   "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it. Read as RDF, its top-level node stands for the result.",
