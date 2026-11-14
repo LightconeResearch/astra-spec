@@ -1,0 +1,1017 @@
+{
+  "$comment": "analysis schema version dev",
+  "$defs": {
+    "AnalysisDeclaration__identifier_optional": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "path": {}
+                },
+                "required": [
+                  "path"
+                ]
+              },
+              {
+                "properties": {
+                  "url": {}
+                },
+                "required": [
+                  "url"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "commit": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "commit": {}
+            },
+            "required": [
+              "commit"
+            ]
+          }
+        }
+      ],
+      "description": "An analysis that this analysis uses, found by exactly one of `path` and `url`. Its elements are addressed through the declaration's id, as `<declaration>.<element>`.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the commit the declared analysis is read at. A declaration with a `url` has one; with a `path`, it declares the analysis at that path as it was at that commit.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "path": {
+          "description": "The directory of the declared analysis's `astra.yaml`, relative to the folder of this `astra.yaml`, with `/` between folders. It is non-empty and doesn't start with `/`.",
+          "pattern": "^[^/]",
+          "type": "string"
+        },
+        "url": {
+          "description": "Where git fetches another repository from, as a remote with no ASCII space or control character, in one of two forms: `scheme://` and at least one character, where the scheme is an ASCII letter followed by any ASCII letters, digits, `+`, `.` and `-`, such as `https://example.org/remote.git` or `file:///srv/remote.git`; or scp-like, `[user@]host:path`, where `host`, `path` and any `user` are non-empty, `user` and `host` hold no `/`, `@` or `:`, and the value doesn't start with a scheme and `://`, such as `git@example.org:remote.git`. The declared analysis is the one at the top level of that repository, at `commit`.",
+          "pattern": "^(?:[A-Za-z][A-Za-z0-9+.-]*://[^\\x00-\\x20\\x7f]+|(?![A-Za-z][A-Za-z0-9+.-]*://)(?:[^\\x00-\\x20\\x7f/@:]+@)?[^\\x00-\\x20\\x7f/@:]+:[^\\x00-\\x20\\x7f]+)$",
+          "type": "string"
+        }
+      },
+      "title": "AnalysisDeclaration",
+      "type": "object"
+    },
+    "Decision__identifier_optional": {
+      "additionalProperties": false,
+      "description": "A choice the analysis makes between options, such as which method to use.",
+      "properties": {
+        "label": {
+          "description": "Human-readable name for the decision",
+          "type": "string"
+        },
+        "options": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Option__identifier_optional"
+          },
+          "description": "The options the decision chooses between, keyed by id. There is at least one.",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "rationale": {
+          "description": "Why this decision exists",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Tags for grouping and categorizing",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "options"
+      ],
+      "title": "Decision",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "artifact": {
+                "type": "string"
+              },
+              "doi": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "doi": {}
+                },
+                "required": [
+                  "doi"
+                ]
+              },
+              {
+                "properties": {
+                  "artifact": {}
+                },
+                "required": [
+                  "artifact"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "doi": {}
+              },
+              "required": [
+                "doi"
+              ]
+            },
+            "properties": {
+              "doi": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "version": {}
+              },
+              "required": [
+                "version"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "What a claim rests on: a published work, cited by its `doi`, or an output, cited as an `artifact`. It has exactly one of the two, and a `version` only with a `doi`.",
+      "properties": {
+        "artifact": {
+          "description": "A reference to the cited output, written as in an output's `inputs`. It may pin the output to a universe, the one the claim is about, such as `output1#u1`. A switch is cited as the case it takes, and each of its cases names an output other than a switch, or a switch like it.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "doi": {
+          "description": "The DOI name of the cited work, under the `10` directory: `10.`, the registrant code, `/` and a non-empty suffix, such as `10.5555/12345678`.",
+          "pattern": "^10\\.[0-9]+(\\.[0-9]+)*/(?!$)",
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/FragmentSelector",
+          "description": "The place in the cited work or output the claim rests on, such as `page=6`."
+        },
+        "quote": {
+          "$ref": "#/$defs/TextQuoteSelector",
+          "description": "The passage of the cited work or output the claim rests on. With a `location`, the passage is sought within that place."
+        },
+        "version": {
+          "description": "The version of the cited work, counted from 1, such as `2` for the second version of an arXiv paper.",
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "title": "Evidence",
+      "type": "object"
+    },
+    "FragmentSelector": {
+      "additionalProperties": false,
+      "description": "A place in the cited work or output, given as a fragment identifier in the syntax `conforms_to` names, such as `row=5-7` in a CSV (RFC 7111). Without `conforms_to`, it is a PDF fragment identifier (RFC 8118 \u00a73), such as `page=6`, with pages counted from 1.",
+      "properties": {
+        "conforms_to": {
+          "description": "The IRI of the specification of the fragment syntax `value` follows, as W3C Web Annotation gives it, such as `http://tools.ietf.org/rfc/rfc7111` for a CSV. Without it, `value` is a PDF fragment identifier (RFC 8118).",
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\\x22{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\\x22{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$",
+          "type": "string"
+        },
+        "value": {
+          "description": "The fragment identifier, without the leading `#`, such as `page=6`. It is non-empty, holds no ASCII space or control character and none of `\"`, `#`, `<`, `>`, `[`, the backslash, `]`, `^`, the backtick, `{`, `|` and `}`, and has `%` only before two hex digits.",
+          "pattern": "^([^\\x00-\\x20\\x7f\\x22#%<>\\[\\\\\\]^`{|}]|%[0-9A-Fa-f]{2})+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "FragmentSelector",
+      "type": "object"
+    },
+    "Input__identifier_optional": {
+      "additionalProperties": false,
+      "description": "A file the analysis reads, tracked in git with it and named by its path.",
+      "properties": {
+        "description": {
+          "description": "Free-prose description of this input.",
+          "type": "string"
+        },
+        "label": {
+          "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+          "type": "string"
+        },
+        "path": {
+          "description": "The path of the input's file, relative to the folder of the `astra.yaml`, with `/` between folders. It is non-empty and doesn't start with `/`.",
+          "pattern": "^[^/]",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the input.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "Input",
+      "type": "object"
+    },
+    "Insight__identifier_optional": {
+      "additionalProperties": false,
+      "description": "A unit of scientific knowledge backed by evidence. Used for both prior_insights (informing decisions) and findings (conclusions from the analysis).",
+      "properties": {
+        "claim": {
+          "description": "What the insight asserts.",
+          "type": "string"
+        },
+        "description": {
+          "description": "The reasoning behind the claim, in free prose.",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "What the claim rests on, as a list. There is at least one.",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "label": {
+          "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+          "type": "string"
+        },
+        "scope": {
+          "description": "Applicability conditions",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Categorization tags",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "claim",
+        "evidence"
+      ],
+      "title": "Insight",
+      "type": "object"
+    },
+    "Option__identifier_optional": {
+      "additionalProperties": false,
+      "description": "One of the options a decision chooses between.",
+      "properties": {
+        "description": {
+          "description": "Free-prose description of this option.",
+          "type": "string"
+        },
+        "excluded": {
+          "description": "Why the option is ruled out. An option with a reason is excluded: no effective selection selects it.",
+          "type": "string"
+        },
+        "incompatible_with": {
+          "description": "The options that are never selected together with this option, among the decisions a universe uses.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "insights": {
+          "description": "The ids of the prior insights that support the option.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "label": {
+          "description": "Human-readable name for the option",
+          "type": "string"
+        },
+        "requires": {
+          "description": "The options that are also selected wherever this option is, among the decisions a universe uses: a decision it doesn't use selects none.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the option.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "Option",
+      "type": "object"
+    },
+    "OutputType": {
+      "description": "The kind of artefact an output is.",
+      "enum": [
+        "metric",
+        "figure",
+        "table",
+        "data",
+        "report"
+      ],
+      "title": "OutputType",
+      "type": "string"
+    },
+    "Output__identifier_optional": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "switch": {}
+              },
+              "required": [
+                "switch"
+              ]
+            },
+            "properties": {
+              "format": {
+                "type": "string"
+              },
+              "recipe": {
+                "type": "object"
+              },
+              "switch": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "format": {},
+              "recipe": {},
+              "type": {}
+            },
+            "required": [
+              "type",
+              "format",
+              "recipe"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cases": {
+                "type": "object"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "cases": {}
+            },
+            "required": [
+              "cases"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "cases": {
+                "type": "object"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "cases"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "switch": {}
+            },
+            "required": [
+              "switch"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "switch": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "type": {}
+              },
+              "required": [
+                "type"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "format": {
+                "type": "string"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "format": {}
+              },
+              "required": [
+                "format"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "inputs": {
+                "type": "array"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "inputs": {}
+              },
+              "required": [
+                "inputs"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decisions": {
+                "type": "array"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "decisions": {}
+              },
+              "required": [
+                "decisions"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "recipe": {
+                "type": "object"
+              },
+              "switch": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "switch"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "recipe": {}
+              },
+              "required": [
+                "recipe"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "An entry of `outputs`: an artefact the analysis makes, such as a metric, a figure or a table, with what it is, what it is made from and how; or a switch, which has a `switch` and `cases`, makes nothing, and is read as the case it takes.",
+      "properties": {
+        "cases": {
+          "additionalProperties": {
+            "description": "A reference to the input, output or switch the switch is read as where the option is selected, written as an entry of an output's `inputs` is, such as `stage.output3` or `output1#u1`.",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+            "type": "string"
+          },
+          "description": "For a switch, what it is read as where its decision selects each option that has a case, as `<option>: <reference>`, such as `b: stage.output3`. There is at least one, and several options can name one reference. Where its decision selects an option with no case, the switch isn't built, nor is anything that reads it without a pin.",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": "object"
+        },
+        "decisions": {
+          "description": "The addresses of the decisions whose option the output is made with directly, not through what it reads: a different option for any of them, in the universe being built, can give a different result.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "description": {
+          "description": "Free-prose description of this output.",
+          "type": "string"
+        },
+        "format": {
+          "description": "How the output's artefact is encoded, as a lowercase token: the extension of its results' files, without the leading dot, such as `png`, `csv` or `parquet`. Every output but a switch has one.",
+          "pattern": "^[a-z0-9][a-z0-9_.+-]*$",
+          "type": "string"
+        },
+        "inputs": {
+          "description": "What the output is made from, in order: references to inputs and outputs of the analysis or of analyses it declares, a switch read as the case it takes. A reference can be pinned to a universe with `#`.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "label": {
+          "description": "Short human-readable name for compact rendering (margin glyphs, breadcrumbs, card titles). Optional; tooling falls back to id when absent.",
+          "type": "string"
+        },
+        "recipe": {
+          "$ref": "#/$defs/Recipe",
+          "description": "How the output is made. Every output but a switch has one."
+        },
+        "switch": {
+          "description": "For a switch, the address of the decision whose selected option picks the case it takes, such as `decision1` or `stage.decision2`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the output.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "type": {
+          "$ref": "#/$defs/OutputType",
+          "description": "The kind of artefact the output is. Every output but a switch has one."
+        }
+      },
+      "title": "Output",
+      "type": "object"
+    },
+    "Recipe": {
+      "additionalProperties": false,
+      "description": "How an output is made: a `command` and the compute `resources` it asks for. What the output is made from and the decisions it is made with are the output's `inputs` and `decisions`; the command reaches the inputs and decisions through its placeholders.",
+      "properties": {
+        "command": {
+          "description": "The POSIX shell command that makes the output, such as `python src/output1.py`. It is a template. Read from the left, `{{` stands for a literal `{` and `}}` for a literal `}`, and any other `{` opens a placeholder, which ends at the next `}`. A runner substitutes each placeholder, and each `{{` and `}}`, before running the command:\n\n  {inputs.<entry>}     the path of what an entry of the output's\n                       `inputs` names (for a switch, what the case\n                       it takes names), with <entry> written\n                       exactly as the entry is, dots and `#`\n                       included, as in\n                       {inputs.subanalysis.output1#u1}\n  {decisions.<entry>}  the id of the option selected for the\n                       decision an entry of the output's\n                       `decisions` names, with <entry> written\n                       exactly as the entry is, as in\n                       {decisions.subanalysis.decision1}\n  {inputs}             the paths of all the output's inputs, in\n                       the order of `inputs`, separated by spaces\n  {output}             the path the result is written to\n\nEvery brace belongs to a `{{`, a `}}` or a placeholder, every placeholder takes one of these forms, and the <entry> of an {inputs.<entry>} or {decisions.<entry>} is an entry of the output's `inputs` or `decisions`, exactly as written.",
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/Resources",
+          "description": "Compute resource requirements (cpus, memory, time_limit, \u2026)"
+        }
+      },
+      "required": [
+        "command"
+      ],
+      "title": "Recipe",
+      "type": "object"
+    },
+    "Resources": {
+      "additionalProperties": false,
+      "description": "Compute resource requirements for a recipe. Values follow cloud-native conventions (string-with-units for sized quantities) so cluster executors can consume them directly.",
+      "properties": {
+        "cpus": {
+          "description": "CPU cores requested. Fractional values are allowed (e.g., 0.5) for runners that support CPU shares.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "disk": {
+          "description": "Disk requirement as a string with units (e.g., '10Gi', '500Mi').",
+          "type": "string"
+        },
+        "gpus": {
+          "description": "Number of GPUs",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "memory": {
+          "description": "Memory requirement as a string with units (e.g., '16Gi', '512Mi', '8GB').",
+          "type": "string"
+        },
+        "time_limit": {
+          "description": "Maximum wall time as a duration string (e.g., '2h', '30m', '1h30m').",
+          "type": "string"
+        }
+      },
+      "title": "Resources",
+      "type": "object"
+    },
+    "TextQuoteSelector": {
+      "additionalProperties": false,
+      "description": "W3C TextQuoteSelector for locating text in a document. The authoritative anchor for verification.",
+      "properties": {
+        "exact": {
+          "description": "The passage, exactly as the cited work or output writes it.",
+          "type": "string"
+        },
+        "prefix": {
+          "description": "~20-100 chars before for disambiguation",
+          "type": "string"
+        },
+        "suffix": {
+          "description": "~20-100 chars after for disambiguation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "exact"
+      ],
+      "title": "TextQuoteSelector",
+      "type": "object"
+    },
+    "Universe__identifier_optional": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "universe": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "universe": {}
+            },
+            "required": [
+              "universe"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "decisions": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "decisions": {}
+              },
+              "required": [
+                "decisions"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "derived_from": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "analysis"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "properties": {
+                "derived_from": {}
+              },
+              "required": [
+                "derived_from"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "analysis": {
+                "type": "string"
+              },
+              "universe": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "universe"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "analysis": {}
+            },
+            "required": [
+              "analysis"
+            ]
+          }
+        }
+      ],
+      "description": "An entry of `universes`: a universe of the analysis, a selection of one option for every decision it uses of the analysis and of every analysis, declared directly or not, that the analysis's universes drive, or an import, which has an `analysis` and a `universe`, names one of another analysis's universes and selects nothing. A universe's effective selection is the effective selection of the universe it is derived from, if any, with its own `decisions` written over it decision by decision.",
+      "properties": {
+        "analysis": {
+          "description": "For an import, the address of the declaration that leads to the analysis whose universe it imports, through as many declarations as lead to it, such as `subanalysis` or `stage.inner`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
+          "type": "string"
+        },
+        "decisions": {
+          "additionalProperties": {
+            "description": "The id of the option selected for the decision.",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "type": "string"
+          },
+          "description": "The options the universe selects, as `<decision>: <option>`, one key per decision. Each key is the id of a decision of the analysis or, for a decision of another analysis, a flat key: the decision's address through the declarations, `<declaration>.<decision>`, such as `subanalysis.decision1`, or another spelling of that address, through no declaration back to an analysis already on its chain.",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+          },
+          "type": "object"
+        },
+        "derived_from": {
+          "description": "The id of another universe of the analysis, never an import, whose effective selection this universe's effective selection is built on, so that this universe gives only the decisions it changes. The universe inherits only that selection.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "description": {
+          "description": "What the universe is, in free prose.",
+          "type": "string"
+        },
+        "label": {
+          "description": "A short display name for the universe.",
+          "type": "string"
+        },
+        "tags": {
+          "description": "Keywords for grouping and finding the universe.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "universe": {
+          "description": "For an import, the id of the universe it imports: a universe of the analysis that `analysis` leads to, never an import of that analysis.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        }
+      },
+      "title": "Universe",
+      "type": "object"
+    }
+  },
+  "$id": "https://w3id.org/astra/dev/analysis.schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": false,
+  "description": "An analysis: the files it reads, the artefacts it makes and the decisions it makes along the way. It is the content of an `astra.yaml` file.",
+  "properties": {
+    "analyses": {
+      "additionalProperties": {
+        "$ref": "#/$defs/AnalysisDeclaration__identifier_optional"
+      },
+      "description": "The analyses this analysis uses, keyed by the id it addresses them by.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "type": "object"
+    },
+    "decisions": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Decision__identifier_optional"
+      },
+      "description": "The choices the analysis makes, keyed by id.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "type": "object"
+    },
+    "description": {
+      "description": "Free-prose description of this analysis \u2014 the same optional field every other content object carries (Input, Output, Option, Universe). A short human orientation lives here; richer write-ups (figures, citations, multi-page reports) are authored externally and reference analysis elements by address rather than restating them.",
+      "type": "string"
+    },
+    "findings": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Insight__identifier_optional"
+      },
+      "description": "What the analysis concludes, as insights keyed by id.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "type": "object"
+    },
+    "inputs": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Input__identifier_optional"
+      },
+      "description": "The files the analysis reads, keyed by id.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "type": "object"
+    },
+    "label": {
+      "description": "Human-readable name for the analysis",
+      "type": "string"
+    },
+    "outputs": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Output__identifier_optional"
+      },
+      "description": "The artefacts the analysis makes, and its switches, keyed by id.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "type": "object"
+    },
+    "prior_insights": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Insight__identifier_optional"
+      },
+      "description": "What earlier work establishes and the analysis builds on, as insights keyed by id. Options cite them in their `insights`.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "type": "object"
+    },
+    "spec_version": {
+      "description": "The version of the ASTRA specification the document is written against, such as `0.1.0`.",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "type": "string"
+    },
+    "tags": {
+      "description": "Tags for categorization",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "universes": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Universe__identifier_optional"
+      },
+      "description": "The universes of the analysis, and the universes of other analyses it imports, keyed by id. An import has an `analysis` and a `universe`.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "spec_version"
+  ],
+  "title": "analysis",
+  "type": "object"
+}
