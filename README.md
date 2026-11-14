@@ -72,7 +72,6 @@ uv tool install astra-tools           # installs the `astra` CLI on your PATH
 astra init my-analysis && cd my-analysis
 astra validate
 astra info
-astra plan
 ```
 
 Full walk-through: **[Getting started →](https://astra-spec.org/latest/getting-started/)**
