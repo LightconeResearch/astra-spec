@@ -67,4 +67,4 @@ uv tool install 'astra-tools<0.3'
 - The [CLI reference](cli.md) describes every command.
 - [Tab completion](cli.md#astra-completion) for bash, zsh and fish is one line in your shell's
   startup file.
-- To work on astra-tools itself, see its [README](https://github.com/LightconeResearch/astra-tools#readme).
+- To work on astra-tools itself, see its [README](https://github.com/astra-project/astra-tools#readme).
