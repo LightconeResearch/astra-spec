@@ -1,0 +1,871 @@
+name: provenance
+description: 'The provenance record: what a runner writes for each result it makes,
+
+  saying what the result is and the run of the recipe that made it. Through
+
+  this schema a record maps onto W3C PROV-O.'
+id: https://w3id.org/astra/provenance
+version: dev
+imports:
+- linkml:types
+- types
+license: https://creativecommons.org/licenses/by/4.0/
+prefixes:
+  astra:
+    prefix_prefix: astra
+    prefix_reference: https://w3id.org/astra/
+  linkml:
+    prefix_prefix: linkml
+    prefix_reference: https://w3id.org/linkml/
+  prov:
+    prefix_prefix: prov
+    prefix_reference: http://www.w3.org/ns/prov#
+  schema:
+    prefix_prefix: schema
+    prefix_reference: http://schema.org/
+default_prefix: astra
+default_range: string
+types:
+  string:
+    name: string
+    definition_uri: https://w3id.org/linkml/String
+    description: A character string
+    notes:
+    - In RDF serializations, a slot with range of string is treated as a literal or
+      type xsd:string. If you are authoring schemas in LinkML YAML, the type is referenced
+      with the lower case "string".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Text
+    base: str
+    uri: xsd:string
+  integer:
+    name: integer
+    definition_uri: https://w3id.org/linkml/Integer
+    description: An integer
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "integer".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Integer
+    base: int
+    uri: xsd:integer
+  boolean:
+    name: boolean
+    definition_uri: https://w3id.org/linkml/Boolean
+    description: A binary (true or false) value
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "boolean".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Boolean
+    base: Bool
+    uri: xsd:boolean
+    repr: bool
+  float:
+    name: float
+    definition_uri: https://w3id.org/linkml/Float
+    description: A real number that conforms to the xsd:float specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "float".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Float
+    base: float
+    uri: xsd:float
+  double:
+    name: double
+    definition_uri: https://w3id.org/linkml/Double
+    description: A real number that conforms to the xsd:double specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "double".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    close_mappings:
+    - schema:Float
+    base: float
+    uri: xsd:double
+  decimal:
+    name: decimal
+    definition_uri: https://w3id.org/linkml/Decimal
+    description: A real number with arbitrary precision that conforms to the xsd:decimal
+      specification
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "decimal".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    broad_mappings:
+    - schema:Number
+    base: Decimal
+    uri: xsd:decimal
+  time:
+    name: time
+    definition_uri: https://w3id.org/linkml/Time
+    description: A time object represents a (local) time of day, independent of any
+      particular day
+    notes:
+    - URI is dateTime because OWL reasoners do not work with straight date or time
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "time".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Time
+    base: XSDTime
+    uri: xsd:time
+    repr: str
+  date:
+    name: date
+    definition_uri: https://w3id.org/linkml/Date
+    description: a date (year, month and day) in an idealized calendar
+    notes:
+    - URI is dateTime because OWL reasoners don't work with straight date or time
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "date".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:Date
+    base: XSDDate
+    uri: xsd:date
+    repr: str
+  datetime:
+    name: datetime
+    definition_uri: https://w3id.org/linkml/Datetime
+    description: The combination of a date and time
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "datetime".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    exact_mappings:
+    - schema:DateTime
+    base: XSDDateTime
+    uri: xsd:dateTime
+    repr: str
+  date_or_datetime:
+    name: date_or_datetime
+    definition_uri: https://w3id.org/linkml/DateOrDatetime
+    description: Either a date or a datetime
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "date_or_datetime".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: linkml:DateOrDatetime
+    repr: str
+  uriorcurie:
+    name: uriorcurie
+    definition_uri: https://w3id.org/linkml/Uriorcurie
+    description: a URI or a CURIE
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "uriorcurie".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: URIorCURIE
+    uri: xsd:anyURI
+    repr: str
+  curie:
+    name: curie
+    definition_uri: https://w3id.org/linkml/Curie
+    conforms_to: https://www.w3.org/TR/curie/
+    description: a compact URI
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "curie".
+    comments:
+    - in RDF serializations this MUST be expanded to a URI
+    - in non-RDF serializations MAY be serialized as the compact representation
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: Curie
+    uri: xsd:string
+    repr: str
+  uri:
+    name: uri
+    definition_uri: https://w3id.org/linkml/Uri
+    conforms_to: https://www.ietf.org/rfc/rfc3987.txt
+    description: a complete URI
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "uri".
+    comments:
+    - in RDF serializations a slot with range of uri is treated as a literal or type
+      xsd:anyURI unless it is an identifier or a reference to an identifier, in which
+      case it is translated directly to a node
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    close_mappings:
+    - schema:URL
+    base: URI
+    uri: xsd:anyURI
+    repr: str
+  ncname:
+    name: ncname
+    definition_uri: https://w3id.org/linkml/Ncname
+    description: Prefix part of CURIE
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "ncname".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: NCName
+    uri: xsd:string
+    repr: str
+  objectidentifier:
+    name: objectidentifier
+    definition_uri: https://w3id.org/linkml/Objectidentifier
+    description: A URI or CURIE that represents an object in the model.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "objectidentifier".
+    comments:
+    - Used for inheritance and type checking
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: ElementIdentifier
+    uri: shex:iri
+    repr: str
+  nodeidentifier:
+    name: nodeidentifier
+    definition_uri: https://w3id.org/linkml/Nodeidentifier
+    description: A URI, CURIE or BNODE that represents a node in a model.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "nodeidentifier".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: NodeIdentifier
+    uri: shex:nonLiteral
+    repr: str
+  jsonpointer:
+    name: jsonpointer
+    definition_uri: https://w3id.org/linkml/Jsonpointer
+    conforms_to: https://datatracker.ietf.org/doc/html/rfc6901
+    description: A string encoding a JSON Pointer. The value of the string MUST conform
+      to JSON Point syntax and SHOULD dereference to a valid object within the current
+      instance document when encoded in tree form.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "jsonpointer".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+  jsonpath:
+    name: jsonpath
+    definition_uri: https://w3id.org/linkml/Jsonpath
+    conforms_to: https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html
+    description: A string encoding a JSON Path. The value of the string MUST conform
+      to JSON Point syntax and SHOULD dereference to zero or more valid objects within
+      the current instance document when encoded in tree form.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "jsonpath".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+  sparqlpath:
+    name: sparqlpath
+    definition_uri: https://w3id.org/linkml/Sparqlpath
+    conforms_to: https://www.w3.org/TR/sparql11-query/#propertypaths
+    description: A string encoding a SPARQL Property Path. The value of the string
+      MUST conform to SPARQL syntax and SHOULD dereference to zero or more valid objects
+      within the current instance document when encoded as RDF.
+    notes:
+    - If you are authoring schemas in LinkML YAML, the type is referenced with the
+      lower case "sparqlpath".
+    from_schema: https://w3id.org/linkml/types
+    imported_from: linkml:types
+    base: str
+    uri: xsd:string
+    repr: str
+  id:
+    name: id
+    definition_uri: https://w3id.org/astra/Id
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_ID
+    description: "An id: a lowercase ASCII letter, then any number of lowercase ASCII\
+      \ letters, ASCII digits (`0`\u2013`9`) and underscores, such as `input1`."
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    structured_pattern:
+      syntax: ^{id}$
+      interpolated: true
+      partial_match: true
+  address:
+    name: address
+    definition_uri: https://w3id.org/astra/Address
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_REFERENCE
+    description: 'The address of an element: the ids of the declared analyses that
+      lead to it, if any, then the element''s own id, joined by `.`, such as `subanalysis.decision1`.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    structured_pattern:
+      syntax: ^{id}(\.{id})*$
+      interpolated: true
+      partial_match: true
+  reference:
+    name: reference
+    definition_uri: https://w3id.org/astra/Reference
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_REFERENCE
+    description: 'A reference to an element: its address, optionally followed by `#`
+      and a universe id, which pins the reference to that universe, such as `output1#u1`.
+      In an `astra.yaml`, the id is that of an entry of the file''s `universes` or,
+      where the file has no entry with that id, of a universe of the analysis whose
+      element the reference names.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    structured_pattern:
+      syntax: ^{id}(\.{id})*(#{id})?$
+      interpolated: true
+      partial_match: true
+  option_reference:
+    name: option_reference
+    definition_uri: https://w3id.org/astra/OptionReference
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_REFERENCE
+    description: 'A reference to an option: the address of its decision, then `.`
+      and the option''s id. The last segment is always the option, so `subanalysis.decision1.a`
+      is the option `a` of the decision `decision1` of the declared analysis `subanalysis`.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    structured_pattern:
+      syntax: ^{id}(\.{id})+$
+      interpolated: true
+      partial_match: true
+  commit_id:
+    name: commit_id
+    definition_uri: https://w3id.org/astra/CommitId
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_COMMIT
+    description: 'A full git commit id: 40 lowercase hexadecimal digits (SHA-1) or
+      64 (SHA-256).'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    pattern: ^([0-9a-f]{40}|[0-9a-f]{64})$
+  content_hash:
+    name: content_hash
+    definition_uri: https://w3id.org/astra/ContentHash
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: 'A SHA-256 digest of content: `sha256:` followed by 64 lowercase
+      hexadecimal digits.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    pattern: ^sha256:[0-9a-f]{64}$
+  spec_version:
+    name: spec_version
+    definition_uri: https://w3id.org/astra/SpecVersion
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: 'A version of the ASTRA specification, `MAJOR.MINOR.PATCH`: three
+      non-negative integers without leading zeros, joined by `.`, such as `0.1.0`.'
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    pattern: ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$
+  timestamp:
+    name: timestamp
+    definition_uri: https://w3id.org/astra/Timestamp
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: "A date and time in UTC to the millisecond, written `YYYY-MM-DDThh:mm:ss.sssZ`,\
+      \ with month 01\u201312, day 01\u201331, hour 00\u201323, and minute and second\
+      \ 00\u201359, such as `2026-10-26T14:00:00.000Z`."
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:dateTime
+    pattern: ^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\.[0-9]{3}Z$
+  iri:
+    name: iri
+    definition_uri: https://w3id.org/astra/Iri
+    annotations:
+      rule:
+        tag: rule
+        value: INVALID_VALUE
+    description: "An IRI, never a CURIE: a scheme (an ASCII letter, then any ASCII\
+      \ letters, digits, `+`, `.` and `-`), `:`, at least one character other than\
+      \ `#`, then optionally `#` and any characters other than `#`, such as `http://tools.ietf.org/rfc/rfc7111`.\
+      \ None of these characters is an ASCII space or control, a C1 control, `<`,\
+      \ `>`, `\"`, `{`, `}`, the vertical bar, the backslash, `^`, the backtick or\
+      \ a bidi formatting character U+200E, U+200F or U+202A\u2013U+202E, and `%`\
+      \ comes only before two hex digits."
+    from_schema: https://w3id.org/astra/types
+    typeof: string
+    base: str
+    uri: xsd:string
+    pattern: ^[A-Za-z][A-Za-z0-9+.-]*:([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})+(#([^\x00-\x20\x7f-\x9f<>\x22{}|\\^`%#\u200e\u200f\u202a-\u202e]|%[0-9A-Fa-f]{2})*)?$
+slots:
+  provenanceRecord__spec_version:
+    name: provenanceRecord__spec_version
+    description: The version of the ASTRA specification the record follows, such as
+      `0.1.0`.
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:spec_version
+    alias: spec_version
+    owner: ProvenanceRecord
+    domain_of:
+    - ProvenanceRecord
+    range: spec_version
+    required: true
+  provenanceRecord__address:
+    name: provenanceRecord__address
+    description: 'The result''s address, as the analysis it belongs to names it: the
+      output''s id after the ids of the driven declarations that lead to it, then,
+      for a result built in a universe, `#` and that universe''s own id, never an
+      import''s, such as `subanalysis.output1#u1`.'
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:address
+    alias: address
+    owner: ProvenanceRecord
+    domain_of:
+    - ProvenanceRecord
+    range: reference
+    required: true
+  provenanceRecord__content_hash:
+    name: provenanceRecord__content_hash
+    description: The SHA-256 digest of the result's file, never of something standing
+      in for it.
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:content_hash
+    alias: content_hash
+    owner: ProvenanceRecord
+    domain_of:
+    - ProvenanceRecord
+    range: content_hash
+    required: true
+  provenanceRecord__size:
+    name: provenanceRecord__size
+    description: The size of the result's file in bytes, never of something standing
+      in for it.
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:size
+    alias: size
+    owner: ProvenanceRecord
+    domain_of:
+    - ProvenanceRecord
+    range: integer
+    required: true
+    minimum_value: 0
+  provenanceRecord__generated_by:
+    name: provenanceRecord__generated_by
+    description: The run of the recipe that made the result.
+    from_schema: https://w3id.org/astra/provenance
+    mappings:
+    - prov:wasGeneratedBy
+    slot_uri: prov:wasGeneratedBy
+    alias: generated_by
+    owner: ProvenanceRecord
+    domain_of:
+    - ProvenanceRecord
+    range: Generation
+    required: true
+    inlined: true
+    inlined_as_list: true
+  generation__commit:
+    name: generation__commit
+    description: 'The full id of the git commit the recipe ran from: a commit of the
+      repository the record is committed in, the submodule''s own commit for a result
+      that belongs to an analysis in a submodule (the driver''s commit for what a
+      driver''s universes build). It pins every file of the code and every `astra.yaml`
+      in that repository: an analysis in a submodule of it through the commit the
+      submodule is pinned at, and an analysis from a commit through its declaration''s
+      `commit`.'
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:commit
+    alias: commit
+    owner: Generation
+    domain_of:
+    - Generation
+    range: commit_id
+    required: true
+  generation__inputs:
+    name: generation__inputs
+    description: 'What the recipe read: one item for each entry the output''s `inputs`
+      lists in the `astra.yaml` files at the record''s `commit`, and no other item,
+      matched by `entry`; the order of the items carries no meaning. A later change
+      to the list makes the result `stale`, not `missing`.'
+    from_schema: https://w3id.org/astra/provenance
+    mappings:
+    - prov:used
+    slot_uri: prov:used
+    alias: inputs
+    owner: Generation
+    domain_of:
+    - Generation
+    range: RecordedInput
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+  generation__environment:
+    name: generation__environment
+    description: The environment the recipe ran in.
+    from_schema: https://w3id.org/astra/provenance
+    mappings:
+    - prov:used
+    slot_uri: prov:used
+    alias: environment
+    owner: Generation
+    domain_of:
+    - Generation
+    range: Environment
+    required: true
+    inlined: true
+    inlined_as_list: false
+  generation__runner:
+    name: generation__runner
+    description: The runner that ran the recipe.
+    from_schema: https://w3id.org/astra/provenance
+    mappings:
+    - prov:wasAssociatedWith
+    slot_uri: prov:wasAssociatedWith
+    alias: runner
+    owner: Generation
+    domain_of:
+    - Generation
+    range: Runner
+    required: true
+    inlined: true
+    inlined_as_list: true
+  generation__started:
+    name: generation__started
+    description: When the recipe started, in UTC to the millisecond, such as `2026-10-26T14:00:00.000Z`.
+    from_schema: https://w3id.org/astra/provenance
+    mappings:
+    - prov:startedAtTime
+    slot_uri: prov:startedAtTime
+    alias: started
+    owner: Generation
+    domain_of:
+    - Generation
+    range: timestamp
+  generation__finished:
+    name: generation__finished
+    description: When the recipe finished, in UTC to the millisecond, such as `2026-10-26T14:00:02.000Z`.
+    from_schema: https://w3id.org/astra/provenance
+    mappings:
+    - prov:endedAtTime
+    slot_uri: prov:endedAtTime
+    alias: finished
+    owner: Generation
+    domain_of:
+    - Generation
+    range: timestamp
+  recordedInput__entry:
+    name: recordedInput__entry
+    description: The entry exactly as the output's `inputs` lists it in the `astra.yaml`
+      files at the record's `commit`, such as `input1`.
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:entry
+    alias: entry
+    owner: RecordedInput
+    domain_of:
+    - RecordedInput
+    range: reference
+    required: true
+  recordedInput__content_hash:
+    name: recordedInput__content_hash
+    description: The SHA-256 digest of the content the recipe read through the entry,
+      another output's result or the file an input names, never of something standing
+      in for it.
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:content_hash
+    alias: content_hash
+    owner: RecordedInput
+    domain_of:
+    - RecordedInput
+    range: content_hash
+    required: true
+  recordedInput__size:
+    name: recordedInput__size
+    description: The size in bytes of the content the recipe read through the entry,
+      never of something standing in for it.
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:size
+    alias: size
+    owner: RecordedInput
+    domain_of:
+    - RecordedInput
+    range: integer
+    required: true
+    minimum_value: 0
+  environment__iri:
+    name: environment__iri
+    description: "An IRI naming exactly that environment, enough for its runner, at\
+      \ the version the record gives, to recreate it, such as a `urn:` IRI (`urn:example:env:sha256:\u2026\
+      `) or one in a scheme of the runner's own."
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:iri
+    identifier: true
+    alias: iri
+    owner: Environment
+    domain_of:
+    - Environment
+    range: iri
+    required: true
+  runner__id:
+    name: runner__id
+    description: The runner's name, such as `example-runner`.
+    from_schema: https://w3id.org/astra/provenance
+    slot_uri: astra:id
+    alias: id
+    owner: Runner
+    domain_of:
+    - Runner
+    range: string
+    required: true
+  runner__version:
+    name: runner__version
+    description: The runner's version, such as `1.2.0`.
+    from_schema: https://w3id.org/astra/provenance
+    mappings:
+    - schema:softwareVersion
+    slot_uri: schema:softwareVersion
+    alias: version
+    owner: Runner
+    domain_of:
+    - Runner
+    range: string
+    required: true
+classes:
+  ProvenanceRecord:
+    name: ProvenanceRecord
+    definition_uri: https://w3id.org/astra/ProvenanceRecord
+    description: 'The provenance of one result, which the runner that made it writes
+      as JSON: what the result is and the run of the recipe that made it. Read as
+      RDF, its top-level node stands for the result.'
+    from_schema: https://w3id.org/astra/provenance
+    exact_mappings:
+    - prov:Entity
+    slots:
+    - provenanceRecord__spec_version
+    - provenanceRecord__address
+    - provenanceRecord__content_hash
+    - provenanceRecord__size
+    - provenanceRecord__generated_by
+    attributes:
+      spec_version:
+        name: spec_version
+        description: The version of the ASTRA specification the record follows, such
+          as `0.1.0`.
+        range: spec_version
+        required: true
+      address:
+        name: address
+        description: 'The result''s address, as the analysis it belongs to names it:
+          the output''s id after the ids of the driven declarations that lead to it,
+          then, for a result built in a universe, `#` and that universe''s own id,
+          never an import''s, such as `subanalysis.output1#u1`.'
+        range: reference
+        required: true
+      content_hash:
+        name: content_hash
+        description: The SHA-256 digest of the result's file, never of something standing
+          in for it.
+        range: content_hash
+        required: true
+      size:
+        name: size
+        description: The size of the result's file in bytes, never of something standing
+          in for it.
+        range: integer
+        required: true
+        minimum_value: 0
+      generated_by:
+        name: generated_by
+        description: The run of the recipe that made the result.
+        slot_uri: prov:wasGeneratedBy
+        range: Generation
+        required: true
+        inlined: true
+    class_uri: prov:Entity
+    tree_root: true
+  Generation:
+    name: Generation
+    definition_uri: https://w3id.org/astra/Generation
+    description: 'A run of an output''s recipe: the commit it ran from, what it read,
+      the environment it ran in and the runner that ran it.'
+    from_schema: https://w3id.org/astra/provenance
+    exact_mappings:
+    - prov:Activity
+    slots:
+    - generation__commit
+    - generation__inputs
+    - generation__environment
+    - generation__runner
+    - generation__started
+    - generation__finished
+    attributes:
+      commit:
+        name: commit
+        description: 'The full id of the git commit the recipe ran from: a commit
+          of the repository the record is committed in, the submodule''s own commit
+          for a result that belongs to an analysis in a submodule (the driver''s commit
+          for what a driver''s universes build). It pins every file of the code and
+          every `astra.yaml` in that repository: an analysis in a submodule of it
+          through the commit the submodule is pinned at, and an analysis from a commit
+          through its declaration''s `commit`.'
+        range: commit_id
+        required: true
+      inputs:
+        name: inputs
+        description: 'What the recipe read: one item for each entry the output''s
+          `inputs` lists in the `astra.yaml` files at the record''s `commit`, and
+          no other item, matched by `entry`; the order of the items carries no meaning.
+          A later change to the list makes the result `stale`, not `missing`.'
+        slot_uri: prov:used
+        range: RecordedInput
+        multivalued: true
+        inlined_as_list: true
+      environment:
+        name: environment
+        description: The environment the recipe ran in.
+        slot_uri: prov:used
+        range: Environment
+        required: true
+        inlined: true
+      runner:
+        name: runner
+        description: The runner that ran the recipe.
+        slot_uri: prov:wasAssociatedWith
+        range: Runner
+        required: true
+        inlined: true
+      started:
+        name: started
+        description: When the recipe started, in UTC to the millisecond, such as `2026-10-26T14:00:00.000Z`.
+        slot_uri: prov:startedAtTime
+        range: timestamp
+      finished:
+        name: finished
+        description: When the recipe finished, in UTC to the millisecond, such as
+          `2026-10-26T14:00:02.000Z`.
+        slot_uri: prov:endedAtTime
+        range: timestamp
+    class_uri: prov:Activity
+  RecordedInput:
+    name: RecordedInput
+    definition_uri: https://w3id.org/astra/RecordedInput
+    description: 'One of the output''s inputs, as the recipe read it: the entry, and
+      the content hash and size of what the recipe read through it.'
+    from_schema: https://w3id.org/astra/provenance
+    exact_mappings:
+    - prov:Entity
+    slots:
+    - recordedInput__entry
+    - recordedInput__content_hash
+    - recordedInput__size
+    attributes:
+      entry:
+        name: entry
+        description: The entry exactly as the output's `inputs` lists it in the `astra.yaml`
+          files at the record's `commit`, such as `input1`.
+        range: reference
+        required: true
+      content_hash:
+        name: content_hash
+        description: The SHA-256 digest of the content the recipe read through the
+          entry, another output's result or the file an input names, never of something
+          standing in for it.
+        range: content_hash
+        required: true
+      size:
+        name: size
+        description: The size in bytes of the content the recipe read through the
+          entry, never of something standing in for it.
+        range: integer
+        required: true
+        minimum_value: 0
+    class_uri: prov:Entity
+  Environment:
+    name: Environment
+    definition_uri: https://w3id.org/astra/Environment
+    description: The environment a recipe ran in, named by an IRI.
+    from_schema: https://w3id.org/astra/provenance
+    exact_mappings:
+    - prov:Entity
+    slots:
+    - environment__iri
+    attributes:
+      iri:
+        name: iri
+        description: "An IRI naming exactly that environment, enough for its runner,\
+          \ at the version the record gives, to recreate it, such as a `urn:` IRI\
+          \ (`urn:example:env:sha256:\u2026`) or one in a scheme of the runner's own."
+        identifier: true
+        range: iri
+        required: true
+    class_uri: prov:Entity
+  Runner:
+    name: Runner
+    definition_uri: https://w3id.org/astra/Runner
+    description: The software that ran the recipe and wrote the record.
+    from_schema: https://w3id.org/astra/provenance
+    exact_mappings:
+    - prov:SoftwareAgent
+    slots:
+    - runner__id
+    - runner__version
+    attributes:
+      id:
+        name: id
+        description: The runner's name, such as `example-runner`.
+        required: true
+      version:
+        name: version
+        description: The runner's version, such as `1.2.0`.
+        slot_uri: schema:softwareVersion
+        required: true
+    class_uri: prov:SoftwareAgent
+metamodel_version: 1.12.0
+source_file: provenance.yaml
+source_file_date: '2026-11-14T10:57:58'
+source_file_size: 6123
+
