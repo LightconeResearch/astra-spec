@@ -474,17 +474,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#extras" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Extras
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#which-astra-it-reads" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -904,17 +893,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#extras" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Extras
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#which-astra-it-reads" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -972,8 +950,7 @@ environments:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>astra-tools
 </span></code></pre></div>
 <p>While astra-tools for ASTRA 0.1 has only release candidates, uv and pip skip them. Ask for them
-with <code>uv tool install --prerelease allow astra-tools</code>, or <code>pip install --pre astra-tools</code>. The
-extra's line below takes the same option.</p>
+with <code>uv tool install --prerelease allow astra-tools</code>, or <code>pip install --pre astra-tools</code>.</p>
 <p>To run it once without installing it, name the version:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>uvx<span class="w"> </span>astra-tools@&lt;version&gt;<span class="w"> </span>validate
 </span></code></pre></div>
@@ -981,33 +958,13 @@ extra's line below takes the same option.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>astra<span class="w"> </span>--version
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>astra<span class="w"> </span>--help
 </span></code></pre></div>
-<h2 id="extras">Extras<a class="headerlink" href="#extras" title="Permanent link">&para;</a></h2>
-<p>One command needs more libraries, which an extra brings:</p>
-<table>
-<thead>
-<tr>
-<th>Extra</th>
-<th>For</th>
-<th>Brings</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>reference</code></td>
-<td><a href="../cli/#astra-spec"><code>astra spec</code></a></td>
-<td>linkml-runtime</td>
-</tr>
-</tbody>
-</table>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;astra-tools[reference]&#39;</span>
-</span></code></pre></div>
 <h2 id="which-astra-it-reads">Which ASTRA it reads<a class="headerlink" href="#which-astra-it-reads" title="Permanent link">&para;</a></h2>
 <p>astra-tools reads ASTRA 0.1 files, those whose <code>spec_version</code> is <code>0.1.x</code>. It installs the
 schemas and rules of the specification with it, as the <code>astra-spec</code> package. A file written for
 ASTRA 0.0.x states its version as <code>version:</code>, and fails the schema checks: <code>MISSING_FIELD</code> for
 <code>spec_version</code>, <code>UNKNOWN_FIELD</code> for <code>version</code>, and others. The 0.2 line of astra-tools reads such
 a file as it is:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;astra-tools&lt;0.3&#39;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;astra-tools&lt;0.3&#39;</span>
 </span></code></pre></div>
 <h2 id="next">Next<a class="headerlink" href="#next" title="Permanent link">&para;</a></h2>
 <ul>
