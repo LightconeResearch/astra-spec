@@ -1,0 +1,151 @@
+{
+  "$comment": "provenance schema version dev",
+  "$defs": {
+    "Environment": {
+      "additionalProperties": true,
+      "description": "The environment a recipe ran in, named by an IRI.",
+      "properties": {
+        "iri": {
+          "description": "An IRI naming exactly that environment, enough for its runner, at the version the record gives, to recreate it, such as a `urn:` IRI (`urn:example:env:sha256:\u2026`) or one in a scheme of the runner's own.",
+          "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:([^\\x00-\\x20\\x7f-\\x9f<>\\x22{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})+(#([^\\x00-\\x20\\x7f-\\x9f<>\\x22{}|\\\\^`%#\\u200e\\u200f\\u202a-\\u202e]|%[0-9A-Fa-f]{2})*)?$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "iri"
+      ],
+      "title": "Environment",
+      "type": "object"
+    },
+    "Generation": {
+      "additionalProperties": true,
+      "description": "A run of an output's recipe: the commit it ran from, what it read, the environment it ran in and the runner that ran it.",
+      "properties": {
+        "commit": {
+          "description": "The full id of the git commit the recipe ran from: a commit of the repository the record is committed in, the submodule's own commit for a result that belongs to an analysis in a submodule (the driver's commit for what a driver's universes build). It pins every file of the code and every `astra.yaml` in that repository: an analysis in a submodule of it through the commit the submodule is pinned at, and an analysis from a commit through its declaration's `commit`.",
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "environment": {
+          "$ref": "#/$defs/Environment",
+          "description": "The environment the recipe ran in."
+        },
+        "finished": {
+          "description": "When the recipe finished, in UTC to the millisecond, such as `2026-10-26T14:00:02.000Z`.",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
+          "type": "string"
+        },
+        "inputs": {
+          "description": "What the recipe read: one item for each entry the output's `inputs` lists in the `astra.yaml` files at the record's `commit`, and no other item, matched by `entry`; the order of the items carries no meaning. A later change to the list makes the result `stale`, not `missing`.",
+          "items": {
+            "$ref": "#/$defs/RecordedInput"
+          },
+          "type": "array"
+        },
+        "runner": {
+          "$ref": "#/$defs/Runner",
+          "description": "The runner that ran the recipe."
+        },
+        "started": {
+          "description": "When the recipe started, in UTC to the millisecond, such as `2026-10-26T14:00:00.000Z`.",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commit",
+        "environment",
+        "runner"
+      ],
+      "title": "Generation",
+      "type": "object"
+    },
+    "RecordedInput": {
+      "additionalProperties": true,
+      "description": "One of the output's inputs, as the recipe read it: the entry, and the content hash and size of what the recipe read through it.",
+      "properties": {
+        "content_hash": {
+          "description": "The SHA-256 digest of the content the recipe read through the entry, another output's result or the file an input names, never of something standing in for it.",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "entry": {
+          "description": "The entry exactly as the output's `inputs` lists it in the `astra.yaml` files at the record's `commit`, such as `input1`.",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+          "type": "string"
+        },
+        "size": {
+          "description": "The size in bytes of the content the recipe read through the entry, never of something standing in for it.",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "entry",
+        "content_hash",
+        "size"
+      ],
+      "title": "RecordedInput",
+      "type": "object"
+    },
+    "Runner": {
+      "additionalProperties": true,
+      "description": "The software that ran the recipe and wrote the record.",
+      "properties": {
+        "id": {
+          "description": "The runner's name, such as `example-runner`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "The runner's version, such as `1.2.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ],
+      "title": "Runner",
+      "type": "object"
+    }
+  },
+  "$id": "https://w3id.org/astra/dev/provenance.open.schema.json",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": true,
+  "description": "The provenance of one result, which the runner that made it writes as JSON: what the result is and the run of the recipe that made it. Read as RDF, its top-level node stands for the result.",
+  "properties": {
+    "address": {
+      "description": "The result's address, as the analysis it belongs to names it: the output's id after the ids of the driven declarations that lead to it, then, for a result built in a universe, `#` and that universe's own id, never an import's, such as `subanalysis.output1#u1`.",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*(#[a-z][a-z0-9_]*)?$",
+      "type": "string"
+    },
+    "content_hash": {
+      "description": "The SHA-256 digest of the result's file, never of something standing in for it.",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "generated_by": {
+      "$ref": "#/$defs/Generation",
+      "description": "The run of the recipe that made the result."
+    },
+    "size": {
+      "description": "The size of the result's file in bytes, never of something standing in for it.",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "spec_version": {
+      "description": "The version of the ASTRA specification the record follows, such as `0.1.0`.",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "spec_version",
+    "address",
+    "content_hash",
+    "size",
+    "generated_by"
+  ],
+  "title": "provenance",
+  "type": "object"
+}
