@@ -608,9 +608,10 @@ folder `analysis/`, and its paths are relative.
 
 Each rule has a code, a level (MUST or SHOULD, as in BCP 14) and a layer, set
 by what its tool sees: one file (parse, schema), the stack's files and git
-(validator), also records and results (check), or its own runs (runner). The
+(validator), also records and results (check), also the works evidence cites
+(evidence), or its own runs (runner). The
 driving analysis's **stack** is it and every analysis it declares, directly or
-not. In the first four layers a broken MUST is an error and a broken SHOULD a warning;
+not. In the first five layers a broken MUST is an error and a broken SHOULD a warning;
 a runner that breaks a MUST doesn't conform. A file is **valid** if it breaks
 no parse or schema rule, read by the schema of its `spec_version`'s minor
 version (`0.1` for `0.1.2`); an analysis is valid if no analysis of its stack
@@ -688,6 +689,8 @@ after the arrow. Rows that share a code are cases of one rule.
 | `STALE_RESULT` | MUST | Nothing the result is made from has changed since its record's commit → `stale` |
 | `ABSENT_RESULT` | SHOULD | Its recorded bytes are at its default place, bar an unread result from a commit → `absent` |
 | `STALE_EVIDENCE` | MUST | Evidence citing a result cites an unchanged one → the result's record status |
+| **evidence** | | |
+| `QUOTE_NOT_FOUND` | MUST | A `quote`'s `exact`, in evidence citing a `doi`, is in that work's text, within the place its `location` gives, if any |
 | **runner** | | |
 | `UNRECORDED_RESULT` | MUST | A runner writes each result it makes: a record at each place, bytes at each default place |
 | `FALSE_RECORD` | MUST | Every field of a record a runner writes is true of its run |

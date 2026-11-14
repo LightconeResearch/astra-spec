@@ -193,7 +193,7 @@ The chain *option → insight → evidence → DOI* is what gives a decision an 
 astra paper verify .
 ```
 
-Papers are kept in a cache under `~/.cache/astra/papers/`. `astra paper add` puts one there, and `astra paper list` shows which cited papers the cache holds. A paper missing from the cache, or a quote not found, is a warning, never an error.
+Papers are kept in a cache under `~/.cache/astra/papers/`. `astra paper add` puts one there, and `astra paper list` shows which cited papers the cache holds. A quote not found in its paper breaks the rule `QUOTE_NOT_FOUND`, an error. A paper missing from the cache is a warning: its quotes can't be sought until `astra paper add` keeps it.
 
 Artifact-backed evidence (typical for `findings:`) cites an output's results rather than a paper: `astra paper verify` leaves it alone, and [`astra check`](cli.md#astra-check) gives it the status of the results it cites.
 
