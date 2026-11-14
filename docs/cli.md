@@ -12,7 +12,8 @@ records, and `astra` reads them.
 
 - **PATH** is an analysis's folder, the current folder by default. Nothing is searched for: the
   analysis is the `astra.yaml` in that folder, the root of its
-  [stack](https://astra-spec.org/0.1/specification/#rules).
+  [stack](https://astra-spec.org/0.1/specification/#rules). `validate` takes an `astra.yaml` or
+  its folder, and `info -f` an `astra.yaml`, found in the current folder or above by default.
 - **Exit codes:**
     - 0 when the command answers;
     - 1 when the analysis breaks a `MUST`, a planned result isn't `unchanged`, or what was
@@ -24,8 +25,11 @@ records, and `astra` reads them.
   code is a rule of the specification, listed under [Rules](https://astra-spec.org/0.1/specification/#rules),
   or one of astra-tools' own three, which `astra rules` lists. `astra paper verify` adds two
   warnings of its own. `NO_COLOR` turns colour off.
-- **JSON.** `validate`, `plan`, `view` and `check` take `--json`. Each JSON document names its
-  shape, such as `astra-validation-report/1`, and a shape changes only under a new name.
+- **JSON.** `plan`, `view` and `check` take `--json`. Each JSON document names its shape, such
+  as `astra-plan/1`, and a shape changes only under a new name. `validate --json` and `info
+  --json` print their text as one JSON-encoded string, with no ANSI escape, safe to embed in any
+  JSON document; `init --json` prints its convergence report, and `paper verify-quotes` reads
+  and writes JSON.
 - **The cache** keeps the commits fetched from remotes, the validity of analyses from a commit,
   the hashes of files, the checkouts runners make for their runs, and papers. It sits outside
   every repository, and everything in it is safe to delete. `ASTRA_CACHE_DIR`, an absolute
@@ -53,24 +57,35 @@ a commit, and fits a line to noisy-line's points two ways: by least squares, in 
 | [`astra spec`](#astra-spec) | Describe the fields of ASTRA files |
 | [`astra schema`](#astra-schema) | Show or export the JSON Schemas |
 | [`astra guide`](#astra-guide) | Print the guide for agents |
-| [`astra paper`](#astra-paper) | Keep cited papers, and seek quotes in them |
+| [`astra paper`](#astra-paper) | Keep papers by DOI, and verify quotes in them |
 | [`astra cache`](#astra-cache) | Show or clear the cache |
 | [`astra completion`](#astra-completion) | Print a shell completion script |
 
 ## `astra init`
 
 ```
-astra init [DIR]
+astra init [DIRECTORY] [--no-git] [--check] [--json]
 ```
 
-Makes an `astra.yaml` in DIR, the current folder by default, with a `spec_version` and one
-output. Where no git repository holds DIR, it becomes a new one. Exits 2 where DIR already has
-an `astra.yaml`.
+Converges DIRECTORY, the current folder by default, into a minimal analysis. It creates whatever
+is missing (an `astra.yaml` with a `spec_version` and one output, a `.gitignore`, and a git
+repository with a first commit) and never overwrites a file, so it is safe to run again; a
+folder that already holds an `astra.yaml`, or any other file, is adopted. Where a git repository
+already holds DIRECTORY, no new one is made inside it. Universes, if any, are written in
+`astra.yaml`.
+
+| Option | Meaning |
+|---|---|
+| `--no-git` | Make no git repository |
+| `--check` | Write nothing: say what would be created, and exit 1 if anything would |
+| `--json` | Print the convergence report as JSON: `converged`, and the lists `created`, `repaired`, `unchanged` and `warnings` |
 
 ```console
 $ astra init my-analysis
-Made my-analysis/astra.yaml, in a new git repository.
-Check it with: astra validate my-analysis
+✓ created astra.yaml
+✓ created .gitignore
+✓ created .git
+✓ Converged ASTRA analysis scaffold: my-analysis
 $ cat my-analysis/astra.yaml
 spec_version: "0.1.0"
 outputs:
@@ -84,18 +99,22 @@ outputs:
 ## `astra validate`
 
 ```
-astra validate [PATH] [--json] [--offline]
+astra validate [FILE] [-e|--verify-evidence] [--skip-evidence] [--json] [--offline]
 ```
 
 Checks every parse, schema and validator rule
-([Rules](https://astra-spec.org/0.1/specification/#rules)) over the whole stack: the
-analysis in PATH and every analysis it declares, at their commits. It reads no results; `astra
-check` does. Exits 0 when the analysis is valid and 1 when it breaks a `MUST`. A `SHOULD`
-that is broken is a warning and doesn't change the exit code.
+([Rules](https://astra-spec.org/0.1/specification/#rules)) over the whole stack: the analysis
+FILE names, an `astra.yaml` or its folder, and every analysis it declares, at their commits.
+With no FILE, it validates every root analysis under the current folder: each `astra.yaml` that
+no other one declares, hidden, vendored and `results/` folders skipped, and ends with a summary.
+It reads no results; `astra check` does. Exits 0 when every analysis is valid and 1 when one
+breaks a `MUST`. A `SHOULD` that is broken is a warning and doesn't change the exit code.
 
 | Option | Meaning |
 |---|---|
-| `--json` | Print the report as JSON (`astra-validation-report/1`) |
+| `-e`, `--verify-evidence` | Also seek each quote the evidence takes from a paper, as [`astra paper verify`](#astra-paper) does; the papers must be in the cache |
+| `--skip-evidence` | Say nothing of the evidence: without it, an analysis whose evidence quotes papers gets a note to run with `--verify-evidence` |
+| `--json` | Print the report as one JSON-encoded string; the exit code is unchanged |
 | `--offline` | Fetch nothing: use only the commits already in the cache |
 
 An analysis declared by `url` and `commit` is fetched into the cache, once.
@@ -106,17 +125,21 @@ astra.yaml
   4:11 error MISSING_INPUT_FILE `data.csv` names no file, and no stand-in of Git LFS, git-annex, DVC
   10:17 error UNRESOLVED_ADDRESS `method` names nothing: this analysis has no decision `method`
 astra.yaml: invalid, 2 error(s), 0 warning(s)
+
+1/1 analysis(es) failed validation: astra.yaml
 ```
 
 ## `astra info`
 
 ```
-astra info [PATH]
+astra info [-f FILE] [-d] [-i] [-o] [--json]
 ```
 
-Shows each analysis of the stack, the root first, with its declarations, inputs, outputs,
-decisions and universes. A switch shows the decision it switches on and its cases. It checks
-nothing, and prints text only.
+Shows each analysis of the stack of FILE, by default the `astra.yaml` in the current folder or
+the nearest folder above, the root first, with its declarations, inputs, outputs, decisions and
+universes; with `-d` (`--decisions`), `-i` (`--inputs`) or `-o` (`--outputs`), only those rows.
+A switch shows the decision it switches on and its cases. It checks nothing. `--json` prints the
+text as one JSON-encoded string. Exits 1 where there is no `astra.yaml`, or no stack to show.
 
 ```console
 $ astra info
@@ -345,12 +368,14 @@ An input's `path` names a file (no symlink, folder or gitlink) or a stand-in
 ## `astra spec`
 
 ```
-astra spec [TERM]
+astra spec [TERM] [--full]
 ```
 
 Describes the fields of ASTRA files, from the specification's schema. Without TERM, it lists
 every class, enum and type with its first sentence. With TERM, in any case, it shows a class,
-enum or type in full, a field of every class that has it, or one field as `Class.field`.
+enum or type in full, a field of every class that has it, or one field as `Class.field`. `--full`
+shows every class, enum and type in full (long). A TERM that names nothing exits 1, with the
+valid terms.
 
 ## `astra schema`
 
@@ -374,22 +399,28 @@ Prints astra-spec's guide for agents, `llms.txt`, as it is.
 ## `astra paper`
 
 ```
-astra paper add DOI [--version N] [--file PDF] [--email ADDRESS]
-astra paper list [PATH]
+astra paper add DOI [-v N] [--pdf PATH] [--email ADDRESS]
+astra paper list
+astra paper show DOI [-v N]
+astra paper path DOI [-v N]
+astra paper verify-quotes DOI [-v N]
 astra paper verify [PATH]
 astra paper seek DOI QUOTE... [--version N] [--page N]
 ```
 
-Keeps the papers that an analysis's evidence cites by DOI in the cache, and seeks its quotes in
-them ([Elements](https://astra-spec.org/0.1/specification/#elements)), or quotes you give. A
-quote is sought within the page its location gives (`page=6`), or in the whole text. For
+Keeps papers in the cache, by DOI and version (`-v`, `--version`), and seeks quotes in them: the
+quotes an analysis's evidence takes from the works it cites
+([Elements](https://astra-spec.org/0.1/specification/#elements)), or quotes you give. For
 `verify`, a paper not in the cache (`EVIDENCE_PAPER_MISSING`), or a quote not found
 (`EVIDENCE_QUOTE_NOT_FOUND`), is a warning, never an error.
 
 | Command | What it does |
 |---|---|
-| `add DOI` | Keeps the paper of DOI. An arXiv DOI (`10.48550/arXiv.<id>`) is fetched from arXiv, at `--version` where given; any other from the open-access copy Unpaywall knows, which asks for `--email`. `--file` keeps a PDF you have instead. Exits 2 where the paper can't be got or isn't a PDF |
-| `list` | Lists each work the analysis's evidence cites by DOI, and whether its paper is in the cache |
+| `add DOI` | Keeps the paper of DOI. An arXiv DOI (`10.48550/arXiv.<id>`) is fetched from arXiv, at `--version` where given; any other from the open-access copy Unpaywall knows, which asks for `--email`. `--pdf` keeps a PDF you have instead. A paper already in the cache is left as it is. Exits 2 where the paper can't be got or isn't a PDF |
+| `list` | Lists every paper in the cache: its DOI, version, title and when it was kept |
+| `show DOI` | Shows a cached paper: its title and authors (from doi.org, for a paper fetched), SHA-256, when and where from it was kept, and its file. Exits 1 where it isn't in the cache |
+| `path DOI` | Prints the path of a cached paper's PDF, for a tool or an agent that reads it. Exits 1 where it isn't in the cache |
+| `verify-quotes DOI` | Seeks quotes given as JSON on stdin, `{"quotes": [{"text": "…", "page": N, "prefix": "…", "suffix": "…"}]}`, in the whole text of the paper of DOI, and prints `{"doi", "version", "results", "summary"}`: each quote `verified`, with the pages it is found on, `not_found` or `error`. Exits 0 when every quote is verified, 1 when one isn't, and 2 where the paper isn't in the cache or the input isn't JSON |
 | `verify` | Seeks each quote the analysis's evidence takes from a work it cites by DOI. Exits 0 whatever it finds |
 | `seek DOI QUOTE...` | Seeks each QUOTE in the paper of DOI that `add` kept, as `verify` would, with no analysis: within `--page` where given, or in the whole text. Shows the pages each quote is found on, which a location such as `page=6` can give. Exits 1 when a quote isn't found, and 2 where the paper isn't in the cache or has no page `--page` |
 
